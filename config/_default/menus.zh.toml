@@ -1,0 +1,38 @@
+############# 中文导航 ##############
+
+# 主菜单
+[[main]]
+name = "首页"
+url = "/zh/"
+weight = 1
+
+[[main]]
+name = "关于"
+url = "/zh/about/"
+weight = 2
+
+[[main]]
+name = "博客"
+url = "/zh/blog/"
+weight = 3
+
+[[main]]
+name = "分类"
+url = "/zh/categories/"
+weight = 4
+
+[[main]]
+name = "联系"
+url = "/zh/contact/"
+weight = 5
+
+# 页脚菜单
+[[footer]]
+name = "关于"
+url = "/zh/about/"
+weight = 1
+
+[[footer]]
+name = "隐私政策"
+url = "/zh/privacy-policy/"
+weight = 2 

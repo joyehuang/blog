@@ -10,13 +10,12 @@ timeZone = "America/New_York"
 # post excerpt
 summaryLength = 10 # see https://gohugo.io/content-management/excerpts/
 # disable language
-disableLanguages = [
-] # example: ["fr"] for disable french language. see https://gohugo.io/content-management/multilingual/
+disableLanguages = [] # 保持为空,不要禁用任何语言
 hasCJKLanguage = false #  If hasCJKLanguage true, auto-detect Chinese/Japanese/Korean Languages in the content. see: https://gohugo.io/getting-started/configuration/#hascjklanguage
 # default language
 defaultContentLanguage = 'en'
-# defaultContentLanguageInSubdir need to be true if you want to use the language code as a subdirectory and language specific 404 page
-defaultContentLanguageInSubdir = false
+# defaultContentLanguageInSubdir need to be true if you want to use the language code as a subdirectory
+defaultContentLanguageInSubdir = true
 
 ########################### Services #############################
 [services]
