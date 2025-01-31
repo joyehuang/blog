@@ -35,5 +35,8 @@
       "tailwindcss": {},
       "autoprefixer": {}
     }
+  },
+  "dependencies": {
+    "hugo": "^0.0.3"
   }
 }
