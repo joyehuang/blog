@@ -5,8 +5,8 @@ languageCode = "en-us"
 contentDir = "content/english"
 weight = 1
 
-# 中文待配置
-[cn]
+################ 中文语言 ##################
+[zh]
 languageName = "中文"
 languageCode = "zh-cn"
 contentDir = "content/chinese"
