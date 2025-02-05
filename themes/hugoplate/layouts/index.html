@@ -37,6 +37,28 @@
   {{ end }}
   <!-- /Banner -->
 
+  <!-- GitHub Contributions -->
+  {{ with .Params.github_contributions }}
+    {{ if .enable }}
+      <section class="section-sm">
+        <div class="container">
+          <div class="row justify-center">
+            <div class="lg:col-10 text-center">
+              <h2 class="h3 mb-6">{{ .title }}</h2>
+              <div class="flex justify-center items-center bg-white dark:bg-darkmode-theme-light p-6 rounded-lg shadow-lg overflow-x-auto">
+                <div class="inline-block">
+                  {{ $svg := readFile "images/GitHub User Contribution.svg" | safeHTML }}
+                  {{ $svg }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    {{ end }}
+  {{ end }}
+  <!-- /GitHub Contributions -->
+
   <!-- Features -->
   {{ range $i, $e:= .Params.features }}
     <section class="section-sm {{ if (modBool $i 2) }}bg-gradient{{ end }}">
