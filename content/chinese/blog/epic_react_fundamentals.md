@@ -3,7 +3,7 @@ title: "Epic React - 基础篇"
 meta_title: ""
 description: "Epic React 基础篇"
 date: 2024-03-21T05:00:00Z
-image: "/images/blog/post-1.jpg"
+image: "/images/react.png"
 categories: ["React", "前端"]
 draft: false
 ---

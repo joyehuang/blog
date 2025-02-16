@@ -3,7 +3,7 @@ title: "Epic React - Fundamentals"
 meta_title: ""
 description: "Epic React Fundamentals "
 date: 2024-03-21T05:00:00Z
-image: "/images/blog/post-1.jpg"
+image: "/images/react.png"
 categories: ["React", "Frontend"]
 draft: false
 ---
