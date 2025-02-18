@@ -8,9 +8,9 @@
       {{ .Title }}
     </a>
   </h4>
-  {{ $categories:= .Params.categories }}
-  {{ if $categories }}
-    <ul class="mb-4">
+  <ul class="mb-4 flex items-center">
+    {{ $categories:= .Params.categories }}
+    {{ if $categories }}
       <li class="mr-4 inline-block">
         <i class="fa-regular fa-folder mr-1"></i>
         {{ range $i,$p:= $categories }}
@@ -23,8 +23,15 @@
           </a>
         {{ end }}
       </li>
-    </ul>
-  {{ end }}
+      <li class="mr-4 inline-block">
+        <span class="text-gray-500">|</span>
+      </li>
+    {{ end }}
+    <li class="inline-block">
+      {{ $wordCount := .WordCount }}
+      {{ partial "helpers/reading-time" (dict "wordCount" $wordCount "Context" .) }}
+    </li>
+  </ul>
   <p class="mb-6">{{ .Summary | plainify }}</p>
   <a class="btn btn-outline-primary btn-sm" href="{{ .RelPermalink }}">
     {{ T "read_more" }}

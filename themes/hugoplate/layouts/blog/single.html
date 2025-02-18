@@ -12,7 +12,7 @@
           <h1 class="h2 mb-4">
             {{ .Title }}
           </h1>
-          <ul class="mb-4">
+          <ul class="mb-4 flex items-center">
             {{ $categories:= .Params.categories }}
             {{ if $categories }}
               <li class="mr-4 inline-block">
@@ -27,7 +27,14 @@
                   </a>
                 {{ end }}
               </li>
+              <li class="mr-4 inline-block">
+                <span class="text-gray-500">|</span>
+              </li>
             {{ end }}
+            <li class="inline-block">
+              {{ $wordCount := .WordCount }}
+              {{ partial "helpers/reading-time" (dict "wordCount" $wordCount "Context" .) }}
+            </li>
           </ul>
           <div class="content mb-10">
             {{ .Content }}
@@ -37,3 +44,4 @@
     </div>
   </section>
 {{ end }}
+

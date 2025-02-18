@@ -252,3 +252,267 @@ Through this standard component writing approach, we can fully utilize React's c
 
 ---
 
+# Typescript
+
+## typeof
+The typeof operator allows you to use it in type context to reference the type of a variable or property
+```tsx
+const user = { name: 'kody', isCute: true }
+type User = typeof user
+// type User = { name: string; isCute: boolean; }
+```
+
+## keyof
+The keyof operator allows you to obtain
+```tsx
+type UserKeys = keyof User
+// type UserKeys = "name" | "isCute"
+```
+
+# Advanced TypeScript Type Operations in React
+TypeScript provides powerful type support for React development. Let's dive into some commonly used type operators and techniques.
+
+## typeof Operator
+`typeof` allows us to extract types from existing values:
+```typescript
+const user = { name: 'kody', isCute: true }
+type User = typeof user
+// Results in type: { name: string; isCute: boolean; }
+```
+This is particularly useful when deriving types from actual data structures.
+
+## keyof Operator
+`keyof` is used to get all keys of a type as a union type:
+```typescript
+type UserKeys = keyof User
+// Results in type: "name" | "isCute"
+```
+
+## Combining keyof typeof
+This combination is particularly useful when creating types from objects:
+```typescript
+const operations = {
+  '+': (left: number, right: number): number => left + right,
+  '-': (left: number, right: number): number => left - right,
+  '*': (left: number, right: number): number => left * right,
+  '/': (left: number, right: number): number => left / right,
+}
+
+type Operator = keyof typeof operations
+// Results in type: '+' | '-' | '*' | '/'
+```
+Note: The order of `typeof keyof` is meaningless because `keyof` must act on types, not values.
+
+## Default Properties (Default Props)
+TypeScript makes it easy to define function parameters with default values:
+```typescript
+function add(a: number = 0, b: number = 0): number {
+  return a + b
+}
+// Returns 0 when no parameters are passed
+```
+
+## Record Utility Type
+`Record` is used to create object types with specific key and value types:
+```typescript
+type OperationFn = (left: number, right: number) => number
+type Operator = '+' | '-' | '/' | '*'
+
+const operations: Record<Operator, OperationFn> = {
+  '+': (left, right) => left + right,
+  '-': (left, right) => left - right,
+  '*': (left, right) => left * right,
+  '/': (left, right) => left / right,
+}
+```
+
+## Satisfies Operator
+`satisfies` is a new operator introduced in TypeScript 4.9 that allows us to validate expression types without affecting inference results:
+```typescript
+type ValidCandies = 'twix' | 'snickers' | 'm&ms'
+
+// Using type annotation
+const candy1: ValidCandies = 'twix'
+// candy1's type is ValidCandies
+
+// Using satisfies
+const candy2 = 'twix' satisfies ValidCandies
+// candy2's type is literal type 'twix'
+```
+Advantages of `satisfies`:
+- Maintains more precise type inference
+- Provides type checking without widening types
+- Particularly useful in scenarios requiring type safety while maintaining literal types
+
+### Practical Application Tips
+1. **Using typeof**:
+   - When you need to create types from existing objects
+   - Avoid type definition repetition
+2. **Using keyof**:
+   - When you need to restrict property access
+   - Create stricter type constraints
+3. **Using Record**:
+   - When creating mapping objects
+   - Ensure object property completeness
+4. **Using satisfies**:
+   - When you need type checking but want to maintain literal types
+   - Validate implementation without affecting type inference
+
+These TypeScript features can help us create safer, more maintainable code in React development. Proper use of these features can improve code quality and reduce runtime errors.
+
+---
+
+# Detailed Guide to React Form Implementation
+
+## Basic Form Implementation
+The simplest form implementation is as follows:
+```jsx
+function App() {
+	return (
+		<form>
+			<div>
+				<label htmlFor="usernameInput">Username:</label>
+				<input id="usernameInput" name="username" />
+			</div>
+			<button type="submit">Submit</button>
+		</form>
+	)
+}```
+This implementation has an issue: form submission triggers page refresh.
+
+## Form Submission Address Configuration
+By setting the `action` attribute, we can specify the target address for form submission:
+```jsx
+<form action="api/onboarding">
+// api/onboarding is just for testing
+```
+If `action` is not set, form data will be submitted to the current URL by default.
+
+## Common Form Input Types
+HTML5 provides various input types for better user experience:
+```jsx
+// Password input
+<div>
+  <label htmlFor="passwordInput">Password:</label>
+  <input id="passwordInput" name="password" type="password" />
+</div>
+
+// Age input (number type)
+<div>
+  <label htmlFor="ageInput">Age:</label>
+  <input id="ageInput" name="age" type="number" min="0" max="200" />
+</div>
+
+// Image upload
+<div>
+  <label htmlFor="photoInput">Photo:</label>
+  <input id="photoInput" name="photo" type="file" accept="image/*" />
+</div>
+
+// Color picker
+<div>
+  <label htmlFor="colorInput">Favorite Color:</label>
+  <input id="colorInput" name="color" type="color" />
+</div>
+
+// Date selection
+<div>
+  <label htmlFor="startDateInput">Start Date:</label>
+  <input id="startDateInput" name="startDate" type="date" />
+</div>
+```
+
+## Handling Form Submission Issues
+The basic implementation has two main problems:
+1. Sensitive information (like passwords) appears in the URL
+2. The page completely refreshes, causing client-side code to reload
+
+### Solutions:
+1. Use POST method to submit data
+Change the browser's default GET to POST, which will transmit data through the request body rather than URL parameters, more suitable for handling sensitive information:
+```tsx
+<form action="api/onboarding" method="POST"></form>
+```
+2. Handle POST requests on the server side:
+```ts
+export async function action({ request }: { request: Request }) {
+  const data = await request.formData()
+  return respondWithDataTable(data)
+}
+}```
+
+We use `request.formData()` here because the request isn't a plain string, but in `application/x-www-form-urlencoded` format.
+
+However, there's still an issue: when uploading photos, only the filename is returned, not the photo itself. This is because the browser's default `application/x-www-form-urlencoded` encoding is suitable for simple form data but not for large files like images. Large files can't be represented by string URLs, so we need to add new attributes to the form to let the browser accept the file itself:
+
+```tsx
+<form
+	action="api/onboarding"
+	method="POST"
+	encType="multipart/form-data"
+></form>
+```
+
+The only way to solve the page refresh issue is to handle form submission through JavaScript rather than browser default behavior. In real work, we usually use frameworks like Remix to solve this problem, but the basic idea is to add an onSubmit handler to the form to take over the submission process and prevent browser refresh:
+
+```tsx
+<form
+	action="api/onboarding"
+	method="POST"
+	encType="multipart/form-data"
+	onSubmit={event => {
+		event.preventDefault()
+		// ...
+	}}
+></form>
+```
+
+This prevents page refresh, but we still need to manually get the form data. This is where the FormData API comes in:
+
+```tsx
+const form = event.currentTarget
+const formData = new FormData(form)
+// Browser console.log(formData) doesn't show well
+// You can view the data this way:
+console.log(Object.fromEntries(formData))
+// This converts formData to a plain object for easy viewing
+// Note: formData may contain multiple values for the same key
+// So this method is not recommended in production
+```
+
+Complete code
+```jsx
+function App() {
+	return (
+		<form
+			action="api/onboarding"
+			method="POST"
+			encType="multipart/form-data"
+			onSubmit={event => {
+				event.preventDefault()
+				const formData = new FormData(event.currentTarget)
+				console.log(Object.fromEntries(formData))
+			}}
+		>
+			// your inputs
+		</form>
+	)
+}
+```
+
+React also provides a more elegant built-in solution: the form's action attribute can accept a function, which will receive the formData object as a parameter. Note that this is a React-specific feature, native HTML doesn't support using functions as action values:
+
+```jsx
+function App() {
+	function logFormData(formData: FormData) {
+		console.log(Object.fromEntries(formData))
+	}
+	return (
+		<form action={logFormData}>
+			// your inputs
+		</form>
+```
+
+---
+# Epic React Fundamental Summary
+This article summarizes the key knowledge points from the Epic React Forms Workshop, but does not include practice-intensive content such as styling, inputs, errors, and arrays. For these topics, it is recommended to refer to the original workshop for learning.
