@@ -8,6 +8,7 @@ categories: ["React", "前端"]
 draft: false
 ---
 
+	
 # React 基础：理解 DOM 操作的原理
 
 在深入学习 React 之前，让我们先回顾一下最基础的 DOM 操作方式。这有助于我们更好地理解 React 为什么会如此受欢迎，以及它解决了什么问题。
@@ -248,3 +249,253 @@ const element = (
 - 合理使用 props 传递数据
 
 通过这种标准的组件写法，我们可以充分利用 React 的组件化特性，构建出可维护、可扩展的应用程序。
+
+---
+
+# TypeScript 在 React 中的高级类型操作
+TypeScript 为 React 开发提供了强大的类型支持。让我们深入了解一些常用的类型操作符和技巧。
+
+## typeof 操作符
+`typeof` 允许我们从现有的值中提取类型：
+```typescript
+const user = { name: 'kody', isCute: true }
+type User = typeof user
+// 得到类型：{ name: string; isCute: boolean; }
+```
+这在从实际数据结构推导类型时特别有用。
+
+## keyof 操作符
+`keyof` 用于获取一个类型的所有键作为联合类型：
+```typescript
+type UserKeys = keyof User
+// 得到类型："name" | "isCute"
+```
+
+## keyof typeof 组合使用
+这种组合在从对象创建类型时特别有用：
+```typescript
+const operations = {
+  '+': (left: number, right: number): number => left + right,
+  '-': (left: number, right: number): number => left - right,
+  '*': (left: number, right: number): number => left * right,
+  '/': (left: number, right: number): number => left / right,
+}
+
+type Operator = keyof typeof operations
+// 得到类型：'+' | '-' | '*' | '/'
+```
+注意：`typeof keyof` 的顺序是没有意义的，因为 `keyof` 必须作用于类型而不是值。
+
+## 默认属性（Default Props）
+TypeScript 中可以轻松定义带默认值的函数参数：
+```typescript
+function add(a: number = 0, b: number = 0): number {
+  return a + b
+}
+// 不传参数时默认返回 0
+```
+
+## Record 工具类型
+`Record` 用于创建具有特定键类型和值类型的对象类型：
+```typescript
+type OperationFn = (left: number, right: number) => number
+type Operator = '+' | '-' | '/' | '*'
+
+const operations: Record<Operator, OperationFn> = {
+  '+': (left, right) => left + right,
+  '-': (left, right) => left - right,
+  '*': (left, right) => left * right,
+  '/': (left, right) => left / right,
+}
+```
+
+## Satisfies 操作符
+`satisfies` 是 TypeScript 4.9 引入的新操作符，它允许我们验证表达式的类型而不影响推导结果：
+```typescript
+type ValidCandies = 'twix' | 'snickers' | 'm&ms'
+
+// 使用类型注解
+const candy1: ValidCandies = 'twix'
+// candy1 的类型是 ValidCandies
+
+// 使用 satisfies
+const candy2 = 'twix' satisfies ValidCandies
+// candy2 的类型是字面量类型 'twix'
+```
+`satisfies` 的优势：
+- 保持更精确的类型推导
+- 提供类型检查而不拓宽类型
+- 在需要类型安全但又想保持字面量类型的场景特别有用
+
+### 实际应用建议
+1. **使用 typeof**：
+   - 当你需要从现有对象创建类型时
+   - 避免类型定义重复
+2. **使用 keyof**：
+   - 当你需要限制属性访问时
+   - 创建更严格的类型约束
+3. **使用 Record**：
+   - 创建映射对象时
+   - 确保对象属性完整性
+4. **使用 satisfies**：
+   - 需要类型检查但要保持字面量类型时
+   - 验证实现而不影响类型推导
+这些 TypeScript 特性能够帮助我们在 React 开发中创建更安全、更可维护的代码。合理使用这些特性可以提高代码质量并减少运行时错误。
+
+---
+
+# React 表单实现详解
+
+## 基础表单实现
+最简单的表单实现方式如下：
+```jsx
+function App() {
+	return (
+		<form>
+			<div>
+				<label htmlFor="usernameInput">Username:</label>
+				<input id="usernameInput" name="username" />
+			</div>
+			<button type="submit">Submit</button>
+		</form>
+	)
+}```
+这种实现存在一个问题：表单提交时会触发页面刷新。
+
+## 表单提交地址配置
+通过设置 `action` 属性，我们可以指定表单提交的目标地址：
+```jsx
+<form action="api/onboarding">
+// 这里的api/onboarding只是为了测试
+```
+如果不设置 `action`，表单数据会默认提交到当前 URL。
+
+## 常用的表单输入类型
+为了提供更好的用户体验，HTML5 提供了多种输入类型：
+```jsx
+// 密码输入
+<div>
+  <label htmlFor="passwordInput">Password:</label>
+  <input id="passwordInput" name="password" type="password" />
+</div>
+
+// 年龄输入（数字类型）
+<div>
+  <label htmlFor="ageInput">Age:</label>
+  <input id="ageInput" name="age" type="number" min="0" max="200" />
+</div>
+
+// 图片上传
+<div>
+  <label htmlFor="photoInput">Photo:</label>
+  <input id="photoInput" name="photo" type="file" accept="image/*" />
+</div>
+
+// 颜色选择器
+<div>
+  <label htmlFor="colorInput">Favorite Color:</label>
+  <input id="colorInput" name="color" type="color" />
+</div>
+
+// 日期选择
+<div>
+  <label htmlFor="startDateInput">Start Date:</label>
+  <input id="startDateInput" name="startDate" type="date" />
+</div>
+```
+
+## 处理表单提交问题
+基础实现存在两个主要问题：
+1. 敏感信息（如密码）会显示在 URL 中
+2. 页面会完全刷新，导致客户端代码重新加载
+
+### 解决方案：
+1. 使用 POST 方法提交数据
+将浏览器默认的GET换成POST，这样会通过请求体传输数据而不是URL参数的形式，更适合处理敏感信息：
+```tsx
+<form action="api/onboarding" method="POST"></form>
+```
+2. 在服务端处理 POST 请求：
+```ts
+export async function action({ request }: { request: Request }) {
+  const data = await request.formData()
+  return respondWithDataTable(data)
+}
+}```
+
+这里使用`request.formData()`是因为这个请求不是普通字符串，而是`application/x-www-form-urlencoded`格式的请求。
+
+然而这样仍有一个问题：上传照片时，返回的只是照片的文件名，而不是照片本身。这是因为浏览器默认的`application/x-www-form-urlencoded`编码方式适合处理简单的表单数据，但不适合处理图片这样的大文件。大文件不能用字符串URL来表示，所以需要在form中添加新的属性来让浏览器接收文件本身：
+
+```tsx
+<form
+	action="api/onboarding"
+	method="POST"
+	encType="multipart/form-data"
+></form>
+```
+
+解决页面刷新问题的唯一方法是通过JavaScript而不是浏览器默认行为来处理表单提交。在实际工作中我们通常会使用Remix等框架来解决这个问题，但基本思路是在form中添加onSubmit处理器来接管提交过程并阻止浏览器刷新：
+
+```tsx
+<form
+	action="api/onboarding"
+	method="POST"
+	encType="multipart/form-data"
+	onSubmit={event => {
+		event.preventDefault()
+		// ...
+	}}
+></form>
+```
+
+这样可以阻止页面刷新，但我们还需要手动获取表单数据。这时就要用到FormData API：
+
+```tsx
+const form = event.currentTarget
+const formData = new FormData(form)
+// 浏览器console.log(formData)时显示效果不佳
+// 可以这样查看数据：
+console.log(Object.fromEntries(formData))
+// 这会将formData转换为普通对象，方便查看
+// 注意：formData可能包含同一个key的多个值
+// 所以在生产环境中不建议使用这种方法
+```
+
+完整代码
+```jsx
+function App() {
+	return (
+		<form
+			action="api/onboarding"
+			method="POST"
+			encType="multipart/form-data"
+			onSubmit={event => {
+				event.preventDefault()
+				const formData = new FormData(event.currentTarget)
+				console.log(Object.fromEntries(formData))
+			}}
+		>
+			// your inputs
+		</form>
+	)
+}
+```
+
+React还提供了更优雅的内置解决方案：form的action属性可以接收一个函数，这个函数会获得formData对象作为参数。需要注意的是，这是React特有的功能，原生HTML并不支持将函数作为
+action的值：
+
+```jsx
+function App() {
+	function logFormData(formData: FormData) {
+		console.log(Object.fromEntries(formData))
+	}
+	return (
+		<form action={logFormData}>
+			// your inputs
+		</form>
+```
+
+---
+# Epic React Fundamental 总结
+本文总结了 Epic React Fundamentals 中的关键知识点，但不包含 styling、inputs、errors 和 arrays 等需要实践性较强的内容。这些主题建议直接参考原版 workshop 进行学习
