@@ -39,6 +39,53 @@
           <div class="content mb-10">
             {{ .Content }}
           </div>
+          <!-- Giscus Comments -->
+          <div class="mt-10 pt-5 border-t border-border dark:border-darkmode-border">
+            <h2 class="h3 mb-6">{{ if eq .Site.Language.Lang "zh" }}评论{{ else }}Comments{{ end }}</h2>
+            <script src="https://giscus.app/client.js"
+            data-repo="joyehuang/blog"
+            data-repo-id="R_kgDONyOa7w"
+            data-category="General"
+            data-category-id="DIC_kwDONyOa784CnPqN"
+            data-mapping="pathname"
+            data-strict="0"
+            data-reactions-enabled="1"
+            data-emit-metadata="1"
+            data-input-position="top"
+            data-theme="dark"
+            data-lang="en"
+            crossorigin="anonymous"
+            async>
+    </script>
+            <script>
+              // 监听主题变化，同步更新 giscus 主题
+              function setGiscusTheme() {
+                const theme = document.documentElement.classList.contains('dark') ? 'dark_dimmed' : 'light';
+                const iframe = document.querySelector('.giscus-frame');
+                if (iframe) {
+                  iframe.contentWindow.postMessage(
+                    { giscus: { setConfig: { theme: theme } } },
+                    'https://giscus.app'
+                  );
+                }
+              }
+
+              // 监听系统主题变化
+              const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                  if (mutation.attributeName === 'class') {
+                    setGiscusTheme();
+                  }
+                });
+              });
+
+              // 开始观察 HTML 元素的 class 变化
+              observer.observe(document.documentElement, { attributes: true });
+
+              // 页面加载完成后设置初始主题
+              window.addEventListener('load', setGiscusTheme);
+            </script>
+          </div>
         </article>
       </div>
     </div>
