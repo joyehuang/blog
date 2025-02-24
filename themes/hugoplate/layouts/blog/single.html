@@ -40,9 +40,10 @@
             </li>
             <li class="inline-block">
               <i class="fa-regular fa-eye mr-1 text-gray-600 dark:text-gray-400"></i>
-              <span class="text-sm text-gray-500">
-                <span data-goatcounter-title="{{ .Title }}" data-goatcounter-count="{{ .RelPermalink }}">-</span>
-                {{ if eq .Site.Language.Lang "zh" }}次阅读{{ else }}views{{ end }}
+              <span id="busuanzi_container_page_pv">
+                {{ if eq .Site.Language.Lang "zh" }}本文总阅读量{{ else }}Total Views{{ end }}
+                <span id="busuanzi_value_page_pv"></span>
+                {{ if eq .Site.Language.Lang "zh" }}次{{ else }}times{{ end }}
               </span>
             </li>
           </ul>
