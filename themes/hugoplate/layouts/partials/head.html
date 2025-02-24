@@ -1,3 +1,5 @@
+<head>
+
 <!-- Vercel Analytics -->
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -12,5 +14,19 @@
   });
 </script>
 
-<!-- 不蒜子统计 -->
-<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
+<script>
+  // 预配置 GoatCounter
+  window.goatcounter = {
+      path: window.location.pathname,
+      allow_local: true,
+      no_onload: false // 允许自动加载计数
+  }
+</script>
+<script 
+  data-goatcounter="https://joye-blog.goatcounter.com/count"
+  data-goatcounter-settings='{"allow_local": true}'
+  data-goatcounter-count="true"
+  async 
+  src="https://gc.zgo.at/count.js">
+</script>
+</head>

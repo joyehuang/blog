@@ -37,14 +37,10 @@
             </li>
             <li class="mr-4 inline-block">
               <span class="text-gray-500">|</span>
-            </li>
-            <li class="inline-block">
-              <i class="fa-regular fa-eye mr-1 text-gray-600 dark:text-gray-400"></i>
-              <span id="busuanzi_container_page_pv">
-                {{ if eq .Site.Language.Lang "zh" }}本文总阅读量{{ else }}Total Views{{ end }}
-                <span id="busuanzi_value_page_pv"></span>
-                {{ if eq .Site.Language.Lang "zh" }}次{{ else }}times{{ end }}
-              </span>
+              <li class="inline-block">
+                <i class="fa-regular fa-eye mr-1 text-gray-600 dark:text-gray-400"></i>
+                <!-- 使用 class 而不是 attribute -->
+                <span class="goatcounter-count" data-path="{{ .RelPermalink }}">...</span> 次点击
             </li>
           </ul>
           <div class="content mb-10">
@@ -97,32 +93,37 @@
               window.addEventListener('load', setGiscusTheme);  
             </script>
             <script>
-              // 等待 GoatCounter 加载完成
-              window.addEventListener('load', function() {
-                // 确保 GoatCounter API 可用
-                if (window.goatcounter && window.goatcounter.count) {
-                  // 获取所有需要显示计数的元素
-                  var counters = document.querySelectorAll('[data-goatcounter-count]');
-                  
-                  counters.forEach(function(counter) {
-                    var path = counter.dataset.goatcounterCount;
-                    // 调用 GoatCounter API 获取计数
-                    fetch('https://joye-blog.goatcounter.com/counter/' + encodeURIComponent(path) + '/count')
-                      .then(function(response) { return response.json(); })
-                      .then(function(data) {
-                        // 更新计数显示
-                        counter.textContent = data.count || '0';
-                      })
-                      .catch(function(error) {
-                        console.error('Error fetching count:', error);
-                        counter.textContent = '0';
-                      });
-                  });
-                }
+              document.addEventListener('DOMContentLoaded', function() {
+                  console.log('DOM 加载完成');
+                  checkGoatCounter();
               });
-            </script>
-            <script data-goatcounter="https://joye-blog.goatcounter.com/count"
-            async src="//gc.zgo.at/count.js"></script>
+              
+              window.addEventListener('load', function() {
+                  console.log('页面完全加载完成');
+                  checkGoatCounter();
+              });
+              
+              function checkGoatCounter() {
+                  console.log('检查 GoatCounter:', {
+                      'script 元素存在': !!document.querySelector('script[data-goatcounter]'),
+                      'goatcounter 对象存在': !!window.goatcounter,
+                      'count 方法存在': !!(window.goatcounter && window.goatcounter.count),
+                      '当前路径': window.location.pathname
+                  });
+              }
+              
+              // 定期检查 GoatCounter 是否加载
+              let checkCount = 0;
+              const checkInterval = setInterval(function() {
+                  checkCount++;
+                  console.log(`第 ${checkCount} 次检查 GoatCounter`);
+                  checkGoatCounter();
+                  
+                  if (window.goatcounter || checkCount > 10) {
+                      clearInterval(checkInterval);
+                  }
+              }, 1000);
+              </script>
           </div>
         </article>
       </div>
