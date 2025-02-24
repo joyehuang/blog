@@ -39,9 +39,9 @@
               <span class="text-gray-500">|</span>
             </li>
             <li class="inline-block">
-              <i class="fa-regular fa-eye mr-1"></i>
+              <i class="fa-regular fa-eye mr-1 text-gray-600 dark:text-gray-400"></i>
               <span class="text-sm text-gray-500">
-                <span class="goatcounter-visits" data-path="{{ .RelPermalink }}">0</span>
+                <span data-goatcounter-title="{{ .Title }}" data-goatcounter-count="{{ .RelPermalink }}">-</span>
                 {{ if eq .Site.Language.Lang "zh" }}次阅读{{ else }}views{{ end }}
               </span>
             </li>
@@ -94,6 +94,31 @@
 
               // 页面加载完成后设置初始主题
               window.addEventListener('load', setGiscusTheme);  
+            </script>
+            <script>
+              // 等待 GoatCounter 加载完成
+              window.addEventListener('load', function() {
+                // 确保 GoatCounter API 可用
+                if (window.goatcounter && window.goatcounter.count) {
+                  // 获取所有需要显示计数的元素
+                  var counters = document.querySelectorAll('[data-goatcounter-count]');
+                  
+                  counters.forEach(function(counter) {
+                    var path = counter.dataset.goatcounterCount;
+                    // 调用 GoatCounter API 获取计数
+                    fetch('https://joye-blog.goatcounter.com/counter/' + encodeURIComponent(path) + '/count')
+                      .then(function(response) { return response.json(); })
+                      .then(function(data) {
+                        // 更新计数显示
+                        counter.textContent = data.count || '0';
+                      })
+                      .catch(function(error) {
+                        console.error('Error fetching count:', error);
+                        counter.textContent = '0';
+                      });
+                  });
+                }
+              });
             </script>
             <script data-goatcounter="https://joye-blog.goatcounter.com/count"
             async src="//gc.zgo.at/count.js"></script>
