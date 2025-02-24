@@ -9,10 +9,10 @@
         {{ .Title }}
       </a>
     </h4>
-    <ul class="mb-4 flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400">
+    <div class="mb-4 flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400">
       {{ $categories:= .Params.categories }}
       {{ if $categories }}
-        <li class="mr-4 inline-flex items-center">
+        <span class="inline-flex items-center">
           <i class="fa-regular fa-folder mr-2 text-gray-600 dark:text-gray-400"></i>
           {{ range $i,$p:= $categories }}
             <a
@@ -23,26 +23,18 @@
               {{ end }}
             </a>
           {{ end }}
-        </li>
-        <li class="mr-4 inline-block">
-          <span class="text-gray-400 dark:text-gray-500">•</span>
-        </li>
-      {{ end }}
-      <li class="mr-4 inline-flex items-center">
-        {{ $wordCount := .WordCount }}
-        {{ partial "helpers/reading-time" (dict "wordCount" $wordCount "Context" .) }}
-      </li>
-      <li class="mr-4 inline-block">
-        <span class="text-gray-400 dark:text-gray-500">•</span>
-      </li>
-      <li class="inline-flex items-center">
-        <i class="fa-regular fa-eye mr-2 text-gray-600 dark:text-gray-400"></i>
-        <span>
-          <span data-goatcounter-title="{{ .Title }}" data-goatcounter-count="{{ .RelPermalink }}">-</span>
-          {{ if eq .Site.Language.Lang "zh" }}次阅读{{ else }}views{{ end }}
         </span>
-      </li>
-    </ul>
+        <span class="mx-2 text-gray-400 dark:text-gray-500">•</span>
+      {{ end }}
+      {{ $wordCount := .WordCount }}
+      {{ partial "helpers/reading-time" (dict "wordCount" $wordCount "Context" .) }}
+      <span class="mx-2 text-gray-400 dark:text-gray-500">•</span>
+      <span class="inline-flex items-center">
+        <i class="fa-regular fa-eye mr-2 text-gray-600 dark:text-gray-400"></i>
+        <span data-goatcounter-title="{{ .Title }}" data-goatcounter-count="{{ .RelPermalink }}">-</span>
+        {{ if eq .Site.Language.Lang "zh" }}次阅读{{ else }}views{{ end }}
+      </span>
+    </div>
     <p class="mb-6 text-gray-600 dark:text-gray-400">{{ .Summary | plainify }}</p>
     <a 
       class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg
