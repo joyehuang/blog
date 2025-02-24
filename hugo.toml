@@ -47,6 +47,10 @@ target = "assets"
 source = "hugo_stats.json"
 target = "assets/watching/hugo_stats.json"
 
+[[module.mounts]]
+source = "layouts"
+target = "layouts"
+
 ############################# Build ##############################
 [build]
 noJSConfigInAssets = false
@@ -148,6 +152,10 @@ link = "plugins/font-awesome/v6/icons.css"
 lazy = true
 
 # JS Plugins
+[[params.plugins.js]]
+link = "https://gc.zgo.at/count.js"
+attributes = "async data-goatcounter='https://joye-blog.goatcounter.com/count'"
+lazy = false
 [[params.plugins.js]]
 link = "js/search.js"
 lazy = false

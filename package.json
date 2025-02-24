@@ -4,6 +4,9 @@
   "version": "1.18.3",
   "license": "MIT",
   "author": "zeon.studio",
+  "engines": {
+    "node": ">=18.0.0 <19.0.0"
+  },
   "scripts": {
     "dev": "hugo server",
     "build": "hugo --gc --minify --templateMetrics --templateMetricsHints --forceSyncStatic",
