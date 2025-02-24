@@ -35,6 +35,16 @@
               {{ $wordCount := .WordCount }}
               {{ partial "helpers/reading-time" (dict "wordCount" $wordCount "Context" .) }}
             </li>
+            <li class="mr-4 inline-block">
+              <span class="text-gray-500">|</span>
+            </li>
+            <li class="inline-block">
+              <i class="fa-regular fa-eye mr-1"></i>
+              <span class="text-sm text-gray-500">
+                <span class="goatcounter-visits" data-path="{{ .RelPermalink }}">0</span>
+                {{ if eq .Site.Language.Lang "zh" }}次阅读{{ else }}views{{ end }}
+              </span>
+            </li>
           </ul>
           <div class="content mb-10">
             {{ .Content }}
@@ -83,8 +93,10 @@
               observer.observe(document.documentElement, { attributes: true });
 
               // 页面加载完成后设置初始主题
-              window.addEventListener('load', setGiscusTheme);
+              window.addEventListener('load', setGiscusTheme);  
             </script>
+            <script data-goatcounter="https://joye-blog.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
           </div>
         </article>
       </div>
