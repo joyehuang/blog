@@ -22,9 +22,14 @@ url = "/zh/categories/"
 weight = 4
 
 [[main]]
+name = "趣味空间"
+url = "/zh/playground/"
+weight = 5
+
+[[main]]
 name = "联系"
 url = "/zh/contact/"
-weight = 5
+weight = 6
 
 # 页脚菜单
 [[footer]]

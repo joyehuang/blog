@@ -1,0 +1,63 @@
+{{ define "main" }}
+<section class="section">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="section-title text-center">
+          <h1 class="title">{{ .Title }}</h1>
+          {{ with .Params.Description }}
+            <p class="text-gray-600 dark:text-gray-400">{{ . }}</p>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      {{ range .Pages }}
+      <div class="md:col-6 lg:col-4 mb-8">
+        <div class="bg-body dark:bg-darkmode-body rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+          {{ if .Params.image }}
+          <a href="{{ .RelPermalink }}">
+            <img src="{{ .Params.image }}" alt="{{ .Title }}" class="w-full rounded-t-lg {{ .Params.image_class | default `h-48 object-cover` }}"/>
+          </a>
+          {{ end }}
+          <div class="p-6">
+            <h4 class="mb-3 text-xl font-semibold text-dark dark:text-white">
+              <a href="{{ .RelPermalink }}" class="hover:text-primary dark:text-white dark:no-underline">{{ .Title }}</a>
+            </h4>
+            <div class="mb-4 flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400">
+              {{ with .Params.category }}
+              <span class="mr-4 flex items-center">
+                <i class="fa-regular fa-folder mr-2"></i>
+                <a href="/categories/{{ . | urlize }}/" class="hover:text-primary dark:text-gray-300 dark:no-underline">{{ . }}</a>
+              </span>
+              {{ end }}
+              {{ with .Params.type }}
+              <span class="mr-4 flex items-center">
+                <i class="fa-regular fa-clock mr-2"></i>
+                {{ . }}
+              </span>
+              {{ end }}
+            </div>
+            {{ with .Params.Description }}
+            <p class="mb-6 text-gray-600 dark:text-gray-400">{{ . }}</p>
+            {{ end }}
+            {{ if .Params.external_link }}
+            <a href="{{ .Params.external_link }}" target="_blank" rel="noopener" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white dark:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-300 dark:hover:text-gray-800 transition-all duration-300">
+              {{ .Params.button_text }}
+              <i class="fa-solid fa-external-link-alt ml-2"></i>
+            </a>
+            {{ else }}
+            <a href="{{ .RelPermalink }}" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white dark:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-300 dark:hover:text-gray-800 transition-all duration-300">
+              {{ .Params.button_text }}
+              <i class="fa-solid fa-arrow-right ml-2"></i>
+            </a>
+            {{ end }}
+          </div>
+        </div>
+      </div>
+      {{ end }}
+    </div>
+  </div>
+</section>
+{{ end }}
