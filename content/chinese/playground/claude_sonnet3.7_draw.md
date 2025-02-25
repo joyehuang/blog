@@ -32,6 +32,6 @@ draft: false
 简绘(EasySketch)是一个轻量级在线绘图工具，专为创意表达和快速草图设计。它提供了画笔、直线、矩形和圆形等基础绘图功能，支持画布平移和缩放，让您能够自由操控创作空间。工具栏简洁直观，色彩和样式选项一目了然，适合各类用户使用。其平滑的绘图体验和响应式设计使创作过程更加流畅自然。无论是简单的涂鸦、设计草图还是教学演示，简绘都能满足您的基本绘图需求。
 
 <video class="demo-video" controls>
-  <source src="/videos/EasySketch_wide.mp4" type="video/mp4">
+  <source src="https://dd5k4b9j9kysl.cloudfront.net/EasySketch_wide.mp4" type="video/mp4">
   您的浏览器不支持视频播放。
 </video>
