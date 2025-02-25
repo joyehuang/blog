@@ -3,6 +3,7 @@ title: "Typescript笔记 小满zs "
 meta_title: ""
 description: "Typescript笔记 小满zs"
 date: 2024-03-21T05:00:00Z
+image: "/images/ts.png"
 categories: ["Typescript", "Frontend"]
 draft: false
 ---

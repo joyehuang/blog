@@ -4,8 +4,8 @@
     {{ partial "image" (dict "Src" $image "Context" .Page "Alt" .Title "Class" "mb-6 w-full rounded-t-lg") }}
   {{ end }}
   <div class="p-6">
-    <h4 class="mb-3 hover:text-primary dark:hover:text-primary-light transition-colors duration-200">
-      <a href="{{ .RelPermalink }}">
+    <h4 class="mb-3 text-xl font-semibold text-dark dark:text-white">
+      <a href="{{ .RelPermalink }}" class="hover:text-primary dark:text-white dark:no-underline">
         {{ .Title }}
       </a>
     </h4>
@@ -17,7 +17,7 @@
           {{ range $i,$p:= $categories }}
             <a
               href="{{ `categories/` | relLangURL }}{{ . | urlize | lower }}/"
-              class="hover:text-primary dark:hover:text-primary-light transition-colors duration-200"
+              class="hover:text-primary dark:text-gray-300 dark:no-underline"
               >{{ . | humanize }}{{ if ne $i (sub (len $categories) 1) }}
                 {{ "," }}
               {{ end }}
@@ -37,11 +37,7 @@
     </div>
     <p class="mb-6 text-gray-600 dark:text-gray-400">{{ .Summary | plainify }}</p>
     <a 
-      class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg
-      border border-primary text-primary hover:bg-primary hover:text-white
-      dark:border-gray-600 dark:text-gray-300 
-      dark:hover:bg-gray-700 dark:hover:border-gray-500 dark:hover:text-white
-      transition-all duration-300"
+      class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg border border-primary text-primary hover:bg-primary hover:text-white dark:border-gray-300 dark:text-gray-300 dark:hover:bg-gray-300 dark:hover:text-gray-800 transition-all duration-300"
       href="{{ .RelPermalink }}">
       {{ T "read_more" }}
       <i class="fa-solid fa-arrow-right ml-2"></i>
