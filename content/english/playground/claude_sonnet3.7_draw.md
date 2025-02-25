@@ -32,6 +32,6 @@ Try it out: [EasySketch Online Canvas](https://claude.site/artifacts/903e5c4c-7d
 EasySketch is a lightweight online drawing tool designed for creative expression and quick sketching. It offers basic drawing functions such as brush, line, rectangle, and circle tools, while supporting canvas panning and zooming for complete creative freedom. The toolbar is clean and intuitive, with color and style options clearly laid out for users of all levels. Its smooth drawing experience and responsive design make the creative process feel natural and fluid. Whether you're doodling, designing a sketch, or creating a teaching demonstration, EasySketch meets all your basic drawing needs.
 
 <video class="demo-video" controls>
-  <source src="/videos/EasySketch_wide.mp4" type="video/mp4">
+  <source src="https://dd5k4b9j9kysl.cloudfront.net/EasySketch_wide.mp4" type="video/mp4">
   Your browser does not support video playback.
 </video>
