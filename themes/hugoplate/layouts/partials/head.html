@@ -1,9 +1,3 @@
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2P1MNF2SPY"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-2P1MNF2SPY');
-</script>
+{{ if .Site.Params.googleAnalytics.id }}
+  {{ partial "google-analytics.html" . }}
+{{ end }}
