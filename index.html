@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De-Shiou Huang | Resume</title>
+  
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Framer Motion -->
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            chinese: ['"Noto Sans SC"', 'sans-serif']
+          },
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            accent: {
+              50: '#fdf4ff',
+              100: '#fae8ff',
+              200: '#f5d0fe',
+              300: '#f0abfc',
+              400: '#e879f9',
+              500: '#d946ef',
+              600: '#c026d3',
+              700: '#a21caf',
+              800: '#86198f',
+              900: '#701a75',
+            },
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-auto-rows: minmax(100px, auto);
+      gap: 1.5rem;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.05));
+    }
+    
+    .gradient-bg-accent {
+      background: linear-gradient(135deg, rgba(217, 70, 239, 0.15), rgba(217, 70, 239, 0.05));
+    }
+    
+    .skill-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #e0e0e0;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .skill-progress {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(14, 165, 233, 0.8), rgba(14, 165, 233, 0.4));
+      transition: width 1.5s ease-out;
+    }
+    
+    .chinese-title {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    
+    .english-subtitle {
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    .animate-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .number-highlight {
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 1), rgba(14, 165, 233, 0.7));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 200px;
+    }
+    
+    .chart-bar {
+      position: absolute;
+      bottom: 0;
+      width: 40px;
+      background: linear-gradient(to top, rgba(14, 165, 233, 0.8), rgba(14, 165, 233, 0.3));
+      border-radius: 4px 4px 0 0;
+      transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .link-hover {
+      position: relative;
+    }
+    
+    .link-hover::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -2px;
+      left: 0;
+      background-color: rgba(14, 165, 233, 0.8);
+      transition: width 0.3s ease;
+    }
+    
+    .link-hover:hover::after {
+      width: 100%;
+    }
+    
+    @media (max-width: 768px) {
+      .bento-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+  <div class="container mx-auto px-4 py-12 max-w-7xl">
+    <!-- Header Section -->
+    <header class="mb-16 animate-on-scroll">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end">
+        <div>
+          <h1 class="text-5xl md:text-7xl font-bold mb-2">De-Shiou Huang</h1>
+          <div class="flex flex-col md:flex-row gap-2 md:gap-6 text-gray-600 mt-4">
+            <div class="flex items-center">
+              <i class="fas fa-map-marker-alt mr-2 text-primary-500"></i>
+              <span>Melbourne</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-phone mr-2 text-primary-500"></i>
+              <span>0449022095</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-envelope mr-2 text-primary-500"></i>
+              <a href="mailto:huangdeshiou@gmail.com" class="link-hover">huangdeshiou@gmail.com</a>
+            </div>
+          </div>
+          <div class="flex gap-4 mt-4">
+            <a href="https://www.joyehuang.me/en/" target="_blank" class="text-primary-600 hover:text-primary-800 transition-colors">
+              <i class="fas fa-globe text-xl"></i>
+            </a>
+            <a href="https://github.com/joyehuang" target="_blank" class="text-primary-600 hover:text-primary-800 transition-colors">
+              <i class="fab fa-github text-xl"></i>
+            </a>
+            <a href="https://www.linkedin.com/in/deshiouhuang/" target="_blank" class="text-primary-600 hover:text-primary-800 transition-colors">
+              <i class="fab fa-linkedin text-xl"></i>
+            </a>
+          </div>
+        </div>
+        <div class="mt-8 md:mt-0">
+          <div class="chinese-title font-chinese text-4xl md:text-6xl text-primary-700">
+            黄德修
+          </div>
+          <div class="english-subtitle text-xs tracking-widest text-gray-500 mt-1">
+            SOFTWARE ENGINEER
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="bento-grid">
+      <!-- Education Section -->
+      <div class="col-span-12 md:col-span-4 gradient-bg rounded-3xl p-8 animate-on-scroll">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-2xl font-bold mb-4">Education</h2>
+            <h3 class="text-xl font-semibold text-primary-700">University of Melbourne</h3>
+            <p class="text-gray-600">Computing and Software Engineer</p>
+            <p class="text-gray-500 text-sm mt-2">Feb 2024 - Oct 2026</p>
+            <p class="text-gray-500 text-sm">Undergraduate</p>
+            <div class="mt-4">
+              <p class="text-gray-700 font-medium">Relevant Coursework:</p>
+              <p class="text-gray-600">Python, C, Java, MySql, Algorithms</p>
+            </div>
+          </div>
+          <div class="chinese-title font-chinese text-5xl text-primary-700 opacity-20">
+            教育
+          </div>
+        </div>
+      </div>
+      
+      <!-- Skills Visualization -->
+      <div class="col-span-12 md:col-span-8 gradient-bg-accent rounded-3xl p-8 animate-on-scroll">
+        <div class="flex items-start justify-between mb-6">
+          <h2 class="text-2xl font-bold">Skills</h2>
+          <div class="chinese-title font-chinese text-5xl text-accent-700 opacity-20">
+            技能
+          </div>
+        </div>
+        
+        <div class="chart-container mt-8">
+          <div class="flex justify-between h-full relative">
+            <div class="flex flex-col items-center">
+              <div class="chart-bar" style="left: 0%; height: 0%;" data-height="85%"></div>
+              <span class="mt-2 text-sm font-medium">JS/TS</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="chart-bar" style="left: 20%; height: 0%;" data-height="90%"></div>
+              <span class="mt-2 text-sm font-medium">React</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="chart-bar" style="left: 40%; height: 0%;" data-height="75%"></div>
+              <span class="mt-2 text-sm font-medium">Python</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="chart-bar" style="left: 60%; height: 0%;" data-height="70%"></div>
+              <span class="mt-2 text-sm font-medium">Flutter</span>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="chart-bar" style="left: 80%; height: 0%;" data-height="80%"></div>
+              <span class="mt-2 text-sm font-medium">Git</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Programming</h3>
+            <p class="text-gray-600">JavaScript/TypeScript, React, Python, Flutter/Dart</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Tools & Platforms</h3>
+            <p class="text-gray-600">Git, AWS (S3, CloudFront), Prisma, Firebase</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Development</h3>
+            <p class="text-gray-600">Frontend development, API integration, State management</p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-3">Communication</h3>
+            <p class="text-gray-600">Technical writing, Bilingual (English & Chinese)</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- PrepWise Project -->
+      <div class="col-span-12 md:col-span-8 gradient-bg rounded-3xl p-8 animate-on-scroll">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-4">
+              <h2 class="text-2xl font-bold">PrepWise</h2>
+              <span class="text-sm bg-primary-100 text-primary-800 px-3 py-1 rounded-full">Apr 2025 - Present</span>
+            </div>
+            <h3 class="text-xl font-semibold text-primary-700 mb-2">AI-Powered Voice Interview Simulator</h3>
+            <a href="https://interview-prep-git-main-joyehuangs-projects.vercel.app/sign-in" target="_blank" class="text-primary-600 hover:text-primary-800 transition-colors flex items-center gap-1 mb-4 link-hover">
+              <i class="fas fa-link text-sm"></i>
+              <span>interview-prep-git-main-joyehuangs-projects.vercel.app/sign-in</span>
+            </a>
+            <p class="text-gray-700 font-medium mb-2">Solo Developer | Next.js · React · Firebase · Gemini AI · Vapi Voice SDK</p>
+            <ul class="text-gray-600 space-y-2 list-disc pl-5">
+              <li>Built a full-stack web app that simulates voice-based mock interviews and gives real-time AI feedback</li>
+              <li>Integrated Google Gemini AI to dynamically generate interview questions based on user input</li>
+              <li>Enabled realistic voice interaction using Vapi AI SDK and streamlined frontend logic with React hooks</li>
+              <li>Designed modular architecture across Client, Integration, and Backend layers (see [GitHub]/README)</li>
+              <li>Stored user sessions and feedback via Firebase (Auth + Firestore), enabling personalized review history</li>
+            </ul>
+          </div>
+          <div class="chinese-title font-chinese text-5xl text-primary-700 opacity-20 hidden md:block">
+            项目
+          </div>
+        </div>
+      </div>
+      
+      <!-- Project Count -->
+      <div class="col-span-12 md:col-span-4 gradient-bg rounded-3xl p-8 flex flex-col justify-center items-center animate-on-scroll">
+        <div class="chinese-title font-chinese text-4xl text-primary-700 mb-2">
+          项目经验
+        </div>
+        <div class="english-subtitle text-xs tracking-widest text-gray-500 mb-6">
+          PROJECT EXPERIENCE
+        </div>
+        <div class="number-highlight" id="projectCount">2</div>
+        <p class="text-gray-600 text-center mt-2">Major Projects</p>
+      </div>
+      
+      <!-- CISSA Hackathon -->
+      <div class="col-span-12 gradient-bg rounded-3xl p-8 animate-on-scroll">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-4">
+              <h2 class="text-2xl font-bold">CISSA – Codebrew Hackathon</h2>
+              <span class="text-sm bg-primary-100 text-primary-800 px-3 py-1 rounded-full">Mar 2024</span>
+            </div>
+            <h3 class="text-xl font-semibold text-primary-700 mb-2">Front-end Developer</h3>
+            <p class="text-gray-700 font-medium mb-2">Tech Stack: Flutter, Dart, Firebase, Express.js, OpenAI API</p>
+            <ul class="text-gray-600 space-y-2 list-disc pl-5">
+              <li>Led frontend development for "Fwend," a mobile application prototype that attracted investor interest with potential funding of up to $200,000, implementing core UI components using Flutter</li>
+              <li>Designed and built user interface elements including profile systems, matching interfaces, and basic location features, focusing on creating an intuitive user experience</li>
+              <li>Collaborated with a cross-functional team to develop a proof-of-concept application that addresses student social connection needs, resulting in significant investor interest</li>
+            </ul>
+          </div>
+          <div class="chinese-title font-chinese text-5xl text-primary-700 opacity-20 hidden md:block">
+            黑客马拉松
+          </div>
+        </div>
+      </div>
+      
+      <!-- Technical Blog -->
+      <div class="col-span-12 md:col-span-6 gradient-bg-accent rounded-3xl p-8 animate-on-scroll">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-4">
+              <h2 class="text-2xl font-bold">Technical Blog & Project Showcase</h2>
+              <span class="text-sm bg-accent-100 text-accent-800 px-3 py-1 rounded-full">Jan 2025 - Present</span>
+            </div>
+            <a href="https://www.joyehuang.me/en/" target="_blank" class="text-accent-600 hover:text-accent-800 transition-colors flex items-center gap-1 mb-4 link-hover">
+              <i class="fas fa-link text-sm"></i>
+              <span>www.joyehuang.me/en/</span>
+            </a>
+            <ul class="text-gray-600 space-y-2 list-disc pl-5">
+              <li>Developed a customized technical blog using Hugo to document learnings in React, algorithms, and system design</li>
+              <li>Customized layout with bilingual support (English/Chinese), syntax highlighting, and dark/light mode</li>
+              <li>Optimized performance with AWS S3 + CloudFront CDN and integrated Google Analytics for traffic insights</li>
+            </ul>
+          </div>
+          <div class="chinese-title font-chinese text-5xl text-accent-700 opacity-20 hidden md:block">
+            博客
+          </div>
+        </div>
+      </div>
+      
+      <!-- Timeline -->
+      <div class="col-span-12 md:col-span-6 gradient-bg rounded-3xl p-8 animate-on-scroll">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+          <span>Timeline</span>
+          <span class="chinese-title font-chinese text-2xl text-primary-700">时间线</span>
+        </h2>
+        <div class="relative pl-8 before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-8 before:w-0.5 before:bg-primary-200">
+          <div class="relative mb-8">
+            <div class="absolute left-[-33px] w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <div class="text-lg font-semibold">Apr 2025 - Present</div>
+            <div class="text-gray-600">PrepWise Project</div>
+          </div>
+          <div class="relative mb-8">
+            <div class="absolute left-[-33px] w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <div class="text-lg font-semibold">Jan 2025 - Present</div>
+            <div class="text-gray-600">Technical Blog</div>
+          </div>
+          <div class="relative mb-8">
+            <div class="absolute left-[-33px] w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <div class="text-lg font-semibold">Feb 2024 - Oct 2026</div>
+            <div class="text-gray-600">University of Melbourne</div>
+          </div>
+          <div class="relative">
+            <div class="absolute left-[-33px] w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+              <div class="w-2 h-2 bg-white rounded-full"></div>
+            </div>
+            <div class="text-lg font-semibold">Mar 2024</div>
+            <div class="text-gray-600">CISSA Hackathon</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Animation on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+      const animatedElements = document.querySelectorAll('.animate-on-scroll');
+      
+      function checkScroll() {
+        animatedElements.forEach(element => {
+          const elementTop = element.getBoundingClientRect().top;
+          const windowHeight = window.innerHeight;
+          
+          if (elementTop < windowHeight * 0.85) {
+            element.classList.add('visible');
+            
+            // Animate chart bars if they exist in this element
+            const chartBars = element.querySelectorAll('.chart-bar');
+            chartBars.forEach(bar => {
+              setTimeout(() => {
+                bar.style.height = bar.getAttribute('data-height');
+              }, 300);
+            });
+          }
+        });
+      }
+      
+      // Initial check
+      checkScroll();
+      
+      // Check on scroll
+      window.addEventListener('scroll', checkScroll);
+      
+      // Number counter animation
+      function animateCounter(element, target, duration) {
+        let start = 0;
+        const increment = target / (duration / 16);
+        
+        function updateCount() {
+          start += increment;
+          if (start >= target) {
+            element.textContent = target;
+            return;
+          }
+          
+          element.textContent = Math.floor(start);
+          requestAnimationFrame(updateCount);
+        }
+        
+        updateCount();
+      }
+      
+      const projectCount = document.getElementById('projectCount');
+      if (projectCount) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              animateCounter(projectCount, 2, 1500);
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.5 });
+        
+        observer.observe(projectCount);
+      }
+    });
+    
+    // Apple-style parallax effect
+    document.addEventListener('mousemove', function(e) {
+      const moveX = (e.clientX - window.innerWidth / 2) / 50;
+      const moveY = (e.clientY - window.innerHeight / 2) / 50;
+      
+      document.querySelectorAll('.gradient-bg, .gradient-bg-accent').forEach(element => {
+        element.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        element.style.transition = 'transform 0.5s ease-out';
+      });
+    });
+  </script>
+</body>
+</html>
