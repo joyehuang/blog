@@ -4,7 +4,7 @@ import { Icon } from 'astro-pure/user'
 
 interface SubstatsItem {
   platform: string
-  icon: (typeof socialLinks)[number]
+  icon: (typeof socialLinks)[number] | string  // Allow custom icon URLs
   color?: string
   link?: string
   text: string
@@ -20,17 +20,71 @@ const { stats } = Astro.props as Props
 
 async function fetchCount(item: SubstatsItem) {
   if (!item.api) return
+  
+  // Skip API call if count is already set (for static values)
+  if (typeof item.count === 'number') {
+    console.log(`Using static count for ${item.platform}: ${item.count}`)
+    return
+  }
+  
+  console.log(`Processing ${item.platform} with API: ${item.api}`)
+  
   try {
-    const response = await fetch(`https://api.swo.moe/stats/${item.api}`)
-    const data = await response.json()
-    if (data.failed) {
-      throw new Error(data.message)
+    // Handle different API endpoints based on platform
+    if (item.api.startsWith('bilibili/')) {
+      // Extract vmid from api string (e.g., 'bilibili/406318693' -> '406318693')
+      const vmid = item.api.split('/')[1]
+      console.log(`Extracted Bilibili vmid: ${vmid}`)
+      
+      const apiUrl = `https://api.bilibili.com/x/relation/stat?vmid=${vmid}`
+      console.log(`Fetching from: ${apiUrl}`)
+      
+      // Add timeout and better error handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+      
+      const response = await fetch(apiUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      })
+      
+      clearTimeout(timeoutId)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      console.log(`Bilibili API response:`, data)
+      
+      if (data.code === 0 && data.data && typeof data.data.follower === 'number') {
+        item.count = data.data.follower
+        console.log(`Set follower count to: ${item.count}`)
+      } else {
+        console.error(`Bilibili API error - code: ${data.code}, message: ${data.message}`)
+        throw new Error(`Bilibili API error: ${data.message || 'Unknown error'}`)
+      }
     } else {
-      item.count = data.count
+      // Default to original Substats API for other platforms
+      console.log(`Using Substats API for ${item.platform}`)
+      const response = await fetch(`https://api.swo.moe/stats/${item.api}`)
+      const data = await response.json()
+      if (data.failed) {
+        throw new Error(data.message)
+      } else {
+        item.count = data.count
+      }
     }
   } catch (error) {
-    console.error('Error in Substats fetching: ' + error)
+    console.error(`Error in Substats fetching for ${item.platform}: ${error}`)
+    // Set a fallback value or keep count undefined
+    item.count = undefined
   }
+  
+  console.log(`Final count for ${item.platform}: ${item.count}`)
 }
 
 await Promise.all(stats.map(fetchCount))
@@ -46,7 +100,14 @@ await Promise.all(stats.map(fetchCount))
         rel='noopener noreferrer'
       >
         <div class='flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 transition-all hover:border-border hover:bg-muted'>
-          {icon && <Icon name={icon as iconsType} color={color} />}
+          {icon && (
+            // Check if icon is a URL (custom image) or standard icon name
+            typeof icon === 'string' && (icon.startsWith('http') || icon.startsWith('/') || icon.endsWith('.png') || icon.endsWith('.jpg') || icon.endsWith('.svg')) ? (
+              <img src={icon} alt={`${platform} icon`} class='h-5 w-5 object-contain' />
+            ) : (
+              <Icon name={icon as iconsType} color={color} />
+            )
+          )}
           <div class='flex-1 text-foreground transition-colors group-hover:text-primary'>
             {platform}
           </div>
