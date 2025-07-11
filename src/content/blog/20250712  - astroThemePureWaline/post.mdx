@@ -4,7 +4,6 @@ description: '个人在为astro-theme-pure主题部署 Waline 评论系统全流
 publishDate: 2025-07-12 05:08:21
 tags: ['Waline', '教程']
 ---
-import { Aside } from 'astro-pure/user'
 
 ## 前言
 这篇博客记录了我使用 Vercel + LeanCloud（Waline 官方推荐的方式）为 Astro 博客添加评论系统 Waline 的完整流程。除了涵盖基础搭建过程，我还整理了一些踩坑点，尤其适用于使用 astro-theme-pure 的用户，希望能帮到正在折腾博客评论功能的你。
@@ -18,16 +17,16 @@ import { Aside } from 'astro-pure/user'
   - App Key
   - Master Key
 
-![first](./first.png)
+![first](/src/content/blog/20250712%20%20-%20astroThemePureWaline/first.png)
 
-![second](./second.png)
+![second](/src/content/blog/20250712%20%20-%20astroThemePureWaline/second.png)
 
 ## ⚙️ 第 2 步：在 Vercel 部署 Waline 服务端
   使用一键部署功能将 Waline 部署至 Vercel。点击以下链接进入部署界面：
   👉 一键部署 Waline
   仓库名可随意填写，然后点击 Create，等待部署完成。
 
-![third](./third.png)
+![third](src/content/blog/20250712%20%20-%20astroThemePureWaline/third.png)
 
 ## 🔧 第 3 步：配置环境变量
   部署完成后，进入 Vercel 仓库的 Settings > Environment Variables 页面，添加以下三个环境变量（对应 LeanCloud 提供的值）：
@@ -36,15 +35,15 @@ import { Aside } from 'astro-pure/user'
   - LEAN_MASTER_KEY
   保存后，Vercel 会在右下角提示你重新部署，点击确认即可使配置生效。
 
-![fourth](./fourth.png)
+![fourth](src/content/blog/20250712%20%20-%20astroThemePureWaline/fourth.png)
 
 ## 🌐 第 4 步（可选但推荐）：绑定自定义域名
-  为了避免因为 DNS 污染而导致 Waline 报错（如 “not initialized”），建议绑定自己的域名。
+  为了避免因为 DNS 污染而导致 Waline 报错（如 "not initialized"），建议绑定自己的域名。
   进入 Vercel 项目的 Settings > Domains 页面添加域名。如果你的域名 DNS 不在 Vercel，还需在你的域名服务商那里配置对应解析记录
 
 ## 🔑 第 5 步：初始化 Waline 管理后台
 
-![fifth](./fifth.png)
+![fifth](src/content/blog/20250712%20%20-%20astroThemePureWaline/fifth.png)
 
   在你的部署地址后添加 /ui 路径访问 Waline 后台，例如：
 https://www.yourdomain.com/ui
