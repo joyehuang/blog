@@ -1,103 +1,93 @@
-# Astro Theme Pure
+# Joye Huang's Personal Blog
 
-[English](./README.md) | [简体中文](./README-zh-CN.md)
+一个基于 Astro Theme Pure 构建的个人博客网站。
 
-A simple, fast and powerful blog theme built by Astro.
+## 关于我
 
-[![GitHub deployments](https://img.shields.io/github/deployments/cworld1/astro-theme-pure/production?style=flat&logo=vercel&label=vercel)](https://astro-pure.js.org/)
-[![NPM Version](https://img.shields.io/npm/v/astro-pure?logo=npm&style=flat)](https://www.npmjs.com/package/astro-pure)
-[![GitHub Release](https://img.shields.io/github/v/release/cworld1/astro-theme-pure?include_prereleases&style=flat&label=template)](https://github.com/cworld1/astro-theme-pure/releases)
-[![GitHub License](https://img.shields.io/github/license/cworld1/astro-theme-pure?style=flat)](https://github.com/cworld1/astro-theme-pure/blob/main/LICENSE)
+Frontend Developer | 全栈实习生
 
-![image](./.github/assets/header.webp)
-![image](./.github/assets/body.webp)
+一名正在墨尔本大学学习的大二学生，目标成为一名全栈开发者。目前在上海特赞（Tezign）担任AIGC研发部门全栈实习生。平时喜欢摄影、弹琴与拉大提琴！
 
-> [!WARNING]
-> Theme template v4.0.2^ CSS engine changed to UnoCSS. Stabler version is [v4.0.1-beta](https://github.com/cworld1/astro-theme-pure/tree/v4.0.1-beta). Known issues:
->
-> 1. Header & customize options is still under development (template exposed still)
+- 🌏 位置：Melbourne, Australia
+- 🎓 学校：墨尔本大学 - 理学学士（计算与软件工程）
+- 💼 当前：上海特赞 Tezign - AIGC研发部门全栈实习生
+- 📧 联系：[LinkedIn](https://www.linkedin.com/in/deshiouhuang/)
 
-## Introduction
+## 技术栈
 
-Checkout [Demo Site →](https://astro-pure.js.org/)
+### 语言
+TypeScript, JavaScript, Python, Java, MySQL
 
-### :fire: Features
+### 前端
+React, Next.js, Vite
 
-- [x] :rocket: Fast & high performance
-- [x] :star: Simple & clean design
-- [x] :iphone: Responsive design
-- [x] :mag: Full-site search built with [pagefind](https://pagefind.app/)
-- [x] :world_map: Sitemap & RSS feed
-- [x] :spider_web: SEO-friendly
-- [x] :book: TOC (table of contents)
-- [x] :framed_picture: Dynamic open graph generation for posts
-- [x] :framed_picture: Mediumzoom lightbox for images
+### 后端
+Vercel, Waline, Firebase, Node.js
 
-### :package: Components
+### 工具
+Cursor, Git, Docker, Postman, ESLint/Prettier, Jest
 
-Theme includes a lot of components, which can not only be used in the theme, but also in other astro projects.
+## 本地开发
 
-> For other astro projects, UnoCSS is required.
+环境要求：
+- [Node.js](https://nodejs.org/): 18.0.0+
+- [Bun](https://bun.sh/) (推荐) 或 npm
 
-- Basic components: `Aside`, `Tabs`, `Timeline`, `Steps`, `Spoiler`...
-- Advanced components: `GithubCard`, `LinkPreview`, `Quote`, `QRCode`...
-
-### :white_check_mark: Lighthouse score
-
-[![lighthouse-score](./.github/assets/lighthouse-score.png)](https://pagespeed.web.dev/analysis/https-cworld-top/o229zrt5o4?form_factor=mobile&hl=en)
-
-## Documentation
-
-[Docs](https://astro-pure.js.org/docs) | [Showcase](https://github.com/cworld1/astro-theme-pure/issues/10)
-
-## Package
-
-See [astro-theme-pure](https://www.npmjs.com/package/astro-pure) on npm.
-
-## Local development
-
-Environment requirements:
-
-- [Nodejs](https://nodejs.org/): 18.0.0+
-
-Clone the repository:
+克隆仓库：
 
 ```shell
-git clone https://github.com/cworld1/astro-theme-pure.git
-cd astro-theme-pure
+git clone https://github.com/joyehuang/blog.git
+cd blog
 ```
 
-Useful commands:
+常用命令：
 
 ```shell
-# install dependencies
+# 安装依赖
 bun install
 
-# start the dev server
+# 启动开发服务器
 bun dev
 
-# build the project
+# 构建项目
 bun run build
 
-# preview (after the build)
+# 预览（构建后）
 bun preview
 
-# create a new post
-bun new-post
+# 创建新文章
+bun new
+
+# 格式化代码
+bun format
+
+# 代码检查
+bun lint
+
+# 一键四连（lint + sync + check + format）
+bun yijiansilian
 ```
 
-## Contributions
+## 特性
 
-To spend more time coding and less time fiddling with whitespace, this project uses code conventions and styles to encourage consistency. Code with a consistent style is easier (and less error-prone!) to review, maintain, and understand.
+- ⚡️ 快速且高性能
+- 🎨 简洁的设计
+- 📱 响应式布局
+- 🔍 全站搜索
+- 🗺️ 站点地图和 RSS 订阅
+- 🌐 SEO 友好
+- 📚 文章目录
+- 🖼️ 动态 OG 图片生成
+- 💬 Waline 评论系统
 
-## Thanks
+## 主题
 
-- [Astro Cactus](https://github.com/chrismwilliams/astro-theme-cactus)
-- [Astro Resume](https://github.com/srleom/astro-theme-resume)
-- [Starlight](https://github.com/withastro/starlight)
+本博客基于 [Astro Theme Pure](https://github.com/cworld1/astro-theme-pure) 主题构建。
 
-## License
+## 许可
 
-This project is licensed under the Apache 2.0 License.
+本项目基于 Apache 2.0 协议开源。
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cworld1/astro-theme-pure&type=Date)](https://star-history.com/#cworld1/astro-theme-pure&Date)
+---
+
+⭐️ 如果觉得这个项目不错，欢迎 Star！
