@@ -2,11 +2,119 @@
 import { Button } from 'astro-pure/user'
 
 const { title, skills } = Astro.props
+// 为每个技能分类生成唯一ID，用于动画定位
+const sectionId = `skill-section-${title.toLowerCase().replace(/\s+/g, '-')}`
+const titleId = `skill-title-${title.toLowerCase().replace(/\s+/g, '-')}`
 ---
 
-<div class='flex flex-col gap-y-2 md:flex-row md:gap-x-5 md:gap-y-0'>
-  <h3 class='w-1/5 font-medium'>{title}</h3>
-  <div class='flex flex-row flex-wrap gap-x-4 gap-y-2 md:w-4/5'>
-    {skills.map((skill: string[]) => <Button as='button' title={skill} style='pill' />)}
+<div
+  class='skill-section flex flex-col gap-y-2 md:flex-row md:gap-x-5 md:gap-y-0'
+  data-section-id={sectionId}
+>
+  <h3
+    class='skill-title w-1/5 font-medium'
+    data-title-id={titleId}
+  >
+    {title}
+  </h3>
+  <div class='skill-container flex flex-row flex-wrap gap-x-4 gap-y-2 md:w-4/5'>
+    {skills.map((skill: string[]) => (
+      <div class='skill-pill'>
+        <Button as='button' title={skill} style='pill' />
+      </div>
+    ))}
   </div>
 </div>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initSkillAnimations() {
+    // 为所有技能分类添加动画
+    const skillSections = document.querySelectorAll('.skill-section');
+
+    skillSections.forEach((section, sectionIndex) => {
+      const title = section.querySelector('.skill-title');
+      const pills = section.querySelectorAll('.skill-pill');
+
+      // 创建时间线，让动画按顺序执行
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 80%', // 当元素顶部距离视口底部80%时触发
+          end: 'bottom 20%',
+          toggleActions: 'play none none reverse', // 进入播放，退出反转
+        }
+      });
+
+      // 1. 标题从左滑入并淡入
+      tl.from(title, {
+        x: -50,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power3.out'
+      });
+
+      // 2. 技能标签交错淡入，从下往上弹出
+      tl.from(pills, {
+        y: 30,
+        opacity: 0,
+        duration: 0.5,
+        stagger: 0.08, // 每个元素间隔0.08秒
+        ease: 'back.out(1.5)', // 弹性效果
+      }, '-=0.3'); // 与上一个动画重叠0.3秒
+
+      // 3. 为每个技能标签添加 hover 动画
+      pills.forEach((pill) => {
+        const button = pill.querySelector('button');
+
+        if (button) {
+          // Hover 进入
+          button.addEventListener('mouseenter', () => {
+            gsap.to(button, {
+              scale: 1.1,
+              y: -3,
+              duration: 0.3,
+              ease: 'power2.out'
+            });
+          });
+
+          // Hover 离开
+          button.addEventListener('mouseleave', () => {
+            gsap.to(button, {
+              scale: 1,
+              y: 0,
+              duration: 0.3,
+              ease: 'power2.inOut'
+            });
+          });
+        }
+      });
+    });
+  }
+
+  // 页面加载时初始化
+  document.addEventListener('DOMContentLoaded', initSkillAnimations);
+
+  // 支持 Astro View Transitions
+  document.addEventListener('astro:page-load', initSkillAnimations);
+</script>
+
+<style>
+  /* 确保初始状态是隐藏的，避免闪烁 */
+  .skill-title,
+  .skill-pill {
+    will-change: transform, opacity;
+  }
+
+  .skill-pill button {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .skill-pill button:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+</style>

@@ -28,45 +28,124 @@ const headings = [
   {/* general-talk */}
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
-    <li></li>
     <li>
-      Quem denique mea id. Usu ei regione indoctum dissentiunt, cu meliore fuisset mei, vel quod
-      voluptua ne.
+      <strong>音乐 Music</strong> - 从小学习钢琴和大提琴，虽然是被父母"逼"着学的，但音乐已经成为生活中不可或缺的一部分。偶尔会弹奏一些喜欢的曲目放松自己。
     </li>
-    <li>Ex dicat impedit mel, at eum oratio possit voluptatum.</li>
-    <li>Impetus fuisset ullamcorper pri cu, his posse iisque ad, aliquam honestatis usu id.</li>
+    <li>
+      <strong>模型制作 Model Building</strong> - 喜欢组装各种模型，享受从零到完成的过程，既锻炼动手能力，也能培养耐心和专注力。
+    </li>
+    <li>
+      <strong>摄影 Photography</strong> - 新培养的爱好！通过镜头记录生活中的美好瞬间，探索不同的视角和光影变化。
+    </li>
+    <li>
+      <strong>开源贡献 Open Source</strong> - 致力于成为一名活跃的开源贡献者，通过代码和社区交流不断学习和成长。
+    </li>
   </ul>
 
   {/* tools */}
   <h2 id='tools'>Tools</h2>
-  <p>Current support tools as follow:</p>
+  <p>Here are the tools and technologies I use daily:</p>
+  <ToolSection
+    class='mb-5'
+    title='AI & Code Assistants'
+    tools={[
+      {
+        name: 'ChatGPT',
+        description: 'AI Assistant',
+        href: 'https://chat.openai.com/',
+        icon: import('@/assets/tools/chatgpt.svg?raw')
+      },
+      {
+        name: 'Claude Code',
+        description: 'AI Coding Assistant',
+        href: 'https://claude.ai/',
+        icon: import('@/assets/tools/claude.svg?raw')
+      },
+      {
+        name: 'GitHub Copilot',
+        description: 'AI Code Completion',
+        href: 'https://github.com/features/copilot',
+        icon: import('@/assets/tools/github.svg?raw')
+      },
+      {
+        name: 'v0 by Vercel',
+        description: 'AI UI Generator',
+        href: 'https://v0.dev/',
+        icon: import('@/assets/tools/v0.svg?raw')
+      }
+      // 备用选项（取消注释即可启用）：
+      // {
+      //   name: 'Perplexity',
+      //   description: 'AI Search Engine',
+      //   href: 'https://www.perplexity.ai/',
+      //   icon: import('@/assets/tools/perplexity.svg?raw')
+      // }
+    ]}
+  />
   <ToolSection
     class='mb-5'
     title='Design'
     tools={[
       {
-        name: 'Photoshop',
-        description: 'Picture Editing',
-        href: 'https://www.adobe.com/products/photoshop',
-        icon: import('@/assets/tools/photoshop.svg?raw')
+        name: 'Figma',
+        description: 'UI/UX Design',
+        href: 'https://www.figma.com/',
+        icon: import('@/assets/tools/figma.svg?raw')
       },
       {
-        name: 'Illustrator',
-        description: 'Vector Drawing',
-        href: 'https://www.adobe.com/products/illustrator',
-        icon: import('@/assets/tools/illustrator.svg?raw')
+        name: 'Canva',
+        description: 'Graphic Design',
+        href: 'https://www.canva.com/',
+        icon: import('@/assets/tools/canva.svg?raw')
+      }
+      // 备用选项（取消注释即可启用）：
+      // {
+      //   name: 'Sketch',
+      //   description: 'Vector Design Tool',
+      //   href: 'https://www.sketch.com/',
+      //   icon: import('@/assets/tools/sketch.svg?raw')
+      // },
+      // {
+      //   name: 'Adobe XD',
+      //   description: 'UI/UX Design',
+      //   href: 'https://www.adobe.com/products/xd.html',
+      //   icon: import('@/assets/tools/xd.svg?raw')
+      // },
+      // {
+      //   name: 'Framer',
+      //   description: 'Interactive Design',
+      //   href: 'https://www.framer.com/',
+      //   icon: import('@/assets/tools/framer.svg?raw')
+      // }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Development'
+    tools={[
+      {
+        name: 'Cursor',
+        description: 'AI-Powered IDE',
+        href: 'https://cursor.sh/',
+        icon: import('@/assets/tools/cursor.svg?raw')
       },
       {
-        name: 'After Effects',
-        description: 'Motion Graphics',
-        href: 'https://www.adobe.com/products/aftereffects',
-        icon: import('@/assets/tools/aftereffects.svg?raw')
+        name: 'VS Code',
+        description: 'Code Editor',
+        href: 'https://code.visualstudio.com/',
+        icon: import('@/assets/tools/vscode.svg?raw')
       },
       {
-        name: 'Premiere Pro',
-        description: 'Video Editing',
-        href: 'https://www.adobe.com/products/premiere',
-        icon: import('@/assets/tools/premiere.svg?raw')
+        name: 'Git',
+        description: 'Version Control',
+        href: 'https://git-scm.com/',
+        icon: import('@/assets/tools/git.svg?raw')
+      },
+      {
+        name: 'Postman',
+        description: 'API Testing',
+        href: 'https://www.postman.com/',
+        icon: import('@/assets/tools/postman.svg?raw')
       }
     ]}
   />
@@ -75,53 +154,140 @@ const headings = [
     title='Productivity'
     tools={[
       {
-        name: 'Chrome',
-        description: 'Browser',
-        href: 'https://www.google.com/chrome/',
-        icon: import('@/assets/tools/chrome.svg?raw')
-      },
-      {
-        name: 'Firefox',
-        description: 'Browser',
-        href: 'https://www.mozilla.org/en-US/firefox',
-        icon: import('@/assets/tools/firefox.svg?raw')
+        name: 'Obsidian',
+        description: 'Knowledge Base',
+        href: 'https://obsidian.md/',
+        icon: import('@/assets/tools/obsidian.svg?raw')
       },
       {
         name: 'Notion',
-        description: 'Note Taking',
+        description: 'Project Management',
         href: 'https://www.notion.so/',
         icon: import('@/assets/tools/notion.svg?raw')
       },
       {
-        name: 'Typora',
-        description: 'Markdown Editor',
-        href: 'https://typora.io/',
-        icon: import('@/assets/tools/typora.svg?raw')
+        name: 'Chrome',
+        description: 'Web Browser',
+        href: 'https://www.google.com/chrome/',
+        icon: import('@/assets/tools/chrome.svg?raw')
+      },
+      {
+        name: 'Raycast',
+        description: 'Productivity Launcher',
+        href: 'https://www.raycast.com/',
+        icon: import('@/assets/tools/raycast.svg?raw')
       }
+      // 备用选项（取消注释即可启用）：
+      // {
+      //   name: 'Slack',
+      //   description: 'Team Communication',
+      //   href: 'https://slack.com/',
+      //   icon: import('@/assets/tools/slack.svg?raw')
+      // },
+      // {
+      //   name: 'Google Drive',
+      //   description: 'Cloud Storage',
+      //   href: 'https://drive.google.com/',
+      //   icon: import('@/assets/tools/googledrive.svg?raw')
+      // },
+      // {
+      //   name: 'Todoist',
+      //   description: 'Task Management',
+      //   href: 'https://todoist.com/',
+      //   icon: import('@/assets/tools/todoist.svg?raw')
+      // }
     ]}
   />
   <ToolSection
     class='mb-5'
-    title='Development'
+    title='DevOps & Cloud'
     tools={[
       {
-        name: 'VS Code',
-        description: 'IDE',
-        href: 'https://code.visualstudio.com/',
-        icon: import('@/assets/tools/vscode.svg?raw')
+        name: 'AWS',
+        description: 'Cloud Platform',
+        href: 'https://aws.amazon.com/',
+        icon: import('@/assets/tools/aws.svg?raw')
       },
       {
-        name: 'Neovim',
-        description: 'IDE',
-        href: 'https://neovim.io/',
-        icon: import('@/assets/tools/neovim.svg?raw')
+        name: 'Vercel',
+        description: 'Deployment Platform',
+        href: 'https://vercel.com/',
+        icon: import('@/assets/tools/vercel.svg?raw')
       },
       {
-        name: 'Sublime Text',
-        description: 'IDE',
-        href: 'https://www.sublimetext.com/',
-        icon: import('@/assets/tools/sublime.svg?raw')
+        name: 'Docker',
+        description: 'Containerization',
+        href: 'https://www.docker.com/',
+        icon: import('@/assets/tools/docker.svg?raw')
+      },
+      {
+        name: 'Supabase',
+        description: 'Backend as a Service',
+        href: 'https://supabase.com/',
+        icon: import('@/assets/tools/supabase.svg?raw')
       }
+      // 备用选项（取消注释即可启用）：
+      // {
+      //   name: 'Google Cloud',
+      //   description: 'Cloud Platform',
+      //   href: 'https://cloud.google.com/',
+      //   icon: import('@/assets/tools/gcp.svg?raw')
+      // },
+      // {
+      //   name: 'Netlify',
+      //   description: 'Web Hosting',
+      //   href: 'https://www.netlify.com/',
+      //   icon: import('@/assets/tools/netlify.svg?raw')
+      // },
+      // {
+      //   name: 'Railway',
+      //   description: 'Cloud Deployment',
+      //   href: 'https://railway.app/',
+      //   icon: import('@/assets/tools/railway.svg?raw')
+      // }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Runtime & Package Managers'
+    tools={[
+      {
+        name: 'Bun',
+        description: 'JavaScript Runtime',
+        href: 'https://bun.sh/',
+        icon: import('@/assets/tools/bun.svg?raw')
+      },
+      {
+        name: 'npm',
+        description: 'Package Manager',
+        href: 'https://www.npmjs.com/',
+        icon: import('@/assets/tools/npm.svg?raw')
+      }
+      // 备用选项（取消注释即可启用）：
+      // {
+      //   name: 'pnpm',
+      //   description: 'Fast Package Manager',
+      //   href: 'https://pnpm.io/',
+      //   icon: import('@/assets/tools/pnpm.svg?raw')
+      // },
+      // {
+      //   name: 'Yarn',
+      //   description: 'Package Manager',
+      //   href: 'https://yarnpkg.com/',
+      //   icon: import('@/assets/tools/yarn.svg?raw')
+      // },
+      // {
+      //   name: 'Node.js',
+      //   description: 'JavaScript Runtime',
+      //   href: 'https://nodejs.org/',
+      //   icon: import('@/assets/tools/nodejs.svg?raw')
+      // },
+      // {
+      //   name: 'Deno',
+      //   description: 'Secure Runtime',
+      //   href: 'https://deno.land/',
+      //   icon: import('@/assets/tools/deno.svg?raw')
+      // }
     ]}
   />
   <ToolSection
@@ -129,28 +295,16 @@ const headings = [
     title='Environment'
     tools={[
       {
-        name: 'Arch Linux',
-        description: 'Linux Distribution',
-        href: 'https://archlinux.org/',
-        icon: import('@/assets/tools/archlinux.svg?raw')
-      },
-      {
-        name: 'Ubuntu 24.04 LTS',
-        description: 'Linux Distribution',
-        href: 'https://ubuntu.com/',
-        icon: import('@/assets/tools/ubuntu.svg?raw')
-      },
-      {
-        name: 'MacOS Tahoe',
-        description: 'MacBook Air',
+        name: 'macOS',
+        description: 'Mac Mini M4',
         href: 'https://www.apple.com/macos/',
         icon: import('@/assets/tools/apple.svg?raw')
       },
       {
-        name: 'Windows 11',
-        description: 'Framework Laptop 16',
-        href: 'https://news.microsoft.com/windows11-general-availability/',
-        icon: import('@/assets/tools/windows11.svg?raw')
+        name: 'Ubuntu 24.04.2 LTS',
+        description: 'Linux Distribution',
+        href: 'https://ubuntu.com/',
+        icon: import('@/assets/tools/ubuntu.svg?raw')
       }
     ]}
   />
@@ -199,30 +353,56 @@ const headings = [
 
   {/* gossips */}
   <h2 id='gossips'>Gossips</h2>
-  <Collapse title='Lorem ipsum'>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
-    possit voluptatum.
+  <Collapse title='关于编程之路 About My Coding Journey'>
+    大一的时候第一次接触前端开发，被网页的交互效果深深吸引。从最开始的 HTML/CSS 到现在的 React、Vue 全家桶，
+    每一步都充满挑战和惊喜。记得第一次成功部署自己的网站时，那种成就感至今难忘！
+  </Collapse>
+  <Collapse title='墨尔本生活碎片 Life in Melbourne'>
+    在墨尔本读书的日子既充实又有趣。这里的咖啡文化、街头艺术、以及多元的文化氛围都让我着迷。
+    周末会去 St Kilda 海滩散步，或者在 State Library 泡一整天。虽然偶尔会想家，但这段经历让我成长了很多。
+  </Collapse>
+  <Collapse title='关于实习经历 About Internship'>
+    很幸运能在特赞(Tezign)的 AIGC 研发部门实习，这段经历让我真正接触到了前沿的 AI 技术在实际产品中的应用。
+    团队氛围很好，导师们都很耐心，让我学到了很多课堂上学不到的实战经验。
+  </Collapse>
+  <Collapse title='关于音乐 About Music'>
+    虽然说是被"逼"着学的乐器，但现在很感谢父母当初的坚持。钢琴让我学会了如何表达情感，
+    大提琴则教会我耐心和专注。有时候 debug 累了，就会弹一会琴放松一下，效果比咖啡还好！
+  </Collapse>
+  <Collapse title='未来规划 Future Plans'>
+    短期目标是继续深耕前端，同时逐步学习后端知识，争取成为一名全栈开发者。
+    长期来看，希望能在开源社区有更多贡献，也想尝试做一些有意思的个人项目。
+    Build fast, learn faster - 这不仅是我的 motto，也是我的行动指南！
   </Collapse>
 
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
+  <p>
+    这个博客是我的个人技术学习笔记和生活记录空间。在这里，我会分享前端开发、全栈技术、实习经历、
+    以及一些学习心得。希望通过写作来沉淀知识，也希望能帮助到其他正在学习路上的同学们。
+  </p>
+  <p>
+    博客的建设理念是：简洁、高效、注重内容。使用现代化的技术栈，保持快速的加载速度和良好的用户体验。
+    欢迎大家留言交流，一起进步！
+  </p>
   <p>Website history:</p>
   <Timeline
     events={[
       {
-        date: '2024-04-29',
-        content:
-          'Website refactored using <a href="https://astro.build/" target="_blank">Astro</a> and <a href="https://github.com/srleom/astro-theme-resume" target="_blank">Astro Theme Resume</a>'
+        date: '2025-01-12',
+        content: '开始使用 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人博客'
       },
       {
-        date: '2024-07-26',
-        content:
-          'Website abstracted as a theme and published on <a href="https://github.com/cworld1/astro-theme-pure"target="_blank">Github</a>'
+        date: '2025-01-15',
+        content: '完成博客基础框架搭建，添加 Projects 和 About 页面'
       },
       {
-        date: '2024-07-27',
-        content: 'Began writing website docs'
+        date: '2025-01-20',
+        content: '集成 Waline 评论系统，添加访问统计功能'
+      },
+      {
+        date: '2025-01-25',
+        content: '发布第一篇技术博客，正式开始内容创作之旅'
       }
     ]}
   />
