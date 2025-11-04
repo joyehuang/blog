@@ -5,16 +5,10 @@
       "desc": "Common links included in circle friends",
       "link_list": [
         {
-          "name": "Arthals' ink",
-          "intro": "所见高山远木，阔云流风；所幸岁月盈余，了无拘束",
-          "link": "https://arthals.ink/",
-          "avatar": "https://cdn.arthals.ink/Arthals.png"
-        },
-        {
-          "name": "CWorld Site",
-          "intro": "求知若愚，虚怀若谷",
-          "link": "https://cworld0.com/",
-          "avatar": "https://cravatar.cn/avatar/1ffe42aa45a6b1444a786b1f32dfa8aa?s=200"
+          "name": "一清三白",
+          "intro": "克己慎独 守心明性",
+          "link": "https://sanbaiblog.cn/",
+          "avatar": "https://s21.ax1x.com/2025/01/05/pE9CfDU.jpg"
         }
       ]
     },
