@@ -96,8 +96,6 @@ output = model(x)
 第8层标准差: 0.0163  ← 几乎归零！
 ```
 
-{/* ![图1: 梯度消失曲线图 - 标准差随层数递减](placeholder_gradient_vanishing.png) */}
-
 ### 2.2 为什么会越来越小？
 
 **数学解释**：
@@ -250,8 +248,6 @@ output = model(x)
 第8个Block标准差: 0.9956  ← 稳定在1附近！
 ```
 
-{/* ![图2: RMSNorm 效果对比 - 有无归一化的标准差变化](placeholder_rmsnorm_effect.png) */}
-
 **结论**：标准差稳定在1附近，梯度可以顺利传播！
 
 ### 3.4 RMSNorm 的关键特性
@@ -310,8 +306,6 @@ LayerNorm 时间: 0.0234s
 RMSNorm 时间: 0.0030s
 加速比: 7.80x  ← 接近8倍加速！
 ```
-
-{/* ![图3: LayerNorm vs RMSNorm 速度对比](placeholder_speed_comparison.png) */}
 
 ### 4.4 为什么可以省略减均值？
 
@@ -412,8 +406,6 @@ FeedForward  ← 前馈网络
 输出
 ```
 
-{/* ![图4: Transformer Block 结构图 - 标注 RMSNorm 位置](placeholder_transformer_block.png) */}
-
 ### 5.3 完整 Transformer 中的统计
 
 以 MiniMind 为例：
@@ -470,8 +462,6 @@ x = x + FeedForward(Norm(x))
 | **适用场景** | 浅层网络（< 12 层）| 深层网络（> 12 层）✅ |
 
 **现代 LLM 全部使用 Pre-Norm**（GPT-3, Llama, MiniMind, Mistral...）
-
-{/* ![图5: Pre-Norm vs Post-Norm 对比](placeholder_prenorm_postnorm.png) */}
 
 ---
 
