@@ -24,7 +24,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 <script defer data-domain="joyehuang.me" src="https://plausible.io/js/script.js"></script>
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
-    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
+    <section class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50' id='content-header'>
       <Image
         src={avatar}
         alt='profile'
@@ -50,22 +50,41 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
       </div>
 
       {/* Connect Me! */}
-      <a
-        href='https://www.linkedin.com/in/deshiouhuang/'
-        target='_blank'
-        class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
-      >
-        <span class='relative flex items-center justify-center'>
-          <span
-            class='absolute size-2 animate-ping rounded-full border border-green-400 bg-green-400 opacity-75'
-          ></span>
-          <span class='size-2 rounded-full bg-green-400'></span>
-        </span>
-        <p class='font-medium text-muted-foreground'>Connect Me!</p>
-      </a>
+      <div class='flex flex-row gap-3'>
+        <a
+          href='https://www.linkedin.com/in/deshiouhuang/'
+          target='_blank'
+          class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
+        >
+          <span class='relative flex items-center justify-center'>
+            <span
+              class='absolute size-2 animate-ping rounded-full border border-green-400 bg-green-400 opacity-75'
+            ></span>
+            <span class='size-2 rounded-full bg-green-400'></span>
+          </span>
+          <p class='font-medium text-muted-foreground'>Connect Me!</p>
+        </a>
+        <div class='qq-group-card group relative'>
+          <div
+            class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-all hover:shadow-md cursor-pointer'
+          >
+            <svg class='size-4' viewBox='0 0 24 24' fill='currentColor'>
+              <path d='M21.395 15.035a39.548 39.548 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a38.97 38.97 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 1.514-2.114 1.514-2.114 0 .035-.165 4.424 1.47 5.452.182.12 1.892 1.028 3.956 1.028.409 0 .82-.035 1.226-.104v-.003a11.63 11.63 0 0 0 2.657 0v.003c.406.069.817.104 1.226.104 2.064 0 3.774-.909 3.956-1.028 1.635-1.028 1.47-5.417 1.47-5.452 0 0 .974 2.179 1.514 2.114.252-.03.583-1.39-.438-4.673z'></path>
+            </svg>
+            <p class='font-medium text-muted-foreground'>交流群</p>
+          </div>
+          <div class='absolute left-1/2 top-full z-[100] mt-3 -translate-x-1/2 opacity-0 scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100 pointer-events-none'>
+            <div class='rounded-xl border bg-card p-4 shadow-xl backdrop-blur-sm'>
+              <p class='mb-3 text-center text-sm font-medium whitespace-nowrap'>扫码加入交流群</p>
+              <p class='mb-3 text-center text-xs text-muted-foreground whitespace-nowrap'>技术交流 · 学习打卡</p>
+              <img src='/images/qq-group-qrcode.JPG' alt='QQ Group QR Code' class='max-w-[200px] h-auto rounded-lg' />
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6 relative z-0'>
       <Section title='About'>
         <p class='text-muted-foreground'>Frontend Developer</p>
         <p class='text-muted-foreground'>

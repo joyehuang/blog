@@ -8,6 +8,7 @@ import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
 
 const headings = [
+  { depth: 2, slug: 'community', text: 'Community' },
   { depth: 2, slug: 'common-links', text: 'Common Links' },
   { depth: 2, slug: 'special-links', text: 'Special Links' },
   { depth: 2, slug: 'apply-links', text: 'Apply Links' }
@@ -18,6 +19,28 @@ const linksConf = config.integ.links
 ---
 
 <PageLayout title='Links' {headings} info='/links'>
+  {/* community */}
+  <h2 id='community'>Community</h2>
+  <p>
+    欢迎加入我的QQ交流群！这里是一个技术交流和学习打卡的社区，大家可以一起讨论技术问题、分享学习心得、
+    互相监督学习进度。无论你是前端、后端还是全栈，只要热爱技术、热爱学习，都欢迎加入！
+  </p>
+  <div class='qq-group-card group relative inline-block mb-8'>
+    <div class='flex w-fit cursor-pointer flex-row items-center gap-x-3 rounded-lg border bg-background px-5 py-3 text-sm shadow-sm transition-all hover:shadow-md hover:border-primary/50'>
+      <svg class='size-5' viewBox='0 0 24 24' fill='currentColor'>
+        <path d='M21.395 15.035a39.548 39.548 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a38.97 38.97 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 1.514-2.114 1.514-2.114 0 .035-.165 4.424 1.47 5.452.182.12 1.892 1.028 3.956 1.028.409 0 .82-.035 1.226-.104v-.003a11.63 11.63 0 0 0 2.657 0v.003c.406.069.817.104 1.226.104 2.064 0 3.774-.909 3.956-1.028 1.635-1.028 1.47-5.417 1.47-5.452 0 0 .974 2.179 1.514 2.114.252-.03.583-1.39-.438-4.673z'></path>
+      </svg>
+      <span class='font-medium text-muted-foreground'>加入QQ交流群</span>
+    </div>
+    <div class='absolute left-0 top-full z-50 mt-3 opacity-0 scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100 pointer-events-none'>
+      <div class='rounded-xl border bg-card p-5 shadow-xl backdrop-blur-sm'>
+        <p class='mb-3 text-center text-base font-medium whitespace-nowrap'>扫码加入交流群</p>
+        <p class='mb-4 text-center text-sm text-muted-foreground whitespace-nowrap'>技术交流 · 学习打卡</p>
+        <img src='/images/qq-group-qrcode.JPG' alt='QQ Group QR Code' class='max-w-[280px] h-auto rounded-lg' />
+      </div>
+    </div>
+  </div>
+
   <p>怎么可能有顺序呢，当然是随机的~ It's random</p>
   <h2 id='common-links'>Common Links</h2>
   <FriendList list={friends[0]} />
