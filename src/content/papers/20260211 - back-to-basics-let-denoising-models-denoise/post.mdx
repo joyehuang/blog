@@ -1,0 +1,57 @@
+---
+title: 'Back to Basics: Let Denoising Generative Models Denoise 精读'
+description: 围绕 Kaiming He 团队这篇 denoising 生成模型论文的结构化阅读笔记，记录核心动机、方法、实验观察和后续待验证的问题。
+publishDate: 2026-02-11 00:00:00
+paperLink: https://arxiv.org/abs/2511.13720
+pdfLink: https://arxiv.org/pdf/2511.13720
+authors:
+  - Kaiming He
+  - et al.
+venue: arXiv
+year: 2025
+tags: ['Generative Model', 'Diffusion', 'Denoising']
+status: reading
+language: en
+featured: true
+comment: true
+---
+
+## Paper Info
+
+- Original link: [Back to Basics: Let Denoising Generative Models Denoise](https://arxiv.org/abs/2511.13720)
+- Main topic: denoising generative models 的训练与采样机制重审
+- One-line takeaway: 回到“denoise 本身”这一目标，重新定义模型该优化什么、如何优化。
+
+## Core Contributions
+
+1. 重新审视 denoising 生成模型中的训练目标与噪声建模假设。
+2. 给出更直接贴合 denoise 任务本质的建模方式。
+3. 在实验中验证“回归本质目标”带来的质量和稳定性收益。
+
+## Method Breakdown
+
+- 阅读阶段我重点追踪三件事：
+  - 目标函数相对传统 diffusion objective 的变化
+  - 不同 noise level 下模型行为差异
+  - 训练/推理阶段是否保持一致的 denoise 语义
+- 当前结论：该工作试图削减任务定义与优化目标之间的偏差。
+
+## Experiment Notes
+
+- 我会重点复核以下指标：
+  - 生成质量指标（FID/IS 或任务对应指标）
+  - 采样步数与质量/速度折中
+  - 稳定性与复现敏感性
+- 初步印象：论文强调“简单有效”的路径，而非堆叠复杂技巧。
+
+## My Notes
+
+- 这篇论文对我的启发：很多时候性能瓶颈不是网络结构，而是 objective 对任务本身的错配。
+- 读这类论文时，先盯“优化目标”比先盯“模块创新”更容易抓住本质。
+- 后续我计划做一个小规模复现实验，对比 baseline 与该方法在同数据集上的差异。
+
+## Open Questions & Ideas
+
+1. 该方法在不同数据分布（图像分辨率、类别复杂度）下是否稳健？
+2. 当模型规模增大时，收益是放大还是被稀释？
+3. 是否能与 consistency / flow matching 的训练范式结合？

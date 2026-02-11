@@ -1,13 +1,14 @@
 ---
 import { Image } from 'astro:assets'
+import type { CollectionEntry } from 'astro:content'
 import avatar from 'src/assets/avatar.png'
 
 import { Quote } from 'astro-pure/advanced'
 import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
+import PaperPreview from '@/components/papers/PaperPreview.astro'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import config from '@/site-config'
@@ -20,6 +21,9 @@ const tools = ['Curor', 'Git', 'Docker', 'Postman', 'ESlint/Prettier', 'Jest']
 const MAX_POSTS = 10
 const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
+const MAX_PAPERS = 5
+const allPapers = (await getBlogCollection('papers')) as CollectionEntry<'papers'>[]
+const allPapersByDate = sortMDByDate(allPapers).slice(0, MAX_PAPERS) as CollectionEntry<'papers'>[]
 ---
 <script defer data-domain="joyehuang.me" src="https://plausible.io/js/script.js"></script>
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
@@ -103,6 +107,18 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
               ))}
             </ul>
             <Button title='More posts' class='w-fit self-end' href='/blog' style='ahead' />
+          </Section>
+        )
+      }
+      {
+        allPapersByDate.length > 0 && (
+          <Section title='Papers'>
+            <ul class='flex flex-col gap-y-2'>
+              {allPapersByDate.map((paper) => (
+                <PaperPreview {paper} />
+              ))}
+            </ul>
+            <Button title='More papers' class='w-fit self-end' href='/papers' style='ahead' />
           </Section>
         )
       }

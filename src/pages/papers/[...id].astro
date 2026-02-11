@@ -1,0 +1,29 @@
+---
+import { render, type CollectionEntry } from 'astro:content'
+
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import PaperLayout from '@/layouts/PaperPost.astro'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const papers = sortMDByDate((await getBlogCollection('papers')) as CollectionEntry<'papers'>[])
+
+  return papers.map((paper) => ({
+    params: { id: paper.id },
+    props: { paper, papers }
+  }))
+}
+
+type Props = {
+  paper: CollectionEntry<'papers'>
+  papers: CollectionEntry<'papers'>[]
+}
+
+const { paper, papers } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(paper)
+---
+
+<PaperLayout {paper} {papers} {headings} {remarkPluginFrontmatter}>
+  <Content />
+</PaperLayout>
