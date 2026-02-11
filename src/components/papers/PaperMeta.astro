@@ -1,0 +1,66 @@
+---
+import type { InferEntrySchema } from 'astro:content'
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  data: InferEntrySchema<'papers'>
+  class?: string
+}
+
+const {
+  data: { paperLink, pdfLink, codeLink, authors, venue, year },
+  class: className
+} = Astro.props
+---
+
+<div class={cn('rounded-xl border bg-muted/20 p-4', className)}>
+  <h2 class='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>Paper Reference</h2>
+
+  <div class='mt-2 flex flex-wrap items-center gap-2 text-sm'>
+    <a
+      href={paperLink}
+      target='_blank'
+      rel='noopener noreferrer'
+      class='rounded-full border bg-background px-3 py-1 transition-colors hover:text-primary'
+    >
+      Original Link ↗
+    </a>
+    {
+      pdfLink && (
+        <a
+          href={pdfLink}
+          target='_blank'
+          rel='noopener noreferrer'
+          class='rounded-full border bg-background px-3 py-1 transition-colors hover:text-primary'
+        >
+          PDF ↗
+        </a>
+      )
+    }
+    {
+      codeLink && (
+        <a
+          href={codeLink}
+          target='_blank'
+          rel='noopener noreferrer'
+          class='rounded-full border bg-background px-3 py-1 transition-colors hover:text-primary'
+        >
+          Code ↗
+        </a>
+      )
+    }
+  </div>
+
+  <div class='mt-3 space-y-1 text-sm text-muted-foreground'>
+    <p>
+      <span class='font-medium text-foreground'>Authors:</span>
+      {authors.join(', ')}
+    </p>
+    <p>
+      <span class='font-medium text-foreground'>Venue:</span>
+      {venue || 'N/A'}
+      {' · '}
+      {year}
+    </p>
+  </div>
+</div>

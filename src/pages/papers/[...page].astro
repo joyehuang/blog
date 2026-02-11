@@ -1,0 +1,105 @@
+---
+import type { GetStaticPaths, Page } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+
+import { Paginator } from 'astro-pure/components/pages'
+import { getBlogCollection, getUniqueTags, sortMDByDate } from 'astro-pure/server'
+import { Button, Icon } from 'astro-pure/user'
+import PaperPreview from '@/components/papers/PaperPreview.astro'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { paperPageSize } from '@/site-config'
+
+export const prerender = true
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const papers = sortMDByDate((await getBlogCollection('papers')) as CollectionEntry<'papers'>[])
+  const uniqueTags = getUniqueTags(papers)
+  const collectionsCount = papers.length
+
+  return paginate(papers, {
+    pageSize: paperPageSize,
+    props: { uniqueTags, collectionsCount }
+  })
+}) satisfies GetStaticPaths
+
+interface Props {
+  page: Page<CollectionEntry<'papers'>>
+  uniqueTags: string[]
+  collectionsCount: number
+}
+
+const { page, uniqueTags, collectionsCount } = Astro.props
+
+const meta = {
+  description: 'Paper reading notes, deep dives, and annotations',
+  title: 'Papers'
+}
+
+const paginationProps = {
+  ...(page.url.prev && {
+    prevUrl: {
+      text: '← Previous Papers',
+      url: page.url.prev
+    }
+  }),
+  ...(page.url.next && {
+    nextUrl: {
+      text: 'Next Papers →',
+      url: page.url.next
+    }
+  })
+}
+---
+
+<PageLayout {meta}>
+  <Button title='Back' href='/' style='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-2 mt-6 text-3xl font-medium sm:mt-10'>Papers</h1>
+      <p class='text-sm text-muted-foreground'>
+        精读论文记录：原文链接、重点结论、方法拆解、实验解读与我的补充笔记。
+      </p>
+    </div>
+
+    {
+      page.data.length === 0 ? (
+        <p class='mt-8'>No papers yet.</p>
+      ) : (
+        <div class='mt-8 grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
+          <section aria-label='Paper reading list' class='animate' id='content'>
+            <div class='mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row'>
+              <span class='text-muted-foreground'>
+                Page {page.currentPage} - Showing {page.data.length} of {collectionsCount} papers
+              </span>
+              <a aria-label='View all paper tags' href='/papers/tags' data-astro-prefetch>
+                View all tags →
+              </a>
+            </div>
+
+            <ul class='flex flex-col gap-y-4 text-start'>
+              {page.data.map((paper) => <PaperPreview paper={paper} detailed />)}
+            </ul>
+
+            <Paginator {...paginationProps} />
+          </section>
+
+          {!!uniqueTags.length && (
+            <aside class='animate' id='sidebar'>
+              <h2 class='mb-4 flex items-center text-lg font-semibold'>
+                <Icon name='tag-2' class='me-2' />
+                Tags
+              </h2>
+              <ul class='flex flex-wrap gap-2'>
+                {uniqueTags.map((tag) => (
+                  <li>
+                    <Button title={tag} href={`/papers/tags/${tag}`} style='pill' />
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          )}
+        </div>
+      )
+    }
+  </main>
+</PageLayout>

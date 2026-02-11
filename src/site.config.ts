@@ -48,6 +48,7 @@ export const theme: ThemeUserConfig = {
   header: {
     menu: [
       { title: 'Blog', link: '/blog' },
+      { title: 'Papers', link: '/papers' },
       { title: 'Projects', link: '/projects' },
       { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' }
@@ -82,6 +83,8 @@ export const theme: ThemeUserConfig = {
     share: ['weibo', 'x', 'bluesky']
   }
 }
+
+export const paperPageSize = 8
 
 export const integ: IntegrationUserConfig = {
   // Links management

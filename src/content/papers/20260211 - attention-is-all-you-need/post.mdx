@@ -1,0 +1,70 @@
+---
+title: Attention Is All You Need 精读
+description: Transformer 论文精读，聚焦 self-attention 设计动机、模型结构、训练细节与影响，并补充我在实现和阅读中的关键笔记。
+publishDate: 2026-02-11 00:00:00
+paperLink: https://arxiv.org/abs/1706.03762
+pdfLink: https://arxiv.org/pdf/1706.03762
+authors:
+  - Ashish Vaswani
+  - Noam Shazeer
+  - Niki Parmar
+  - Jakob Uszkoreit
+  - Llion Jones
+  - Aidan N. Gomez
+  - Lukasz Kaiser
+  - Illia Polosukhin
+venue: NeurIPS
+year: 2017
+tags: ['Transformer', 'Attention', 'NLP', 'Foundation']
+status: completed
+language: en
+featured: true
+comment: true
+---
+
+## Paper Info
+
+- Original link: [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+- Main topic: sequence modeling without recurrence/convolution
+- One-line takeaway: 用全局自注意力替代 RNN/CNN，显著提升并行效率和长程依赖建模能力。
+
+## Core Contributions
+
+1. 提出 `Encoder-Decoder + Multi-Head Self-Attention` 的完整架构。
+2. 用 `Scaled Dot-Product Attention` 稳定训练（除以 `sqrt(d_k)`）。
+3. 通过 `Positional Encoding` 注入位置信息，而非依赖循环结构。
+4. 在机器翻译任务上实现更优质量和更低训练成本。
+
+## Method Breakdown
+
+- Attention 基本形式：
+
+```text
+Attention(Q, K, V) = softmax(QK^T / sqrt(d_k)) V
+```
+
+- 关键模块组合：
+  - Multi-Head Attention
+  - Position-wise FeedForward
+  - Residual + LayerNorm
+- 在实现层面，我最关注两点：
+  - head 维度切分和拼接是否保持 shape 一致
+  - mask 应用顺序是否正确（softmax 前）
+
+## Experiment Notes
+
+- 论文强调训练效率：在 GPU 上并行度明显高于 RNN。
+- BLEU 指标提升说明该架构不仅更快，也更有效。
+- Ablation 里 multi-head 的收益很稳定，说明“多视角对齐”确实有效。
+
+## My Notes
+
+- 这篇论文最“工程可迁移”的点：结构简单、扩展性高。
+- 从今天看，它也是后续 GPT/BERT 系列架构的关键起点。
+- 真正读懂它后，再看 modern LLM block 的变化（RoPE/RMSNorm/SwiGLU）会更清晰。
+
+## Open Questions & Ideas
+
+1. 在更长上下文下，注意力复杂度如何进一步优化？
+2. 不同位置编码（绝对/相对/旋转）和原版 sinusoidal 的取舍边界是什么？
+3. 多头数量增大何时开始出现收益递减？
