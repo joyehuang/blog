@@ -1,0 +1,41 @@
+---
+title: 'Reading Notes: Attention Is All You Need'
+description: 'Focused notes on Transformer motivation, core architecture, and practical implementation insights.'
+publishDate: 2026-02-11 00:00:00
+locale: en
+translationKey: attention-is-all-you-need
+paperLink: https://arxiv.org/abs/1706.03762
+pdfLink: https://arxiv.org/pdf/1706.03762
+authors:
+  - Ashish Vaswani
+  - Noam Shazeer
+  - Niki Parmar
+  - Jakob Uszkoreit
+  - Llion Jones
+  - Aidan N. Gomez
+  - Lukasz Kaiser
+  - Illia Polosukhin
+venue: NeurIPS
+year: 2017
+tags: ['Transformer', 'Attention', 'NLP', 'Foundation']
+status: completed
+language: en
+featured: true
+comment: true
+---
+
+## Paper Info
+- Original link: [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
+- Main topic: sequence modeling without recurrence/convolution
+- One-line takeaway: Global self-attention enables better parallelism and long-range dependency modeling.
+
+## Core Contributions
+1. Full Encoder-Decoder architecture built around multi-head self-attention.
+2. Scaled dot-product attention (`/ sqrt(d_k)`) for stable optimization.
+3. Positional encoding to inject token order without recurrence.
+4. Better translation quality with lower training cost than strong RNN baselines.
+
+## Practical Notes
+- Shape handling across heads is a frequent implementation pitfall.
+- Mask order (before softmax) is critical for correctness.
+- This paper remains a strong reference for understanding modern LLM blocks.

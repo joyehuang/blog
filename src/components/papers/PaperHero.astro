@@ -4,10 +4,15 @@ import type { InferEntrySchema } from 'astro:content'
 
 import { FormattedDate } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
+import type { Locale } from '@/i18n/locales'
+
+type PaperSchema = InferEntrySchema<'papers'> | InferEntrySchema<'papersEn'>
 
 interface Props {
-  data: InferEntrySchema<'papers'>
+  data: PaperSchema
   remarkPluginFrontmatter: Record<string, unknown>
+  locale?: Locale
+  tagBasePath?: string
 }
 
 const {
@@ -23,7 +28,9 @@ const {
     language,
     comment: enableComment
   },
-  remarkPluginFrontmatter
+  remarkPluginFrontmatter,
+  locale = 'zh',
+  tagBasePath = '/papers'
 } = Astro.props
 
 const dateTimeOptions: Intl.DateTimeFormatOptions = {
@@ -45,11 +52,14 @@ const statusClass =
   heroImage && (
     <div class='mb-6'>
       <Image
+        src={heroImage.src}
         alt={heroImage.alt || title}
+        inferSize={heroImage.inferSize}
+        width={heroImage.width}
+        height={heroImage.height}
         class='h-auto w-full max-w-[65ch] rounded-2xl object-contain'
         fetchpriority='high'
         loading='eager'
-        {...heroImage}
       />
     </div>
   )
@@ -103,7 +113,7 @@ const statusClass =
         <a
           aria-label={`View more papers with the tag ${tag}`}
           class='rounded-full border bg-muted px-2 py-0.5 text-muted-foreground transition-colors hover:text-primary'
-          href={`/papers/tags/${tag}`}
+          href={`${tagBasePath}/tags/${tag}`}
         >
           #{tag}
         </a>
@@ -113,7 +123,9 @@ const statusClass =
 
   {!draft && enableComment && (
     <p class='mt-3 text-xs text-muted-foreground'>
-      阅读后欢迎在评论区讨论你对这篇论文的理解和分歧。
+      {locale === 'en'
+        ? "After reading, feel free to share your thoughts and disagreements in the comments."
+        : '阅读后欢迎在评论区讨论你对这篇论文的理解和分歧。'}
     </p>
   )}
 </div>

@@ -8,21 +8,30 @@ import { Comment, MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, TOC } from 'astro-pure/components/pages'
 import PaperHero from '@/components/papers/PaperHero.astro'
 import PaperMeta from '@/components/papers/PaperMeta.astro'
+import type { Locale } from '@/i18n/locales'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import { integ } from '@/site-config'
 
+type PaperEntry = CollectionEntry<'papers'> | CollectionEntry<'papersEn'>
+
 interface Props {
-  paper: CollectionEntry<'papers'>
-  papers: CollectionEntry<'papers'>[]
+  paper: PaperEntry
+  papers: PaperEntry[]
   headings: MarkdownHeading[]
   remarkPluginFrontmatter: Record<string, unknown>
+  locale?: Locale
+  back?: string
+  alternatePath?: string
 }
 
 const {
   paper: { id, data },
   papers,
   headings,
-  remarkPluginFrontmatter
+  remarkPluginFrontmatter,
+  locale = 'zh',
+  back = '/papers',
+  alternatePath
 } = Astro.props
 
 const { description, heroImage, publishDate, title, updatedDate, draft: isDraft, comment } = data
@@ -35,17 +44,20 @@ const socialImage = heroImage
 
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
+const tagBasePath = back.startsWith('/en') ? '/en/papers' : '/papers'
 ---
 
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
   highlightColor={primaryColor}
-  back='/papers'
+  {locale}
+  {alternatePath}
+  {back}
 >
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
   <Fragment slot='header'>
-    <PaperHero {data} {remarkPluginFrontmatter} />
+    <PaperHero {data} {remarkPluginFrontmatter} {locale} {tagBasePath} />
     <PaperMeta {data} class='mt-4' />
   </Fragment>
 
@@ -53,7 +65,7 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
 
   <Fragment slot='bottom'>
     <Copyright {data} />
-    <ArticleBottom collections={papers} {id} class='mt-3 sm:mt-6' />
+    <ArticleBottom collections={papers as CollectionEntry<'papers'>[]} {id} class='mt-3 sm:mt-6' />
     {!isDraft && comment && <Comment class='mt-3 sm:mt-6' />}
   </Fragment>
 

@@ -3,15 +3,26 @@
 
 import { prod } from 'astro-pure/server'
 import type { SiteMeta } from 'astro-pure/types'
+import { LOCALE_META, type Locale } from '@/i18n/locales'
+import { toChinesePath, toEnglishPath } from '@/i18n/routing'
 import config from '@/site-config'
 
-type Props = SiteMeta
+type Props = SiteMeta & {
+  locale?: Locale
+  alternatePath?: string
+}
 
-const { articleDate, description, ogImage, title } = Astro.props
+const { articleDate, description, ogImage, title, locale = 'zh', alternatePath } = Astro.props
 
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 const socialImageURL = new URL(ogImage ? ogImage : '/images/social-card.png', Astro.url).href
+const localeMeta = LOCALE_META[locale]
+const zhPath = toChinesePath(Astro.url.pathname)
+const enPath = alternatePath && locale === 'zh' ? alternatePath : toEnglishPath(Astro.url.pathname)
+const alternateZhURL = new URL(locale === 'en' && alternatePath ? alternatePath : zhPath, Astro.site)
+const alternateEnURL = new URL(locale === 'en' && alternatePath ? alternatePath : enPath, Astro.site)
+const rssPath = locale === 'en' ? '/en/rss.xml' : '/rss.xml'
 ---
 
 <meta charset='utf-8' />
@@ -52,7 +63,7 @@ const socialImageURL = new URL(ogImage ? ogImage : '/images/social-card.png', As
 <meta content={description} property='og:description' />
 <meta content={canonicalURL} property='og:url' />
 <meta content={config.title} property='og:site_name' />
-<meta content={config.locale.attrs} property='og:locale' />
+<meta content={localeMeta.ogLocale} property='og:locale' />
 <meta content={socialImageURL} property='og:image' />
 <meta content='1200' property='og:image:width' />
 <meta content='630' property='og:image:height' />
@@ -74,13 +85,16 @@ const socialImageURL = new URL(ogImage ? ogImage : '/images/social-card.png', As
 
 {/* Sitemap */}
 <link href='/sitemap-index.xml' rel='sitemap' />
+<link rel='alternate' hreflang='zh-CN' href={alternateZhURL} />
+<link rel='alternate' hreflang='en' href={alternateEnURL} />
+<link rel='alternate' hreflang='x-default' href={new URL('/', Astro.site)} />
 
 {/* RSS auto-discovery */}
 <link
   rel='alternate'
   type='application/rss+xml'
   title={config.title}
-  href={`${Astro.site}rss.xml`}
+  href={new URL(rssPath, Astro.site).href}
 />
 
 <meta content={Astro.generator} name='generator' />

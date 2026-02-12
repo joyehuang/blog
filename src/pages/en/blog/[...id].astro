@@ -1,0 +1,45 @@
+---
+import { render, type CollectionEntry } from 'astro:content'
+
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import PostLayout from '@/layouts/BlogPost.astro'
+import { findTranslatedPath, toTranslationMap } from '@/utils/content-i18n'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const posts = sortMDByDate((await getBlogCollection('blogEn')) as CollectionEntry<'blogEn'>[])
+  const postsZh = sortMDByDate((await getBlogCollection('blog')) as CollectionEntry<'blog'>[])
+  const zhMap = toTranslationMap(postsZh)
+
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: {
+      post,
+      posts,
+      alternatePath: findTranslatedPath(post.data.translationKey, zhMap, '/blog', '/blog')
+    }
+  }))
+}
+
+type Props = {
+  post: CollectionEntry<'blogEn'>
+  posts: CollectionEntry<'blogEn'>[]
+  alternatePath: string
+}
+
+const { post, posts, alternatePath } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(post)
+---
+
+<PostLayout
+  post={post}
+  posts={posts}
+  {headings}
+  {remarkPluginFrontmatter}
+  locale='en'
+  back='/en/blog'
+  {alternatePath}
+>
+  <Content />
+</PostLayout>

@@ -2,8 +2,10 @@
 import type { InferEntrySchema } from 'astro:content'
 import { cn } from 'astro-pure/utils'
 
+type PaperSchema = InferEntrySchema<'papers'> | InferEntrySchema<'papersEn'>
+
 interface Props {
-  data: InferEntrySchema<'papers'>
+  data: PaperSchema
   class?: string
 }
 

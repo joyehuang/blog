@@ -3,13 +3,16 @@ import type { CollectionEntry } from 'astro:content'
 import { FormattedDate } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
 
+type PaperEntry = CollectionEntry<'papers'> | CollectionEntry<'papersEn'>
+
 interface Props {
-  paper: CollectionEntry<'papers'>
+  paper: PaperEntry
   detailed?: boolean
   class?: string
+  basePath?: string
 }
 
-const { paper, detailed = false, class: className } = Astro.props
+const { paper, detailed = false, class: className, basePath = '/papers' } = Astro.props
 
 const {
   id,
@@ -36,7 +39,7 @@ const statusClass =
     className
   )}
 >
-  <a href={`/papers/${id}`} class='block no-underline'>
+  <a href={`${basePath}/${id}`} class='block no-underline'>
     <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
       <FormattedDate class='font-sans' date={postDate} />
       <span class='hidden sm:inline'>•</span>
@@ -96,7 +99,7 @@ const statusClass =
     {
       tags.map((tag) => (
         <a
-          href={`/papers/tags/${tag}`}
+          href={`${basePath}/tags/${tag}`}
           class='rounded-full border bg-muted px-2 py-0.5 text-muted-foreground transition-colors hover:text-primary'
           data-astro-prefetch
         >
