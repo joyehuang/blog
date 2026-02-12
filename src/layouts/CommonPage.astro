@@ -2,11 +2,14 @@
 import type { MarkdownHeading } from 'astro'
 
 import { PageInfo, TOC } from 'astro-pure/components/pages'
+import type { Locale } from '@/i18n/locales'
 import PageLayout from '@/layouts/ContentLayout.astro'
 
 interface Props {
   title: string
   headings?: MarkdownHeading[]
+  locale?: Locale
+  alternatePath?: string
   info?:
     | string
     | {

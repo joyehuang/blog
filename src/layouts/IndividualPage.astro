@@ -4,6 +4,7 @@ import type { MarkdownHeading, MarkdownLayoutProps } from 'astro'
 import { BackToTop, TOC } from 'astro-pure/components/pages'
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
+import type { Locale } from '@/i18n/locales'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { integ } from '@/site-config'
 
@@ -13,16 +14,17 @@ type Props = MarkdownLayoutProps<{
   heroImage?: { src: string }
   language?: string
   back?: string
+  locale?: Locale
 }> & {
   headings: MarkdownHeading[]
 }
 
 const { frontmatter, headings } = Astro.props
-const { title, description, heroImage, language, back } = frontmatter
+const { title, description, heroImage, language, back, locale = 'zh' } = frontmatter
 const socialImage = heroImage?.src ?? '/images/social-card.png'
 ---
 
-<PageLayout meta={{ title, description, ogImage: socialImage }}>
+<PageLayout meta={{ title, description, ogImage: socialImage }} {locale}>
   <Button title='Back' href={back ?? '/'} style='back' />
   <main class='mt-6 items-start gap-x-10 md:flex lg:mt-10'>
     {

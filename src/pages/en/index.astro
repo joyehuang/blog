@@ -1,0 +1,89 @@
+---
+import { Image } from 'astro:assets'
+import type { CollectionEntry } from 'astro:content'
+import avatar from 'src/assets/avatar.png'
+
+import { Quote } from 'astro-pure/advanced'
+import { PostPreview } from 'astro-pure/components/pages'
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import { Button, Label, Icon } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import Section from '@/components/home/Section.astro'
+import PaperPreview from '@/components/papers/PaperPreview.astro'
+
+const posts = sortMDByDate((await getBlogCollection('blogEn')) as CollectionEntry<'blogEn'>[]).slice(0, 10)
+const papers = (
+  sortMDByDate((await getBlogCollection('papersEn')) as CollectionEntry<'papersEn'>[]) as CollectionEntry<'papersEn'>[]
+).slice(0, 5)
+---
+
+<PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9' locale='en' alternatePath='/'>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50' id='content-header'>
+      <Image
+        src={avatar}
+        alt='profile'
+        class='h-28 w-auto rounded-full border p-1'
+        loading='eager'
+      />
+
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-bold'>Joye</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='Melbourne, Australia'>
+            <Icon name='location' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='Source code'
+            as='a'
+            href='https://github.com/joyehuang/blog'
+            target='_blank'
+          >
+            <Icon name='github' class='size-5' slot='icon' />
+          </Label>
+        </div>
+      </div>
+    </section>
+
+    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6 relative z-0'>
+      <Section title='About'>
+        <p class='text-muted-foreground'>Frontend Developer based in Melbourne.</p>
+        <p class='text-muted-foreground'>
+          I am a second-year CS student and frontend developer, currently focused on building toward
+          full-stack development through projects, writing, and open-source contributions.
+        </p>
+        <Button title='More about me' class='w-fit self-end' href='/en/about' style='ahead' />
+      </Section>
+
+      {
+        posts.length > 0 && (
+          <Section title='Posts'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {posts.map((post) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <PostPreview post={post as unknown as CollectionEntry<'blog'>} />
+                </li>
+              ))}
+            </ul>
+            <Button title='More posts' class='w-fit self-end' href='/en/blog' style='ahead' />
+          </Section>
+        )
+      }
+
+      {
+        papers.length > 0 && (
+          <Section title='Papers'>
+            <ul class='flex flex-col gap-y-2'>
+              {papers.map((paper) => (
+                <PaperPreview paper={paper} basePath='/en/papers' />
+              ))}
+            </ul>
+            <Button title='More papers' class='w-fit self-end' href='/en/papers' style='ahead' />
+          </Section>
+        )
+      }
+    </div>
+
+    <Quote class='mt-12' />
+  </main>
+</PageLayout>

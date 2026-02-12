@@ -3,6 +3,9 @@ import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import Analytics from '@vercel/analytics/astro'
 import BaseHead from '@/components/BaseHead.astro'
+import { LOCALE_META, type Locale } from '@/i18n/locales'
+import { messages } from '@/i18n/messages'
+import { getAlternatePath } from '@/i18n/routing'
 import config from '@/site-config'
 
 // Import the global.css file here so that it is included on
@@ -12,18 +15,27 @@ import '@/assets/styles/app.css'
 interface Props {
   meta: SiteMeta
   highlightColor?: string
+  locale?: Locale
+  alternatePath?: string
 }
 
 const {
   meta: { articleDate, description = config.description, ogImage, title },
   highlightColor,
+  locale = 'zh',
+  alternatePath,
   ...props
 } = Astro.props
+
+const htmlLang = LOCALE_META[locale].htmlLang
+const languageSwitchPath = alternatePath ?? getAlternatePath(Astro.url.pathname, locale)
+const languageSwitchLabel = messages[locale].switchLanguage
+const languageLabel = messages[locale].currentLanguage
 ---
 
-<html lang={config.locale.lang}>
+<html lang={htmlLang}>
   <head>
-    <BaseHead {articleDate} {description} {ogImage} {title} />
+    <BaseHead {articleDate} {description} {ogImage} {title} {locale} alternatePath={languageSwitchPath} />
     <ThemeProvider />
   </head>
 
@@ -38,11 +50,48 @@ const {
       )
     }
     <div class='w-full max-w-[70rem] px-4 sm:px-7 lg:px-10'>
+      <div class='mt-3 flex justify-end'>
+        <a
+          href={languageSwitchPath}
+          data-no-locale-prefix
+          class='rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-primary'
+          aria-label='Switch language'
+          title={languageLabel}
+        >
+          {languageSwitchLabel}
+        </a>
+      </div>
       <Header />
       <slot />
       <Footer />
     </div>
     <Analytics />
+
+    <script is:inline define:vars={{ locale }}>
+      if (locale === 'en') {
+        const toEnglishHref = (href) => {
+          if (href.startsWith('/en')) return href
+          if (href === '/') return '/en'
+          return `/en${href}`
+        }
+        const shouldSkip = (href) =>
+          href.startsWith('/favicon') ||
+          href.startsWith('/images') ||
+          href.startsWith('/fonts') ||
+          href.startsWith('/scripts') ||
+          href.startsWith('/styles') ||
+          href.startsWith('/icons') ||
+          href.startsWith('/sitemap') ||
+          href.startsWith('/robots')
+
+        document.querySelectorAll('a[href^="/"]').forEach((anchor) => {
+          if (anchor.hasAttribute('data-no-locale-prefix')) return
+          const href = anchor.getAttribute('href')
+          if (!href || shouldSkip(href)) return
+          anchor.setAttribute('href', toEnglishHref(href))
+        })
+      }
+    </script>
 
     {/* Set highlight color */}
     <style define:vars={{ highlightColor }}>

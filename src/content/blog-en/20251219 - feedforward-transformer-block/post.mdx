@@ -1,0 +1,32 @@
+---
+title: FeedForward in Transformer Blocks
+description: 'How RMSNorm, RoPE, Attention, and FeedForward cooperate inside a full Transformer block'
+publishDate: 2025-12-19 00:00:00
+locale: en
+translationKey: feedforward-transformer-block
+tags: ['LLM', 'Transformer', 'MiniMind', 'FeedForward', 'SwiGLU', 'Architecture']
+---
+
+This post is part 4 of my MiniMind learning series.
+
+## Why FeedForward Matters
+Attention is not the whole Transformer. FeedForward layers usually take a major share of parameters and play a central role in token-wise nonlinear transformation.
+
+## Typical Pattern
+- expand hidden dimension
+- apply nonlinear gating/activation (e.g., SwiGLU)
+- project back to model dimension
+
+## Division of Labor
+- Attention: cross-token information routing.
+- FeedForward: per-token feature transformation and capacity expansion.
+
+## Block Assembly
+A modern block typically combines:
+1. Pre-norm
+2. Attention + residual
+3. Pre-norm
+4. FeedForward + residual
+
+## Summary
+Understanding FeedForward is essential to understanding why Transformer blocks actually work at scale.

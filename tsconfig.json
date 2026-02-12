@@ -18,6 +18,7 @@
       "@/layouts/*": ["src/layouts/*"],
       "@/utils": ["src/utils/index.ts"],
       "@/utils/*": ["src/utils/*"],
+      "@/i18n/*": ["src/i18n/*"],
       "@/plugins/*": ["src/plugins/*"],
       "@/pages/*": ["src/pages/*"],
       "@/types": ["src/types/index.ts"],
