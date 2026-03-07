@@ -1,0 +1,30 @@
+---
+title: Why Transformer Needs RMSNorm
+description: 'A practical deep dive into why deep networks need normalization and why RMSNorm became the LLM default'
+publishDate: 2025-12-16 00:00:00
+locale: en
+translationKey: transformer-normalization
+tags: ['LLM', 'Transformer', 'MiniMind', 'Deep Learning', 'Normalization']
+---
+
+This post is part 1 of my MiniMind learning series.
+
+## Core Question
+Why do Transformer blocks apply normalization so frequently, and why does modern LLM training prefer RMSNorm over LayerNorm?
+
+## Key Points
+- Deep stacks without normalization suffer from unstable activations and vanishing gradients.
+- RMSNorm stabilizes scale while preserving direction, which is often enough for robust optimization.
+- Compared with LayerNorm, RMSNorm is computationally lighter and widely used in modern LLM architectures.
+
+## Practical Perspective
+In implementation terms, RMSNorm is simple and reliable:
+- normalize by root-mean-square
+- keep a learnable scale parameter
+- avoid unnecessary centering overhead when not needed
+
+## Why It Matters in Transformer Blocks
+Pre-norm design (`Norm -> SubLayer -> Residual`) improves training stability at depth, and RMSNorm works well with this pattern.
+
+## Summary
+RMSNorm is not just a micro-optimization. It is a key ingredient that keeps deep Transformer training stable while reducing compute overhead.

@@ -1,0 +1,28 @@
+---
+title: RoPE Positional Encoding Explained
+description: 'A concise walkthrough of why RoPE works and how it encodes relative position efficiently in modern LLMs'
+publishDate: 2025-12-17 00:00:00
+locale: en
+translationKey: rope-position-encoding
+tags: ['LLM', 'Transformer', 'MiniMind', 'RoPE', 'Position Encoding']
+---
+
+This post is part 2 of my MiniMind learning series.
+
+## Problem Statement
+Vanilla attention is permutation-invariant. Without positional signals, token order is not represented correctly.
+
+## Why RoPE
+RoPE injects position through rotation in paired dimensions, allowing attention to carry relative positional structure naturally.
+
+## Key Intuition
+- Each token vector is rotated by a position-dependent angle.
+- Different frequency bands encode different positional granularities.
+- Relative distance emerges directly in attention score interactions.
+
+## Engineering Notes
+- Floating-point precision and frequency scaling matter for long-context behavior.
+- Correct dimension pairing and rotation implementation is essential.
+
+## Summary
+RoPE is elegant because it introduces position with minimal architectural complexity while preserving strong performance and compatibility with standard attention blocks.

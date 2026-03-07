@@ -1,0 +1,45 @@
+---
+import { render, type CollectionEntry } from 'astro:content'
+
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import PaperLayout from '@/layouts/PaperPost.astro'
+import { findTranslatedPath, toTranslationMap } from '@/utils/content-i18n'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const papers = sortMDByDate((await getBlogCollection('papersEn')) as CollectionEntry<'papersEn'>[])
+  const papersZh = sortMDByDate((await getBlogCollection('papers')) as CollectionEntry<'papers'>[])
+  const zhMap = toTranslationMap(papersZh)
+
+  return papers.map((paper) => ({
+    params: { id: paper.id },
+    props: {
+      paper,
+      papers,
+      alternatePath: findTranslatedPath(paper.data.translationKey, zhMap, '/papers', '/papers')
+    }
+  }))
+}
+
+type Props = {
+  paper: CollectionEntry<'papersEn'>
+  papers: CollectionEntry<'papersEn'>[]
+  alternatePath: string
+}
+
+const { paper, papers, alternatePath } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(paper)
+---
+
+<PaperLayout
+  paper={paper}
+  papers={papers}
+  {headings}
+  {remarkPluginFrontmatter}
+  locale='en'
+  back='/en/papers'
+  {alternatePath}
+>
+  <Content />
+</PaperLayout>

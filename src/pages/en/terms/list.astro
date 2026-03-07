@@ -1,0 +1,37 @@
+---
+import { Button, CardList } from 'astro-pure/user'
+import { cn } from 'astro-pure/utils'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { integ } from '@/site-config'
+
+const termsEn = {
+  title: 'Terms content',
+  list: [
+    { title: 'Privacy Policy', link: '/en/terms/privacy-policy' },
+    { title: 'Terms and Conditions', link: '/en/terms/terms-and-conditions' },
+    { title: 'Copyright', link: '/en/terms/copyright' },
+    { title: 'Disclaimer', link: '/en/terms/disclaimer' }
+  ]
+}
+
+const meta = {
+  title: 'Site policy',
+  description: 'Site policy documentation'
+}
+---
+
+<PageLayout {meta} locale='en' alternatePath='/terms/list'>
+  <Button title='Back' href='/en' style='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-6 text-3xl font-medium'>Site Policy</h1>
+    </div>
+
+    <div id='content' class={cn('animate mt-8 max-w-none md:min-w-[45ch]', integ.typography.class)}>
+      <h2 class='text-xl font-medium'>Site policy documentation</h2>
+      <CardList {...termsEn} />
+      <h2 class='text-xl font-medium'>Help Information</h2>
+      <p>You need to add md files in this directory.</p>
+    </div>
+  </main>
+</PageLayout>

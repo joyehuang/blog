@@ -1,0 +1,53 @@
+---
+import { Comment } from 'astro-pure/advanced'
+import { Button, Collapse } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+
+const headings = [
+  { depth: 2, slug: 'about-me', text: 'About Me' },
+  { depth: 2, slug: 'interests', text: 'Interests' },
+  { depth: 2, slug: 'journey', text: 'Coding Journey' },
+  { depth: 2, slug: 'blog', text: 'About This Blog' }
+]
+---
+
+<PageLayout title='About' {headings} info='/en/about' locale='en' alternatePath='/about'>
+  <p>Developer</p>
+  <p>
+    I am a second-year student at the University of Melbourne, focused on frontend development and
+    growing into a full-stack engineer through real projects and open-source work.
+  </p>
+  <p>My motto: Build fast, learn faster.</p>
+  <Button title='Sponsor Me' class='w-fit' href='/en/projects#sponsorship' style='ahead' />
+
+  <h2 id='about-me'>About Me</h2>
+  <p>
+    I enjoy turning ideas into polished products. Most of my recent work sits at the intersection
+    of frontend engineering, product thinking, and AI-assisted workflows.
+  </p>
+
+  <h2 id='interests'>Interests</h2>
+  <ul>
+    <li><strong>Music</strong> - Piano and cello are still my favorite way to reset after coding.</li>
+    <li><strong>Photography</strong> - I recently started exploring photography and visual storytelling.</li>
+    <li><strong>Open Source</strong> - I actively contribute and learn through public projects.</li>
+  </ul>
+
+  <h2 id='journey'>Coding Journey</h2>
+  <Collapse title='How I started'>
+    I started with HTML/CSS in my first year and gradually moved into React-based product work.
+    Building and deploying real projects taught me far more than tutorials.
+  </Collapse>
+  <Collapse title='What I focus on now'>
+    I currently focus on full-stack project delivery, frontend architecture, and writing technical
+    notes that are useful to other learners.
+  </Collapse>
+
+  <h2 id='blog'>About This Blog</h2>
+  <p>
+    This blog is my long-term knowledge base. I use it to document technical deep dives,
+    implementation notes, and lessons from internships and side projects.
+  </p>
+
+  <Comment slot='bottom' />
+</PageLayout>

@@ -1,0 +1,72 @@
+---
+import { Button, Icon } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+import ProjectSection from '@/components/projects/ProjectSection.astro'
+import Sponsors from '@/components/projects/Sponsors.astro'
+
+const headings = [
+  { depth: 2, slug: 'projects', text: 'Projects' },
+  { depth: 2, slug: 'learning', text: 'Learning' },
+  { depth: 2, slug: 'sponsorship', text: 'Sponsorship' }
+]
+---
+
+<PageLayout
+  title='Projects'
+  {headings}
+  info={{ slug: '/en/projects', hideComment: true }}
+  locale='en'
+  alternatePath='/projects'
+>
+  <p>
+    If you think a collaboration could be meaningful, feel free to reach out.
+    You can also support my open work via sponsorship.
+  </p>
+  <Button title='Checkout sponsorship' class='w-fit' href='#sponsorship'>
+    <Icon class='size-5' name='receive-money' slot='before' />
+  </Button>
+
+  <h2 id='projects'>Projects</h2>
+  <ProjectSection
+    project={[
+      {
+        name: 'Atypica',
+        description: 'AI consumer research platform; built an Interview Agent for AI persona interviews.',
+        links: [{ type: 'site', href: 'https://atypica.ai' }]
+      },
+      {
+        name: 'PrepWise',
+        description: 'Voice-based AI interview practice tool for confidence and rapid iteration.',
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/interview-prep' },
+          { type: 'site', href: 'https://interview-prep-eosin.vercel.app/sign-in' }
+        ]
+      },
+      {
+        name: 'QQ Bot',
+        description: 'Group check-in bot with automatic reminder and attendance tracking.',
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/qq-bot' }]
+      }
+    ]}
+  />
+
+  <h2 id='learning'>Learning</h2>
+  <ProjectSection
+    project={[
+      {
+        name: 'MiniMind Notes',
+        description: 'Structured notes and experiments while studying MiniMind.',
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }]
+      },
+      {
+        name: 'UCB CS61A',
+        description: 'My personal practice repository for CS61A assignments.',
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/interview-prep' }]
+      }
+    ]}
+  />
+
+  <h2 id='sponsorship'>Sponsorship</h2>
+  <p>Thanks for supporting independent learning and open sharing.</p>
+  <Sponsors sponsors={[]} />
+</PageLayout>

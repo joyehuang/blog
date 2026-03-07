@@ -1,0 +1,28 @@
+---
+title: 'Understanding Attention: Q/K/V and Multi-Head'
+description: 'A compact explanation of attention mechanics, common confusion points, and implementation-level reasoning'
+publishDate: 2025-12-18 00:00:00
+locale: en
+translationKey: attention-mechanism
+tags: ['LLM', 'Transformer', 'MiniMind', 'Attention', 'Multi-Head']
+---
+
+This post is part 3 of my MiniMind learning series.
+
+## Core Idea
+Attention answers one question: when interpreting the current token, which other tokens should matter, and by how much?
+
+## Q / K / V in One Line
+- `Q` asks what I need.
+- `K` describes what each token offers.
+- `V` carries the actual content to aggregate.
+
+## Why Multi-Head
+Multiple heads let the model attend from different representational subspaces, improving expressiveness without changing the core attention formula.
+
+## Common Confusions
+- Softmax in attention and normalization layers serve different purposes.
+- Attention focuses on relationship weighting; normalization stabilizes optimization dynamics.
+
+## Summary
+Once Q/K/V semantics and head-wise projection are clear, attention implementation becomes a straightforward tensor-shape problem rather than a mysterious concept.

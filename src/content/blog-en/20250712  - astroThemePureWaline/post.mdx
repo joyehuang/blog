@@ -1,0 +1,49 @@
+---
+title: Full Waline Setup Guide for astro-theme-pure
+description: 'A practical deployment walkthrough for Waline on Astro, with common pitfalls and fixes'
+publishDate: 2025-07-12 05:08:21
+locale: en
+translationKey: waline-guide
+tags: ['Waline', 'Tutorial']
+---
+import { Aside } from 'astro-pure/user'
+
+## Preface
+This article records my end-to-end process of deploying Waline for an Astro blog with `astro-theme-pure`, using Vercel + LeanCloud.
+
+<Aside>Environment: macOS with stable international network access.</Aside>
+
+## Step 1: Create LeanCloud Credentials
+Register a LeanCloud app and copy:
+- `App ID`
+- `App Key`
+- `Master Key`
+
+## Step 2: Deploy Waline Server on Vercel
+Use the official one-click template and wait for deployment to finish.
+
+## Step 3: Configure Environment Variables
+Add these variables in Vercel project settings:
+- `LEAN_ID`
+- `LEAN_KEY`
+- `LEAN_MASTER_KEY`
+
+Then redeploy.
+
+## Step 4: Bind a Custom Domain (Recommended)
+A custom domain can prevent DNS-related issues such as initialization failures.
+
+## Step 5: Initialize Admin
+Visit `/ui` on your Waline server URL and register your admin account.
+Avoid third-party login methods during first-time admin setup.
+
+## Step 6: Connect Waline in Astro
+Update `src/site.config.ts` with your Waline server URL and desired client options.
+
+## Step 7: Verify
+Open any post page and confirm:
+- comment widget loads correctly
+- page view count is updating
+
+## Conclusion
+Waline works very well with Astro once the server and config are aligned. If you are using `astro-theme-pure`, this setup should be straightforward with the checklist above.
