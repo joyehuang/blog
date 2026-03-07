@@ -197,8 +197,11 @@ span.katex-display {
   .astro-code pre span {
     color: var(--shiki-dark) !important;
   }
+  :not(pre) > code {
+    color: hsl(var(--foreground));
+  }
   :not(.astro-code) > code span {
-    color: var(--shiki-dark) !important;
+    color: var(--shiki-dark, hsl(var(--foreground))) !important;
   }
 }
 
