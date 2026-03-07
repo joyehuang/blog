@@ -197,6 +197,9 @@ span.katex-display {
   .astro-code pre span {
     color: var(--shiki-dark) !important;
   }
+  :not(.astro-code) > code span {
+    color: var(--shiki-dark) !important;
+  }
 }
 
 /* Scroll bar */
