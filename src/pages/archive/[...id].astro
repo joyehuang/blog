@@ -1,0 +1,117 @@
+---
+import { render, type CollectionEntry } from 'astro:content'
+import { getCollection } from 'astro:content'
+import PageLayout from '@/layouts/ContentLayout.astro'
+import { Button, Icon } from 'astro-pure/user'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const archives = await getCollection('archive')
+  return archives.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry }
+  }))
+}
+
+type Props = {
+  entry: CollectionEntry<'archive'>
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+
+const { title, description, date, updatedDate, tags, type, status } = entry.data
+
+// Status labels and colors
+const statusLabels: Record<string, string> = {
+  'in-progress': '🚧 In Progress',
+  incomplete: '⏸️ Incomplete',
+  ready: '✅ Ready',
+  archived: '📦 Archived'
+}
+
+const typeLabels: Record<string, string> = {
+  note: '📝 Note',
+  snippet: '💡 Snippet',
+  draft: '✏️ Draft',
+  idea: '🔮 Idea',
+  research: '🔬 Research',
+  reference: '📚 Reference'
+}
+
+const meta = {
+  title,
+  description: description || title
+}
+---
+
+<PageLayout {meta} back='/archive'>
+  {/* Header */}
+  <div slot='header' class='animate gap-y-4'>
+    <div class='mb-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground'>
+      <span class='rounded-md bg-muted px-2 py-1'>{typeLabels[type] || type}</span>
+      <span class='rounded-md bg-muted px-2 py-1'>{statusLabels[status] || status}</span>
+      {
+        tags.length > 0 && (
+          <>
+            <span>·</span>
+            {tags.map((tag) => (
+              <span class='rounded-md border border-border px-2 py-1'>{tag}</span>
+            ))}
+          </>
+        )
+      }
+    </div>
+
+    <h1 class='mb-4 text-3xl font-bold leading-tight sm:text-4xl'>{title}</h1>
+
+    {description && <p class='text-lg text-muted-foreground'>{description}</p>}
+
+    <div class='mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground'>
+      <div class='flex items-center gap-2'>
+        <Icon name='calendar' />
+        <time datetime={date.toISOString()}>
+          {
+            date.toLocaleDateString('zh-CN', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })
+          }
+        </time>
+      </div>
+      {
+        updatedDate && (
+          <div class='flex items-center gap-2'>
+            <Icon name='calendar' />
+            <span>
+              Updated{' '}
+              {updatedDate.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  {/* Content */}
+  <article class='prose prose-pure dark:prose-invert max-w-none'>
+    <Content />
+  </article>
+
+  {/* Bottom info */}
+  <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
+    <div class='text-sm text-muted-foreground'>
+      <p class='mb-4'>
+        This is an archive entry - part of a knowledge base for ideas, snippets, and working notes.
+        Content may be incomplete or in-progress.
+      </p>
+      <Button title='← Back to Archive' href='/archive' style='back' />
+    </div>
+  </div>
+</PageLayout>

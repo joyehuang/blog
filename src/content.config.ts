@@ -39,4 +39,23 @@ const blog = defineCollection({
     })
 })
 
-export const collections = { blog }
+const archive = defineCollection({
+  // Load Markdown and MDX files in the `src/content/archive/` directory.
+  loader: glob({ base: './src/content/archive', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    // Required
+    title: z.string(),
+    date: z.coerce.date(),
+    // Optional
+    description: z.string().optional(),
+    updatedDate: z.coerce.date().optional(),
+    tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+    // Type of archive entry: note, snippet, draft, idea, research, etc.
+    type: z.enum(['note', 'snippet', 'draft', 'idea', 'research', 'reference']).default('note'),
+    // Status: in-progress, incomplete, ready, archived
+    status: z.enum(['in-progress', 'incomplete', 'ready', 'archived']).default('in-progress'),
+    draft: z.boolean().default(false)
+  })
+})
+
+export const collections = { blog, archive }

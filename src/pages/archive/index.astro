@@ -1,0 +1,194 @@
+---
+/**
+ * Archive Module - /archive (singular)
+ * This is a knowledge base for ideas, snippets, and semi-finished materials.
+ * Note: This is different from /archives (plural) which shows blog posts grouped by year.
+ */
+import { getCollection } from 'astro:content'
+import { Button, Icon } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+
+export const prerender = true
+
+// Get all archive entries, sorted by date (most recent first)
+const allArchives = await getCollection('archive')
+const sortedArchives = allArchives
+  .filter((entry) => !entry.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+
+// Get unique tags, types, and statuses for filtering
+const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))].sort()
+const uniqueTypes = [...new Set(allArchives.map((entry) => entry.data.type))].sort()
+const uniqueStatuses = [...new Set(allArchives.map((entry) => entry.data.status))].sort()
+
+// Group by type for display
+const groupedByType = sortedArchives.reduce(
+  (acc, entry) => {
+    const type = entry.data.type
+    if (!acc[type]) acc[type] = []
+    acc[type].push(entry)
+    return acc
+  },
+  {} as Record<string, typeof sortedArchives>
+)
+
+const meta = {
+  description: 'Knowledge base and working notes - ideas, snippets, and semi-finished materials',
+  title: 'Archive'
+}
+
+// Type labels with emoji icons
+const typeLabels: Record<string, string> = {
+  note: '📝 Notes',
+  snippet: '💡 Snippets',
+  draft: '✏️ Drafts',
+  idea: '🔮 Ideas',
+  research: '🔬 Research',
+  reference: '📚 Reference'
+}
+
+// Status labels
+const statusLabels: Record<string, string> = {
+  'in-progress': '🚧 In Progress',
+  incomplete: '⏸️ Incomplete',
+  ready: '✅ Ready',
+  archived: '📦 Archived'
+}
+
+const statusColors: Record<string, string> = {
+  'in-progress': 'text-blue-600 dark:text-blue-400',
+  incomplete: 'text-yellow-600 dark:text-yellow-400',
+  ready: 'text-green-600 dark:text-green-400',
+  archived: 'text-gray-500 dark:text-gray-400'
+}
+---
+
+<PageLayout {meta}>
+  <Button title='Back' href='/' style='back' />
+
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-2 text-3xl font-medium'>Archive</h1>
+      <p class='mb-6 text-muted-foreground'>
+        Knowledge base and working notes - a collection of ideas, snippets, and semi-finished
+        materials
+      </p>
+    </div>
+
+    {
+      sortedArchives.length === 0 ? (
+        <p>No archive entries yet.</p>
+      ) : (
+        <div class='grid gap-y-8 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
+          <section id='content' class='animate' aria-label='Archive entries'>
+            <div class='mb-3 text-sm text-muted-foreground sm:mb-5'>
+              {sortedArchives.length} entries
+            </div>
+
+            {/* Group by type */}
+            {Object.entries(groupedByType).map(([type, entries]) => (
+              <div class='mb-8'>
+                <h2 class='mb-4 flex items-center text-lg font-semibold'>
+                  {typeLabels[type] || type}
+                  <span class='ml-2 text-sm text-muted-foreground'>({entries.length})</span>
+                </h2>
+                <ul class='space-y-3'>
+                  {entries.map((entry) => (
+                    <li class='rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20'>
+                      <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
+                        <div class='mb-1 flex items-start justify-between gap-4'>
+                          <h3 class='font-medium leading-tight'>{entry.data.title}</h3>
+                          <span class={`shrink-0 text-xs ${statusColors[entry.data.status]}`}>
+                            {statusLabels[entry.data.status] || entry.data.status}
+                          </span>
+                        </div>
+                        {entry.data.description && (
+                          <p class='mb-2 text-sm text-muted-foreground'>
+                            {entry.data.description}
+                          </p>
+                        )}
+                        <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                          <time datetime={entry.data.date.toISOString()}>
+                            {entry.data.date.toLocaleDateString('zh-CN', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </time>
+                          {entry.data.updatedDate && (
+                            <span>
+                              · Updated{' '}
+                              {entry.data.updatedDate.toLocaleDateString('zh-CN', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          )}
+                          {entry.data.tags.length > 0 && (
+                            <>
+                              <span>·</span>
+                              <div class='flex flex-wrap gap-1'>
+                                {entry.data.tags.map((tag) => (
+                                  <span class='rounded bg-muted px-1.5 py-0.5'>{tag}</span>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+
+          {/* sidebar */}
+          <aside class='animate' id='sidebar'>
+            {/* Tags */}
+            {!!uniqueTags.length && (
+              <div class='mb-6'>
+                <h2 class='mb-4 flex items-center text-lg font-semibold'>
+                  <Icon name='tag-2' class='me-2' />
+                  Tags
+                </h2>
+                <ul class='flex flex-wrap gap-2 text-xs'>
+                  {uniqueTags.map((tag) => (
+                    <li>
+                      <span class='rounded-md border border-border bg-card px-2 py-1'>{tag}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Status Legend */}
+            <div class='mb-6'>
+              <h2 class='mb-4 text-lg font-semibold'>Status</h2>
+              <ul class='space-y-2 text-sm'>
+                {uniqueStatuses.map((status) => (
+                  <li class={statusColors[status]}>{statusLabels[status] || status}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Types */}
+            <div>
+              <h2 class='mb-4 text-lg font-semibold'>Types</h2>
+              <ul class='space-y-2 text-sm'>
+                {uniqueTypes.map((type) => (
+                  <li>
+                    {typeLabels[type] || type}
+                    <span class='ml-2 text-muted-foreground'>
+                      ({groupedByType[type]?.length || 0})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </div>
+      )
+    }
+  </main>
+</PageLayout>
