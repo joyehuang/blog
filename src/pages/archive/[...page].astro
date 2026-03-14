@@ -5,36 +5,42 @@
  * Note: This is different from /archives (plural) which shows blog posts grouped by year.
  */
 import { getCollection } from 'astro:content'
-import { Button, Icon } from 'astro-pure/user'
+import { Button, Icon, Pagination } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
-// Get all archive entries, sorted by date (most recent first)
-const allArchives = await getCollection('archive')
-const sortedArchives = allArchives
-  .filter((entry) => !entry.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+export async function getStaticPaths({ paginate }: any) {
+  const allArchives = await getCollection('archive')
+  const sortedArchives = allArchives
+    .filter((entry) => !entry.data.draft)
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
 
-// Get unique tags, types, and statuses for filtering
+  return paginate(sortedArchives, {
+    pageSize: 20
+  })
+}
+
+const { page } = Astro.props
+
+// Get unique tags, types, and statuses for sidebar
+const allArchives = await getCollection('archive')
 const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))].sort()
 const uniqueTypes = [...new Set(allArchives.map((entry) => entry.data.type))].sort()
 const uniqueStatuses = [...new Set(allArchives.map((entry) => entry.data.status))].sort()
 
-// Group by type for display
-const groupedByType = sortedArchives.reduce(
+// Count entries by type
+const typeCounts = allArchives.reduce(
   (acc, entry) => {
-    const type = entry.data.type
-    if (!acc[type]) acc[type] = []
-    acc[type].push(entry)
+    acc[entry.data.type] = (acc[entry.data.type] || 0) + 1
     return acc
   },
-  {} as Record<string, typeof sortedArchives>
+  {} as Record<string, number>
 )
 
 const meta = {
   description: 'Knowledge base and working notes - ideas, snippets, and semi-finished materials',
-  title: 'Archive'
+  title: page.currentPage === 1 ? 'Archive' : `Archive - Page ${page.currentPage}`
 }
 
 // Type labels with emoji icons
@@ -76,77 +82,84 @@ const statusColors: Record<string, string> = {
     </div>
 
     {
-      sortedArchives.length === 0 ? (
+      page.data.length === 0 ? (
         <p>No archive entries yet.</p>
       ) : (
         <div class='grid gap-y-8 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
           <section id='content' class='animate' aria-label='Archive entries'>
-            <div class='mb-3 text-sm text-muted-foreground sm:mb-5'>
-              {sortedArchives.length} entries
+            <div class='mb-3 flex items-center justify-between text-sm text-muted-foreground sm:mb-5'>
+              <span>
+                Showing {page.start + 1}-{page.end + 1} of {page.total} entries
+              </span>
+              {page.lastPage > 1 && (
+                <span>
+                  Page {page.currentPage} of {page.lastPage}
+                </span>
+              )}
             </div>
 
-            {/* Group by type */}
-            {Object.entries(groupedByType).map(([type, entries]) => (
-              <div class='mb-8'>
-                <h2 class='mb-4 flex items-center text-lg font-semibold'>
-                  {typeLabels[type] || type}
-                  <span class='ml-2 text-sm text-muted-foreground'>({entries.length})</span>
-                </h2>
-                <ul class='space-y-3'>
-                  {entries.map((entry) => (
-                    <li class='rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20'>
-                      <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
-                        <div class='mb-1 flex items-start justify-between gap-4'>
-                          <h3 class='font-medium leading-tight'>{entry.data.title}</h3>
-                          <span class={`shrink-0 text-xs ${statusColors[entry.data.status]}`}>
-                            {statusLabels[entry.data.status] || entry.data.status}
-                          </span>
-                        </div>
-                        {entry.data.description && (
-                          <p class='mb-2 text-sm text-muted-foreground'>
-                            {entry.data.description}
-                          </p>
-                        )}
-                        <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                          <time datetime={entry.data.date.toISOString()}>
-                            {entry.data.date.toLocaleDateString('zh-CN', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </time>
-                          {entry.data.updatedDate && (
-                            <span>
-                              · Updated{' '}
-                              {entry.data.updatedDate.toLocaleDateString('zh-CN', {
-                                month: 'short',
-                                day: 'numeric'
-                              })}
-                            </span>
-                          )}
-                          {entry.data.tags.length > 0 && (
-                            <>
-                              <span>·</span>
-                              <div class='flex flex-wrap gap-1'>
-                                {entry.data.tags.map((tag) => (
-                                  <a
-                                    href={`/archive/tags/${tag}`}
-                                    class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
-                                    onclick={(e: Event) => e.stopPropagation()}
-                                  >
-                                    {tag}
-                                  </a>
-                                ))}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+            <ul class='space-y-3'>
+              {page.data.map((entry: any) => (
+                <li class='rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20'>
+                  <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
+                    <div class='mb-1 flex items-start justify-between gap-4'>
+                      <h3 class='font-medium leading-tight'>{entry.data.title}</h3>
+                      <div class='flex shrink-0 items-center gap-2 text-xs'>
+                        <span class='text-muted-foreground'>
+                          {typeLabels[entry.data.type] || entry.data.type}
+                        </span>
+                        <span class={statusColors[entry.data.status]}>
+                          {statusLabels[entry.data.status] || entry.data.status}
+                        </span>
+                      </div>
+                    </div>
+                    {entry.data.description && (
+                      <p class='mb-2 text-sm text-muted-foreground'>{entry.data.description}</p>
+                    )}
+                    <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                      <time datetime={entry.data.date.toISOString()}>
+                        {entry.data.date.toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </time>
+                      {entry.data.updatedDate && (
+                        <span>
+                          · Updated{' '}
+                          {entry.data.updatedDate.toLocaleDateString('zh-CN', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      )}
+                      {entry.data.tags.length > 0 && (
+                        <>
+                          <span>·</span>
+                          <div class='flex flex-wrap gap-1'>
+                            {entry.data.tags.map((tag: string) => (
+                              <a
+                                href={`/archive/tags/${tag}`}
+                                class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
+                                onclick={(e: Event) => e.stopPropagation()}
+                              >
+                                {tag}
+                              </a>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            {page.lastPage > 1 && (
+              <div class='mt-8'>
+                <Pagination page={page} />
               </div>
-            ))}
+            )}
           </section>
 
           {/* sidebar */}
@@ -208,9 +221,7 @@ const statusColors: Record<string, string> = {
                 {uniqueTypes.map((type) => (
                   <li>
                     {typeLabels[type] || type}
-                    <span class='ml-2 text-muted-foreground'>
-                      ({groupedByType[type]?.length || 0})
-                    </span>
+                    <span class='ml-2 text-muted-foreground'>({typeCounts[type] || 0})</span>
                   </li>
                 ))}
               </ul>
