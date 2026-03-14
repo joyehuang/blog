@@ -33,16 +33,7 @@ const { page } = Astro.props as unknown as Props
 
 const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
 const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))].sort()
-const uniqueTypes = [...new Set(allArchives.map((entry) => entry.data.type))].sort()
 const uniqueStatuses = [...new Set(allArchives.map((entry) => entry.data.status))].sort()
-
-const typeCounts = allArchives.reduce(
-  (acc, entry) => {
-    acc[entry.data.type] = (acc[entry.data.type] || 0) + 1
-    return acc
-  },
-  {} as Record<string, number>
-)
 
 const statusCounts = allArchives.reduce(
   (acc, entry) => {
@@ -90,9 +81,16 @@ const statusLabels: Record<string, string> = {
 
 const statusColors: Record<string, string> = {
   'in-progress': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-  incomplete: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  incomplete: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
   ready: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
   archived: 'bg-gray-100 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400'
+}
+
+const statusDotColors: Record<string, string> = {
+  'in-progress': 'bg-yellow-500',
+  incomplete: 'bg-red-500',
+  ready: 'bg-green-500',
+  archived: 'bg-gray-400'
 }
 
 const typeColors: Record<string, string> = {
@@ -188,7 +186,7 @@ const typeColors: Record<string, string> = {
                               <span>·</span>
                               <div class='flex flex-wrap gap-1.5'>
                                 {entry.data.tags.map((tag: string) => (
-                                  <span class='rounded-md bg-muted px-2 py-1'>{tag}</span>
+                                  <span class='rounded-md bg-muted px-2 py-0.5'>{tag}</span>
                                 ))}
                               </div>
                             </>
@@ -241,7 +239,7 @@ const typeColors: Record<string, string> = {
               </section>
             )}
 
-            <section class='mb-8'>
+            <section>
               <h2 class='mb-4 flex items-center text-lg font-semibold'>
                 <Icon name='list' class='me-2' />
                 Status
@@ -250,28 +248,12 @@ const typeColors: Record<string, string> = {
                 {uniqueStatuses.map((status) => (
                   <li class='flex items-center justify-between gap-3'>
                     <span class='flex items-center gap-2'>
-                      <span class='inline-block size-1.5 rounded-full bg-current opacity-70' />
+                      <span
+                        class={`inline-block size-2 rounded-full ${statusDotColors[status] || 'bg-gray-400'}`}
+                      />
                       <span class='text-foreground'>{statusLabels[status] || status}</span>
                     </span>
                     <span class='text-xs text-muted-foreground'>{statusCounts[status] || 0}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section>
-              <h2 class='mb-4 flex items-center text-lg font-semibold'>
-                <Icon name='document' class='me-2' />
-                Types
-              </h2>
-              <ul class='space-y-2 text-sm'>
-                {uniqueTypes.map((type) => (
-                  <li class='flex items-center justify-between gap-3'>
-                    <span class='flex items-center gap-2'>
-                      <span class='inline-block size-1.5 rounded-full bg-current opacity-70' />
-                      <span>{typeLabels[type] || type}</span>
-                    </span>
-                    <span class='text-xs text-muted-foreground'>({typeCounts[type] || 0})</span>
                   </li>
                 ))}
               </ul>
