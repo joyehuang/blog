@@ -4,13 +4,17 @@
  * This is a knowledge base for ideas, snippets, and semi-finished materials.
  * Note: This is different from /archives (plural) which shows blog posts grouped by year.
  */
+import type { GetStaticPaths, Page } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+
 import { getCollection } from 'astro:content'
-import { Button, Icon, Pagination } from 'astro-pure/user'
+import { Paginator } from 'astro-pure/components/pages'
+import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
-export async function getStaticPaths({ paginate }: any) {
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
   const allArchives = await getCollection('archive')
   const sortedArchives = allArchives
     .filter((entry) => !entry.data.draft)
@@ -21,10 +25,14 @@ export async function getStaticPaths({ paginate }: any) {
   })
 }
 
-const { page } = Astro.props
+interface Props {
+  page: Page<CollectionEntry<'archive'>>
+}
+
+const { page } = Astro.props as unknown as Props
 
 // Get unique tags, types, and statuses for sidebar
-const allArchives = await getCollection('archive')
+const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
 const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))].sort()
 const uniqueTypes = [...new Set(allArchives.map((entry) => entry.data.type))].sort()
 const uniqueStatuses = [...new Set(allArchives.map((entry) => entry.data.status))].sort()
@@ -41,6 +49,21 @@ const typeCounts = allArchives.reduce(
 const meta = {
   description: 'Knowledge base and working notes - ideas, snippets, and semi-finished materials',
   title: page.currentPage === 1 ? 'Archive' : `Archive - Page ${page.currentPage}`
+}
+
+const paginationProps = {
+  ...(page.url.prev && {
+    prevUrl: {
+      text: '← Previous Entries',
+      url: page.url.prev
+    }
+  }),
+  ...(page.url.next && {
+    nextUrl: {
+      text: 'Next Entries →',
+      url: page.url.next
+    }
+  })
 }
 
 // Type labels with emoji icons
@@ -76,7 +99,7 @@ const statusColors: Record<string, string> = {
     <div id='content-header' class='animate'>
       <div class='mb-2 flex items-center gap-3'>
         <div class='rounded-lg bg-muted/50 p-2'>
-          <Icon name='archive' class='size-6 text-foreground' />
+          <span class='text-2xl'>🗂️</span>
         </div>
         <div>
           <h1 class='text-3xl font-medium'>Archive</h1>
@@ -107,7 +130,7 @@ const statusColors: Record<string, string> = {
             </div>
 
             <ul class='space-y-3'>
-              {page.data.map((entry: any) => (
+              {page.data.map((entry) => (
                 <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
                   <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
                     <div class='mb-2 flex items-start gap-3'>
@@ -159,13 +182,7 @@ const statusColors: Record<string, string> = {
                               <span>·</span>
                               <div class='flex flex-wrap gap-1'>
                                 {entry.data.tags.map((tag: string) => (
-                                  <a
-                                    href={`/archive/tags/${tag}`}
-                                    class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
-                                    onclick={(e: Event) => e.stopPropagation()}
-                                  >
-                                    {tag}
-                                  </a>
+                                  <span class='rounded bg-muted px-1.5 py-0.5'>{tag}</span>
                                 ))}
                               </div>
                             </>
@@ -180,14 +197,12 @@ const statusColors: Record<string, string> = {
 
             {page.lastPage > 1 && (
               <div class='mt-8'>
-                <Pagination page={page} />
+                <Paginator {...paginationProps} />
               </div>
             )}
           </section>
 
-          {/* sidebar */}
           <aside class='animate' id='sidebar'>
-            {/* Tags */}
             {!!uniqueTags.length && (
               <div class='mb-6'>
                 <div class='mb-4 flex items-center justify-between'>
@@ -195,10 +210,7 @@ const statusColors: Record<string, string> = {
                     <Icon name='tag-2' class='me-2' />
                     Tags
                   </h2>
-                  <a
-                    href='/archive/tags'
-                    class='text-xs text-muted-foreground hover:text-foreground'
-                  >
+                  <a href='/archive/tags' class='text-xs text-muted-foreground hover:text-foreground'>
                     View all →
                   </a>
                 </div>
@@ -227,7 +239,6 @@ const statusColors: Record<string, string> = {
               </div>
             )}
 
-            {/* Status Legend */}
             <div class='mb-6'>
               <h2 class='mb-4 text-lg font-semibold'>Status</h2>
               <ul class='space-y-2 text-sm'>
@@ -237,7 +248,6 @@ const statusColors: Record<string, string> = {
               </ul>
             </div>
 
-            {/* Types */}
             <div>
               <h2 class='mb-4 text-lg font-semibold'>Types</h2>
               <ul class='space-y-2 text-sm'>

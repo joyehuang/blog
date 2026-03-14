@@ -21,25 +21,33 @@ type Props = {
 const { entry } = Astro.props
 const { Content } = await render(entry)
 
-const { title, description, date, updatedDate, tags, type, status, relatedBlog, relatedArchive, source } = entry.data
+const {
+  title,
+  description,
+  date,
+  updatedDate,
+  tags,
+  type,
+  status,
+  relatedBlog,
+  relatedArchive,
+  source
+} = entry.data
 
-// Fetch related blog posts if any
-let relatedBlogPosts: any[] = []
+let relatedBlogPosts: CollectionEntry<'blog'>[] = []
 if (relatedBlog && relatedBlog.length > 0) {
   const allBlogPosts = await getCollection('blog')
   relatedBlogPosts = allBlogPosts.filter((post) => relatedBlog.includes(post.id))
 }
 
-// Fetch related archive entries if any
-let relatedArchiveEntries: any[] = []
+let relatedArchiveEntries: CollectionEntry<'archive'>[] = []
 if (relatedArchive && relatedArchive.length > 0) {
   const allArchives = await getCollection('archive')
-  relatedArchiveEntries = allArchives.filter((arch) =>
-    relatedArchive.includes(arch.id) && arch.id !== entry.id
+  relatedArchiveEntries = allArchives.filter(
+    (arch) => relatedArchive.includes(arch.id) && arch.id !== entry.id
   )
 }
 
-// Status labels and colors
 const statusLabels: Record<string, string> = {
   'in-progress': '🚧 In Progress',
   incomplete: '⏸️ Incomplete',
@@ -63,7 +71,6 @@ const meta = {
 ---
 
 <PageLayout {meta} back='/archive'>
-  {/* Header */}
   <div slot='header' class='animate gap-y-4'>
     <div class='mb-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground'>
       <span class='rounded-md bg-muted px-2 py-1'>{typeLabels[type] || type}</span>
@@ -122,7 +129,7 @@ const meta = {
     {
       source && (
         <div class='mt-4 flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm'>
-          <Icon name='link-2' class='mt-0.5 shrink-0 text-muted-foreground' />
+          <span class='mt-0.5 shrink-0 text-muted-foreground'>🔗</span>
           <div>
             <span class='text-muted-foreground'>Source: </span>
             <a href={source} target='_blank' rel='noopener noreferrer' class='hover:underline'>
@@ -134,21 +141,19 @@ const meta = {
     }
   </div>
 
-  {/* Content */}
   <article class='prose prose-pure dark:prose-invert max-w-none'>
     <Content />
   </article>
 
-  {/* Relationships Section */}
-  {
-    (relatedBlogPosts.length > 0 || relatedArchiveEntries.length > 0) && (
-      <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
+  <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
+    {(relatedBlogPosts.length > 0 || relatedArchiveEntries.length > 0) && (
+      <>
         <h2 class='mb-4 text-xl font-semibold'>Related Content</h2>
 
         {relatedBlogPosts.length > 0 && (
           <div class='mb-6'>
-            <h3 class='mb-3 flex items-center text-sm font-medium text-muted-foreground'>
-              <Icon name='file-text' class='me-2' />
+            <h3 class='mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground'>
+              <span>📰</span>
               Blog Posts
             </h3>
             <ul class='space-y-2'>
@@ -172,8 +177,8 @@ const meta = {
 
         {relatedArchiveEntries.length > 0 && (
           <div class='mb-6'>
-            <h3 class='mb-3 flex items-center text-sm font-medium text-muted-foreground'>
-              <Icon name='archive' class='me-2' />
+            <h3 class='mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground'>
+              <span>🗂️</span>
               Archive Entries
             </h3>
             <ul class='space-y-2'>
@@ -199,19 +204,14 @@ const meta = {
             </ul>
           </div>
         )}
-      </div>
-    )
-  }
+      </>
+    )}
 
-  {/* Bottom info */}
-  <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
-    <div class='flex items-start justify-between gap-4'>
+    <div class='flex items-start justify-between gap-4 border-t border-border pt-6'>
       <div class='text-sm text-muted-foreground'>
         <p class='mb-2 flex items-center gap-2'>
-          <Icon name='archive' class='shrink-0' />
-          <span>
-            This is a {typeLabels[type]?.toLowerCase() || type} in the knowledge base.
-          </span>
+          <span class='shrink-0'>🗂️</span>
+          <span>This is a {typeLabels[type]?.toLowerCase() || type} in the knowledge base.</span>
         </p>
         <p class='text-xs'>Content may be incomplete or work-in-progress.</p>
       </div>

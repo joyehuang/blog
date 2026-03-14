@@ -3,16 +3,19 @@
  * Archive Tag Filter Page with Pagination
  * Shows archive entries filtered by tag
  */
+import type { GetStaticPaths, Page } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+
 import { getCollection } from 'astro:content'
-import { Button, Icon, Pagination } from 'astro-pure/user'
+import { Paginator } from 'astro-pure/components/pages'
+import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
-export async function getStaticPaths({ paginate }: any) {
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
   const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
 
-  // Get all unique tags
   const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))]
 
   return uniqueTags.flatMap((tag) => {
@@ -27,20 +30,13 @@ export async function getStaticPaths({ paginate }: any) {
   })
 }
 
-const { page } = Astro.props
-const { tag } = Astro.params
-
-// Type labels with emoji icons
-const typeLabels: Record<string, string> = {
-  note: '📝 Note',
-  snippet: '💡 Snippet',
-  draft: '✏️ Draft',
-  idea: '🔮 Idea',
-  research: '🔬 Research',
-  reference: '📚 Reference'
+interface Props {
+  page: Page<CollectionEntry<'archive'>>
 }
 
-// Status labels and colors
+const { page } = Astro.props as unknown as Props
+const { tag } = Astro.params
+
 const statusLabels: Record<string, string> = {
   'in-progress': '🚧 In Progress',
   incomplete: '⏸️ Incomplete',
@@ -58,6 +54,21 @@ const statusColors: Record<string, string> = {
 const meta = {
   title: `Archive Tag: ${tag}`,
   description: `Archive entries tagged with ${tag}`
+}
+
+const paginationProps = {
+  ...(page.url.prev && {
+    prevUrl: {
+      text: '← Previous Entries',
+      url: page.url.prev
+    }
+  }),
+  ...(page.url.next && {
+    nextUrl: {
+      text: 'Next Entries →',
+      url: page.url.next
+    }
+  })
 }
 ---
 
@@ -78,7 +89,7 @@ const meta = {
     <section id='content' class='animate' aria-label='Archive entries'>
       <ul class='space-y-3'>
         {
-          page.data.map((entry: any) => (
+          page.data.map((entry) => (
             <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
               <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
                 <div class='mb-2 flex items-start gap-3'>
@@ -130,15 +141,9 @@ const meta = {
                           <span>·</span>
                           <div class='flex flex-wrap gap-1'>
                             {entry.data.tags
-                              .filter((t: string) => t !== tag)
-                              .map((t: string) => (
-                                <a
-                                  href={`/archive/tags/${t}`}
-                                  class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
-                                  onclick={(e: Event) => e.stopPropagation()}
-                                >
-                                  {t}
-                                </a>
+                              .filter((t) => t !== tag)
+                              .map((t) => (
+                                <span class='rounded bg-muted px-1.5 py-0.5'>{t}</span>
                               ))}
                           </div>
                         </>
@@ -154,7 +159,7 @@ const meta = {
 
       {page.lastPage > 1 && (
         <div class='mt-8'>
-          <Pagination page={page} />
+          <Paginator {...paginationProps} />
         </div>
       )}
     </section>
