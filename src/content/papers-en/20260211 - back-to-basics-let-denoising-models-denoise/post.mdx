@@ -1,0 +1,39 @@
+---
+title: 'Reading Notes: Back to Basics - Let Denoising Generative Models Denoise'
+description: 'Structured notes on objective design, method framing, and evaluation focus for this denoising generative model paper.'
+publishDate: 2026-02-11 00:00:00
+locale: en
+translationKey: back-to-basics-denoising
+paperLink: https://arxiv.org/abs/2511.13720
+pdfLink: https://arxiv.org/pdf/2511.13720
+authors:
+  - Kaiming He
+  - et al.
+venue: arXiv
+year: 2025
+tags: ['Generative Model', 'Diffusion', 'Denoising']
+status: reading
+language: en
+featured: true
+comment: true
+---
+
+## Paper Info
+- Original link: [Back to Basics: Let Denoising Generative Models Denoise](https://arxiv.org/abs/2511.13720)
+- Main topic: revisiting training and sampling assumptions in denoising generative models
+- One-line takeaway: align objective design more directly with the denoising task itself.
+
+## Core Contributions
+1. Re-examines objective mismatch in common denoising training setups.
+2. Proposes a cleaner objective perspective that better reflects denoise semantics.
+3. Shows quality/stability improvements without relying on complex stacked tricks.
+
+## My Reading Focus
+- how objective design changes across noise levels
+- train/infer consistency of denoise behavior
+- speed-quality tradeoff under practical sampling budgets
+
+## Open Questions
+1. How robust is the gain across more diverse datasets?
+2. Does the benefit scale with model size?
+3. Can the idea combine well with consistency or flow-matching style training?

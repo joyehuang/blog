@@ -1,0 +1,73 @@
+---
+import links from 'public/links.json'
+import config from 'virtual:config'
+
+import { Comment } from 'astro-pure/advanced'
+import { Collapse, Timeline } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+import FriendList from '@/components/links/FriendList.astro'
+
+const headings = [
+  { depth: 2, slug: 'community', text: 'Community' },
+  { depth: 2, slug: 'common-links', text: 'Common Links' },
+  { depth: 2, slug: 'special-links', text: 'Special Links' },
+  { depth: 2, slug: 'apply-links', text: 'Apply Links' }
+]
+
+const { friends } = links
+const linksConf = config.integ.links
+---
+
+<PageLayout title='Links' {headings} info='/en/links' locale='en' alternatePath='/links'>
+  <h2 id='community'>Community</h2>
+  <p>
+    Welcome to my community group for technical discussion and accountability.
+    If you are interested in frontend, backend, or full-stack learning, you are welcome.
+  </p>
+
+  <h2 id='common-links'>Common Links</h2>
+  <FriendList list={friends[0]} />
+
+  <Collapse title='Links with Bad Status'>
+    <FriendList list={friends[1]} />
+  </Collapse>
+
+  <Collapse title='Link History Book'>
+    <Timeline events={linksConf.logbook} />
+  </Collapse>
+
+  <h2 id='special-links'>Special Links</h2>
+  <FriendList list={friends[2]} />
+
+  <h2 id='apply-links'>Apply Links</h2>
+  <p>Here is my site information (click to copy):</p>
+
+  <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
+    {
+      linksConf.applyTip.map(({ name, val }) => {
+        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
+        return (
+          <>
+            <span class='text-end'>{name}:</span>
+            <samp class='cursor-pointer' onclick={script}>
+              {val}
+            </samp>
+          </>
+        )
+      })
+    }
+  </blockquote>
+
+  <p>
+    To apply for a link exchange, please leave a message using this template.
+    Submitting a <a href='https://github.com/joyehuang/blog/pulls' target='_blank'>PR</a> is usually faster.
+  </p>
+
+  <ul>
+    <li>Add my site on your links page first.</li>
+    <li>Please keep your site accessible.</li>
+    <li>Content should comply with local laws and regulations.</li>
+  </ul>
+
+  <Comment slot='bottom' />
+</PageLayout>

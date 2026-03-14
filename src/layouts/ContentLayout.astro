@@ -3,6 +3,7 @@ import { BackToTop } from 'astro-pure/components/pages'
 import type { SiteMeta } from 'astro-pure/types'
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
+import type { Locale } from '@/i18n/locales'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { integ } from '@/site-config'
 
@@ -10,6 +11,8 @@ interface Props {
   meta: SiteMeta
   highlightColor?: string
   back?: string
+  locale?: Locale
+  alternatePath?: string
 }
 
 const { meta, highlightColor, back = '/', ...props } = Astro.props
