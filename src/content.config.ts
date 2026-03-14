@@ -54,7 +54,12 @@ const archive = defineCollection({
     type: z.enum(['note', 'snippet', 'draft', 'idea', 'research', 'reference']).default('note'),
     // Status: in-progress, incomplete, ready, archived
     status: z.enum(['in-progress', 'incomplete', 'ready', 'archived']).default('in-progress'),
-    draft: z.boolean().default(false)
+    draft: z.boolean().default(false),
+    // Relationships - connect archive entries to blog posts and other archives
+    relatedBlog: z.array(z.string()).optional(),
+    relatedArchive: z.array(z.string()).optional(),
+    // External source or reference URL
+    source: z.string().url().optional()
   })
 })
 

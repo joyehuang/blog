@@ -6,6 +6,8 @@ tags: ['ai', 'prompt', 'llm']
 type: 'snippet'
 status: 'in-progress'
 draft: false
+relatedArchive: ['llm-context-window-strategies']
+source: 'https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering'
 ---
 
 ## 结构化 Prompt
