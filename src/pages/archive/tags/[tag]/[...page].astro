@@ -79,56 +79,72 @@ const meta = {
       <ul class='space-y-3'>
         {
           page.data.map((entry: any) => (
-            <li class='rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20'>
+            <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
               <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
-                <div class='mb-1 flex items-start justify-between gap-4'>
-                  <h3 class='font-medium leading-tight'>{entry.data.title}</h3>
-                  <div class='flex shrink-0 items-center gap-2'>
-                    <span class='text-xs text-muted-foreground'>
-                      {typeLabels[entry.data.type] || entry.data.type}
-                    </span>
-                    <span class={`text-xs ${statusColors[entry.data.status]}`}>
-                      {statusLabels[entry.data.status] || entry.data.status}
-                    </span>
+                <div class='mb-2 flex items-start gap-3'>
+                  <div class='mt-0.5 shrink-0 text-xl opacity-70 group-hover:opacity-100'>
+                    {entry.data.type === 'note' && '📝'}
+                    {entry.data.type === 'snippet' && '💡'}
+                    {entry.data.type === 'draft' && '✏️'}
+                    {entry.data.type === 'idea' && '🔮'}
+                    {entry.data.type === 'research' && '🔬'}
+                    {entry.data.type === 'reference' && '📚'}
                   </div>
-                </div>
-                {entry.data.description && (
-                  <p class='mb-2 text-sm text-muted-foreground'>{entry.data.description}</p>
-                )}
-                <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                  <time datetime={entry.data.date.toISOString()}>
-                    {entry.data.date.toLocaleDateString('zh-CN', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </time>
-                  {entry.data.updatedDate && (
-                    <span>
-                      · Updated{' '}
-                      {entry.data.updatedDate.toLocaleDateString('zh-CN', {
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                    </span>
-                  )}
-                  {entry.data.tags.length > 1 && (
-                    <>
-                      <span>·</span>
-                      <div class='flex flex-wrap gap-1'>
-                        {entry.data.tags
-                          .filter((t: string) => t !== tag)
-                          .map((t: string) => (
-                            <a
-                              href={`/archive/tags/${t}`}
-                              class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
-                            >
-                              {t}
-                            </a>
-                          ))}
-                      </div>
-                    </>
-                  )}
+                  <div class='min-w-0 flex-1'>
+                    <div class='mb-1 flex items-start justify-between gap-4'>
+                      <h3 class='font-medium leading-tight group-hover:text-foreground'>
+                        {entry.data.title}
+                      </h3>
+                      <span
+                        class={`shrink-0 text-xs ${statusColors[entry.data.status]}`}
+                        title={statusLabels[entry.data.status]}
+                      >
+                        {entry.data.status === 'in-progress' && '🚧'}
+                        {entry.data.status === 'incomplete' && '⏸️'}
+                        {entry.data.status === 'ready' && '✅'}
+                        {entry.data.status === 'archived' && '📦'}
+                      </span>
+                    </div>
+                    {entry.data.description && (
+                      <p class='mb-2 text-sm text-muted-foreground'>{entry.data.description}</p>
+                    )}
+                    <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                      <time datetime={entry.data.date.toISOString()}>
+                        {entry.data.date.toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </time>
+                      {entry.data.updatedDate && (
+                        <span>
+                          · Updated{' '}
+                          {entry.data.updatedDate.toLocaleDateString('zh-CN', {
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </span>
+                      )}
+                      {entry.data.tags.length > 1 && (
+                        <>
+                          <span>·</span>
+                          <div class='flex flex-wrap gap-1'>
+                            {entry.data.tags
+                              .filter((t: string) => t !== tag)
+                              .map((t: string) => (
+                                <a
+                                  href={`/archive/tags/${t}`}
+                                  class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
+                                  onclick={(e: Event) => e.stopPropagation()}
+                                >
+                                  {t}
+                                </a>
+                              ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </a>
             </li>
