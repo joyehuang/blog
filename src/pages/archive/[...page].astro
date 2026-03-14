@@ -44,6 +44,14 @@ const typeCounts = allArchives.reduce(
   {} as Record<string, number>
 )
 
+const statusCounts = allArchives.reduce(
+  (acc, entry) => {
+    acc[entry.data.status] = (acc[entry.data.status] || 0) + 1
+    return acc
+  },
+  {} as Record<string, number>
+)
+
 const meta = {
   description: '知识库与工作笔记',
   title: page.currentPage === 1 ? 'Archive' : `Archive - Page ${page.currentPage}`
@@ -93,11 +101,11 @@ const statusColors: Record<string, string> = {
 
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
-      <div class='mb-4 flex items-center gap-3'>
+      <div class='mb-3 flex items-center gap-3'>
         <div class='rounded-lg bg-muted/50 p-3'>
           <span class='text-2xl'>🗂️</span>
         </div>
-        <div class='space-y-1'>
+        <div>
           <h1 class='text-3xl font-medium'>Archive</h1>
           <p class='text-sm text-muted-foreground'>知识库与工作笔记</p>
         </div>
@@ -111,9 +119,9 @@ const statusColors: Record<string, string> = {
       page.data.length === 0 ? (
         <p class='mt-8'>No archive entries yet.</p>
       ) : (
-        <div class='mt-10 grid gap-y-10 sm:grid-cols-[minmax(0,3fr)_280px] sm:gap-x-10'>
+        <div class='mt-10 grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
           <section id='content' class='animate' aria-label='Archive entries'>
-            <div class='mb-5 flex items-center justify-between text-sm text-muted-foreground'>
+            <div class='mb-3 flex flex-col justify-between text-sm text-muted-foreground sm:mb-5 sm:flex-row'>
               <span>
                 显示第 {page.start + 1}-{page.end + 1} 条，共 {page.total} 条
               </span>
@@ -124,7 +132,7 @@ const statusColors: Record<string, string> = {
               )}
             </div>
 
-            <ul class='space-y-4'>
+            <ul class='flex flex-col gap-y-4 text-start'>
               {page.data.map((entry) => (
                 <li>
                   <a
@@ -201,15 +209,15 @@ const statusColors: Record<string, string> = {
             </ul>
 
             {page.lastPage > 1 && (
-              <div class='mt-10'>
+              <div class='mt-8'>
                 <Paginator {...paginationProps} />
               </div>
             )}
           </section>
 
-          <aside class='animate space-y-8' id='sidebar'>
+          <aside class='animate' id='sidebar'>
             {!!uniqueTags.length && (
-              <section class='rounded-xl border border-border bg-card p-5'>
+              <section class='mb-8'>
                 <div class='mb-4 flex items-center justify-between'>
                   <h2 class='flex items-center text-lg font-semibold'>
                     <Icon name='tag-2' class='me-2' />
@@ -219,48 +227,36 @@ const statusColors: Record<string, string> = {
                     查看全部 →
                   </a>
                 </div>
-                <ul class='flex flex-wrap gap-2 text-xs'>
-                  {uniqueTags.slice(0, 15).map((tag) => (
+                <ul class='flex flex-wrap gap-2'>
+                  {uniqueTags.map((tag) => (
                     <li>
                       <a
                         href={`/archive/tags/${tag}`}
-                        class='rounded-md border border-border bg-background px-2.5 py-1.5 transition hover:border-foreground/20'
+                        class='inline-flex rounded-md border border-border px-2 py-1 text-xs transition hover:border-foreground/20'
                       >
                         {tag}
                       </a>
                     </li>
                   ))}
-                  {uniqueTags.length > 15 && (
-                    <li>
-                      <a
-                        href='/archive/tags'
-                        class='rounded-md border border-dashed border-border bg-background px-2.5 py-1.5 text-muted-foreground hover:text-foreground'
-                      >
-                        +{uniqueTags.length - 15}
-                      </a>
-                    </li>
-                  )}
                 </ul>
               </section>
             )}
 
-            <section class='rounded-xl border border-border bg-card p-5'>
+            <section class='mb-8'>
               <h2 class='mb-4 text-lg font-semibold'>Status</h2>
-              <ul class='space-y-3 text-sm'>
+              <ul class='space-y-2 text-sm'>
                 {uniqueStatuses.map((status) => (
                   <li class='flex items-center justify-between gap-3'>
                     <span class={statusColors[status]}>{statusLabels[status] || status}</span>
-                    <span class='text-xs text-muted-foreground'>
-                      {allArchives.filter((entry) => entry.data.status === status).length}
-                    </span>
+                    <span class='text-xs text-muted-foreground'>{statusCounts[status] || 0}</span>
                   </li>
                 ))}
               </ul>
             </section>
 
-            <section class='rounded-xl border border-border bg-card p-5'>
+            <section>
               <h2 class='mb-4 text-lg font-semibold'>Types</h2>
-              <ul class='space-y-3 text-sm'>
+              <ul class='space-y-2 text-sm'>
                 {uniqueTypes.map((type) => (
                   <li class='flex items-center justify-between gap-3'>
                     <span>{typeLabels[type] || type}</span>
