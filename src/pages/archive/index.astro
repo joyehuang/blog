@@ -129,7 +129,13 @@ const statusColors: Record<string, string> = {
                               <span>·</span>
                               <div class='flex flex-wrap gap-1'>
                                 {entry.data.tags.map((tag) => (
-                                  <span class='rounded bg-muted px-1.5 py-0.5'>{tag}</span>
+                                  <a
+                                    href={`/archive/tags/${tag}`}
+                                    class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
+                                    onclick={(e: Event) => e.stopPropagation()}
+                                  >
+                                    {tag}
+                                  </a>
                                 ))}
                               </div>
                             </>
@@ -148,16 +154,39 @@ const statusColors: Record<string, string> = {
             {/* Tags */}
             {!!uniqueTags.length && (
               <div class='mb-6'>
-                <h2 class='mb-4 flex items-center text-lg font-semibold'>
-                  <Icon name='tag-2' class='me-2' />
-                  Tags
-                </h2>
+                <div class='mb-4 flex items-center justify-between'>
+                  <h2 class='flex items-center text-lg font-semibold'>
+                    <Icon name='tag-2' class='me-2' />
+                    Tags
+                  </h2>
+                  <a
+                    href='/archive/tags'
+                    class='text-xs text-muted-foreground hover:text-foreground'
+                  >
+                    View all →
+                  </a>
+                </div>
                 <ul class='flex flex-wrap gap-2 text-xs'>
-                  {uniqueTags.map((tag) => (
+                  {uniqueTags.slice(0, 15).map((tag) => (
                     <li>
-                      <span class='rounded-md border border-border bg-card px-2 py-1'>{tag}</span>
+                      <a
+                        href={`/archive/tags/${tag}`}
+                        class='rounded-md border border-border bg-card px-2 py-1 transition hover:border-foreground/20'
+                      >
+                        {tag}
+                      </a>
                     </li>
                   ))}
+                  {uniqueTags.length > 15 && (
+                    <li>
+                      <a
+                        href='/archive/tags'
+                        class='rounded-md border border-dashed border-border bg-card px-2 py-1 text-muted-foreground hover:text-foreground'
+                      >
+                        +{uniqueTags.length - 15} more
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </div>
             )}
