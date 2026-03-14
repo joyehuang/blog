@@ -21,7 +21,23 @@ type Props = {
 const { entry } = Astro.props
 const { Content } = await render(entry)
 
-const { title, description, date, updatedDate, tags, type, status } = entry.data
+const { title, description, date, updatedDate, tags, type, status, relatedBlog, relatedArchive, source } = entry.data
+
+// Fetch related blog posts if any
+let relatedBlogPosts: any[] = []
+if (relatedBlog && relatedBlog.length > 0) {
+  const allBlogPosts = await getCollection('blog')
+  relatedBlogPosts = allBlogPosts.filter((post) => relatedBlog.includes(post.id))
+}
+
+// Fetch related archive entries if any
+let relatedArchiveEntries: any[] = []
+if (relatedArchive && relatedArchive.length > 0) {
+  const allArchives = await getCollection('archive')
+  relatedArchiveEntries = allArchives.filter((arch) =>
+    relatedArchive.includes(arch.id) && arch.id !== entry.id
+  )
+}
 
 // Status labels and colors
 const statusLabels: Record<string, string> = {
@@ -57,7 +73,12 @@ const meta = {
           <>
             <span>·</span>
             {tags.map((tag) => (
-              <span class='rounded-md border border-border px-2 py-1'>{tag}</span>
+              <a
+                href={`/archive/tags/${tag}`}
+                class='rounded-md border border-border px-2 py-1 transition hover:border-foreground/20'
+              >
+                {tag}
+              </a>
             ))}
           </>
         )
@@ -97,6 +118,20 @@ const meta = {
         )
       }
     </div>
+
+    {
+      source && (
+        <div class='mt-4 flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm'>
+          <Icon name='link-2' class='mt-0.5 shrink-0 text-muted-foreground' />
+          <div>
+            <span class='text-muted-foreground'>Source: </span>
+            <a href={source} target='_blank' rel='noopener noreferrer' class='hover:underline'>
+              {source}
+            </a>
+          </div>
+        </div>
+      )
+    }
   </div>
 
   {/* Content */}
@@ -104,14 +139,83 @@ const meta = {
     <Content />
   </article>
 
+  {/* Relationships Section */}
+  {
+    (relatedBlogPosts.length > 0 || relatedArchiveEntries.length > 0) && (
+      <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
+        <h2 class='mb-4 text-xl font-semibold'>Related Content</h2>
+
+        {relatedBlogPosts.length > 0 && (
+          <div class='mb-6'>
+            <h3 class='mb-3 flex items-center text-sm font-medium text-muted-foreground'>
+              <Icon name='file-text' class='me-2' />
+              Blog Posts
+            </h3>
+            <ul class='space-y-2'>
+              {relatedBlogPosts.map((post) => (
+                <li>
+                  <a
+                    href={`/blog/${post.id}`}
+                    class='block rounded-lg border border-border bg-card p-3 transition hover:border-foreground/20'
+                    data-astro-prefetch
+                  >
+                    <div class='font-medium'>{post.data.title}</div>
+                    {post.data.description && (
+                      <p class='mt-1 text-sm text-muted-foreground'>{post.data.description}</p>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {relatedArchiveEntries.length > 0 && (
+          <div class='mb-6'>
+            <h3 class='mb-3 flex items-center text-sm font-medium text-muted-foreground'>
+              <Icon name='archive' class='me-2' />
+              Archive Entries
+            </h3>
+            <ul class='space-y-2'>
+              {relatedArchiveEntries.map((arch) => (
+                <li>
+                  <a
+                    href={`/archive/${arch.id}`}
+                    class='block rounded-lg border border-border bg-card p-3 transition hover:border-foreground/20'
+                    data-astro-prefetch
+                  >
+                    <div class='flex items-center gap-2'>
+                      <span class='font-medium'>{arch.data.title}</span>
+                      <span class='text-xs text-muted-foreground'>
+                        {typeLabels[arch.data.type] || arch.data.type}
+                      </span>
+                    </div>
+                    {arch.data.description && (
+                      <p class='mt-1 text-sm text-muted-foreground'>{arch.data.description}</p>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   {/* Bottom info */}
   <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
-    <div class='text-sm text-muted-foreground'>
-      <p class='mb-4'>
-        This is an archive entry - part of a knowledge base for ideas, snippets, and working notes.
-        Content may be incomplete or in-progress.
-      </p>
-      <Button title='← Back to Archive' href='/archive' style='back' />
+    <div class='flex items-start justify-between gap-4'>
+      <div class='text-sm text-muted-foreground'>
+        <p class='mb-2 flex items-center gap-2'>
+          <Icon name='archive' class='shrink-0' />
+          <span>
+            This is a {typeLabels[type]?.toLowerCase() || type} in the knowledge base.
+          </span>
+        </p>
+        <p class='text-xs'>Content may be incomplete or work-in-progress.</p>
+      </div>
+      <Button title='← Back' href='/archive' style='back' />
     </div>
   </div>
 </PageLayout>

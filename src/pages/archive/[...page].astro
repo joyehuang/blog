@@ -74,10 +74,18 @@ const statusColors: Record<string, string> = {
 
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
-      <h1 class='mb-2 text-3xl font-medium'>Archive</h1>
-      <p class='mb-6 text-muted-foreground'>
-        Knowledge base and working notes - a collection of ideas, snippets, and semi-finished
-        materials
+      <div class='mb-2 flex items-center gap-3'>
+        <div class='rounded-lg bg-muted/50 p-2'>
+          <Icon name='archive' class='size-6 text-foreground' />
+        </div>
+        <div>
+          <h1 class='text-3xl font-medium'>Archive</h1>
+          <p class='text-sm text-muted-foreground'>Knowledge Base & Working Notes</p>
+        </div>
+      </div>
+      <p class='mb-6 mt-4 text-muted-foreground'>
+        A collection of research notes, code snippets, and semi-finished materials. This is my
+        digital workbench for ideas in progress.
       </p>
     </div>
 
@@ -100,55 +108,70 @@ const statusColors: Record<string, string> = {
 
             <ul class='space-y-3'>
               {page.data.map((entry: any) => (
-                <li class='rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20'>
+                <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
                   <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
-                    <div class='mb-1 flex items-start justify-between gap-4'>
-                      <h3 class='font-medium leading-tight'>{entry.data.title}</h3>
-                      <div class='flex shrink-0 items-center gap-2 text-xs'>
-                        <span class='text-muted-foreground'>
-                          {typeLabels[entry.data.type] || entry.data.type}
-                        </span>
-                        <span class={statusColors[entry.data.status]}>
-                          {statusLabels[entry.data.status] || entry.data.status}
-                        </span>
+                    <div class='mb-2 flex items-start gap-3'>
+                      <div class='mt-0.5 shrink-0 text-xl opacity-70 group-hover:opacity-100'>
+                        {entry.data.type === 'note' && '📝'}
+                        {entry.data.type === 'snippet' && '💡'}
+                        {entry.data.type === 'draft' && '✏️'}
+                        {entry.data.type === 'idea' && '🔮'}
+                        {entry.data.type === 'research' && '🔬'}
+                        {entry.data.type === 'reference' && '📚'}
                       </div>
-                    </div>
-                    {entry.data.description && (
-                      <p class='mb-2 text-sm text-muted-foreground'>{entry.data.description}</p>
-                    )}
-                    <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                      <time datetime={entry.data.date.toISOString()}>
-                        {entry.data.date.toLocaleDateString('zh-CN', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </time>
-                      {entry.data.updatedDate && (
-                        <span>
-                          · Updated{' '}
-                          {entry.data.updatedDate.toLocaleDateString('zh-CN', {
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      )}
-                      {entry.data.tags.length > 0 && (
-                        <>
-                          <span>·</span>
-                          <div class='flex flex-wrap gap-1'>
-                            {entry.data.tags.map((tag: string) => (
-                              <a
-                                href={`/archive/tags/${tag}`}
-                                class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
-                                onclick={(e: Event) => e.stopPropagation()}
-                              >
-                                {tag}
-                              </a>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                      <div class='min-w-0 flex-1'>
+                        <div class='mb-1 flex items-start justify-between gap-4'>
+                          <h3 class='font-medium leading-tight group-hover:text-foreground'>
+                            {entry.data.title}
+                          </h3>
+                          <span
+                            class={`shrink-0 text-xs ${statusColors[entry.data.status]}`}
+                            title={statusLabels[entry.data.status]}
+                          >
+                            {entry.data.status === 'in-progress' && '🚧'}
+                            {entry.data.status === 'incomplete' && '⏸️'}
+                            {entry.data.status === 'ready' && '✅'}
+                            {entry.data.status === 'archived' && '📦'}
+                          </span>
+                        </div>
+                        {entry.data.description && (
+                          <p class='mb-2 text-sm text-muted-foreground'>{entry.data.description}</p>
+                        )}
+                        <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                          <time datetime={entry.data.date.toISOString()}>
+                            {entry.data.date.toLocaleDateString('zh-CN', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </time>
+                          {entry.data.updatedDate && (
+                            <span>
+                              · Updated{' '}
+                              {entry.data.updatedDate.toLocaleDateString('zh-CN', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          )}
+                          {entry.data.tags.length > 0 && (
+                            <>
+                              <span>·</span>
+                              <div class='flex flex-wrap gap-1'>
+                                {entry.data.tags.map((tag: string) => (
+                                  <a
+                                    href={`/archive/tags/${tag}`}
+                                    class='rounded bg-muted px-1.5 py-0.5 hover:bg-muted/80'
+                                    onclick={(e: Event) => e.stopPropagation()}
+                                  >
+                                    {tag}
+                                  </a>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </a>
                 </li>
