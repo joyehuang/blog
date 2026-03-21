@@ -1,13 +1,10 @@
 ---
-import { Image } from 'astro:assets'
-
-import { Button, Collapse, Icon } from 'astro-pure/user'
+import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 import Sponsors from '@/components/projects/Sponsors.astro'
 import Sponsorship from '@/components/projects/Sponsorship.astro'
 import alipay from '@/assets/alipay-qrcode.jpg'
-import KeyIcon from '@/assets/icons/key.svg'
 import wechat from '@/assets/wechat-qrcode.jpg'
 import config from '@/site-config'
 
@@ -22,11 +19,11 @@ const headings = [
 <PageLayout title='Projects' {headings} info={{ slug: '/projects', hideComment: true }}>
   <p>Github Activities:</p>
   <p>
-    <Image
+    <img
       src='https://ghchart.rshah.org/joyehuang'
       alt='github activities'
-      inferSize
       loading='lazy'
+      class='h-auto max-w-full'
     />
   </p>
   <p>如果你觉得合作一个项目会有趣或有意义，你可以通过捐赠支持我的工作，或者联系我一起讨论项目。</p>

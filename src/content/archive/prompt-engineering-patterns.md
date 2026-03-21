@@ -3,6 +3,8 @@ title: Prompt Engineering 常用模式
 description: 整理的一些实用 Prompt 编写技巧和模式
 date: 2026-03-01
 tags: ['ai', 'prompt', 'llm']
+locale: zh
+translationKey: prompt-engineering-patterns
 type: 'snippet'
 status: 'in-progress'
 draft: false

@@ -1,0 +1,106 @@
+---
+import links from 'public/links.json'
+
+import { Comment } from 'astro-pure/advanced'
+import { Collapse, Timeline } from 'astro-pure/user'
+import FriendList from '@/components/links/FriendList.astro'
+import { getLocaleFromParam, getLocaleStaticPaths } from '@/i18n'
+import PageLayout from '@/layouts/CommonPage.astro'
+import { getIntegrationConfig } from '@/site-config'
+
+export const prerender = true
+export const getStaticPaths = getLocaleStaticPaths
+
+const locale = getLocaleFromParam(Astro.params.locale)
+const { friends } = links
+const linksConf = getIntegrationConfig(locale).links ?? {
+  logbook: [],
+  applyTip: []
+}
+
+const headings = [
+  { depth: 2, slug: 'common-links', text: locale === 'zh' ? '常规友链' : 'Common Links' },
+  { depth: 2, slug: 'special-links', text: locale === 'zh' ? '特别链接' : 'Special Links' },
+  { depth: 2, slug: 'apply-links', text: locale === 'zh' ? '申请友链' : 'Apply Links' }
+]
+
+const copy =
+  locale === 'zh'
+    ? {
+        title: '友链',
+        randomHint: '这里当然不是按顺序排的，完全随机。',
+        common: '常规友链',
+        badStatus: '状态异常的友链',
+        history: '友链历史记录',
+        special: '特别链接',
+        apply: '申请友链',
+        siteInfo: '本站信息如下（点击可快速复制）：',
+        applyIntro: '申请时请按这个模板留言。提交 PR 可能会更快一些。申请要求：',
+        applyBullets: [
+          '你的站点已添加本站友链；',
+          '请确保你的站点可以正常访问；',
+          '内容不违反法律法规。'
+        ]
+      }
+    : {
+        title: 'Links',
+        randomHint: 'There is no fixed order here. Everything is intentionally random.',
+        common: 'Common Links',
+        badStatus: 'Links with Bad Status',
+        history: 'Link History Book',
+        special: 'Special Links',
+        apply: 'Apply Links',
+        siteInfo: 'Site information below. Click any row to copy it quickly:',
+        applyIntro:
+          'Please follow this format when applying. Opening a PR may be faster. Requirements:',
+        applyBullets: [
+          'Add this site to your own blogroll first.',
+          'Make sure your site is alive and publicly accessible.',
+          'Your content should not violate laws or platform rules.'
+        ]
+      }
+---
+
+<PageLayout title={copy.title} {headings} info='/links'>
+  <p>{copy.randomHint}</p>
+  <h2 id='common-links'>{copy.common}</h2>
+  <FriendList list={friends[0]} />
+  <Collapse title={copy.badStatus}>
+    <FriendList list={friends[1]} />
+  </Collapse>
+  <Collapse title={copy.history}>
+    <Timeline events={linksConf.logbook} />
+  </Collapse>
+
+  <h2 id='special-links'>{copy.special}</h2>
+  <FriendList list={friends[2]} />
+
+  <h2 id='apply-links'>{copy.apply}</h2>
+  <p>{copy.siteInfo}</p>
+  <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
+    {
+      linksConf.applyTip.map(({ name, val }) => {
+        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
+        return (
+          <>
+            <span class='text-end'>{name}:</span>
+            <samp class='cursor-pointer' onclick={script}>
+              {val}
+            </samp>
+          </>
+        )
+      })
+    }
+  </blockquote>
+
+  <p>
+    {copy.applyIntro}{' '}
+    <a href='https://github.com/joyehuang/blog/pulls' target='_blank'>
+      GitHub PR
+    </a>
+  </p>
+  <ul>
+    {copy.applyBullets.map((item) => <li>{item}</li>)}
+  </ul>
+  <Comment slot='bottom' />
+</PageLayout>

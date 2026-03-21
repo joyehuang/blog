@@ -1,0 +1,14 @@
+---
+import { LOCALES } from '@/i18n'
+
+export const prerender = false
+
+const SUPPORTED_DOCS = ['privacy-policy', 'terms-and-conditions', 'copyright', 'disclaimer']
+const { locale, doc } = Astro.params
+
+if (!locale || !LOCALES.includes(locale as (typeof LOCALES)[number]) || !doc || !SUPPORTED_DOCS.includes(doc)) {
+  return new Response(null, { status: 404 })
+}
+
+return Astro.redirect(`/terms/${doc}`)
+---

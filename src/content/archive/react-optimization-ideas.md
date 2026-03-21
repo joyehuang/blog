@@ -2,6 +2,8 @@
 title: React 性能优化思路草稿
 date: 2025-12-20
 tags: ['react', 'performance', 'frontend']
+locale: zh
+translationKey: react-optimization-ideas
 type: 'draft'
 status: 'incomplete'
 draft: false

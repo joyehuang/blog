@@ -3,6 +3,8 @@ title: LLM 上下文窗口管理策略
 date: 2026-02-20
 description: Agent 开发中的上下文窗口管理策略和实践
 tags: ['llm', 'agent', 'ai']
+locale: zh
+translationKey: llm-context-window-strategies
 type: 'research'
 status: 'incomplete'
 draft: false

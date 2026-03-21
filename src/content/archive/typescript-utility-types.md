@@ -3,6 +3,8 @@ title: TypeScript 实用类型备忘
 date: 2025-11-10
 updatedDate: 2026-01-05
 tags: ['typescript', 'reference']
+locale: zh
+translationKey: typescript-utility-types
 type: 'reference'
 status: 'ready'
 draft: false

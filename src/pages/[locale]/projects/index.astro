@@ -1,0 +1,192 @@
+---
+import { Button, Icon } from 'astro-pure/user'
+import ProjectSection from '@/components/projects/ProjectSection.astro'
+import Sponsors from '@/components/projects/Sponsors.astro'
+import Sponsorship from '@/components/projects/Sponsorship.astro'
+import alipay from '@/assets/alipay-qrcode.jpg'
+import wechat from '@/assets/wechat-qrcode.jpg'
+import { getLocaleFromParam, getLocaleStaticPaths } from '@/i18n'
+import PageLayout from '@/layouts/CommonPage.astro'
+import { getSiteConfig } from '@/site-config'
+
+export const prerender = true
+export const getStaticPaths = getLocaleStaticPaths
+
+const locale = getLocaleFromParam(Astro.params.locale)
+const config = getSiteConfig(locale)
+
+const headings = [
+  { depth: 2, slug: 'theme', text: 'Theme' },
+  { depth: 2, slug: 'programs', text: locale === 'zh' ? '项目' : 'Programs' },
+  { depth: 2, slug: 'learnings', text: locale === 'zh' ? '学习记录' : 'Learnings' },
+  { depth: 2, slug: 'sponsorship', text: locale === 'zh' ? '赞助' : 'Sponsorship' }
+]
+
+const copy =
+  locale === 'zh'
+    ? {
+        title: '项目',
+        activities: 'Github 活动：',
+        intro: '如果你觉得合作一个项目会有趣或有意义，你可以通过捐赠支持我的工作，或者联系我一起讨论项目。',
+        sponsorButton: '查看赞助',
+        theme: '主题',
+        programs: '项目',
+        learnings: '学习记录',
+        sponsorship: '赞助',
+        sponsorHint: '赞助后欢迎留言，或者直接联系我。',
+        sponsorThanks: '感谢以下赞助者：',
+        programDescriptions: {
+          atypica: 'AI 消费者研究平台，负责开发 Interview Agent 进行 AI Persona 访谈调研。',
+          prepwise: '一个 AI 面试陪练工具，通过语音模拟真实面试，帮助用户更自信地开口表达。',
+          qqbot: 'QQ群打卡机器人，自动管理群内打卡记录和提醒。',
+          minimind: 'MiniMind 项目学习笔记',
+          cs61a: '我自己学习 CS61A 的代码与练习'
+        }
+      }
+    : {
+        title: 'Projects',
+        activities: 'GitHub Activities:',
+        intro:
+          'If working together on something interesting or meaningful sounds worthwhile, you can support my work through sponsorship or just reach out and start a conversation.',
+        sponsorButton: 'Check sponsorship',
+        theme: 'Theme',
+        programs: 'Programs',
+        learnings: 'Learnings',
+        sponsorship: 'Sponsorship',
+        sponsorHint: 'Please leave a message or contact me proactively after sponsorship.',
+        sponsorThanks: 'Thanks to the following sponsors:',
+        programDescriptions: {
+          atypica:
+            'An AI consumer research platform where I worked on an Interview Agent for AI persona interviews and qualitative research.',
+          prepwise:
+            'An AI interview practice tool I built to simulate realistic spoken interviews and help users improve quickly.',
+          qqbot:
+            'A QQ group check-in bot that automatically tracks attendance and sends reminders.',
+          minimind: 'My study notes for the MiniMind project',
+          cs61a: 'My own code and exercises while learning UCB CS61A'
+        }
+      }
+---
+
+<PageLayout title={copy.title} {headings} info={{ slug: '/projects', hideComment: true }}>
+  <p>{copy.activities}</p>
+  <p>
+    <img
+      src='https://ghchart.rshah.org/joyehuang'
+      alt='github activities'
+      loading='lazy'
+      class='h-auto max-w-full'
+    />
+  </p>
+  <p>{copy.intro}</p>
+  <Button title={copy.sponsorButton} class='w-fit' href='#sponsorship'>
+    <Icon class='size-5' name='receive-money' slot='before' />
+  </Button>
+
+  <h2 id='theme'>{copy.theme}</h2>
+  <ProjectSection
+    project={[
+      {
+        name: '🍭 Astro-theme-pure',
+        description: 'A simple, clean but powerful blog theme built with Astro.',
+        links: [
+          { type: 'github', href: 'https://github.com/cworld1/astro-theme-pure' },
+          { type: 'site', href: 'https://github.com/cworld1/astro-theme-pure' },
+          {
+            type: 'doc',
+            href: 'https://github.com/cworld1/astro-theme-pure/blob/main/src/content/blog/customize/index.md'
+          }
+        ]
+      }
+    ]}
+  />
+
+  <h2 id='programs'>{copy.programs}</h2>
+  <ProjectSection
+    project={[
+      {
+        name: 'Atypica',
+        description: copy.programDescriptions.atypica,
+        links: [{ type: 'site', href: 'https://atypica.ai' }]
+      },
+      {
+        name: 'PrepWise',
+        description: copy.programDescriptions.prepwise,
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/interview-prep' },
+          { type: 'site', href: 'https://interview-prep-eosin.vercel.app/sign-in' }
+        ]
+      },
+      {
+        name: 'QQ Bot',
+        description: copy.programDescriptions.qqbot,
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/qq-bot' }]
+      }
+    ]}
+  />
+
+  <h2 id='learnings'>{copy.learnings}</h2>
+  <ProjectSection
+    class='my-2'
+    project={[
+      {
+        name: 'MiniMind Notes',
+        description: copy.programDescriptions.minimind,
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }]
+      },
+      {
+        name: 'UCB CS61A',
+        description: copy.programDescriptions.cs61a,
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/interview-prep' }]
+      }
+    ]}
+  />
+
+  <h2 id='sponsorship'>{copy.sponsorship}</h2>
+  <p>{copy.sponsorHint}</p>
+  <Sponsorship
+    methods={[
+      { name: 'WeChat', icon: 'wechat-pay', image: wechat },
+      { name: 'Alipay', icon: 'alipay', image: alipay }
+    ]}
+  />
+  <p>{copy.sponsorThanks}</p>
+  <Sponsors sponsors={[]} />
+</PageLayout>
+
+<script
+  is:inline
+  type='module'
+  data-astro-rerun
+  define:vars={{ npmCDN: config.npmCDN, walineServer: config.integ.waline.server }}
+>
+  const loadPageviewCount = async () => {
+    const pageview = await import(`${npmCDN}/@waline/client@v3/dist/pageview.js`)
+    pageview.pageviewCount({
+      serverURL: walineServer,
+      path: window.location.pathname
+    })
+  }
+
+  await loadPageviewCount()
+</script>
+
+<style>
+  .sponsorship-card {
+    & .sponsorship-card-img {
+      opacity: 0.3;
+      --un-blur: blur(4px);
+      filter: var(--un-blur);
+    }
+
+    &:hover {
+      & .sponsorship-card-icon {
+        opacity: 0;
+      }
+      & .sponsorship-card-img {
+        opacity: 1;
+        --un-blur: blur(0);
+      }
+    }
+  }
+</style>

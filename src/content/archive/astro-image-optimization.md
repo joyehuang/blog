@@ -4,6 +4,8 @@ description: 收集的一些 Astro 图片优化和性能相关的笔记
 date: 2026-01-15
 updatedDate: 2026-02-10
 tags: ['astro', 'performance', 'images']
+locale: zh
+translationKey: astro-image-optimization
 type: 'note'
 status: 'in-progress'
 draft: false
