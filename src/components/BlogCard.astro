@@ -1,0 +1,47 @@
+---
+import { cn } from 'astro-pure/utils'
+
+const {
+  as: Tag = 'a',
+  class: className,
+  href = '/blog',
+  heading = 'Personal Blog',
+  subheading = 'Thoughts, notes, and explorations'
+} = Astro.props
+---
+
+<Tag
+  class={cn(
+    className,
+    'blog-card group overflow-hidden relative flex flex-col gap-y-3 rounded-2xl border bg-muted ',
+    'transition-all hover:border-foreground/25 hover:shadow-sm'
+  )}
+  href={href}
+>
+  <div class='blog-card-bg absolute inset-0 opacity-60 transition-opacity group-hover:opacity-100 dark:opacity-35'>
+    <div class='h-full w-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20'></div>
+  </div>
+  <div class='blog-card-fg z-10 flex flex-col gap-y-0.5 px-5 pb-4 pt-24 transition-all'>
+    <h2 class='text-lg font-medium'>{heading}</h2>
+    <p class='text-muted-foreground'>{subheading}</p>
+  </div>
+  <slot />
+</Tag>
+
+<style>
+  .blog-card-fg {
+    --un-gradient-shape: to bottom in oklch;
+    --un-gradient: var(--un-gradient-shape), var(--un-gradient-stops);
+    --un-gradient-from-position: 0%;
+    --un-gradient-from: transparent var(--un-gradient-from-position);
+    --un-gradient-to-position: 65%;
+    --un-gradient-to: hsl(var(--primary-foreground) / var(--un-to-opacity, 1))
+      var(--un-gradient-to-position);
+    --un-gradient-stops: var(--un-gradient-from), var(--un-gradient-to);
+    background-image: linear-gradient(var(--un-gradient));
+  }
+
+  .blog-card:hover .blog-card-fg {
+    --un-gradient-to-position: 80%;
+  }
+</style>
