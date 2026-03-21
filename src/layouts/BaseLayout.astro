@@ -1,9 +1,12 @@
 ---
-import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
+import { ThemeProvider } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import Analytics from '@vercel/analytics/astro'
 import BaseHead from '@/components/BaseHead.astro'
-import config from '@/site-config'
+import Footer from '@/components/site/Footer.astro'
+import Header from '@/components/site/Header.astro'
+import { getCurrentLocale } from '@/i18n'
+import { getSiteConfig } from '@/site-config'
 
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseLayout /> component.
@@ -14,6 +17,8 @@ interface Props {
   highlightColor?: string
 }
 
+const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
+const config = getSiteConfig(locale)
 const {
   meta: { articleDate, description = config.description, ogImage, title },
   highlightColor,
