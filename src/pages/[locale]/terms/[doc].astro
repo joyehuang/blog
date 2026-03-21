@@ -1,14 +1,84 @@
 ---
-import { LOCALES } from '@/i18n'
+import { BackToTop } from 'astro-pure/components/pages'
+import { Button, Icon } from 'astro-pure/user'
+import { cn } from 'astro-pure/utils'
+import { LOCALES, getLocaleFromParam, getLocalizedHref, type Locale } from '@/i18n'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { getIntegrationConfig } from '@/site-config'
+import { TERM_DOC_IDS, getTermDoc, isTermDocId } from '../../../terms'
 
-export const prerender = false
+export const prerender = true
 
-const SUPPORTED_DOCS = ['privacy-policy', 'terms-and-conditions', 'copyright', 'disclaimer']
-const { locale, doc } = Astro.params
+export function getStaticPaths() {
+  return LOCALES.flatMap((locale) =>
+    TERM_DOC_IDS.map((doc) => ({
+      params: { locale, doc }
+    }))
+  )
+}
 
-if (!locale || !LOCALES.includes(locale as (typeof LOCALES)[number]) || !doc || !SUPPORTED_DOCS.includes(doc)) {
+const locale = getLocaleFromParam(Astro.params.locale)
+const doc = Astro.params.doc
+
+if (!isTermDocId(doc)) {
   return new Response(null, { status: 404 })
 }
 
-return Astro.redirect(`/terms/${doc}`)
+const termDoc = getTermDoc(locale, doc)
+const integ = getIntegrationConfig(locale)
+const localeAlternates = Object.fromEntries(
+  LOCALES.map((targetLocale) => [targetLocale, `/${targetLocale}/terms/${doc}`])
+) as Partial<Record<Locale, string>>
+
+const meta = {
+  title: termDoc.title,
+  description: termDoc.description
+}
 ---
+
+<PageLayout {meta} {localeAlternates}>
+  <Button
+    title={locale === 'zh' ? '返回' : 'Back'}
+    href={getLocalizedHref(Astro.url.pathname, '/terms/list', locale)}
+    style='back'
+  />
+  <main class='mt-6 items-start gap-x-10 md:flex lg:mt-10'>
+    <article class='min-w-0 grow'>
+      <div id='content-header' class='animate'>
+        <h1 class='text-2xl font-medium sm:mb-2 sm:text-3xl'>{termDoc.title}</h1>
+        <div class='mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs leading-6 text-muted-foreground'>
+          <span class='flex items-center gap-1'>
+            <Icon name='earth' />
+            {termDoc.language}
+          </span>
+          <blockquote class='text-sm italic text-muted-foreground'>
+            <q>{termDoc.description}</q>
+          </blockquote>
+        </div>
+      </div>
+
+      <div
+        id='content'
+        class={cn(
+          'animate mt-8 max-w-none md:min-w-[45ch] overflow-x-hidden',
+          integ.typography.class
+        )}
+      >
+        <p>{termDoc.summary}</p>
+
+        {
+          termDoc.sections.map((section) => (
+            <section class='mt-8'>
+              <h2>{section.title}</h2>
+              {section.paragraphs.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </section>
+          ))
+        }
+      </div>
+    </article>
+  </main>
+
+  <BackToTop header='content-header' content='content' />
+</PageLayout>
