@@ -3,27 +3,14 @@ import { Button, Icon } from 'astro-pure/user'
 import { getLocaleStaticPaths, getLocaleFromParam, getLocalizedHref } from '@/i18n'
 import { getLocalizedArchiveEntries } from '@/content-utils'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import { getSortedTagCounts, getTagLabel } from '@/tags'
 
 export const prerender = true
 export const getStaticPaths = getLocaleStaticPaths
 
 const locale = getLocaleFromParam(Astro.params.locale)
 const allArchives = await getLocalizedArchiveEntries(locale)
-
-const tagCounts = allArchives.reduce(
-  (acc, entry) => {
-    entry.data.tags.forEach((tag) => {
-      acc[tag] = (acc[tag] || 0) + 1
-    })
-    return acc
-  },
-  {} as Record<string, number>
-)
-
-const sortedTags = Object.entries(tagCounts).sort(([tagA, countA], [tagB, countB]) => {
-  if (countB !== countA) return countB - countA
-  return tagA.localeCompare(tagB)
-})
+const sortedTags = getSortedTagCounts(allArchives, locale)
 
 const copy =
   locale === 'zh'
@@ -68,7 +55,9 @@ const meta = {
               data-astro-prefetch
             >
               <div class='flex items-center justify-between'>
-                <span class='font-medium group-hover:text-foreground'>{tag}</span>
+                <span class='font-medium group-hover:text-foreground'>
+                  {getTagLabel(tag, locale)}
+                </span>
                 <span class='rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
                   {count}
                 </span>

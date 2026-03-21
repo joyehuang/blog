@@ -8,6 +8,7 @@ import { cn } from 'astro-pure/utils'
 import { getEntryRoutePath } from '@/content-utils'
 import { getCurrentLocale, getLocalizedHref } from '@/i18n'
 import FormattedDate from '@/components/blog/FormattedDate.astro'
+import { getTagLabel } from '@/tags'
 
 type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }> & {
   post: CollectionEntry<CollectionKey>
@@ -117,18 +118,20 @@ const draftLabel = locale === 'zh' ? '草稿' : 'Draft'
   </a>
   {
     detailed && data.tags && (
-      <ul class='tag-list mt-1 flex flex-wrap gap-2'>
-        {data.tags.map((tag: string) => (
-          <li>
-            <Button
-              title={tag}
-              href={getLocalizedHref(Astro.url.pathname, `/tags/${tag}`, locale)}
-              style='pill'
-            />
-          </li>
-        ))}
-      </ul>
-    )
+        <ul class='tag-list mt-1 flex flex-wrap gap-2'>
+          {data.tags.map((tag: string) => (
+            <li>
+              <Button
+                title={getTagLabel(tag, locale)}
+                href={getLocalizedHref(Astro.url.pathname, `/tags/${tag}`, locale)}
+                style='pill'
+              >
+                {getTagLabel(tag, locale)}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )
   }
 </li>
 

@@ -6,6 +6,7 @@ import { PageInfo } from 'astro-pure/components/pages'
 import { Icon } from 'astro-pure/user'
 import { getCurrentLocale, getLocalizedHref } from '@/i18n'
 import FormattedDate from '@/components/blog/FormattedDate.astro'
+import { getTagLabel } from '@/tags'
 
 interface Props {
   data: InferEntrySchema<'blog'>
@@ -100,12 +101,16 @@ const dateTimeOptions: Intl.DateTimeFormatOptions = {
           {tags.map((tag: string, i: number) => (
             <div>
               <a
-                aria-label={locale === 'zh' ? `查看标签 ${tag}` : `View more posts tagged ${tag}`}
+                aria-label={
+                  locale === 'zh'
+                    ? `查看标签 ${getTagLabel(tag, locale)}`
+                    : `View more posts tagged ${getTagLabel(tag, locale)}`
+                }
                 class='hover:underline hover:underline-offset-4'
                 data-pagefind-filter='tag'
                 href={getLocalizedHref(Astro.url.pathname, `/tags/${tag}`, locale)}
               >
-                {tag}
+                {getTagLabel(tag, locale)}
               </a>
               {i < tags.length - 1 && '/'}
             </div>

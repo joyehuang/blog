@@ -4,12 +4,12 @@ import type { CollectionEntry } from 'astro:content'
 
 import { Paginator } from 'astro-pure/components/pages'
 import { Button } from 'astro-pure/user'
-import { getUniqueTags } from 'astro-pure/server'
 import { getLocalizedBlogEntries } from '@/content-utils'
 import PostPreview from '@/components/blog/PostPreview.astro'
-import { LOCALES, getLocaleFromParam, getLocalizedHref } from '@/i18n'
+import { LOCALES, getLocaleFromParam, getLocalePath, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import config from '@/site-config'
+import { getSortedTags, getTagAliases, getTagLabel } from '@/tags'
 
 export const prerender = true
 
@@ -18,15 +18,38 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 
   for (const locale of LOCALES) {
     const allPosts = await getLocalizedBlogEntries(locale)
-    const uniqueTags = getUniqueTags(allPosts)
+    const uniqueTags = getSortedTags(allPosts, locale)
 
     staticPaths.push(
       ...uniqueTags.flatMap((tag) => {
         const filterPosts = allPosts.filter((post) => post.data.tags.includes(tag))
-        return paginate(filterPosts, {
+        const pages = paginate(filterPosts, {
           pageSize: config.content.blogPageSize,
-          params: { locale, tag }
+          params: { locale, tag },
+          props: {
+            canonicalTag: tag,
+            redirectTo: null
+          }
         })
+
+        const aliasPaths = getTagAliases(tag)
+          .filter((alias) => alias !== tag)
+          .flatMap((alias) =>
+            Array.from({ length: pages.length }, (_, index) => ({
+              params:
+                index === 0
+                  ? { locale, tag: alias }
+                  : { locale, tag: alias, page: String(index + 1) },
+              props: {
+                redirectTo:
+                  index === 0
+                    ? getLocalePath(locale, `/tags/${tag}`)
+                    : getLocalePath(locale, `/tags/${tag}/${index + 1}`)
+              }
+            }))
+          )
+
+        return [...pages, ...aliasPaths]
       })
     )
   }
@@ -35,12 +58,19 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 }
 
 interface Props {
-  page: Page<CollectionEntry<'blog'>>
+  page?: Page<CollectionEntry<'blog'>>
+  canonicalTag?: string
+  redirectTo?: string | null
 }
 
-const { page } = Astro.props as Props
-const { tag } = Astro.params
+const { page, canonicalTag, redirectTo } = Astro.props as Props
 const locale = getLocaleFromParam(Astro.params.locale)
+const tag = String(canonicalTag ?? Astro.params.tag ?? '')
+const tagLabel = getTagLabel(tag, locale)
+
+if (redirectTo) {
+  return Astro.redirect(redirectTo, 308)
+}
 
 const copy =
   locale === 'zh'
@@ -56,18 +86,21 @@ const copy =
       }
 
 const meta = {
-  description: locale === 'zh' ? `查看标签 ${tag} 下的全部文章` : `View all posts with the tag - ${tag}`,
-  title: `${copy.title}: ${tag}`
+  description:
+    locale === 'zh'
+      ? `查看标签 ${tagLabel} 下的全部文章`
+      : `View all posts with the tag - ${tagLabel}`,
+  title: `${copy.title}: ${tagLabel}`
 }
 
 const paginationProps = {
-  ...(page.url.prev && {
+  ...(page?.url.prev && {
     prevUrl: {
       text: copy.previous,
       url: page.url.prev
     }
   }),
-  ...(page.url.next && {
+  ...(page?.url.next && {
     nextUrl: {
       text: copy.next,
       url: page.url.next
@@ -82,13 +115,13 @@ const paginationProps = {
     <div id='content-header' class='animate'>
       <h1 class='mb-6 flex items-end gap-x-2 text-3xl font-medium'>
         {copy.title}:
-        <span class='text-2xl'>#{tag}</span>
+        <span class='text-2xl'>#{tagLabel}</span>
       </h1>
     </div>
 
     <section id='content' class='animate' aria-label='Blog post list'>
       <ul class='flex flex-col gap-y-3 text-start'>
-        {page.data.map((post) => <PostPreview as='h2' {post} detailed />)}
+        {page?.data.map((post) => <PostPreview as='h2' {post} detailed />)}
       </ul>
       <Paginator {...paginationProps} />
     </section>

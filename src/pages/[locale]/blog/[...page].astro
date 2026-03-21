@@ -4,13 +4,13 @@ import type { CollectionEntry } from 'astro:content'
 
 import { Paginator } from 'astro-pure/components/pages'
 import { Button, Icon } from 'astro-pure/user'
-import { getUniqueTags } from 'astro-pure/server'
 import { getLocalizedBlogEntries } from '@/content-utils'
 import PostPreview from '@/components/blog/PostPreview.astro'
 import { LOCALES, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { getLocaleFromParam } from '@/i18n'
 import config from '@/site-config'
+import { getSortedTags, getTagLabel } from '@/tags'
 
 export const prerender = true
 
@@ -19,7 +19,7 @@ export const getStaticPaths = (async ({ paginate }) => {
 
   for (const locale of LOCALES) {
     const collections = await getLocalizedBlogEntries(locale)
-    const uniqueTags = getUniqueTags(collections)
+    const uniqueTags = getSortedTags(collections, locale)
     const collectionsCount = collections.length
 
     staticPaths.push(
@@ -131,10 +131,12 @@ const paginationProps = {
                 {uniqueTags.map((tag) => (
                   <li>
                     <Button
-                      title={tag}
+                      title={getTagLabel(tag, locale)}
                       href={getLocalizedHref(Astro.url.pathname, `/tags/${tag}`, locale)}
                       style='pill'
-                    />
+                    >
+                      {getTagLabel(tag, locale)}
+                    </Button>
                   </li>
                 ))}
               </ul>

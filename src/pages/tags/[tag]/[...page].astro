@@ -4,26 +4,32 @@ import type { GetStaticPaths } from 'astro'
 import { getLocalizedBlogEntries } from '@/content-utils'
 import { DEFAULT_LOCALE, getLocalePath } from '@/i18n'
 import { getThemeConfig } from '@/site-config'
+import { getSortedTags, getTagAliases, normalizeTag } from '@/tags'
 
 export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const posts = await getLocalizedBlogEntries(DEFAULT_LOCALE)
-  const uniqueTags = [...new Set(posts.flatMap((post) => post.data.tags))].sort()
+  const uniqueTags = getSortedTags(posts, DEFAULT_LOCALE)
   const pageSize = getThemeConfig(DEFAULT_LOCALE).content?.blogPageSize ?? 8
 
   return uniqueTags.flatMap((tag) => {
-    const totalPages = Math.max(1, Math.ceil(posts.filter((post) => post.data.tags.includes(tag)).length / pageSize))
+    const totalPages = Math.max(
+      1,
+      Math.ceil(posts.filter((post) => post.data.tags.includes(tag)).length / pageSize)
+    )
 
-    return Array.from({ length: totalPages }, (_, index) => ({
-      params: index === 0 ? { tag } : { tag, page: String(index + 1) }
-    }))
+    return getTagAliases(tag).flatMap((alias) =>
+      Array.from({ length: totalPages }, (_, index) => ({
+        params: index === 0 ? { tag: alias } : { tag: alias, page: String(index + 1) }
+      }))
+    )
   })
 }
 
 const { tag, page } = Astro.params
-const encodedTag = encodeURIComponent(tag ?? '')
-const target = page ? `/tags/${encodedTag}/${page}` : `/tags/${encodedTag}`
+const canonicalTag = encodeURIComponent(normalizeTag(String(tag ?? '')))
+const target = page ? `/tags/${canonicalTag}/${page}` : `/tags/${canonicalTag}`
 
 return Astro.redirect(getLocalePath(DEFAULT_LOCALE, target), 308)
 ---

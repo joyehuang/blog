@@ -1,12 +1,6 @@
 import { defineCollection, z } from 'astro:content'
 import { glob } from 'astro/loaders'
-
-function removeDupsAndLowerCase(array: string[]) {
-  if (!array.length) return array
-  const lowercaseItems = array.map((str) => str.toLowerCase())
-  const distinctItems = new Set(lowercaseItems)
-  return Array.from(distinctItems)
-}
+import { normalizeTags } from './tags'
 
 const blog = defineCollection({
   // Load Markdown and MDX files in the `src/content/blog/` directory.
@@ -31,7 +25,7 @@ const blog = defineCollection({
           color: z.string().optional()
         })
         .optional(),
-      tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+      tags: z.array(z.string()).default([]).transform(normalizeTags),
       locale: z.enum(['zh', 'en']).default('zh'),
       translationKey: z.string().optional(),
       routeSlug: z.string().optional(),
@@ -52,7 +46,7 @@ const archive = defineCollection({
     // Optional
     description: z.string().optional(),
     updatedDate: z.coerce.date().optional(),
-    tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+    tags: z.array(z.string()).default([]).transform(normalizeTags),
     locale: z.enum(['zh', 'en']).default('zh'),
     translationKey: z.string().optional(),
     routeSlug: z.string().optional(),

@@ -4,9 +4,10 @@ import type { CollectionEntry } from 'astro:content'
 
 import { Paginator } from 'astro-pure/components/pages'
 import { Button, Icon } from 'astro-pure/user'
-import { formatDateForLocale, LOCALES, getLocaleFromParam, getLocalizedHref } from '@/i18n'
+import { formatDateForLocale, LOCALES, getLocaleFromParam, getLocalePath, getLocalizedHref } from '@/i18n'
 import { getLocalizedArchiveEntries } from '@/content-utils'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import { getSortedTags, getTagAliases, getTagLabel } from '@/tags'
 
 export const prerender = true
 
@@ -15,7 +16,7 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 
   for (const locale of LOCALES) {
     const allArchives = await getLocalizedArchiveEntries(locale)
-    const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))]
+    const uniqueTags = getSortedTags(allArchives, locale)
 
     staticPaths.push(
       ...uniqueTags.flatMap((tag) => {
@@ -23,10 +24,33 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
           .filter((entry) => entry.data.tags.includes(tag))
           .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
 
-        return paginate(filteredEntries, {
+        const pages = paginate(filteredEntries, {
           params: { locale, tag },
-          pageSize: 10
+          pageSize: 10,
+          props: {
+            canonicalTag: tag,
+            redirectTo: null
+          }
         })
+
+        const aliasPaths = getTagAliases(tag)
+          .filter((alias) => alias !== tag)
+          .flatMap((alias) =>
+            Array.from({ length: pages.length }, (_, index) => ({
+              params:
+                index === 0
+                  ? { locale, tag: alias }
+                  : { locale, tag: alias, page: String(index + 1) },
+              props: {
+                redirectTo:
+                  index === 0
+                    ? getLocalePath(locale, `/archive/tags/${tag}`)
+                    : getLocalePath(locale, `/archive/tags/${tag}/${index + 1}`)
+              }
+            }))
+          )
+
+        return [...pages, ...aliasPaths]
       })
     )
   }
@@ -35,12 +59,19 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 }
 
 interface Props {
-  page: Page<CollectionEntry<'archive'>>
+  page?: Page<CollectionEntry<'archive'>>
+  canonicalTag?: string
+  redirectTo?: string | null
 }
 
-const { page } = Astro.props as Props
-const { tag } = Astro.params
+const { page, canonicalTag, redirectTo } = Astro.props as Props
 const locale = getLocaleFromParam(Astro.params.locale)
+const tag = String(canonicalTag ?? Astro.params.tag ?? '')
+const tagLabel = getTagLabel(tag, locale)
+
+if (redirectTo) {
+  return Astro.redirect(redirectTo, 308)
+}
 
 const statusLabels: Record<string, string> =
   locale === 'zh'
@@ -68,32 +99,33 @@ const copy =
   locale === 'zh'
     ? {
         title: '归档标签',
-        entryCount: `${page.total} 条相关条目`,
+        entryCount: `${page?.total ?? 0} 条相关条目`,
         previous: '← 上一页',
         next: '下一页 →',
         updated: '更新于'
       }
     : {
         title: 'Archive Tag',
-        entryCount: `${page.total} ${page.total === 1 ? 'entry' : 'entries'} with this tag`,
+        entryCount: `${page?.total ?? 0} ${(page?.total ?? 0) === 1 ? 'entry' : 'entries'} with this tag`,
         previous: '← Previous Entries',
         next: 'Next Entries →',
         updated: 'Updated'
       }
 
 const meta = {
-  title: `${copy.title}: ${tag}`,
-  description: locale === 'zh' ? `查看标签 ${tag} 下的归档条目` : `Archive entries tagged with ${tag}`
+  title: `${copy.title}: ${tagLabel}`,
+  description:
+    locale === 'zh' ? `查看标签 ${tagLabel} 下的归档条目` : `Archive entries tagged with ${tagLabel}`
 }
 
 const paginationProps = {
-  ...(page.url.prev && {
+  ...(page?.url.prev && {
     prevUrl: {
       text: copy.previous,
       url: page.url.prev
     }
   }),
-  ...(page.url.next && {
+  ...(page?.url.next && {
     nextUrl: {
       text: copy.next,
       url: page.url.next
@@ -109,7 +141,7 @@ const paginationProps = {
     <div id='content-header' class='animate'>
       <div class='mb-2 flex items-center gap-2'>
         <Icon name='tag-2' class='text-muted-foreground' />
-        <h1 class='text-3xl font-medium'>{tag}</h1>
+        <h1 class='text-3xl font-medium'>{tagLabel}</h1>
       </div>
       <p class='mb-6 text-muted-foreground'>{copy.entryCount}</p>
     </div>
@@ -117,7 +149,7 @@ const paginationProps = {
     <section id='content' class='animate' aria-label='Archive entries'>
       <ul class='space-y-3'>
         {
-          page.data.map((entry) => (
+          page?.data.map((entry) => (
             <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
               <a
                 href={getLocalizedHref(Astro.url.pathname, `/archive/${entry.data.routeSlug || entry.id}`, locale)}
@@ -171,7 +203,9 @@ const paginationProps = {
                             {entry.data.tags
                               .filter((t) => t !== tag)
                               .map((t) => (
-                                <span class='rounded bg-muted px-1.5 py-0.5'>{t}</span>
+                                <span class='rounded bg-muted px-1.5 py-0.5'>
+                                  {getTagLabel(t, locale)}
+                                </span>
                               ))}
                           </div>
                         </>
@@ -185,7 +219,7 @@ const paginationProps = {
         }
       </ul>
 
-      {page.lastPage > 1 && (
+      {(page?.lastPage ?? 0) > 1 && (
         <div class='mt-8'>
           <Paginator {...paginationProps} />
         </div>

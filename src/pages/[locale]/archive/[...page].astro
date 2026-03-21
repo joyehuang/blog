@@ -7,6 +7,7 @@ import { Button, Icon } from 'astro-pure/user'
 import { formatDateForLocale, LOCALES, getLocaleFromParam, getLocalizedHref } from '@/i18n'
 import { getLocalizedArchiveEntries } from '@/content-utils'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import { getSortedTags, getTagLabel } from '@/tags'
 
 export const prerender = true
 
@@ -33,7 +34,7 @@ interface Props {
 const { page } = Astro.props as Props
 const locale = getLocaleFromParam(Astro.params.locale)
 const allArchives = await getLocalizedArchiveEntries(locale)
-const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))].sort()
+const uniqueTags = getSortedTags(allArchives, locale)
 const uniqueTypes = [...new Set(allArchives.map((entry) => entry.data.type))].sort()
 const uniqueStatuses = [...new Set(allArchives.map((entry) => entry.data.status))].sort()
 
@@ -233,7 +234,9 @@ const statusColors: Record<string, string> = {
                               <span>·</span>
                               <div class='flex flex-wrap gap-1'>
                                 {entry.data.tags.map((tag: string) => (
-                                  <span class='rounded bg-muted px-1.5 py-0.5'>{tag}</span>
+                                  <span class='rounded bg-muted px-1.5 py-0.5'>
+                                    {getTagLabel(tag, locale)}
+                                  </span>
                                 ))}
                               </div>
                             </>
@@ -275,7 +278,7 @@ const statusColors: Record<string, string> = {
                         href={getLocalizedHref(Astro.url.pathname, `/archive/tags/${tag}`, locale)}
                         class='rounded-md border border-border bg-card px-2 py-1 transition hover:border-foreground/20'
                       >
-                        {tag}
+                        {getTagLabel(tag, locale)}
                       </a>
                     </li>
                   ))}

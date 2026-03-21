@@ -3,24 +3,27 @@ import type { GetStaticPaths } from 'astro'
 
 import { getLocalizedArchiveEntries } from '@/content-utils'
 import { DEFAULT_LOCALE, getLocalePath } from '@/i18n'
+import { getSortedTags, normalizeTag, getTagAliases } from '@/tags'
 
 export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const entries = await getLocalizedArchiveEntries(DEFAULT_LOCALE)
-  const uniqueTags = [...new Set(entries.flatMap((entry) => entry.data.tags))].sort()
+  const uniqueTags = getSortedTags(entries, DEFAULT_LOCALE)
 
   return uniqueTags.flatMap((tag) => {
     const totalPages = Math.max(1, Math.ceil(entries.filter((entry) => entry.data.tags.includes(tag)).length / 10))
 
-    return Array.from({ length: totalPages }, (_, index) => ({
-      params: index === 0 ? { tag } : { tag, page: String(index + 1) }
-    }))
+    return getTagAliases(tag).flatMap((alias) =>
+      Array.from({ length: totalPages }, (_, index) => ({
+        params: index === 0 ? { tag: alias } : { tag: alias, page: String(index + 1) }
+      }))
+    )
   })
 }
 
 const { tag, page } = Astro.params
-const encodedTag = encodeURIComponent(tag ?? '')
+const encodedTag = encodeURIComponent(normalizeTag(String(tag ?? '')))
 const target = page ? `/archive/tags/${encodedTag}/${page}` : `/archive/tags/${encodedTag}`
 
 return Astro.redirect(getLocalePath(DEFAULT_LOCALE, target), 308)

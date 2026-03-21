@@ -5,6 +5,7 @@ import { Button, Icon } from 'astro-pure/user'
 import { findTranslatedEntry, getAllArchiveEntries, getAllBlogEntries, getEntryRoutePath, getLocalizedContentHref, getLocalizedArchiveEntries } from '@/content-utils'
 import { formatDateForLocale, LOCALES, type Locale, getLocaleFromParam, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/ContentLayout.astro'
+import { getTagLabel } from '@/tags'
 
 export const prerender = true
 
@@ -149,7 +150,7 @@ const meta = {
                 href={getLocalizedHref(Astro.url.pathname, `/archive/tags/${tag}`, locale)}
                 class='rounded-md border border-border px-2 py-1 transition hover:border-foreground/20'
               >
-                {tag}
+                {getTagLabel(tag, locale)}
               </a>
             ))}
           </>

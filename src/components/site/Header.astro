@@ -23,6 +23,8 @@ const config = getSiteConfig(locale)
 const isLocalizedRoute = hasLocalePrefix(pathname)
 const homeHref = getLocalizedHref(pathname, '/', locale)
 const searchHref = getLocalizedHref(pathname, '/search', locale)
+const localeMenuLabel = locale === 'zh' ? '切换语言' : 'Switch language'
+const currentLocaleCode = locale.toUpperCase()
 
 function getSwitchHref(targetLocale: Locale) {
   return localeAlternates?.[targetLocale] ?? getLocaleSwitchHref(pathname, targetLocale)
@@ -46,7 +48,7 @@ function getSwitchHref(targetLocale: Locale) {
       id='headerExpandContent'
       class='end-0 start-0 top-12 grid border border-transparent group-[.not-top]:rounded-xl group-[.expanded]:opacity-100 dark:group-[.expanded.not-top]:bg-muted max-sm:absolute max-sm:opacity-0 max-sm:group-[.not-top]:border-border max-sm:group-[.expanded.not-top]:bg-background max-sm:group-[.not-top]:px-4 max-sm:group-[.not-top]:py-2 sm:grid-rows-1'
     >
-      <div class='flex flex-col items-center justify-center overflow-hidden sm:flex-row'>
+      <div class='flex flex-col items-center justify-center overflow-hidden sm:flex-row sm:overflow-visible'>
         {
           (config.header.menu ?? []).map((item) => (
             <a
@@ -60,16 +62,40 @@ function getSwitchHref(targetLocale: Locale) {
         }
 
         {isLocalizedRoute && (
-          <div class='flex w-full items-center justify-end gap-x-2 py-2 sm:w-fit sm:px-3'>
-            {LOCALES.map((targetLocale) => (
-              <a
-                href={getSwitchHref(targetLocale)}
-                class='rounded-full border px-2 py-1 text-xs transition-colors hover:border-border hover:bg-muted'
-                aria-current={targetLocale === locale ? 'page' : undefined}
-              >
-                {LOCALE_LABELS[targetLocale]}
-              </a>
-            ))}
+          <div class='locale-switcher relative flex w-full items-center justify-end py-2 sm:w-fit sm:px-1'>
+            <button
+              id='toggleLocaleMenu'
+              class='inline-flex items-center gap-x-2 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors hover:border-border hover:bg-muted'
+              aria-expanded='false'
+              aria-haspopup='menu'
+              aria-label={localeMenuLabel}
+              type='button'
+            >
+              <Icon name='earth' class='size-4' />
+              <span>{currentLocaleCode}</span>
+            </button>
+            <div
+              id='localeMenu'
+              class='mt-2 w-full rounded-xl border border-border bg-background p-1 shadow-lg max-sm:text-right sm:absolute sm:right-0 sm:top-full sm:z-40 sm:mt-2 sm:min-w-[11rem] sm:w-auto dark:bg-muted'
+              role='menu'
+              hidden
+            >
+              {LOCALES.map((targetLocale) => (
+                <a
+                  href={getSwitchHref(targetLocale)}
+                  class='flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted sm:min-w-[9.5rem]'
+                  aria-current={targetLocale === locale ? 'page' : undefined}
+                  role='menuitem'
+                >
+                  <span>{LOCALE_LABELS[targetLocale]}</span>
+                  {targetLocale === locale && (
+                    <span class='text-xs text-muted-foreground'>
+                      {locale === 'zh' ? '当前' : 'Current'}
+                    </span>
+                  )}
+                </a>
+              ))}
+            </div>
           </div>
         )}
 
@@ -129,7 +155,34 @@ function getSwitchHref(targetLocale: Locale) {
         showToast({ message: `Set theme to ${newTheme}` })
       })
 
+      const localeMenuBtn = this.querySelector('#toggleLocaleMenu') as HTMLButtonElement | null
+      const localeMenu = this.querySelector('#localeMenu') as HTMLElement | null
+
+      const setLocaleMenuOpen = (open: boolean) => {
+        if (!localeMenuBtn || !localeMenu) return
+        localeMenu.hidden = !open
+        localeMenuBtn.setAttribute('aria-expanded', open.toString())
+      }
+
+      localeMenuBtn?.addEventListener('click', (event) => {
+        event.stopPropagation()
+        setLocaleMenuOpen(localeMenu?.hidden ?? true)
+      })
+
+      localeMenu
+        ?.querySelectorAll('a')
+        .forEach((link) => link.addEventListener('click', () => setLocaleMenuOpen(false)))
+
+      document.addEventListener('click', (event) => {
+        if (!this.contains(event.target as Node)) setLocaleMenuOpen(false)
+      })
+
+      this.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setLocaleMenuOpen(false)
+      })
+
       this.querySelector('#toggleMenu')?.addEventListener('click', () => {
+        setLocaleMenuOpen(false)
         this.classList.toggle('expanded')
       })
     }
