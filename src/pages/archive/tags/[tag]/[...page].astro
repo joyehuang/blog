@@ -1,167 +1,27 @@
 ---
-/**
- * Archive Tag Filter Page with Pagination
- * Shows archive entries filtered by tag
- */
-import type { GetStaticPaths, Page } from 'astro'
-import type { CollectionEntry } from 'astro:content'
+import type { GetStaticPaths } from 'astro'
 
-import { getCollection } from 'astro:content'
-import { Paginator } from 'astro-pure/components/pages'
-import { Button, Icon } from 'astro-pure/user'
-import PageLayout from '@/layouts/BaseLayout.astro'
+import { getLocalizedArchiveEntries } from '@/content-utils'
+import { DEFAULT_LOCALE, getLocalePath } from '@/i18n'
 
 export const prerender = true
 
-export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
-  const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
-
-  const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))]
+export const getStaticPaths: GetStaticPaths = async () => {
+  const entries = await getLocalizedArchiveEntries(DEFAULT_LOCALE)
+  const uniqueTags = [...new Set(entries.flatMap((entry) => entry.data.tags))].sort()
 
   return uniqueTags.flatMap((tag) => {
-    const filteredEntries = allArchives
-      .filter((entry) => entry.data.tags.includes(tag))
-      .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+    const totalPages = Math.max(1, Math.ceil(entries.filter((entry) => entry.data.tags.includes(tag)).length / 10))
 
-    return paginate(filteredEntries, {
-      params: { tag },
-      pageSize: 10
-    })
+    return Array.from({ length: totalPages }, (_, index) => ({
+      params: index === 0 ? { tag } : { tag, page: String(index + 1) }
+    }))
   })
 }
 
-interface Props {
-  page: Page<CollectionEntry<'archive'>>
-}
+const { tag, page } = Astro.params
+const encodedTag = encodeURIComponent(tag ?? '')
+const target = page ? `/archive/tags/${encodedTag}/${page}` : `/archive/tags/${encodedTag}`
 
-const { page } = Astro.props as unknown as Props
-const { tag } = Astro.params
-
-const statusLabels: Record<string, string> = {
-  'in-progress': '🚧 In Progress',
-  incomplete: '⏸️ Incomplete',
-  ready: '✅ Ready',
-  archived: '📦 Archived'
-}
-
-const statusColors: Record<string, string> = {
-  'in-progress': 'text-blue-600 dark:text-blue-400',
-  incomplete: 'text-yellow-600 dark:text-yellow-400',
-  ready: 'text-green-600 dark:text-green-400',
-  archived: 'text-gray-500 dark:text-gray-400'
-}
-
-const meta = {
-  title: `Archive Tag: ${tag}`,
-  description: `Archive entries tagged with ${tag}`
-}
-
-const paginationProps = {
-  ...(page.url.prev && {
-    prevUrl: {
-      text: '← Previous Entries',
-      url: page.url.prev
-    }
-  }),
-  ...(page.url.next && {
-    nextUrl: {
-      text: 'Next Entries →',
-      url: page.url.next
-    }
-  })
-}
+return Astro.redirect(getLocalePath(DEFAULT_LOCALE, target), 308)
 ---
-
-<PageLayout {meta}>
-  <Button title='Back' href='/archive' style='back' />
-
-  <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <div class='mb-2 flex items-center gap-2'>
-        <Icon name='tag-2' class='text-muted-foreground' />
-        <h1 class='text-3xl font-medium'>{tag}</h1>
-      </div>
-      <p class='mb-6 text-muted-foreground'>
-        {page.total} {page.total === 1 ? 'entry' : 'entries'} with this tag
-      </p>
-    </div>
-
-    <section id='content' class='animate' aria-label='Archive entries'>
-      <ul class='space-y-3'>
-        {
-          page.data.map((entry) => (
-            <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
-              <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
-                <div class='mb-2 flex items-start gap-3'>
-                  <div class='mt-0.5 shrink-0 text-xl opacity-70 group-hover:opacity-100'>
-                    {entry.data.type === 'note' && '📝'}
-                    {entry.data.type === 'snippet' && '💡'}
-                    {entry.data.type === 'draft' && '✏️'}
-                    {entry.data.type === 'idea' && '🔮'}
-                    {entry.data.type === 'research' && '🔬'}
-                    {entry.data.type === 'reference' && '📚'}
-                  </div>
-                  <div class='min-w-0 flex-1'>
-                    <div class='mb-1 flex items-start justify-between gap-4'>
-                      <h3 class='font-medium leading-tight group-hover:text-foreground'>
-                        {entry.data.title}
-                      </h3>
-                      <span
-                        class={`shrink-0 text-xs ${statusColors[entry.data.status]}`}
-                        title={statusLabels[entry.data.status]}
-                      >
-                        {entry.data.status === 'in-progress' && '🚧'}
-                        {entry.data.status === 'incomplete' && '⏸️'}
-                        {entry.data.status === 'ready' && '✅'}
-                        {entry.data.status === 'archived' && '📦'}
-                      </span>
-                    </div>
-                    {entry.data.description && (
-                      <p class='mb-2 text-sm text-muted-foreground'>{entry.data.description}</p>
-                    )}
-                    <div class='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
-                      <time datetime={entry.data.date.toISOString()}>
-                        {entry.data.date.toLocaleDateString('zh-CN', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </time>
-                      {entry.data.updatedDate && (
-                        <span>
-                          · Updated{' '}
-                          {entry.data.updatedDate.toLocaleDateString('zh-CN', {
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                      )}
-                      {entry.data.tags.length > 1 && (
-                        <>
-                          <span>·</span>
-                          <div class='flex flex-wrap gap-1'>
-                            {entry.data.tags
-                              .filter((t) => t !== tag)
-                              .map((t) => (
-                                <span class='rounded bg-muted px-1.5 py-0.5'>{t}</span>
-                              ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-
-      {page.lastPage > 1 && (
-        <div class='mt-8'>
-          <Paginator {...paginationProps} />
-        </div>
-      )}
-    </section>
-  </main>
-</PageLayout>

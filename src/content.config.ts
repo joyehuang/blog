@@ -34,7 +34,7 @@ const blog = defineCollection({
       tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
       locale: z.enum(['zh', 'en']).default('zh'),
       translationKey: z.string().optional(),
-      slug: z.string().optional(),
+      routeSlug: z.string().optional(),
       language: z.string().optional(),
       draft: z.boolean().default(false),
       // Special fields
@@ -55,7 +55,7 @@ const archive = defineCollection({
     tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
     locale: z.enum(['zh', 'en']).default('zh'),
     translationKey: z.string().optional(),
-    slug: z.string().optional(),
+    routeSlug: z.string().optional(),
     // Type of archive entry: note, snippet, draft, idea, research, etc.
     type: z.enum(['note', 'snippet', 'draft', 'idea', 'research', 'reference']).default('note'),
     // Status: in-progress, incomplete, ready, archived

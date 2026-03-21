@@ -4,13 +4,13 @@ import { Image } from 'astro:assets'
 import { Quote } from 'astro-pure/advanced'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import avatar from '@/assets/avatar.png'
+import { getLocalizedBlogEntries } from '@/content-utils'
 import PostPreview from '@/components/blog/PostPreview.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import { type Locale, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { getSiteConfig } from '@/site-config'
-import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 
 interface Props {
   locale: Locale
@@ -25,8 +25,7 @@ const backend = ['Vercel', 'Waline', 'Firebase', 'Nodejs']
 const tools = ['Curor', 'Git', 'Docker', 'Postman', 'ESlint/Prettier', 'Jest']
 
 const MAX_POSTS = 10
-const allPosts = await getBlogCollection()
-const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
+const allPostsByDate = (await getLocalizedBlogEntries(locale)).slice(0, MAX_POSTS)
 
 const copy =
   locale === 'zh'

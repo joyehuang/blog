@@ -4,6 +4,7 @@ import { Icon } from 'astro-pure/user'
 import {
   LOCALES,
   LOCALE_LABELS,
+  type Locale,
   getCurrentLocale,
   getLocalizedHref,
   getLocaleSwitchHref,
@@ -11,12 +12,21 @@ import {
 } from '@/i18n'
 import { getSiteConfig } from '@/site-config'
 
+interface Props {
+  localeAlternates?: Partial<Record<Locale, string>>
+}
+
+const { localeAlternates } = Astro.props
 const pathname = Astro.url.pathname
 const locale = getCurrentLocale(pathname, Astro.currentLocale)
 const config = getSiteConfig(locale)
 const isLocalizedRoute = hasLocalePrefix(pathname)
 const homeHref = getLocalizedHref(pathname, '/', locale)
 const searchHref = getLocalizedHref(pathname, '/search', locale)
+
+function getSwitchHref(targetLocale: Locale) {
+  return localeAlternates?.[targetLocale] ?? getLocaleSwitchHref(pathname, targetLocale)
+}
 ---
 
 <header-component
@@ -53,7 +63,7 @@ const searchHref = getLocalizedHref(pathname, '/search', locale)
           <div class='flex w-full items-center justify-end gap-x-2 py-2 sm:w-fit sm:px-3'>
             {LOCALES.map((targetLocale) => (
               <a
-                href={getLocaleSwitchHref(pathname, targetLocale)}
+                href={getSwitchHref(targetLocale)}
                 class='rounded-full border px-2 py-1 text-xs transition-colors hover:border-border hover:bg-muted'
                 aria-current={targetLocale === locale ? 'page' : undefined}
               >

@@ -16,6 +16,7 @@ const config = getSiteConfig(locale)
 const year = new Date().getFullYear()
 const footerConf = config.footer
 const footerLink1 = footerConf.links?.filter(({ pos }) => pos === 1) || []
+const rssHref = getLocalizedHref(pathname, '/rss.xml', locale)
 const socialEntries = Object.entries(footerConf.social || {}).map(([platform, value]) => {
   const social = value as SocialValue
   if (typeof social === 'string') {
@@ -112,7 +113,7 @@ const socialEntries = Object.entries(footerConf.social || {}).map(([platform, va
         ))}
         <a
           class='inline-block text-muted-foreground transition-all hover:text-muted-foreground/75'
-          href='/rss.xml'
+          href={rssHref}
           aria-label='RSS'
         >
           <Icon name='rss' />

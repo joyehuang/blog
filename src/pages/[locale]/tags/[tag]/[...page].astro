@@ -4,7 +4,8 @@ import type { CollectionEntry } from 'astro:content'
 
 import { Paginator } from 'astro-pure/components/pages'
 import { Button } from 'astro-pure/user'
-import { getBlogCollection, getUniqueTags, sortMDByDate } from 'astro-pure/server'
+import { getUniqueTags } from 'astro-pure/server'
+import { getLocalizedBlogEntries } from '@/content-utils'
 import PostPreview from '@/components/blog/PostPreview.astro'
 import { LOCALES, getLocaleFromParam, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
@@ -13,19 +14,24 @@ import config from '@/site-config'
 export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
-  const allPosts = await getBlogCollection()
-  const allPostsByDate = sortMDByDate(allPosts)
-  const uniqueTags = getUniqueTags(allPostsByDate)
+  const staticPaths = []
 
-  return LOCALES.flatMap((locale) =>
-    uniqueTags.flatMap((tag) => {
-      const filterPosts = allPostsByDate.filter((post) => post.data.tags.includes(tag))
-      return paginate(filterPosts, {
-        pageSize: config.content.blogPageSize,
-        params: { locale, tag }
+  for (const locale of LOCALES) {
+    const allPosts = await getLocalizedBlogEntries(locale)
+    const uniqueTags = getUniqueTags(allPosts)
+
+    staticPaths.push(
+      ...uniqueTags.flatMap((tag) => {
+        const filterPosts = allPosts.filter((post) => post.data.tags.includes(tag))
+        return paginate(filterPosts, {
+          pageSize: config.content.blogPageSize,
+          params: { locale, tag }
+        })
       })
-    })
-  )
+    )
+  }
+
+  return staticPaths
 }
 
 interface Props {

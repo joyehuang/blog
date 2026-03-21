@@ -1,6 +1,6 @@
 ---
-import { PFSearch } from 'astro-pure/components/pages'
 import { Button } from 'astro-pure/user'
+import PFSearch from '@/components/search/PFSearch.astro'
 import { getLocaleFromParam, getLocaleStaticPaths, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { getIntegrationConfig } from '@/site-config'
@@ -45,7 +45,7 @@ const meta = {
         integ.pagefind ? (
           <>
             <p>{copy.intro}</p>
-            <PFSearch />
+            <PFSearch {locale} />
           </>
         ) : (
           <p>{copy.disabled}</p>

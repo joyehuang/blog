@@ -2,6 +2,7 @@
 import { ThemeProvider } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import Analytics from '@vercel/analytics/astro'
+import type { Locale } from '@/i18n'
 import BaseHead from '@/components/BaseHead.astro'
 import Footer from '@/components/site/Footer.astro'
 import Header from '@/components/site/Header.astro'
@@ -15,6 +16,7 @@ import '@/assets/styles/app.css'
 interface Props {
   meta: SiteMeta
   highlightColor?: string
+  localeAlternates?: Partial<Record<Locale, string>>
 }
 
 const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
@@ -22,17 +24,21 @@ const config = getSiteConfig(locale)
 const {
   meta: { articleDate, description = config.description, ogImage, title },
   highlightColor,
+  localeAlternates,
   ...props
 } = Astro.props
 ---
 
 <html lang={config.locale.lang}>
   <head>
-    <BaseHead {articleDate} {description} {ogImage} {title} />
+    <BaseHead {articleDate} {description} {ogImage} {title} {localeAlternates} />
     <ThemeProvider />
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>
+    <span class='sr-only' data-pagefind-filter='locale'>
+      {locale}
+    </span>
     {
       highlightColor && (
         <div
@@ -43,7 +49,7 @@ const {
       )
     }
     <div class='w-full max-w-[70rem] px-4 sm:px-7 lg:px-10'>
-      <Header />
+      <Header {localeAlternates} />
       <slot />
       <Footer />
     </div>

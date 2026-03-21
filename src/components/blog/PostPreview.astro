@@ -5,6 +5,7 @@ import type { HTMLTag, Polymorphic } from 'astro/types'
 
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
+import { getEntryRoutePath } from '@/content-utils'
 import { getCurrentLocale, getLocalizedHref } from '@/i18n'
 import FormattedDate from '@/components/blog/FormattedDate.astro'
 
@@ -15,11 +16,11 @@ type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }> & {
 }
 
 const { as: Tag = 'div', post, detailed = false, class: className } = Astro.props
-const { id, data } = post
+const { data } = post
 const { remarkPluginFrontmatter } = await render(post)
 const postDate = data.updatedDate ?? data.publishDate
 const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
-const detailHref = getLocalizedHref(Astro.url.pathname, `/blog/${id}`, locale)
+const detailHref = getLocalizedHref(Astro.url.pathname, `/blog/${getEntryRoutePath(post)}`, locale)
 const draftLabel = locale === 'zh' ? '草稿' : 'Draft'
 ---
 

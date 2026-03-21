@@ -3,7 +3,7 @@ import { BackToTop } from 'astro-pure/components/pages'
 import type { SiteMeta } from 'astro-pure/types'
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
-import { getCurrentLocale, getLocalizedHref } from '@/i18n'
+import { getCurrentLocale, getLocalizedHref, type Locale } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { getIntegrationConfig } from '@/site-config'
 
@@ -11,6 +11,7 @@ interface Props {
   meta: SiteMeta
   highlightColor?: string
   back?: string
+  localeAlternates?: Partial<Record<Locale, string>>
 }
 
 const { meta, highlightColor, back = '/', ...props } = Astro.props

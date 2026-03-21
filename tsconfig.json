@@ -15,6 +15,7 @@
     "paths": {
       "@/assets/*": ["src/assets/*"],
       "@/components/*": ["src/components/*"],
+      "@/content-utils": ["src/content-utils.ts"],
       "@/i18n": ["src/i18n/index.ts"],
       "@/i18n/*": ["src/i18n/*"],
       "@/layouts/*": ["src/layouts/*"],

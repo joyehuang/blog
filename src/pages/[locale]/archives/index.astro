@@ -1,6 +1,6 @@
 ---
 import { Button } from 'astro-pure/user'
-import { getBlogCollection, groupCollectionsByYear, sortMDByDate } from 'astro-pure/server'
+import { getLocalizedBlogEntries, groupBlogEntriesByYear } from '@/content-utils'
 import PostPreview from '@/components/blog/PostPreview.astro'
 import { getLocaleFromParam, getLocaleStaticPaths, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
@@ -9,9 +9,8 @@ export const prerender = true
 export const getStaticPaths = getLocaleStaticPaths
 
 const locale = getLocaleFromParam(Astro.params.locale)
-const allPosts = await getBlogCollection()
-const allPostsByDate = sortMDByDate(allPosts)
-const allPostsByYear = groupCollectionsByYear(allPostsByDate)
+const allPosts = await getLocalizedBlogEntries(locale)
+const allPostsByYear = groupBlogEntriesByYear(allPosts)
 
 const copy =
   locale === 'zh'
