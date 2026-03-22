@@ -6,9 +6,14 @@ import type { CollectionEntry } from 'astro:content'
 import 'katex/dist/katex.min.css'
 
 import { Comment, MediumZoom } from 'astro-pure/advanced'
-import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
+import { TOC } from 'astro-pure/components/pages'
+import { findTranslatedEntry, getLocalizedContentHref, getAllBlogEntries } from '@/content-utils'
+import ArticleBottom from '@/components/blog/ArticleBottom.astro'
+import Copyright from '@/components/blog/Copyright.astro'
+import Hero from '@/components/blog/Hero.astro'
+import { LOCALES, getCurrentLocale, type Locale } from '@/i18n'
 import PageLayout from '@/layouts/ContentLayout.astro'
-import { integ } from '@/site-config'
+import { getIntegrationConfig } from '@/site-config'
 
 interface Props {
   post: CollectionEntry<'blog'>
@@ -18,11 +23,12 @@ interface Props {
 }
 
 const {
-  post: { id, data },
+  post,
   posts,
   headings,
   remarkPluginFrontmatter
 } = Astro.props
+const { id, data } = post
 
 const {
   description,
@@ -41,12 +47,26 @@ const socialImage = heroImage
   : '/images/social-card.png'
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
+const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
+const integ = getIntegrationConfig(locale)
+const allPosts = await getAllBlogEntries()
+
+const localeAlternates = Object.fromEntries(
+  LOCALES.map((targetLocale) => {
+    const translated = findTranslatedEntry(allPosts, post, targetLocale as Locale)
+    return [
+      targetLocale,
+      translated ? getLocalizedContentHref('blog', translated, targetLocale as Locale) : `/${targetLocale}/blog`
+    ]
+  })
+) as Partial<Record<Locale, string>>
 ---
 
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
   highlightColor={primaryColor}
   back='/blog'
+  {localeAlternates}
 >
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 

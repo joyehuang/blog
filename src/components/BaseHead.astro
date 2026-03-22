@@ -3,15 +3,31 @@
 
 import { prod } from 'astro-pure/server'
 import type { SiteMeta } from 'astro-pure/types'
-import config from '@/site-config'
+import type { Locale } from '@/i18n'
+import {
+  LOCALES,
+  getCurrentLocale,
+  getLocaleSwitchHref,
+  hasLocalePrefix
+} from '@/i18n'
+import { getSiteConfig } from '@/site-config'
 
-type Props = SiteMeta
+type Props = SiteMeta & {
+  localeAlternates?: Partial<Record<Locale, string>>
+}
 
-const { articleDate, description, ogImage, title } = Astro.props
+const { articleDate, description, ogImage, title, localeAlternates } = Astro.props
+const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
+const config = getSiteConfig(locale)
 
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 const socialImageURL = new URL(ogImage ? ogImage : '/images/social-card.png', Astro.url).href
+const showAlternateLocales = hasLocalePrefix(Astro.url.pathname)
+
+function getAlternateHref(targetLocale: Locale) {
+  return localeAlternates?.[targetLocale] ?? getLocaleSwitchHref(Astro.url.pathname, targetLocale)
+}
 ---
 
 <meta charset='utf-8' />
@@ -71,6 +87,26 @@ const socialImageURL = new URL(ogImage ? ogImage : '/images/social-card.png', As
 <meta content={title} property='twitter:title' />
 <meta content={description} property='twitter:description' />
 <meta content={socialImageURL} property='twitter:image' />
+
+{
+  showAlternateLocales &&
+    LOCALES.map((targetLocale) => (
+      <link
+        rel='alternate'
+        hreflang={targetLocale}
+        href={new URL(getAlternateHref(targetLocale), Astro.site)}
+      />
+    ))
+}
+{
+  showAlternateLocales && (
+    <link
+      rel='alternate'
+      hreflang='x-default'
+      href={new URL(getAlternateHref('zh'), Astro.site)}
+    />
+  )
+}
 
 {/* Sitemap */}
 <link href='/sitemap-index.xml' rel='sitemap' />

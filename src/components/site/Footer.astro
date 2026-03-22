@@ -1,0 +1,124 @@
+---
+import { Icon } from 'astro-pure/user'
+
+import { getCurrentLocale, getLocalizedHref } from '@/i18n'
+import { getSiteConfig } from '@/site-config'
+
+type SocialValue = string | { label?: string; url: string }
+
+function isExternalLink(href: string) {
+  return href.startsWith('http://') || href.startsWith('https://')
+}
+
+const pathname = Astro.url.pathname
+const locale = getCurrentLocale(pathname, Astro.currentLocale)
+const config = getSiteConfig(locale)
+const year = new Date().getFullYear()
+const footerConf = config.footer
+const footerLink1 = footerConf.links?.filter(({ pos }) => pos === 1) || []
+const rssHref = getLocalizedHref(pathname, '/rss.xml', locale)
+const socialEntries = Object.entries(footerConf.social || {}).map(([platform, value]) => {
+  const social = value as SocialValue
+  if (typeof social === 'string') {
+    return { platform, label: platform, url: social }
+  }
+
+  return {
+    platform,
+    label: social.label || platform,
+    url: social.url
+  }
+})
+---
+
+<footer class='mx-auto mb-5 mt-16'>
+  <div class='border-t pt-5'>
+    <div class='flex items-center gap-y-3 max-sm:flex-col sm:justify-between sm:gap-y-0'>
+      <div
+        class='flex items-center gap-x-4 gap-y-2 text-muted-foreground max-sm:flex-col [&_a]:text-foreground'
+      >
+        {
+          footerLink1.length > 0 && (
+            <div>
+              {footerLink1.map(({ title, link, style }, index) => {
+                const href = getLocalizedHref(pathname, link, locale)
+                return (
+                  <span>
+                    <a href={href} target={isExternalLink(href) ? '_blank' : undefined} class={style}>
+                      {title}
+                    </a>
+                    {index < footerLink1.length - 1 && ' • '}
+                  </span>
+                )
+              })}
+            </div>
+          )
+        }
+
+        <div>
+          © {year} {config.author}
+          {
+            footerConf.links && footerConf.links.length > 0 && (
+              <>
+                {' '}
+                &{' '}
+                <span>
+                  {footerConf.links
+                    .filter(({ pos }) => pos === 2)
+                    .map(({ title, link, style }) => {
+                      const href = getLocalizedHref(pathname, link, locale)
+                      return (
+                        <span>
+                          <a
+                            href={href}
+                            target={isExternalLink(href) ? '_blank' : undefined}
+                            class={style}
+                          >
+                            {title}
+                          </a>
+                        </span>
+                      )
+                    })}
+                </span>
+              </>
+            )
+          }
+        </div>
+
+        {
+          footerConf.credits && (
+            <span>
+              <a href='https://github.com/withastro/astro' target='_blank'>
+                Astro
+              </a>
+              {' & '}
+              <a href='https://github.com/cworld1/astro-theme-pure' target='_blank'>
+                Pure
+              </a>
+              {' '}theme powered
+            </span>
+          )
+        }
+      </div>
+
+      <div class='flex items-center gap-x-4'>
+        {socialEntries.map(({ platform, label, url }) => (
+          <a
+            class='inline-block text-muted-foreground transition-all hover:text-muted-foreground/75'
+            href={url}
+            aria-label={label}
+          >
+            <Icon name={platform as any} />
+          </a>
+        ))}
+        <a
+          class='inline-block text-muted-foreground transition-all hover:text-muted-foreground/75'
+          href={rssHref}
+          aria-label='RSS'
+        >
+          <Icon name='rss' />
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>

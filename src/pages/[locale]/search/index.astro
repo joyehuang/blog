@@ -1,0 +1,56 @@
+---
+import { Button } from 'astro-pure/user'
+import PFSearch from '@/components/search/PFSearch.astro'
+import { getLocaleFromParam, getLocaleStaticPaths, getLocalizedHref } from '@/i18n'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { getIntegrationConfig } from '@/site-config'
+
+export const prerender = true
+export const getStaticPaths = getLocaleStaticPaths
+
+const locale = getLocaleFromParam(Astro.params.locale)
+const integ = getIntegrationConfig(locale)
+const copy =
+  locale === 'zh'
+    ? {
+        title: '搜索',
+        description: '搜索博客中的相关文章',
+        intro: '输入关键词或短语来搜索博客内容。',
+        disabled: 'Pagefind 未启用。',
+        back: '返回'
+      }
+    : {
+        title: 'Search',
+        description: 'Search relevant posts across the blog',
+        intro: 'Enter a search term or phrase to search the blog.',
+        disabled: 'Pagefind is disabled.',
+        back: 'Back'
+      }
+
+const meta = {
+  description: copy.description,
+  title: copy.title
+}
+---
+
+<PageLayout {meta}>
+  <Button title={copy.back} href={getLocalizedHref(Astro.url.pathname, '/blog', locale)} style='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-6 text-3xl font-medium'>{copy.title}</h1>
+    </div>
+
+    <div id='content' class='animate'>
+      {
+        integ.pagefind ? (
+          <>
+            <p>{copy.intro}</p>
+            <PFSearch {locale} />
+          </>
+        ) : (
+          <p>{copy.disabled}</p>
+        )
+      }
+    </div>
+  </main>
+</PageLayout>
