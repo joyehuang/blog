@@ -15,15 +15,11 @@
     "paths": {
       "@/assets/*": ["src/assets/*"],
       "@/components/*": ["src/components/*"],
-      "@/content-utils": ["src/content-utils.ts"],
-      "@/i18n": ["src/i18n/index.ts"],
-      "@/i18n/*": ["src/i18n/*"],
       "@/layouts/*": ["src/layouts/*"],
       "@/utils": ["src/utils/index.ts"],
       "@/utils/*": ["src/utils/*"],
       "@/plugins/*": ["src/plugins/*"],
       "@/pages/*": ["src/pages/*"],
-      "@/tags": ["src/tags.ts"],
       "@/types": ["src/types/index.ts"],
       "@/site-config": ["src/site.config.ts"]
     }
