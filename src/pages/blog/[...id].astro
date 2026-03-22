@@ -1,24 +1,28 @@
 ---
-import type { CollectionEntry } from 'astro:content'
+import { render, type CollectionEntry } from 'astro:content'
 
-import { getAllBlogEntries, getEntryLocale, getLocalizedContentHref } from '@/content-utils'
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import PostLayout from '@/layouts/BlogPost.astro'
 
 export const prerender = true
 
 export async function getStaticPaths() {
-  const posts = await getAllBlogEntries()
-
+  const posts = sortMDByDate(await getBlogCollection())
   return posts.map((post) => ({
     params: { id: post.id },
-    props: { post }
+    props: { post, posts }
   }))
 }
 
 type Props = {
   post: CollectionEntry<'blog'>
+  posts: CollectionEntry<'blog'>[]
 }
 
-const { post } = Astro.props as Props
-
-return Astro.redirect(getLocalizedContentHref('blog', post, getEntryLocale(post)), 308)
+const { post, posts } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(post)
 ---
+
+<PostLayout {post} {posts} {headings} {remarkPluginFrontmatter}>
+  <Content />
+</PostLayout>

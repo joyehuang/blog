@@ -1,214 +1,175 @@
 import type { CardListData, Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
 
-import { DEFAULT_LOCALE, type Locale } from './i18n/config.ts'
-
-const COMMON_SITE = {
+export const theme: ThemeUserConfig = {
+  // === Basic configuration ===
+  /** Title for your website. Will be used in metadata and as browser tab title. */
+  title: 'Joye Personal Blog',
+  /** Will be used in index page & copyright declaration */
   author: 'Joye',
+  /** Description metadata for your website. Can be used in page metadata. */
+  description: 'Stay hungry, stay foolish',
+  /** The default favicon for your site which should be a path to an image in the `public/` directory. */
   favicon: '/favicon/favicon.ico',
+  /** Specify the default language for this site. */
+  locale: {
+    lang: 'zh-CN',
+    attrs: 'zh_CN',
+    // Date locale
+    dateLocale: 'zh-CN',
+    dateOptions: {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }
+  },
+  /** Set a logo image to show in the homepage. */
   logo: {
     src: 'src/assets/avatar.png',
     alt: 'Avatar'
   },
+
+  // === Global configuration ===
   titleDelimiter: '•',
   prerender: true,
   npmCDN: 'https://cdn.jsdelivr.net/npm',
-  head: [],
-  customCss: [],
-  content: {
-    externalLinksContent: ' ↗',
-    blogPageSize: 8,
-    externalLinkArrow: true,
-    share: ['weibo', 'x', 'bluesky']
-  }
-} satisfies Partial<ThemeUserConfig>
 
-const SITE_COPY: Record<
-  Locale,
-  {
-    title: string
-    description: string
-    locale: ThemeUserConfig['locale']
-    menu: { title: string; link: string }[]
-    footerSitePolicy: string
-    termsTitle: string
-    termsList: { title: string; link: string }[]
-    applyTipLabels: { name: string; val: string }[]
-    walinePlaceholder: string
-  }
-> = {
-  zh: {
-    title: 'Joye 个人博客',
-    description: 'Build fast, learn faster',
-    locale: {
-      lang: 'zh-CN',
-      attrs: 'zh_CN',
-      dateLocale: 'zh-CN',
-      dateOptions: {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      }
-    },
-    menu: [
-      { title: '博客', link: '/blog' },
-      { title: '归档', link: '/archive' },
-      { title: '项目', link: '/projects' },
-      { title: '友链', link: '/links' },
-      { title: '关于', link: '/about' }
-    ],
-    footerSitePolicy: '站点政策',
-    termsTitle: '站点政策',
-    termsList: [
-      { title: '隐私政策', link: '/terms/privacy-policy' },
-      { title: '条款与条件', link: '/terms/terms-and-conditions' },
-      { title: '版权声明', link: '/terms/copyright' },
-      { title: '免责声明', link: '/terms/disclaimer' }
-    ],
-    applyTipLabels: [
-      { name: '名称', val: 'Joye 个人博客' },
-      { name: '简介', val: 'Build fast, learn faster' },
-      { name: '链接', val: 'https://joyehuang.me/' },
-      { name: '头像', val: 'https://joyehuang.me/favicon/favicon.ico' }
-    ],
-    walinePlaceholder: '欢迎留言。（填写邮箱可收到回复，无需登录）'
-  },
-  en: {
-    title: 'Joye Personal Blog',
-    description: 'Build fast, learn faster',
-    locale: {
-      lang: 'en',
-      attrs: 'en_US',
-      dateLocale: 'en-US',
-      dateOptions: {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      }
-    },
+  // Still in test
+  head: [
+    /* Telegram channel */
+    // {
+    //   tag: 'meta',
+    //   attrs: { name: 'telegram:channel', content: '@cworld0_cn' },
+    //   content: ''
+    // }
+  ],
+  customCss: [],
+
+  /** Configure the header of your site. */
+  header: {
     menu: [
       { title: 'Blog', link: '/blog' },
       { title: 'Archive', link: '/archive' },
       { title: 'Projects', link: '/projects' },
       { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' }
+    ]
+  },
+
+  /** Configure the footer of your site. */
+  footer: {
+    links: [
+      // Privacy Policy link
+      {
+        title: 'Site Policy',
+        link: '/terms/list',
+        pos: 2 // position set to 2 will be appended to copyright line
+      }
     ],
-    footerSitePolicy: 'Site Policy',
-    termsTitle: 'Site Policy',
-    termsList: [
-      { title: 'Privacy Policy', link: '/terms/privacy-policy' },
-      { title: 'Terms and Conditions', link: '/terms/terms-and-conditions' },
-      { title: 'Copyright', link: '/terms/copyright' },
-      { title: 'Disclaimer', link: '/terms/disclaimer' }
+    /** Enable displaying a “Astro & Pure theme powered” link in your site’s footer. */
+    credits: true,
+    /** Optional details about the social media accounts for this site. */
+    social: {
+      github: 'https://github.com/joyehuang',
+      // linkedin: 'https://www.linkedin.com/in/joyehuang/'
+    }
+  },
+
+  content: {
+    externalLinksContent: ' ↗',
+    /** Blog page size for pagination (optional) */
+    blogPageSize: 8,
+    externalLinkArrow: true, // show external link arrow
+    // Currently support weibo, x, bluesky
+    share: ['weibo', 'x', 'bluesky']
+  }
+}
+
+export const integ: IntegrationUserConfig = {
+  // Links management
+  // See: https://astro-pure.js.org/docs/integrations/links
+  links: {
+    // Friend logbook
+    logbook: [
+      { date: '2024-07-01', content: 'Lorem ipsum dolor sit amet.' },
+      { date: '2024-07-01', content: 'vidit suscipit at mei.' },
+      { date: '2024-07-01', content: 'Quem denique mea id.' }
     ],
-    applyTipLabels: [
-      { name: 'Name', val: 'Joye Personal Blog' },
-      { name: 'Description', val: 'Build fast, learn faster' },
+    // Yourself link info
+    applyTip: [
+      { name: 'Name', val: theme.title },
+      { name: 'Desc', val: theme.description || 'Null' },
       { name: 'Link', val: 'https://joyehuang.me/' },
       { name: 'Avatar', val: 'https://joyehuang.me/favicon/favicon.ico' }
-    ],
-    walinePlaceholder: 'Welcome to comment. Leave an email if you want reply notifications.'
-  }
-}
-
-export function getThemeConfig(locale: Locale = DEFAULT_LOCALE): ThemeUserConfig {
-  const copy = SITE_COPY[locale]
-
-  return {
-    ...COMMON_SITE,
-    title: copy.title,
-    author: COMMON_SITE.author,
-    description: copy.description,
-    favicon: COMMON_SITE.favicon,
-    locale: copy.locale,
-    logo: COMMON_SITE.logo,
-    titleDelimiter: COMMON_SITE.titleDelimiter,
-    prerender: COMMON_SITE.prerender,
-    npmCDN: COMMON_SITE.npmCDN,
-    head: COMMON_SITE.head,
-    customCss: COMMON_SITE.customCss,
-    header: {
-      menu: copy.menu
-    },
-    footer: {
-      links: [
-        {
-          title: copy.footerSitePolicy,
-          link: '/terms/list',
-          pos: 2
-        }
-      ],
-      credits: true,
-      social: {
-        github: 'https://github.com/joyehuang'
-      }
-    },
-    content: COMMON_SITE.content
-  }
-}
-
-export function getIntegrationConfig(locale: Locale = DEFAULT_LOCALE): IntegrationUserConfig {
-  const copy = SITE_COPY[locale]
-
-  return {
-    links: {
-      logbook: [
-        { date: '2024-07-01', content: 'Lorem ipsum dolor sit amet.' },
-        { date: '2024-07-01', content: 'vidit suscipit at mei.' },
-        { date: '2024-07-01', content: 'Quem denique mea id.' }
-      ],
-      applyTip: copy.applyTipLabels.map(({ name, val }) => ({ name, val })),
-    },
-    pagefind: true,
-    quote: {
-      server: 'https://api.quotable.io/quotes/random?maxLength=60',
-      target: `(data) => data[0].content || 'Error'`
-    },
-    typography: {
-      class: 'prose text-base text-muted-foreground'
-    },
-    mediumZoom: {
-      enable: true,
-      selector: '.prose .zoomable',
-      options: {
-        className: 'zoomable'
-      }
-    },
-    waline: {
-      enable: true,
-      server: 'https://waline-git-main-joyehuangs-projects.vercel.app/',
-      emoji: ['bmoji', 'weibo'],
-      additionalConfigs: {
-        pageview: true,
-        comment: true,
-        locale: {
-          reaction0: locale === 'zh' ? '点赞' : 'Like',
-          placeholder: copy.walinePlaceholder
-        },
-        imageUploader: false
-      }
+    ]
+  },
+  // Enable page search function
+  pagefind: true,
+  // Add a random quote to the footer (default on homepage footer)
+  // See: https://astro-pure.js.org/docs/integrations/advanced#web-content-render
+  quote: {
+    // https://developer.hitokoto.cn/sentence/#%E8%AF%B7%E6%B1%82%E5%9C%B0%E5%9D%80
+    // server: 'https://v1.hitokoto.cn/?c=i',
+    // target: (data) => (data as { hitokoto: string }).hitokoto || 'Error'
+    // https://github.com/lukePeavey/quotable
+    server: 'https://api.quotable.io/quotes/random?maxLength=60',
+    target: `(data) => data[0].content || 'Error'`
+  },
+  // UnoCSS typography
+  // See: https://unocss.dev/presets/typography
+  typography: {
+    class: 'prose text-base text-muted-foreground'
+  },
+  // A lightbox library that can add zoom effect
+  // See: https://astro-pure.js.org/docs/integrations/others#medium-zoom
+  mediumZoom: {
+    enable: true, // disable it will not load the whole library
+    selector: '.prose .zoomable',
+    options: {
+      className: 'zoomable'
+    }
+  },
+  // Comment system
+  waline: {
+    enable: true,
+    // Server service link
+    server: 'https://waline-git-main-joyehuangs-projects.vercel.app/',
+    // Refer https://waline.js.org/en/guide/features/emoji.html
+    emoji: ['bmoji', 'weibo'],
+    // Refer https://waline.js.org/en/reference/client/props.html
+    additionalConfigs: {
+      // search: false,
+      pageview: true,
+      comment: true,
+      locale: {
+        reaction0: 'Like',
+        placeholder: 'Welcome to comment. (Email to receive replies. Login is unnecessary)'
+      },
+      imageUploader: false
     }
   }
 }
 
-export function getTerms(locale: Locale = DEFAULT_LOCALE): CardListData {
-  const copy = SITE_COPY[locale]
-
-  return {
-    title: copy.termsTitle,
-    list: copy.termsList
-  }
+export const terms: CardListData = {
+  title: 'Terms content',
+  list: [
+    {
+      title: 'Privacy Policy',
+      link: '/terms/privacy-policy'
+    },
+    {
+      title: 'Terms and Conditions',
+      link: '/terms/terms-and-conditions'
+    },
+    {
+      title: 'Copyright',
+      link: '/terms/copyright'
+    },
+    {
+      title: 'Disclaimer',
+      link: '/terms/disclaimer'
+    }
+  ]
 }
 
-export function getSiteConfig(locale: Locale = DEFAULT_LOCALE): Config {
-  return {
-    ...getThemeConfig(locale),
-    integ: getIntegrationConfig(locale)
-  } as Config
-}
-
-export const theme = getThemeConfig(DEFAULT_LOCALE)
-export const integ = getIntegrationConfig(DEFAULT_LOCALE)
-export const terms = getTerms(DEFAULT_LOCALE)
-
-const config = getSiteConfig(DEFAULT_LOCALE)
+const config = { ...theme, integ } as Config
 export default config

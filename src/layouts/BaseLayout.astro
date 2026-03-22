@@ -1,13 +1,10 @@
 ---
+import { Footer, Header } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import Analytics from '@vercel/analytics/astro'
-import type { Locale } from '@/i18n'
 import BaseHead from '@/components/BaseHead.astro'
 import ThemeProvider from '@/components/ThemeProvider.astro'
-import Footer from '@/components/site/Footer.astro'
-import Header from '@/components/site/Header.astro'
-import { getCurrentLocale } from '@/i18n'
-import { getSiteConfig } from '@/site-config'
+import config from '@/site-config'
 
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseLayout /> component.
@@ -16,29 +13,22 @@ import '@/assets/styles/app.css'
 interface Props {
   meta: SiteMeta
   highlightColor?: string
-  localeAlternates?: Partial<Record<Locale, string>>
 }
 
-const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
-const config = getSiteConfig(locale)
 const {
   meta: { articleDate, description = config.description, ogImage, title },
   highlightColor,
-  localeAlternates,
   ...props
 } = Astro.props
 ---
 
 <html lang={config.locale.lang}>
   <head>
-    <BaseHead {articleDate} {description} {ogImage} {title} {localeAlternates} />
+    <BaseHead {articleDate} {description} {ogImage} {title} />
     <ThemeProvider />
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>
-    <span class='sr-only' data-pagefind-filter='locale'>
-      {locale}
-    </span>
     {
       highlightColor && (
         <div
@@ -49,7 +39,7 @@ const {
       )
     }
     <div class='w-full max-w-[70rem] px-4 sm:px-7 lg:px-10'>
-      <Header {localeAlternates} />
+      <Header />
       <slot />
       <Footer />
     </div>

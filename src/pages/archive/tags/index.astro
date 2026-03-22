@@ -1,7 +1,76 @@
 ---
-import { DEFAULT_LOCALE, getLocalePath } from '@/i18n'
+/**
+ * Archive Tags Index
+ * Shows all tags used in the archive with entry counts
+ */
+import { getCollection } from 'astro:content'
+import { Button, Icon } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
-return Astro.redirect(getLocalePath(DEFAULT_LOCALE, '/archive/tags'), 308)
+const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
+
+// Count entries per tag
+const tagCounts = allArchives.reduce(
+  (acc, entry) => {
+    entry.data.tags.forEach((tag) => {
+      acc[tag] = (acc[tag] || 0) + 1
+    })
+    return acc
+  },
+  {} as Record<string, number>
+)
+
+// Sort tags by count (descending), then alphabetically
+const sortedTags = Object.entries(tagCounts).sort(([tagA, countA], [tagB, countB]) => {
+  if (countB !== countA) return countB - countA
+  return tagA.localeCompare(tagB)
+})
+
+const meta = {
+  title: 'Archive Tags',
+  description: 'Browse archive entries by tag'
+}
 ---
+
+<PageLayout {meta}>
+  <Button title='Back' href='/archive' style='back' />
+
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-2 flex items-center gap-2 text-3xl font-medium'>
+        <Icon name='tag-2' />
+        Archive Tags
+      </h1>
+      <p class='mb-6 text-muted-foreground'>
+        Browse {sortedTags.length} tags across {allArchives.length} archive entries
+      </p>
+    </div>
+
+    <section id='content' class='animate'>
+      <div class='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+        {
+          sortedTags.map(([tag, count]) => (
+            <a
+              href={`/archive/tags/${tag}`}
+              class='group rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'
+              data-astro-prefetch
+            >
+              <div class='flex items-center justify-between'>
+                <span class='font-medium group-hover:text-foreground'>{tag}</span>
+                <span class='rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
+                  {count}
+                </span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+
+      {sortedTags.length === 0 && (
+        <p class='text-muted-foreground'>No tags found in archive entries.</p>
+      )}
+    </section>
+  </main>
+</PageLayout>

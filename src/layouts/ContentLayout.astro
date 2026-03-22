@@ -3,25 +3,20 @@ import { BackToTop } from 'astro-pure/components/pages'
 import type { SiteMeta } from 'astro-pure/types'
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
-import { getCurrentLocale, getLocalizedHref, type Locale } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import { getIntegrationConfig } from '@/site-config'
+import { integ } from '@/site-config'
 
 interface Props {
   meta: SiteMeta
   highlightColor?: string
   back?: string
-  localeAlternates?: Partial<Record<Locale, string>>
 }
 
 const { meta, highlightColor, back = '/', ...props } = Astro.props
-const locale = getCurrentLocale(Astro.url.pathname, Astro.currentLocale)
-const integ = getIntegrationConfig(locale)
-const backHref = getLocalizedHref(Astro.url.pathname, back, locale)
 ---
 
 <PageLayout {meta} {highlightColor} {...props}>
-  <Button title='Back' href={backHref} style='back' />
+  <Button title='Back' href={back} style='back' />
   <main class='mt-6 items-start gap-x-10 md:flex'>
     {/* Sidebar */}
     <aside
