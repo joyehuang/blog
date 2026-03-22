@@ -61,6 +61,58 @@ export function findTranslatedEntry<T extends CollectionKey>(
   )
 }
 
+export function findEntryByReference<T extends CollectionKey>(
+  entries: CollectionEntry<T>[],
+  reference: string
+) {
+  const normalizedReference = trimSlashes(reference)
+
+  return entries.find((entry) => {
+    const translationKey = trimSlashes(entry.data.translationKey ?? '')
+    return (
+      entry.id === normalizedReference ||
+      translationKey === normalizedReference ||
+      getEntryRoutePath(entry) === normalizedReference
+    )
+  })
+}
+
+export function resolveEntryForLocale<T extends CollectionKey>(
+  entries: CollectionEntry<T>[],
+  reference: string | CollectionEntry<T>,
+  locale: Locale
+) {
+  const entry =
+    typeof reference === 'string' ? findEntryByReference(entries, reference) : reference
+
+  if (!entry) return undefined
+  if (getEntryLocale(entry) === locale) return entry
+
+  return findTranslatedEntry(entries, entry, locale) ?? entry
+}
+
+export function resolveEntriesForLocale<T extends CollectionKey>(
+  entries: CollectionEntry<T>[],
+  references: string[],
+  locale: Locale,
+  excludeId?: string
+) {
+  const resolvedEntries: CollectionEntry<T>[] = []
+  const seenEntryIds = new Set<string>()
+
+  for (const reference of references) {
+    const resolvedEntry = resolveEntryForLocale(entries, reference, locale)
+    if (!resolvedEntry) continue
+    if (excludeId && resolvedEntry.id === excludeId) continue
+    if (seenEntryIds.has(resolvedEntry.id)) continue
+
+    seenEntryIds.add(resolvedEntry.id)
+    resolvedEntries.push(resolvedEntry)
+  }
+
+  return resolvedEntries
+}
+
 export function groupBlogEntriesByYear(entries: Awaited<ReturnType<typeof getLocalizedBlogEntries>>) {
   return groupCollectionsByYear(entries)
 }

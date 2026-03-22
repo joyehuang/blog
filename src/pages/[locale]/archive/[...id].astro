@@ -2,7 +2,16 @@
 import { render, type CollectionEntry } from 'astro:content'
 
 import { Button, Icon } from 'astro-pure/user'
-import { findTranslatedEntry, getAllArchiveEntries, getAllBlogEntries, getEntryRoutePath, getLocalizedContentHref, getLocalizedArchiveEntries } from '@/content-utils'
+import {
+  findTranslatedEntry,
+  getAllArchiveEntries,
+  getAllBlogEntries,
+  getEntryLocale,
+  getEntryRoutePath,
+  getLocalizedContentHref,
+  getLocalizedArchiveEntries,
+  resolveEntriesForLocale
+} from '@/content-utils'
 import { formatDateForLocale, LOCALES, type Locale, getLocaleFromParam, getLocalizedHref } from '@/i18n'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import { getTagLabel } from '@/tags'
@@ -49,18 +58,21 @@ const {
 let relatedBlogPosts: CollectionEntry<'blog'>[] = []
 if (relatedBlog && relatedBlog.length > 0) {
   const allBlogPosts = await getAllBlogEntries()
-  relatedBlogPosts = allBlogPosts.filter((post) => relatedBlog.includes(post.id))
-}
-
-let relatedArchiveEntries: CollectionEntry<'archive'>[] = []
-if (relatedArchive && relatedArchive.length > 0) {
-  const allArchives = await getAllArchiveEntries()
-  relatedArchiveEntries = allArchives.filter(
-    (arch) => relatedArchive.includes(arch.id) && arch.id !== entry.id
-  )
+  relatedBlogPosts = resolveEntriesForLocale<'blog'>(allBlogPosts, relatedBlog, locale)
 }
 
 const allArchives = await getAllArchiveEntries()
+
+let relatedArchiveEntries: CollectionEntry<'archive'>[] = []
+if (relatedArchive && relatedArchive.length > 0) {
+  relatedArchiveEntries = resolveEntriesForLocale<'archive'>(
+    allArchives,
+    relatedArchive,
+    locale,
+    entry.id
+  )
+}
+
 const localeAlternates = Object.fromEntries(
   LOCALES.map((targetLocale) => {
     const translated = findTranslatedEntry(allArchives, entry, targetLocale as Locale)
@@ -212,11 +224,18 @@ const meta = {
               {relatedBlogPosts.map((post) => (
                 <li>
                   <a
-                    href={getLocalizedHref(Astro.url.pathname, `/blog/${post.data.routeSlug || post.id}`, locale)}
+                    href={getLocalizedContentHref('blog', post, getEntryLocale(post))}
                     class='block rounded-lg border border-border bg-card p-3 transition hover:border-foreground/20'
                     data-astro-prefetch
                   >
-                    <div class='font-medium'>{post.data.title}</div>
+                    <div class='flex items-center justify-between gap-3'>
+                      <div class='font-medium'>{post.data.title}</div>
+                      {getEntryLocale(post) !== locale && (
+                        <span class='shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground'>
+                          {getEntryLocale(post)}
+                        </span>
+                      )}
+                    </div>
                     {post.data.description && (
                       <p class='mt-1 text-sm text-muted-foreground'>{post.data.description}</p>
                     )}
@@ -237,15 +256,22 @@ const meta = {
               {relatedArchiveEntries.map((arch) => (
                 <li>
                   <a
-                    href={getLocalizedHref(Astro.url.pathname, `/archive/${arch.data.routeSlug || arch.id}`, locale)}
+                    href={getLocalizedContentHref('archive', arch, getEntryLocale(arch))}
                     class='block rounded-lg border border-border bg-card p-3 transition hover:border-foreground/20'
                     data-astro-prefetch
                   >
-                    <div class='flex items-center gap-2'>
-                      <span class='font-medium'>{arch.data.title}</span>
-                      <span class='text-xs text-muted-foreground'>
-                        {typeLabels[arch.data.type] || arch.data.type}
-                      </span>
+                    <div class='flex items-center justify-between gap-3'>
+                      <div class='flex items-center gap-2'>
+                        <span class='font-medium'>{arch.data.title}</span>
+                        <span class='text-xs text-muted-foreground'>
+                          {typeLabels[arch.data.type] || arch.data.type}
+                        </span>
+                      </div>
+                      {getEntryLocale(arch) !== locale && (
+                        <span class='shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground'>
+                          {getEntryLocale(arch)}
+                        </span>
+                      )}
                     </div>
                     {arch.data.description && (
                       <p class='mt-1 text-sm text-muted-foreground'>{arch.data.description}</p>
