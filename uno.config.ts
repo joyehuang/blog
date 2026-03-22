@@ -31,11 +31,20 @@ const typographyConfig = {
     blockquote: {
       position: 'relative',
       overflow: 'hidden',
+      color: fg,
+      '--un-prose-quotes': fg,
+      '--un-prose-quote-borders': 'hsl(var(--border) / 1)',
       'border-width': '1px',
       'border-left': 'inherit',
       'border-radius': 'var(--radius)',
       'padding-inline': '1.6rem',
       'box-shadow': '0 5px 0 ' + bgMuted
+    },
+    'blockquote p': {
+      color: 'inherit'
+    },
+    'blockquote p::before,blockquote p::after': {
+      color: 'inherit'
     },
     'blockquote::after': {
       color: fgMuted,

@@ -1,0 +1,210 @@
+---
+import { Button } from 'astro-pure/user'
+
+import ToolSection from '@/components/about/ToolSection.astro'
+import { getLocaleFromParam, getLocaleStaticPaths, getLocalizedHref } from '@/i18n'
+import PageLayout from '@/layouts/CommonPage.astro'
+
+export const prerender = true
+export const getStaticPaths = getLocaleStaticPaths
+
+const locale = getLocaleFromParam(Astro.params.locale)
+
+const headings = [
+  { depth: 2, slug: 'hobbies', text: locale === 'zh' ? '爱好' : 'Hobbies' },
+  { depth: 2, slug: 'tools', text: 'Tools' }
+]
+
+const copy =
+  locale === 'zh'
+    ? {
+        title: '关于',
+        role: '开发者',
+        intro:
+          '我是一名正在墨尔本大学读书的大二学生。平时喜欢音乐、模型和摄影。现在专注前端方向，也希望长期成长为全栈开发者和持续贡献开源的人。',
+        motto: '我的座右铭：Build fast, learn faster.',
+        sponsor: '赞助我',
+        hobbiesTitle: '爱好',
+        hobbies: [
+          '音乐：从小学习钢琴和大提琴，音乐已经成为生活中稳定的节奏感来源。',
+          '模型制作：喜欢从零到一把东西拼出来，这种过程很解压，也锻炼耐心。',
+          '摄影：最近培养起来的新爱好，喜欢用镜头记录城市、光线和人的状态。',
+          '开源：希望持续参与开源，通过真实协作提升自己的工程能力。'
+        ],
+        toolsIntro: '这些是我日常高频使用的工具和平台。'
+      }
+    : {
+        title: 'About',
+        role: 'Developer',
+        intro:
+          'I am a second-year student at the University of Melbourne. Outside of coding, I spend time with music, model building, and photography. My current focus is frontend engineering, with the long-term goal of growing into a full-stack developer and a consistent open-source contributor.',
+        motto: 'My motto: Build fast, learn faster.',
+        sponsor: 'Sponsor Me',
+        hobbiesTitle: 'Hobbies',
+        hobbies: [
+          'Music: I grew up learning piano and cello, and music still gives structure and calm to my week.',
+          'Model building: I enjoy assembling things from scratch. It is relaxing and a good way to train patience.',
+          'Photography: A newer hobby of mine. I like capturing cities, light, and small moments that would otherwise disappear.',
+          'Open source: I want to keep contributing in public and sharpen my engineering skills through real collaboration.'
+        ],
+        toolsIntro: 'These are the tools and platforms I reach for most often.'
+      }
+---
+
+<PageLayout title={copy.title} {headings} info='/about'>
+  <p>{copy.role}</p>
+  <p>{copy.intro}</p>
+  <p>{copy.motto}</p>
+  <Button
+    title={copy.sponsor}
+    class='w-fit'
+    href={getLocalizedHref(Astro.url.pathname, '/projects#sponsorship', locale)}
+    style='ahead'
+  />
+
+  <h2 id='hobbies'>{copy.hobbiesTitle}</h2>
+  <ul>
+    {copy.hobbies.map((item) => <li>{item}</li>)}
+  </ul>
+
+  <h2 id='tools'>Tools</h2>
+  <p>{copy.toolsIntro}</p>
+  <ToolSection
+    class='mb-5'
+    title='AI & Code Assistants'
+    tools={[
+      {
+        name: 'ChatGPT',
+        description: 'AI Assistant',
+        href: 'https://chat.openai.com/',
+        icon: import('@/assets/tools/chatgpt.svg?raw')
+      },
+      {
+        name: 'Claude Code',
+        description: 'AI Coding Assistant',
+        href: 'https://claude.ai/',
+        icon: import('@/assets/tools/claude.svg?raw')
+      },
+      {
+        name: 'GitHub Copilot',
+        description: 'AI Code Completion',
+        href: 'https://github.com/features/copilot',
+        icon: import('@/assets/tools/github.svg?raw')
+      },
+      {
+        name: 'v0 by Vercel',
+        description: 'AI UI Generator',
+        href: 'https://v0.dev/',
+        icon: import('@/assets/tools/v0.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Design'
+    tools={[
+      {
+        name: 'Figma',
+        description: 'UI/UX Design',
+        href: 'https://www.figma.com/',
+        icon: import('@/assets/tools/figma.svg?raw')
+      },
+      {
+        name: 'Canva',
+        description: 'Graphic Design',
+        href: 'https://www.canva.com/',
+        icon: import('@/assets/tools/canva.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Development'
+    tools={[
+      {
+        name: 'Cursor',
+        description: 'AI-Powered IDE',
+        href: 'https://cursor.sh/',
+        icon: import('@/assets/tools/cursor.svg?raw')
+      },
+      {
+        name: 'VS Code',
+        description: 'Code Editor',
+        href: 'https://code.visualstudio.com/',
+        icon: import('@/assets/tools/vscode.svg?raw')
+      },
+      {
+        name: 'Git',
+        description: 'Version Control',
+        href: 'https://git-scm.com/',
+        icon: import('@/assets/tools/git.svg?raw')
+      },
+      {
+        name: 'Postman',
+        description: 'API Testing',
+        href: 'https://www.postman.com/',
+        icon: import('@/assets/tools/postman.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Productivity'
+    tools={[
+      {
+        name: 'Obsidian',
+        description: 'Knowledge Base',
+        href: 'https://obsidian.md/',
+        icon: import('@/assets/tools/obsidian.svg?raw')
+      },
+      {
+        name: 'Notion',
+        description: 'Project Management',
+        href: 'https://www.notion.so/',
+        icon: import('@/assets/tools/notion.svg?raw')
+      },
+      {
+        name: 'Chrome',
+        description: 'Web Browser',
+        href: 'https://www.google.com/chrome/',
+        icon: import('@/assets/tools/chrome.svg?raw')
+      },
+      {
+        name: 'Raycast',
+        description: 'Productivity Launcher',
+        href: 'https://www.raycast.com/',
+        icon: import('@/assets/tools/raycast.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='DevOps & Cloud'
+    tools={[
+      {
+        name: 'AWS',
+        description: 'Cloud Platform',
+        href: 'https://aws.amazon.com/',
+        icon: import('@/assets/tools/aws.svg?raw')
+      },
+      {
+        name: 'Vercel',
+        description: 'Deployment Platform',
+        href: 'https://vercel.com/',
+        icon: import('@/assets/tools/vercel.svg?raw')
+      },
+      {
+        name: 'Docker',
+        description: 'Containerization',
+        href: 'https://www.docker.com/',
+        icon: import('@/assets/tools/docker.svg?raw')
+      },
+      {
+        name: 'Supabase',
+        description: 'Backend as a Service',
+        href: 'https://supabase.com/',
+        icon: import('@/assets/tools/supabase.svg?raw')
+      }
+    ]}
+  />
+</PageLayout>

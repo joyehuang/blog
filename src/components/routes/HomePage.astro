@@ -1,0 +1,170 @@
+---
+import { Image } from 'astro:assets'
+
+import { Quote } from 'astro-pure/advanced'
+import { Button, Card, Icon, Label } from 'astro-pure/user'
+import avatar from '@/assets/avatar.png'
+import { getLocalizedBlogEntries } from '@/content-utils'
+import PostPreview from '@/components/blog/PostPreview.astro'
+import Section from '@/components/home/Section.astro'
+import SkillLayout from '@/components/home/SkillLayout.astro'
+import { type Locale, getLocalizedHref } from '@/i18n'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { getSiteConfig } from '@/site-config'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const config = getSiteConfig(locale)
+
+const languages = ['TypeScript', 'JavaScript', 'Python', 'Java', 'MySQL']
+const frontend = ['React', 'NextJs', 'Vite']
+const backend = ['Vercel', 'Waline', 'Firebase', 'Nodejs']
+const tools = ['Curor', 'Git', 'Docker', 'Postman', 'ESlint/Prettier', 'Jest']
+
+const MAX_POSTS = 10
+const allPostsByDate = (await getLocalizedBlogEntries(locale)).slice(0, MAX_POSTS)
+
+const copy =
+  locale === 'zh'
+    ? {
+        metaTitle: '首页',
+        connect: '联系我',
+        aboutTitle: '关于',
+        role: '前端开发者',
+        intro:
+          '一名正在墨尔本上学的大二前端开发者，目标成为一名全栈开发者。最近刚入门摄影圈，平时喜欢弹琴与拉大提琴！',
+        moreAbout: '更多关于我',
+        postsTitle: '文章',
+        morePosts: '更多文章',
+        experienceTitle: '经历',
+        educationTitle: '教育',
+        skillsTitle: '技能',
+        workCompany: '上海特赞 Tezign',
+        workRole: 'AIGC研发部门全栈实习生',
+        workDesc: '负责 AIGC 相关功能的全栈开发工作',
+        school: '墨尔本大学',
+        degree: '理学学士 - 计算与软件工程',
+        schoolDate: '2024年2月 - 2027年6月'
+      }
+    : {
+        metaTitle: 'Home',
+        connect: 'Connect Me!',
+        aboutTitle: 'About',
+        role: 'Frontend Developer',
+        intro:
+          'A second-year frontend developer studying in Melbourne, aiming to grow into a full-stack engineer. I recently got into photography and still enjoy piano and cello in my spare time.',
+        moreAbout: 'More about me',
+        postsTitle: 'Posts',
+        morePosts: 'More posts',
+        experienceTitle: 'Experience',
+        educationTitle: 'Education',
+        skillsTitle: 'Skills',
+        workCompany: 'Tezign',
+        workRole: 'Full-Stack Intern, AIGC R&D',
+        workDesc: 'Building full-stack product features related to AIGC workflows.',
+        school: 'The University of Melbourne',
+        degree: 'Bachelor of Science, Computing and Software Systems',
+        schoolDate: 'Feb 2024 - Jun 2027'
+      }
+---
+
+<PageLayout meta={{ title: copy.metaTitle }} highlightColor='#659EB9'>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate relative z-50 mb-10 flex flex-col items-center gap-y-7' id='content-header'>
+      <Image
+        src={avatar}
+        alt='profile'
+        class='h-28 w-auto rounded-full border p-1'
+        loading='eager'
+      />
+
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-bold'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='Melbourne, Australia'>
+            <Icon name='location' class='size-5' slot='icon' />
+          </Label>
+          <Label
+            title='Source code'
+            as='a'
+            href='https://github.com/joyehuang/blog'
+            target='_blank'
+          >
+            <Icon name='github' class='size-5' slot='icon' />
+          </Label>
+        </div>
+      </div>
+
+      <div class='flex flex-row gap-3'>
+        <a
+          href='https://www.linkedin.com/in/deshiouhuang/'
+          target='_blank'
+          class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
+        >
+          <span class='relative flex items-center justify-center'>
+            <span
+              class='absolute size-2 animate-ping rounded-full border border-green-400 bg-green-400 opacity-75'
+            ></span>
+            <span class='size-2 rounded-full bg-green-400'></span>
+          </span>
+          <p class='font-medium text-muted-foreground'>{copy.connect}</p>
+        </a>
+      </div>
+    </section>
+
+    <div id='content' class='animate relative z-0 flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+      <Section title={copy.aboutTitle}>
+        <p class='text-muted-foreground'>{copy.role}</p>
+        <p class='text-muted-foreground'>{copy.intro}</p>
+        <Button
+          title={copy.moreAbout}
+          class='w-fit self-end'
+          href={getLocalizedHref(Astro.url.pathname, '/about', locale)}
+          style='ahead'
+        />
+      </Section>
+      {
+        allPostsByDate.length > 0 && (
+          <Section title={copy.postsTitle}>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {allPostsByDate.map((p) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <PostPreview post={p} />
+                </li>
+              ))}
+            </ul>
+            <Button
+              title={copy.morePosts}
+              class='w-fit self-end'
+              href={getLocalizedHref(Astro.url.pathname, '/blog', locale)}
+              style='ahead'
+            />
+          </Section>
+        )
+      }
+
+      <Section title={copy.experienceTitle}>
+        <Card heading={copy.workCompany} subheading={copy.workRole} date='Present'>
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>{copy.workDesc}</li>
+          </ul>
+        </Card>
+      </Section>
+
+      <Section title={copy.educationTitle}>
+        <Card as='a' heading={copy.school} subheading={copy.degree} date={copy.schoolDate} />
+      </Section>
+
+      <Section title={copy.skillsTitle}>
+        <SkillLayout title='Languages' skills={languages} />
+        <SkillLayout title='Frontend' skills={frontend} />
+        <SkillLayout title='Backend' skills={backend} />
+        <SkillLayout title='Tools' skills={tools} />
+      </Section>
+    </div>
+    <Quote class='mt-12' />
+  </main>
+</PageLayout>

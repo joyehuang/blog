@@ -1,0 +1,53 @@
+---
+title: My First Open Source PR
+description: 'What I learned from opening my first pull request to an open-source project as a second-year student'
+publishDate: 2025-07-01 22:06:36
+tags: ['open-source', 'frontend']
+locale: en
+translationKey: first-pr
+routeSlug: my-first-open-source-pr
+language: En
+---
+
+## Preface
+
+On June 27, 2025, around 7pm Melbourne time, I opened my first pull request to the VMind project in the VisActor community. I was genuinely excited. Open source had always felt like something only very strong engineers could do, and my earlier attempts to get into it had all failed for one reason or another.
+
+This post is a short English edition of that experience: how I found the project, how I approached an unfamiliar codebase, and what actually mattered once I started contributing.
+
+## How I Found The Project
+
+I found the project through OSPP. I went through the JavaScript-related projects and noticed several repositories from the VisActor community. One of them focused on K-line charts for VChart, which caught my attention, so I spent the evening reading about the ecosystem and reached out to a mentor.
+
+I quickly learned that the official program would judge applicants based on contributions made during the open registration window, so I was already late. That closed one door, but it opened a better one: the mentor shared the VisActor contributors group, and I joined to observe how the community actually worked.
+
+## Picking The First Issue
+
+The community felt approachable. When someone wanted to take an issue, they could leave a comment on GitHub and mention it in the chat group. For a first-time contributor, that mattered a lot. It removed the fear of working in silence without knowing whether anyone would respond.
+
+I looked through issues across several VisActor repositories and noticed that VMind had beginner-friendly testing tasks marked as good first issues. After reading a few recommendations online and asking AI to help me map the problem space, I decided that writing tests would be the best place to start.
+
+## The Real Work
+
+Once I claimed the issue, the workflow became very concrete: fork the repository, clone it locally, set up `remote` and `upstream`, and start reading. Because the task was about tests, I opened the existing test files first and looked for similar patterns I could adapt.
+
+The issue I picked was about adding tests for the BoxPlot branch of `getChartSpecWithContext`. I found the related implementation, looked at the existing chart tests, and slowly worked backward from examples. I also spent some time learning just enough Jest to understand how the repository expected tests to be structured.
+
+One thing helped a lot: I did not ask AI to write the full answer for me. I asked it to point out problems, explain concepts, or show me what I should inspect next. That made the process slower, but it forced me to understand why the final code worked.
+
+## After The Merge
+
+After I posted in the group and asked for review, a contributor pointed out two unnecessary lines in my first version. I fixed them, pushed a new commit, and on July 1 my PR was merged.
+
+That moment changed how I think about open source. The hardest part was not the code itself. It was crossing the psychological gap between “I admire open source” and “I can contribute to open source too.”
+
+## What I Took Away
+
+I left that experience with a few lessons:
+
+- Start with a task that is small but real.
+- Read the existing code before you try to invent your own approach.
+- Using AI as a thinking partner is useful, but only if you still do the final reasoning yourself.
+- Contributing to a public issue creates real responsibility, and that pressure can be productive.
+
+After that PR was merged, I immediately went looking for the next issue. That was probably the clearest sign that the first one mattered.

@@ -1,0 +1,37 @@
+---
+import { render, type CollectionEntry } from 'astro:content'
+
+import { getEntryRoutePath, getLocalizedBlogEntries } from '@/content-utils'
+import { LOCALES } from '@/i18n'
+import PostLayout from '@/layouts/BlogPost.astro'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const staticPaths = []
+
+  for (const locale of LOCALES) {
+    const posts = await getLocalizedBlogEntries(locale)
+    staticPaths.push(
+      ...posts.map((post) => ({
+        params: { locale, id: getEntryRoutePath(post) },
+        props: { post, posts }
+      }))
+    )
+  }
+
+  return staticPaths
+}
+
+type Props = {
+  post: CollectionEntry<'blog'>
+  posts: CollectionEntry<'blog'>[]
+}
+
+const { post, posts } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(post)
+---
+
+<PostLayout {post} {posts} {headings} {remarkPluginFrontmatter}>
+  <Content />
+</PostLayout>

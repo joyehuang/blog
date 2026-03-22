@@ -28,6 +28,11 @@ export default defineConfig({
   site: 'https://joyehuang.me',
   // base: '/docs',
   trailingSlash: 'never',
+  i18n: {
+    locales: ['zh', 'en'],
+    defaultLocale: 'zh',
+    routing: 'manual'
+  },
 
   // Adapter
   // https://docs.astro.build/en/guides/deploy/
