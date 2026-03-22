@@ -1,7 +1,6 @@
 ---
 // import { ClientRouter } from 'astro:transitions'
 
-import { prod } from 'astro-pure/server'
 import type { SiteMeta } from 'astro-pure/types'
 import type { Locale } from '@/i18n'
 import {
@@ -43,13 +42,6 @@ function getAlternateHref(targetLocale: Locale) {
 
 {/* Font preloads */}
 <link rel='preload' href='/fonts/Satoshi-Variable.ttf' as='font' type='font/ttf' crossorigin />
-<link
-  rel='preload'
-  href='/fonts/Satoshi-VariableItalic.ttf'
-  as='font'
-  type='font/ttf'
-  crossorigin
-/>
 
 {/* Canonical URL */}
 <link rel='canonical' href={canonicalURL} />
@@ -138,15 +130,4 @@ function getAlternateHref(targetLocale: Locale) {
 </script> -->
 
 {/* Plausible Analytics */}
-<script defer data-domain="joyehuang.me" src="https://www.stats.joyehuang.me/js/script.outbound-links.js"></script>
-
-{
-  /* User script*/
-  prod && (
-    <script>
-      console.log( '%c Astro Theme Pure %c https://github.com/cworld1/astro-theme-pure/',
-      'color:#fff;background:linear-gradient(90deg,#448bff,#44e9ff);padding:5px 0;',
-      'color:#000;background:linear-gradient(90deg,#44e9ff,#ffffff);padding:5px 10px 5px 0px;' )
-    </script>
-  )
-}
+<script is:inline defer data-domain="joyehuang.me" src="https://www.stats.joyehuang.me/js/script.outbound-links.js"></script>
