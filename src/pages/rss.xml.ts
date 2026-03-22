@@ -12,6 +12,8 @@ import config from 'virtual:config'
 
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 
+export const prerender = true
+
 // Get dynamic import of images as a map collection
 const imagesGlob = import.meta.glob<{ default: ImageMetadata }>(
   '/src/content/blog/**/*.{jpeg,jpg,png,gif}' // add more image formats if needed

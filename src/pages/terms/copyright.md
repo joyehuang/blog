@@ -1,5 +1,6 @@
 ---
 layout: '@/layouts/IndividualPage.astro'
+prerender: true
 
 title: 'Copyright'
 description: 'Effective date: 2024-11-26'

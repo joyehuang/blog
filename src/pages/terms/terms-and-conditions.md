@@ -1,5 +1,6 @@
 ---
 layout: '@/layouts/IndividualPage.astro'
+prerender: true
 
 title: 'Terms and Conditions'
 description: 'Last updated: 2024-11-26'

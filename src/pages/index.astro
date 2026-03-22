@@ -1,4 +1,6 @@
 ---
+export const prerender = true
+
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
 
@@ -7,7 +9,6 @@ import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import config from '@/site-config'
@@ -21,7 +22,6 @@ const MAX_POSTS = 10
 const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 ---
-<script defer data-domain="joyehuang.me" src="https://plausible.io/js/script.js"></script>
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
     <section class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50' id='content-header'>
