@@ -1,2 +1,7 @@
 ---
-return Astro.redirect('/zh')
+import { DEFAULT_LOCALE, getLocalePath } from '@/i18n'
+
+export const prerender = true
+
+return Astro.redirect(getLocalePath(DEFAULT_LOCALE, '/'), 308)
+---

@@ -1,5 +1,7 @@
 import { DEFAULT_LOCALE, getLocalePath } from '@/i18n'
 
+export const prerender = true
+
 export const GET = () =>
   new Response(null, {
     status: 308,

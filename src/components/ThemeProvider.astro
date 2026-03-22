@@ -1,0 +1,81 @@
+<script is:inline>
+  (() => {
+    const DARK_COLOR = '#0B0B10'
+    const LIGHT_COLOR = '#FCFCFD'
+    const MEDIA_QUERY = '(prefers-color-scheme: dark)'
+
+    function getStoredTheme() {
+      try {
+        return localStorage.getItem('theme')
+      } catch {
+        return null
+      }
+    }
+
+    function resolveTheme(theme) {
+      if (!theme || theme === 'system') {
+        return window.matchMedia(MEDIA_QUERY).matches ? 'dark' : 'light'
+      }
+      return theme
+    }
+
+    function applyTheme(theme = getStoredTheme()) {
+      const resolvedTheme = resolveTheme(theme)
+      document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', resolvedTheme === 'dark' ? DARK_COLOR : LIGHT_COLOR)
+      return theme ?? 'system'
+    }
+
+    function mountToast(message) {
+      if (!message || !document.body) return
+
+      const toast = document.createElement('div')
+      toast.className =
+        'animate fixed bottom-8 z-20 flex items-center gap-2 rounded-lg border bg-muted px-4 py-2 text-foreground shadow-lg'
+      toast.innerHTML = [
+        "<svg width='22' height='22' viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>",
+        '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 5a1.25 1.25 0 1 1-1.25 1.25A1.25 1.25 0 0 1 12 7Zm1.25 10h-2.5v-1.5h.5v-4h-.5V10h2v5.5h.5Z"/>',
+        '</svg>',
+        `<span>${message}</span>`
+      ].join('')
+      document.body.appendChild(toast)
+      window.setTimeout(() => {
+        toast.remove()
+      }, 3000)
+    }
+
+    applyTheme()
+
+    if (!window.__joyeThemeChangeListenerBound) {
+      const mediaQuery = window.matchMedia(MEDIA_QUERY)
+      const handleThemeChange = () => {
+        const storedTheme = getStoredTheme()
+        if (!storedTheme || storedTheme === 'system') {
+          applyTheme(storedTheme)
+        }
+      }
+
+      if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', handleThemeChange)
+      }
+
+      window.__joyeThemeChangeListenerBound = true
+    }
+
+    if (!window.__joyeThemePageLoadListenerBound) {
+      document.addEventListener('astro:page-load', () => {
+        applyTheme()
+      })
+      window.__joyeThemePageLoadListenerBound = true
+    }
+
+    if (!window.__joyeToastListenerBound) {
+      document.addEventListener('toast', (event) => {
+        mountToast(event.detail?.message)
+      })
+      window.__joyeToastListenerBound = true
+    }
+  })()
+</script>
