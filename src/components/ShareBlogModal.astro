@@ -1,0 +1,184 @@
+---
+import BlogCard from './BlogCard.astro'
+import { cn } from 'astro-pure/utils'
+
+const { class: className, blogUrl = '/blog' } = Astro.props
+---
+
+<div
+  id='share-blog-modal'
+  class={cn(
+    className,
+    'fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm'
+  )}
+  aria-hidden='true'
+>
+  <div
+    class='share-modal-content relative mx-4 w-full max-w-md animate-in fade-in zoom-in-95 duration-200'
+    role='dialog'
+    aria-modal='true'
+    aria-labelledby='share-modal-title'
+  >
+    <button
+      class='absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background border border-border text-foreground shadow-lg transition-all hover:scale-110 hover:bg-muted'
+      aria-label='Close share modal'
+      data-close-modal
+    >
+      <svg
+        xmlns='http://www.w3.org/2000/svg'
+        width='16'
+        height='16'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+      >
+        <line x1='18' y1='6' x2='6' y2='18'></line>
+        <line x1='6' y1='6' x2='18' y2='18'></line>
+      </svg>
+    </button>
+
+    <BlogCard href={blogUrl} />
+
+    <div class='mt-4 flex flex-col gap-2'>
+      <p class='text-center text-sm text-muted-foreground'>Share this blog</p>
+      <div class='flex justify-center gap-2'>
+        <button
+          data-share-action='copy'
+          class='flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-muted hover:border-foreground/25'
+          title='Copy link'
+        >
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            stroke-width='2'
+            stroke-linecap='round'
+            stroke-linejoin='round'
+          >
+            <rect x='9' y='9' width='13' height='13' rx='2' ry='2'></rect>
+            <path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'></path>
+          </svg>
+          Copy Link
+        </button>
+        <button
+          data-share-action='twitter'
+          class='flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium transition-all hover:bg-muted hover:border-foreground/25'
+          title='Share on Twitter'
+        >
+          <svg
+            xmlns='http://www.w3.org/2000/svg'
+            width='16'
+            height='16'
+            viewBox='0 0 24 24'
+            fill='none'
+            stroke='currentColor'
+            stroke-width='2'
+            stroke-linecap='round'
+            stroke-linejoin='round'
+          >
+            <path
+              d='M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z'
+            ></path>
+          </svg>
+          Twitter
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('share-blog-modal')
+  const closeButton = modal?.querySelector('[data-close-modal]')
+  const copyButton = modal?.querySelector('[data-share-action="copy"]')
+  const twitterButton = modal?.querySelector('[data-share-action="twitter"]')
+
+  function openModal() {
+    if (!modal) return
+    modal.classList.remove('hidden')
+    modal.classList.add('flex')
+    modal.setAttribute('aria-hidden', 'false')
+    document.body.style.overflow = 'hidden'
+  }
+
+  function closeModal() {
+    if (!modal) return
+    modal.classList.add('hidden')
+    modal.classList.remove('flex')
+    modal.setAttribute('aria-hidden', 'true')
+    document.body.style.overflow = ''
+  }
+
+  // Close on backdrop click
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal()
+    }
+  })
+
+  // Close on button click
+  closeButton?.addEventListener('click', closeModal)
+
+  // Close on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+      closeModal()
+    }
+  })
+
+  // Copy link
+  copyButton?.addEventListener('click', async () => {
+    const url = window.location.origin + '/blog'
+    try {
+      await navigator.clipboard.writeText(url)
+      const originalText = copyButton.innerHTML
+      copyButton.innerHTML = '<span>✓ Copied!</span>'
+      setTimeout(() => {
+        copyButton.innerHTML = originalText
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  })
+
+  // Share on Twitter
+  twitterButton?.addEventListener('click', () => {
+    const url = window.location.origin + '/blog'
+    const text = 'Check out this blog!'
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+    window.open(twitterUrl, '_blank', 'width=550,height=420')
+  })
+
+  // Export function to be called by the share button
+  ;(window as any).openShareBlogModal = openModal
+</script>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes zoom-in-95 {
+    from {
+      transform: scale(0.95);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  .animate-in {
+    animation: fade-in 0.2s ease-out, zoom-in-95 0.2s ease-out;
+  }
+</style>

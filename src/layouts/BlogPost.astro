@@ -8,6 +8,8 @@ import 'katex/dist/katex.min.css'
 import { Comment, MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
+import ShareBlogButton from '@/components/ShareBlogButton.astro'
+import ShareBlogModal from '@/components/ShareBlogModal.astro'
 import { integ } from '@/site-config'
 
 interface Props {
@@ -55,6 +57,10 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
   <slot />
 
   <Fragment slot='bottom'>
+    {/* Share Blog Button */}
+    <div class='flex justify-center my-6'>
+      <ShareBlogButton variant='default' />
+    </div>
     {/* Copyright */}
     <Copyright {data} />
     {/* Article recommend */}
@@ -67,3 +73,5 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
 </PageLayout>
 
 {integ.mediumZoom.enable && <MediumZoom />}
+
+<ShareBlogModal />
