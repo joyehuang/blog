@@ -1,31 +1,34 @@
 ---
 import { PFSearch } from 'astro-pure/components/pages'
 import { Button } from 'astro-pure/user'
+import { getLocaleFromPathname, getUiCopy, localizeHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import { integ } from '@/site-config'
 
+const locale = getLocaleFromPathname(Astro.url.pathname)
+const copy = getUiCopy(locale)
 const meta = {
-  description: 'Search relative posts of the whole blog',
-  title: 'Search'
+  description: copy.search.metaDescription,
+  title: copy.search.metaTitle
 }
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/blog' style='back' />
+  <Button title={copy.common.back} href={localizeHref(locale, '/blog')} style='back' />
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
-      <h1 class='mb-6 text-3xl font-medium'>Search</h1>
+      <h1 class='mb-6 text-3xl font-medium'>{copy.search.title}</h1>
     </div>
 
     <div id='content' class='animate'>
       {
         integ.pagefind ? (
           <>
-            <p>Enter a search term or phrase to search the blog.</p>
+            <p>{copy.search.prompt}</p>
             <PFSearch />
           </>
         ) : (
-          <p>Pagefind is disabled.</p>
+          <p>{copy.search.disabled}</p>
         )
       }
     </div>

@@ -2,22 +2,25 @@
 import { getBlogCollection, getUniqueTagsWithCount } from 'astro-pure/server'
 import { Button } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
+import { getLocaleFromPathname, getUiCopy, localizeHref } from '@/i18n'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 const allPosts = await getBlogCollection()
 const allTags = getUniqueTagsWithCount(allPosts)
+const locale = getLocaleFromPathname(Astro.url.pathname)
+const copy = getUiCopy(locale)
 
 const meta = {
-  description: "A list of all the topics I've written about in my posts",
-  title: 'All Tags'
+  description: copy.tagsIndex.metaDescription,
+  title: copy.tagsIndex.metaTitle
 }
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/blog' style='back' />
+  <Button title={copy.common.back} href={localizeHref(locale, '/blog')} style='back' />
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
-      <h1 class='mb-6 text-3xl font-medium'>Tags</h1>
+      <h1 class='mb-6 text-3xl font-medium'>{copy.tagsIndex.title}</h1>
     </div>
 
     <div id='content' class='animate'>
@@ -27,7 +30,7 @@ const meta = {
             {allTags.map(([tag, val]) => (
               <li>
                 <Button
-                  href={`/tags/${tag}`}
+                  href={localizeHref(locale, `/tags/${tag}`)}
                   style='pill'
                   class={cn(
                     'items-start gap-x-1',
@@ -41,7 +44,7 @@ const meta = {
             ))}
           </ul>
         ) : (
-          <p>Any tag yet.</p>
+          <p>{copy.tagsIndex.empty}</p>
         )
       }
     </div>

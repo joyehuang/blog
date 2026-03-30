@@ -2,9 +2,9 @@
 import { Footer, Header } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import Analytics from '@vercel/analytics/astro'
+import { getLocaleFromPathname, getLocaleMeta, getUiCopy } from '@/i18n'
 import BaseHead from '@/components/BaseHead.astro'
 import ThemeProvider from '@/components/ThemeProvider.astro'
-import config from '@/site-config'
 
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseLayout /> component.
@@ -15,14 +15,17 @@ interface Props {
   highlightColor?: string
 }
 
+const locale = getLocaleFromPathname(Astro.url.pathname)
+const copy = getUiCopy(locale)
+const { htmlLang } = getLocaleMeta(locale)
 const {
-  meta: { articleDate, description = config.description, ogImage, title },
+  meta: { articleDate, description = copy.site.description, ogImage, title },
   highlightColor,
   ...props
 } = Astro.props
 ---
 
-<html lang={config.locale.lang}>
+<html lang={htmlLang}>
   <head>
     <BaseHead {articleDate} {description} {ogImage} {title} />
     <ThemeProvider />
