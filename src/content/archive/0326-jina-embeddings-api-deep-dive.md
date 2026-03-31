@@ -2,7 +2,7 @@
 title: Jina Embeddings API 深度解析
 description: 关于 Jina Embeddings 在多语言检索、长文本、Late Chunking、v4/v5 选型上的整理笔记。
 date: 2026-03-14
-updatedDate: 2026-03-25
+updatedDate: 2026-03-31
 tags:
   - ai
   - llm
@@ -17,24 +17,25 @@ draft: false
 
 ## 核心内容
 
-这是一次围绕 **Jina Embeddings API** 的调研整理，重点在于它是否适合做：
+这张卡片最初来自一轮 Gemini 对话整理，但这次我重新用浏览器实际阅读了 Jina 官方产品页与 v4 / v5 release note，补掉了之前“只写结论、没真正读新增网页”的问题。
 
-- 多语言检索，尤其是中文 / 多语言混合场景
-- 长文本 embedding
-- 多模态 RAG
-- 面向 Agent / SaaS 产品的检索基础设施
+这次重新确认的重点是：
+
+- Jina 官方现在到底把 embeddings 产品如何定位
+- v4 的真实卖点是不是不只是“多模态”
+- v5 的重点到底是“更强”，还是“更适合生产部署”
+- 哪些信息来自真正读到的官网页面，哪些只是之前的二手总结
 
 结论先写在前面：
 
-> 如果目标是做中文友好、多语言、长文档、并且强调检索质量的 RAG，Jina 目前非常值得认真看。
+> 如果目标是做多语言检索、长文档 RAG、或未来要延伸到多模态检索，Jina 依然很值得认真看；但更准确地说，**v4 更像多模态 / visually-rich retrieval 基础设施，v5 更像面向生产环境压缩后的文本 embedding 基础层。**
 
-它的优势不只是“某个 embedding 模型分数高”，而是整套检索导向能力比较完整，尤其是：
+这次实际阅读后，我对它的判断更具体了：
 
-- 多语言表现强
-- 支持超长上下文
-- 有 **Late Chunking** 这种真正影响检索效果的机制
-- 支持 **Matryoshka** 维度压缩
-- v4 / v5 的产品定位相对清晰
+- Jina 的强项不只是 benchmark 分数
+- 它很在意 **检索任务分化**、**长上下文**、**维度压缩**、**部署形态**
+- 产品页本身已经把它明确包装成 **search / RAG / agent** 的底层能力，而不是单纯模型展示页
+- v4 / v5 的分工比我之前写得更清楚，也更工程化
 
 ## 要点整理
 
@@ -349,45 +350,119 @@ Jina 在多语言 embedding 排行里长期表现很强，尤其适合：
 
 这对快速试原型是加分项。
 
-### 新增：官方链接值得怎么看
-你这次给的三个链接里，我建议这样理解：
+### 新增：这次实际读到的官网信息
+这次我不是只看 URL 标题，而是直接用浏览器读了产品页与两篇 release note。几个之前没写扎实、现在可以明确落下来的点：
 
-#### 1. `jina.ai/embeddings/`
-这是产品入口页，不是技术论文，但它很适合快速确认：
+#### 1. `jina.ai/embeddings/` 产品页透露的，不只是“有 API”
+产品页本身是个可交互的 API playground，不只是 marketing landing page。实际能看到：
 
-- API 入口
-- 支持的模型族
-- 当前主推的是 `v5-text` 和 `v4`
-- rate limit / pricing / 使用方式
-- 这套服务是给 search / RAG / agent 用的，不只是学术模型展示
+- 页面直接把 embeddings 定位成 **search / RAG / agent** 的底层能力
+- 有在线请求示例、模型选择、输出格式选择
+- 暴露出若干工程上很实用的参数与概念：
+  - `normalized` / L2 normalization
+  - `embedding_type` / `embedding_types`
+  - `encoding_format`
+  - `output_dtype`
+- 页面里明确把输出格式区分成：
+  - 默认 float
+  - binary
+  - base64
 
-#### 2. `v4` release note
-这篇最值得看的不是“它很强”，而是：
+这说明它不只是“给你一个向量”，而是在 API 设计层就考虑了：
 
-- v4 的目标就是 **multimodal + multilingual retrieval**
-- 它不是普通 CLIP 替代品，而是更偏检索系统基础设施
-- 官方特别强调 visually rich retrieval
-- 并且支持 **single-vector / multi-vector** 双模式
+- 相似度计算方式
+- 存储紧凑性
+- 传输效率
 
-所以如果你以后做：
-- 带图片的知识库
-- 图文混合资料库
-- 截图 / 表格 / 图表检索
+另外，产品页还直接出现了：
 
-这篇比 benchmark 分数更有价值。
+- 免费试用 key 的 daily usage limit 提示
+- rate limit / FAQ / docs / status 等入口
 
-#### 3. `v5` release note
-这篇我觉得你其实更应该看，因为它更贴近工程现实。
+所以产品页传递出来的真实信号是：
 
-核心不是“又一个新 embedding”，而是：
+> Jina 把 embeddings 当成一层可运营、可计费、可部署、可调参数的检索基础设施，而不是一个孤立模型页面。
 
-> Jina 想把大模型级别 embedding 质量，蒸馏到 sub-1B、可量化、可边缘部署、可大规模上线的小模型体系里。
+#### 2. `v4` release note 的重点比“多模态”更窄也更准
+这次读完后，我会把 v4 理解成：
 
-对真正做系统的人来说，这比单纯追最大模型更重要。
+> **面向 visually rich retrieval 的多模态 / 多语言 embedding 基础设施。**
+
+官方页面里比较关键的点包括：
+
+- `3.8B` 参数
+- backbone 是 `Qwen2.5-VL-3B-Instruct`
+- 支持 **single-vector** 和 **multi-vector**
+- multi-vector 明确是为了 **late interaction retrieval**
+- 强调对这些内容检索特别强：
+  - charts
+  - diagrams
+  - tables
+  - mixed-media / visually rich documents
+
+此外，release note 里还有几个比我之前写得更具体的数据：
+
+- 相比 `text-embedding-3-large`，它在多语言检索上给出了 **66.49 vs 59.27** 的对比
+- 在长文档任务上给出了 **67.11 vs 52.42**
+- 在代码检索上对比 `voyage-3` 给出了 **71.59 vs 67.23**
+- 文章把它和 `gemini-embedding-001` 也放在同一比较语境里
+
+还有一个很重要的结构信息：
+
+- v4 从 v3 的“纯文本 embedding”升级成了“文本 + 图像统一表示”
+- 单向量输出是 **2048 dims，可截断到 128**
+- 多向量输出是 **每 token 128 dims**
+- v4 原生上下文长度写到 **32,768 tokens**
+
+所以 v4 的真正价值不是“能做图文检索”这么宽泛，而是：
+
+- 更适合视觉信息密度高的知识库
+- 更适合文档截图、README、图表、表格这类内容
+- 更适合需要 late interaction 的高质量检索
+
+#### 3. `v5` release note 确实更偏“生产环境优化”
+这次读下来，我更确信 v5 的主叙事不是“规模更大”，而是：
+
+> **把接近大模型质量的 retrieval 能力，蒸馏到 sub-1B、可量化、可本地部署的文本 embedding 模型里。**
+
+页面里明确列出的信息包括：
+
+- `v5-text-small`: `677M`
+- `v5-text-nano`: `239M`
+- `small` 支持 `32K` context
+- `nano` 支持 `8K` context
+- `small` 用 `Qwen3-0.6B-Base`
+- `nano` 用 `EuroBERT-210m`
+- 两个模型都采用 **last-token pooling**
+- 有 **4 个 task-specific LoRA adapters**：
+  - retrieval
+  - text-matching
+  - classification
+  - clustering
+- 支持 **Matryoshka** 维度截断：
+  - `small`: `32-1024`
+  - `nano`: `32-768`
+
+benchmark 叙事也比之前更具体：
+
+- `v5-text-small` 在 MMTEB 上是 **67.0**
+- `v5-text-nano` 在 MMTEB 上是 **65.5**
+- `v5-text-small` 在英文 MTEB 上是 **71.7**
+- `v5-text-nano` 在英文 MTEB 上是 **71.0**
+- `v5-text-small` 的 retrieval task-level average 是 **63.28**
+- 页面明确写它在 retrieval 上基本追平 `jina-embeddings-v4 (63.62)`，同时 **小 5.6x**
+
+这让 v5 的定位非常清晰：
+
+- 如果你要的是 **纯文本检索**
+- 要考虑 **成本 / 部署 / 边缘设备 / Apple Silicon / 量化**
+- 又不想明显牺牲检索质量
+
+那 v5 可能比 v4 更值得优先试。
 
 ## 当前理解 / 结论
 
-我现在对 Jina Embeddings 的判断是：
+这次重新读完官方页面后，我对 Jina Embeddings 的判断是：
 
 ### 适合认真尝试的情况
 - 中文或多语言 RAG
@@ -422,6 +497,12 @@ Jina 在多语言 embedding 排行里长期表现很强，尤其适合：
 ## 相关链接 / 来源
 
 - Gemini 分享原文：<https://gemini.google.com/share/c221a0c3c0cc>
-- Jina Embeddings 产品页：<https://jina.ai/embeddings/>
-- Jina Embeddings v4 release note：<https://jina.ai/news/jina-embeddings-v4-universal-embeddings-for-multimodal-multilingual-retrieval/>
-- Jina Embeddings v5 release note：<https://jina.ai/news/jina-embeddings-v5-text-distilling-4b-quality-into-sub-1b-multilingual-embeddings/>
+- Jina Embeddings 产品页（本次已实际浏览阅读）：<https://jina.ai/embeddings/>
+- Jina Embeddings v4 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v4-universal-embeddings-for-multimodal-multilingual-retrieval/>
+- Jina Embeddings v5 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v5-text-distilling-4b-quality-into-sub-1b-multilingual-embeddings/>
+
+## 备注
+
+- 这次补充是基于浏览器直接阅读官网渲染后的页面内容，而不是只依据链接标题或对话摘要。
+- 产品页是交互式页面，能看到 API playground、参数项、计费 / usage 提示等真实产品信息。
+- 页面里出现了账号相关界面元素，但这里不记录任何密钥、个人额度或敏感内容。
