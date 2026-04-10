@@ -9,27 +9,29 @@ tags: ['AI Agent', 'Harness', 'Claude Code', 'OpenHarness', '源码解析', 'Pyt
 
 我用 Claude Code 已经快半年了，它是我每天都在用的主力 Coding 工具。但有一个问题一直困扰我：**我从来没有真正看到过它内部长什么样**。
 
-Claude Code 是 TypeScript 写的闭源产品，代码还做了混淆。作为一个想往 AI Agent 全栈方向发展的开发者，我很清楚光会"用"是不够的，我需要理解一个生产级 Agent 到底是怎么造出来的。
+Claude Code 是 TypeScript 写的闭源产品，代码还做了混淆。作为一个想往 AI Agent 全栈方向发展的开发者，我很清楚光会"用"是不够的——我需要理解一个生产级 Agent 到底是怎么造出来的。
 
-前几天 HKUDS 实验室，也就是做出 Nanobot 的那个香港大学团队，开源了 **OpenHarness**，一个用 Python 把 Claude Code 核心架构重写了一遍的项目。只有 11,733 行代码，却实现了 43 个工具、54 个命令，以及完整的 Agent Loop、权限系统、插件系统、多 Agent 协作。
+前几天 HKUDS 实验室（就是做出 Nanobot 的那个香港大学团队）开源了 **OpenHarness**，一个用 Python 把 Claude Code 核心架构重写了一遍的项目。只有 11,733 行代码，却实现了 43 个工具、54 个命令，以及完整的 Agent Loop、权限系统、插件系统、多 Agent 协作。
 
 这对我来说简直是天降甘霖。
 
-> **什么是 Harness？** 如果你看过 OpenAI 和 Anthropic 最近关于 Agent 的论文，应该知道一个共识，**模型负责智能，Harness 负责一切其他**。Harness 是包裹在 LLM 外面的完整基础设施，包括工具、记忆、权限、上下文、多 Agent 协作。用项目作者的话说，*"The model is the agent. The code is the harness."*
+> **什么是 Harness？** 如果你看过 OpenAI 和 Anthropic 最近关于 Agent 的论文，应该知道一个共识：**模型负责智能，Harness 负责一切其他**。Harness 是包裹在 LLM 外面的完整基础设施——工具、记忆、权限、上下文、多 Agent 协作。用项目作者的话说：*"The model is the agent. The code is the harness."*
 
-这篇文章是我花一天时间啃完 OpenHarness 核心架构的学习笔记。我会带你走完整个 Phase 1，也就是**从你敲下 `oh` 命令的那一刻起，一直到 Agent Loop 的心脏**。
+这篇文章是我花一天时间啃完 OpenHarness 核心架构的学习笔记。我会带你走完整个 Phase 1：**从你敲下 `oh` 命令的那一刻起，一直到 Agent Loop 的心脏**。
 
 为什么这个项目值得学？三个理由：
 
-1. **它足够小**，11,733 行 Python vs Claude Code 的 512,664 行 TypeScript，44 倍精简
-2. **它足够完整**，该有的都有，Agent Loop、Tools、Hooks、MCP、Plugins、Multi-Agent
-3. **它足够真实**，不是教学玩具，是能实际用的生产级实现
+1. **它足够小**：11,733 行 Python vs Claude Code 的 512,664 行 TypeScript，44 倍精简
+2. **它足够完整**：该有的都有，Agent Loop、Tools、Hooks、MCP、Plugins、Multi-Agent
+3. **它足够真实**：不是教学玩具，是能实际用的生产级实现
 
 好，上路。
 
-## 一、14 个子系统，先看全貌
+---
 
-打开 `src/openharness/` 目录，你会看到整个项目切成 14 个子模块。我第一次看的时候有点懵，这么多东西，该从哪里开始？
+## 一、14 个子系统：先看全貌
+
+打开 `src/openharness/` 目录，你会看到整个项目切成 14 个子模块。我第一次看的时候有点懵——这么多东西，该从哪里开始？
 
 花了一点时间把每个模块的 `__init__.py` 扫了一遍，我画出了这张结构图：
 
@@ -69,21 +71,23 @@ src/openharness/
 └── keybindings/           ← 快捷键配置
 ```
 
-这里有个关键的观察，**这 14 个模块不是平级的**。它们可以分成三层：
+这里有个关键的观察：**这 14 个模块不是平级的**。它们可以分成三层：
 
-- **执行层**：engine、tools、permissions、hooks，Agent 怎么跑
-- **知识层**：prompts、skills、memory，Agent 知道什么
-- **扩展层**：mcp、plugins、coordinator、tasks、commands，Agent 怎么连接外部世界
+- **执行层**：engine、tools、permissions、hooks —— Agent 怎么跑
+- **知识层**：prompts、skills、memory —— Agent 知道什么
+- **扩展层**：mcp、plugins、coordinator、tasks、commands —— Agent 怎么连接外部世界
 
-如果你是第一次读这种项目，我建议按执行层 → 知识层 → 扩展层的顺序读，主干抓住了，其他都是挂件。
+如果你是第一次读这种项目，建议按执行层 → 知识层 → 扩展层的顺序读，主干抓住了其他都是挂件。
 
-## 二、从 `oh` 到 Agent 准备就绪，完整启动链路
+---
+
+## 二、从 `oh` 到 Agent 准备就绪：完整启动链路
 
 我们从用户敲下 `uv run oh` 的那一刻开始，跟着数据走一遍。
 
 ### 入口：Typer CLI
 
-打开 `src/openharness/cli.py`，你会看到熟悉的 CLI 参数定义。这个项目用的是 [Typer](https://typer.tiangolo.com/)，如果你写过 Python，可以把它理解成 Python 版的 `yargs` 或者 `commander`：
+打开 `src/openharness/cli.py`，你会看到熟悉的 CLI 参数定义。这个项目用的是 [Typer](https://typer.tiangolo.com/)——如果你写过 Python，可以把它理解成 Python 版的 `yargs` 或者 `commander`：
 
 ```python
 # cli.py:12-21
@@ -94,7 +98,7 @@ app = typer.Typer(
 )
 ```
 
-所有 CLI 参数都定义在 `main()` 函数里，也就是 `cli.py:179-334` 这一段，包括 `-p/--print`、`--model`、`--permission-mode` 等等。参数解析完后，代码会走到这里：
+所有 CLI 参数都定义在 `main()` 函数里（`cli.py:179-334`），包括 `-p/--print`、`--model`、`--permission-mode` 等等。参数解析完后，代码会走到这里：
 
 ```python
 # cli.py:346-377
@@ -107,7 +111,7 @@ if print_mode is not None:
 asyncio.run(run_repl(...))
 ```
 
-两条路，**交互模式**（默认）和 **print 模式**（`-p` 参数）。Print 模式是单进程直出，适合脚本集成。交互模式会启动漂亮的 React TUI，这也是你日常使用时看到的界面。
+两条路：**交互模式**（默认）和 **print 模式**（`-p` 参数）。Print 模式是单进程直出，适合脚本集成；交互模式会启动漂亮的 React TUI，这也是你日常使用时看到的界面。
 
 ### 让我困惑了很久的双进程架构
 
@@ -136,7 +140,7 @@ process = await asyncio.create_subprocess_exec(
 )
 ```
 
-看到这里我一下子明白了，**OpenHarness 交互模式下实际上跑了两个进程**。
+看到这里我一下子明白了：**OpenHarness 交互模式下实际上跑了两个进程**。
 
 完整的启动链是这样的：
 
@@ -155,33 +159,33 @@ process = await asyncio.create_subprocess_exec(
          → 进程 A 使命完成，退出
 ```
 
-最终只有两个进程在运行，**Node.js（UI）** 和 **Python B（Agent 引擎）**。它们通过 stdin/stdout 的 JSON-lines 协议通信。
+最终只有两个进程在运行：**Node.js（UI）**和 **Python B（Agent 引擎）**。它们通过 stdin/stdout 的 JSON-lines 协议通信。
 
 ### 为什么要这样设计？
 
-这是整个启动流程里最有意思的架构决策。说白了就是**语言生态的选择**。
+这是整个启动流程里最有意思的架构决策。说白了就是**语言生态的选择**：
 
 | 需求 | 最好的工具 |
-| --- | --- |
+|------|-----------|
 | 复杂终端 UI（语法高亮、弹窗、动画） | React/Ink（Node.js 生态） |
 | AI Agent 引擎（LLM SDK、asyncio、文件系统） | Python 生态 |
 
 两个需求最好的工具在不同的语言里。与其在一个语言里凑合，不如让两个进程各做各最擅长的事，通过 JSON 通信。
 
-这个思路你应该很熟悉。你写 Next.js 的时候，浏览器跑 React，服务器跑 Node.js，通过 HTTP 通信。OpenHarness 把 HTTP 换成了更简单的 stdin/stdout JSON-lines，因为它们跑在同一台机器、同一个终端里，不需要网络栈。
+这个思路你应该很熟悉——**你写 Next.js 的时候，浏览器跑 React，服务器跑 Node.js，通过 HTTP 通信**。OpenHarness 把 HTTP 换成了更简单的 stdin/stdout JSON-lines，因为它们跑在同一台机器、同一个终端里，不需要网络栈。
 
 ### 通信协议长什么样
 
 看 `ui/protocol.py`，前后端的消息契约用 Pydantic 模型定义得清清楚楚。
 
-**前端 → 后端**：
+**前端 → 后端**（`protocol.py:15-22`）：
 
 ```python
 class FrontendRequest(BaseModel):
     type: Literal[
-        "submit_line",
-        "permission_response",
-        "question_response",
+        "submit_line",           # 用户输入一行
+        "permission_response",   # 权限弹窗的回答
+        "question_response",     # 问题弹窗的回答
         "list_sessions",
         "shutdown",
     ]
@@ -190,11 +194,11 @@ class FrontendRequest(BaseModel):
     answer: str | None = None
 ```
 
-**后端 → 前端** 则是 14 种事件类型，包括 `assistant_delta`、`tool_started`、`tool_completed`、`modal_request` 等等。
+**后端 → 前端**（`protocol.py:55-86`）：14 种事件类型，包括 `assistant_delta`（流式文本）、`tool_started`/`tool_completed`（工具生命周期）、`modal_request`（弹窗请求）等等。
 
-这个协议的精髓是，**每行一个 JSON 对象，读写就是 stdin/stdout**。没有端口、没有握手、没有超时重试。当你调试的时候，直接看日志就能看到所有通信内容。
+这个协议的精髓是：**每行一个 JSON 对象，读写就是 stdin/stdout**。没有端口、没有握手、没有超时重试。当你调试的时候直接 tail 日志就能看到所有通信内容。
 
-### `build_runtime()`，整个 Harness 的装配线
+### `build_runtime()`：整个 Harness 的装配线
 
 后端进程 B 启动后的第一件事，就是调用 `ui/runtime.py:89` 的 `build_runtime()` 函数。这是整个项目最重要的一个函数，它把所有子系统装配成一个 `RuntimeBundle`：
 
@@ -223,23 +227,29 @@ async def build_runtime(...) -> RuntimeBundle:
         ...
     )
 
-    return RuntimeBundle(...)
+    return RuntimeBundle(
+        api_client=resolved_api_client,
+        tool_registry=tool_registry,
+        hook_executor=hook_executor,
+        engine=engine,
+        ...
+    )
 ```
 
-注意看这些依赖是怎么组装的：
+注意看这些依赖是**怎么组装**的：
 
-1. 先加载 settings 和 plugins
+1. 先加载 settings 和 plugins（数据配置）
 2. 用 settings 创建 `AnthropicApiClient`
 3. 创建 `McpClientManager` 并连接所有外部服务器
-4. 创建 `ToolRegistry`，把 43 个 Tool 都注册进去
+4. 创建 `ToolRegistry`（把 43 个 Tool 都注册进去）
 5. 创建 `HookExecutor`
 6. 最后把上面所有东西作为参数传给 `QueryEngine`
 
 这就是经典的**依赖注入模式**。`QueryEngine` 不自己创建任何依赖，全部从外面传进来。好处很直接：
 
-- **测试时** 可以传 mock 的 `api_client` 和 mock 的 `tool_registry`
-- **换 Kimi 时** 只需要改 `settings.base_url`，`QueryEngine` 一行代码都不用改
-- **切模式时** headless、print、interactive 可以共用同一套核心
+- **测试时**：可以传 mock 的 `api_client` 和 mock 的 `tool_registry`
+- **换 Kimi 时**：只需要改 `settings.base_url`，`QueryEngine` 一行代码都不用改
+- **切模式时**：headless/print/interactive 可以共用同一套核心
 
 ### RuntimeBundle：所有依赖的容器
 
@@ -248,25 +258,27 @@ async def build_runtime(...) -> RuntimeBundle:
 ```python
 @dataclass
 class RuntimeBundle:
-    api_client: SupportsStreamingMessages
-    cwd: str
-    mcp_manager: McpClientManager
-    tool_registry: ToolRegistry
-    app_state: AppStateStore
-    hook_executor: HookExecutor
-    engine: QueryEngine
-    commands: object
+    api_client: SupportsStreamingMessages   # LLM API 客户端
+    cwd: str                                 # 工作目录
+    mcp_manager: McpClientManager           # MCP 外部工具
+    tool_registry: ToolRegistry             # 43 个 Tool
+    app_state: AppStateStore                # UI 状态
+    hook_executor: HookExecutor             # 生命周期 Hook
+    engine: QueryEngine                     # Agent Loop 引擎
+    commands: object                        # 斜杠命令
     external_api_client: bool
     session_id: str = ""
 ```
 
-用你熟悉的 React 术语来类比，**`RuntimeBundle` 就是把所有 Context Provider 打包成了一个对象**。以后不管哪个函数需要用到哪个子系统，都只要拿到 bundle 就行。
+用你熟悉的 React 术语来类比：**`RuntimeBundle` 就是把所有 Context Provider 打包成了一个对象**。以后不管哪个函数需要用到哪个子系统，都只要拿到 bundle 就行。
 
-这个模式比全局变量好太多，所有依赖关系都是显式的，测试时可以构造一个 mock bundle 来跑，完全不需要改业务代码。
+这个模式比全局变量好太多——所有依赖关系都是显式的，测试时可以构造一个 mock bundle 来跑，完全不需要改业务代码。
 
-## 三、Agent Loop，整个项目的心脏
+---
 
-终于到核心了。所有 Harness 工程最关键的问题都归结到一件事，**Agent Loop 是怎么跑的？**
+## 三、Agent Loop：整个项目的心脏
+
+终于到核心了。所有 Harness 工程最关键的问题都归结到一件事：**Agent Loop 是怎么跑的？**
 
 ### 普通 Chatbot vs Agent 的本质区别
 
@@ -276,11 +288,11 @@ class RuntimeBundle:
 用户发消息 → 调 API → AI 回复 → 结束
 ```
 
-但 Agent 不一样。AI 可能说“我需要先读一下这个文件”，然后你把文件内容给它，它又说“好的，我现在要编辑第 42 行”，你执行完再把结果给它，它再说“完成了”。
+但 Agent 不一样。AI 可能说「我需要先读一下这个文件」，然后你把文件内容给它，它又说「好的，我现在要编辑第 42 行」，你执行完再把结果给它，它再说「完成了」。
 
 **一个用户消息可能触发多轮 AI ↔ Tool 的交互**。
 
-这个循环就是 Agent Loop。它的实现出乎意料地简单，只有 **70 行代码**，全部在 `src/openharness/engine/query.py` 里。
+这个循环就是 Agent Loop。它的实现出乎意料地简单——只有 **70 行代码**，全部在 `src/openharness/engine/query.py` 里。
 
 ### 逐行走读 `run_query`
 
@@ -324,50 +336,50 @@ async def run_query(
             return
 ```
 
-这段代码有六个关键点。
+这段代码有六个关键点：
 
-**① Turn 循环**
+**① Turn 循环（第 58 行）**
 
 ```python
-for _ in range(context.max_turns):
+for _ in range(context.max_turns):   # 默认 8 轮
 ```
 
-安全兜底，防止 AI 陷入无限的 tool 调用死循环。
+安全兜底。防止 AI 陷入无限的 tool 调用死循环。
 
-**② 调 API 时把所有 tool 的 schema 一起传进去**
+**② 调 API 时把所有 tool 的 schema 一起传进去（第 68 行）**
 
 ```python
 tools=context.tool_registry.to_api_schema()
 ```
 
-这是让 AI “知道” 自己能做什么的关键。43 个工具的名字、描述、参数格式全部一次性告诉 AI，它才能决定在什么时候调用哪个。
+这是让 AI "知道" 自己能做什么的关键。43 个工具的名字、描述、参数格式全部一次性告诉 AI，它才能决定在什么时候调用哪个。这对应 Anthropic API 里的 `tools` 参数。
 
-**③ 流式处理两种事件**
+**③ 流式处理两种事件（第 71-77 行）**
 
 ```python
 if isinstance(event, ApiTextDeltaEvent):
-    yield AssistantTextDelta(text=event.text), None
+    yield AssistantTextDelta(text=event.text), None  # 打字增量
     continue
 
 if isinstance(event, ApiMessageCompleteEvent):
-    final_message = event.message
+    final_message = event.message  # 完整消息
     usage = event.usage
 ```
 
-Delta 事件立刻 yield 出去让 UI 展示“正在打字”的效果，Complete 事件记录完整消息和 token 消耗。这跟 Vercel AI SDK 的 `onToken` + `onFinish` 是一个套路。
+Delta 事件立刻 yield 出去让 UI 展示"正在打字"的效果，Complete 事件记录完整消息和 token 消耗。这跟 Vercel AI SDK 的 `onToken` + `onFinish` 是一个套路。
 
-**④ 整个 Agent 和 Chatbot 的分水岭**
+**④ 整个 Agent 和 Chatbot 的分水岭（第 85-86 行）**
 
 ```python
 if not final_message.tool_uses:
     return
 ```
 
-**就这两行。** AI 的回复里如果没有 `tool_use` 请求，说明它觉得任务完成了，整个 Agent Loop 结束。如果有 `tool_use`，就继续往下走执行工具。
+**就这两行。** AI 的回复里如果没有 tool_use 请求，说明它觉得任务完成了，整个 Agent Loop 结束。如果有 tool_use，就继续往下走执行工具。
 
-如果有人问你“Agent 和 Chatbot 的本质区别是什么”，指着这两行代码就够了。
+如果有人问你"Agent 和 Chatbot 的本质区别是什么"，指着这两行代码就够了。
 
-### 单 tool vs 多 tool，两种执行策略
+### 单 tool vs 多 tool：两种执行策略
 
 继续往下看，`query.py:88-118`：
 
@@ -375,6 +387,7 @@ if not final_message.tool_uses:
 tool_calls = final_message.tool_uses
 
 if len(tool_calls) == 1:
+    # Single tool: sequential (stream events immediately)
     tc = tool_calls[0]
     yield ToolExecutionStarted(tool_name=tc.name, tool_input=tc.input), None
     result = await _execute_tool_call(context, tc.name, tc.id, tc.input)
@@ -385,6 +398,7 @@ if len(tool_calls) == 1:
     ), None
     tool_results = [result]
 else:
+    # Multiple tools: execute concurrently, emit events after
     for tc in tool_calls:
         yield ToolExecutionStarted(tool_name=tc.name, tool_input=tc.input), None
 
@@ -404,47 +418,56 @@ else:
 
 这里有个很实用主义的设计：
 
-- **单个 tool**，流式事件优先，started 和 completed 一个一个来
-- **多个 tool**，并行速度优先，用 `asyncio.gather` 同时跑
+- **单个 tool**：流式事件优先，started 和 completed 一个一个来
+- **多个 tool**：并行速度优先，用 `asyncio.gather` 同时跑
 
-为什么要区分？因为这是**性能和用户体验的平衡**。
+为什么要区分？**性能和用户体验的平衡**。
 
 想象 AI 同时要求读 3 个文件：
+- 顺序执行：100ms + 100ms + 100ms = **300ms**
+- 并行执行：max(100, 100, 100) ≈ **100ms**
 
-- 顺序执行，`100ms + 100ms + 100ms = 300ms`
-- 并行执行，`max(100, 100, 100) ≈ 100ms`
+多 tool 并行能直接把延迟降到最慢那个 tool 的时间。这就是为什么 Claude Code 最近越来越喜欢让 AI 一次性调多个 tool——背后的并行机制就是 `asyncio.gather`，等价于你在 JS 里的 `Promise.all`。
 
-多 tool 并行能直接把延迟降到最慢那个 tool 的时间。这就是为什么 Claude Code 最近越来越喜欢让 AI 一次性调多个 tool，背后的并行机制就是 `asyncio.gather`，等价于你在 JS 里的 `Promise.all`。
-
-但单 tool 就没必要用 `asyncio.gather`，反而会损失即时反馈，所以代码特意分成两个分支。
+但单 tool 就没必要用 `asyncio.gather`，反而会损失即时反馈——所以代码特意分成两个分支。
 
 ### Tool 执行的安全链路
 
-每个 tool 在真正执行前，要经过一条完整的安全检查链。这在 `query.py:124-211` 的 `_execute_tool_call` 里：
+每个 tool 在真正执行前，要经过一条完整的安全检查链。这在 `query.py:124-211` 的 `_execute_tool_call` 函数里：
 
 ```txt
 AI 请求执行 tool
     │
     ▼
 ① PreToolUse Hook
+   → 例如 security-guidance 插件会检查危险命令
+   → Hook 可以直接 block 掉这次执行
     │
     ▼
 ② 找到 tool 实现
+   → tool_registry.get(tool_name)
     │
     ▼
 ③ 校验输入参数（用 Pydantic）
+   → tool.input_model.model_validate(tool_input)
+   → 类型不对直接报错
     │
     ▼
 ④ 权限检查
+   → permission_checker.evaluate(...)
+   → 检查 mode（default/plan/full_auto）
+   → 检查 path_rules（某些路径不允许）
+   → 检查 denied_commands（某些命令不允许）
+   → 如果需要确认 → 调 permission_prompt 弹窗
     │
     ▼
 ⑤ 真正执行 tool
     │
     ▼
-⑥ PostToolUse Hook
+⑥ PostToolUse Hook（记日志等）
 ```
 
-你在 Claude Code 里每次看到的 “Allow / Deny” 弹窗，就是第 ④ 步。这是代码里的实现：
+你在 Claude Code 里每次看到的 "Allow / Deny" 弹窗，就是第 ④ 步。这是代码里的实现（`query.py:168-182`）：
 
 ```python
 decision = context.permission_checker.evaluate(
@@ -464,13 +487,13 @@ if not decision.allowed:
             )
 ```
 
-`context.permission_prompt` 是一个异步回调函数。它在 print 模式是 no-op，在交互模式则会通过 `BackendEvent.modal_request` 发送给 React 前端，前端渲染弹窗，用户点 Allow / Deny 后再通过 `FrontendRequest.permission_response` 把结果回传。
+`context.permission_prompt` 是一个异步回调函数。它在 print 模式是 no-op（全部允许），在交互模式则会通过 `BackendEvent.modal_request` 发送给 React 前端，前端渲染弹窗，用户点 Allow/Deny 后再通过 `FrontendRequest.permission_response` 把结果回传。
 
-前面讲的双进程架构在这里体现得淋漓尽致，**权限弹窗是一个跨进程的异步等待**。
+前面讲的双进程架构在这里体现得淋漓尽致——**权限弹窗是一个跨进程的异步等待**。
 
 ### 完整的一次 Agent 循环
 
-用一个具体例子串一下。假设你问 AI：“读一下 README.md 然后总结。”
+用一个具体例子串一下。假设你问 AI "读一下 README.md 然后总结"：
 
 ```txt
 第 1 轮：
@@ -478,8 +501,15 @@ if not decision.allowed:
   → 调 API，传入所有 tool schema
   → AI 回复: "我来读一下" + tool_use: Read({ file_path: "README.md" })
   → tool_uses 非空，继续循环
-  → 执行 Read tool
+  → 执行 Read tool：
+    ① PreToolUse Hook 通过
+    ② tool_registry.get("Read") 找到工具
+    ③ Pydantic 校验 file_path
+    ④ 权限检查（只读操作，通过）
+    ⑤ 读文件
+    ⑥ PostToolUse Hook
   → 把 tool 结果作为 user 消息追加
+  → messages 现在有 3 条
 
 第 2 轮：
   → 调 API
@@ -488,7 +518,9 @@ if not decision.allowed:
   → return，循环结束
 ```
 
-这就是 Agent 的完整生命周期。两个 for 循环、一个 if 判断。**但这两行 `if not final_message.tool_uses: return` 就是 Agent 的灵魂**。
+这就是 Agent 的完整生命周期——两个 for 循环、一个 if 判断。**但这两行 `if not final_message.tool_uses: return` 就是 Agent 的灵魂**。
+
+---
 
 ## 四、几个值得记住的设计决策
 
@@ -496,7 +528,7 @@ if not decision.allowed:
 
 ### 决策 1：为什么用 `RuntimeBundle` 而不是全局变量？
 
-在一个会话生命周期里，很多东西，比如 api client、tool registry、permission checker，到处都要用。最偷懒的做法是做成模块级全局变量，哪个文件需要就 import。
+在一个会话生命周期里，很多东西（api client、tool registry、permission checker...）到处都要用。最偷懒的做法是做成模块级全局变量，哪个文件需要就 import。
 
 但 OpenHarness 选择把它们打包成 `RuntimeBundle` 沿途传递。代价是函数签名变长，好处是**依赖关系全部显式**，而且支持同时跑多个 session。
 
@@ -504,9 +536,9 @@ if not decision.allowed:
 
 ### 决策 2：为什么单 tool 和多 tool 要分两个分支？
 
-本来完全可以统一用 `asyncio.gather`，单 tool 相当于 gather 一个元素，代码更简洁。
+本来完全可以统一用 `asyncio.gather`，单 tool 相当于 gather 一个元素。代码更简洁。
 
-但 OpenHarness 特意分开，是因为**单 tool 场景下即时反馈比并行更重要**。用户点一次只执行一个工具时，希望看到 `started → (执行中) → completed` 的完整流。
+但 OpenHarness 特意分开，是因为**单 tool 场景下即时反馈比并行更重要**。用户点一次只执行一个工具时，希望看到 "started → (执行中) → completed" 的完整流。
 
 这是一个不易察觉的用户体验决策，但反映了作者对细节的在意。
 
@@ -516,11 +548,13 @@ if not decision.allowed:
 
 好处是多方面的：
 
-1. **自动生成 JSON Schema**，告诉 LLM 的 `tools` 参数可以直接从 Pydantic 模型生成
-2. **统一错误处理**，`query.py` 里一个 try / except 就能捕获所有 tool 的参数错误
-3. **类型安全**，tool 的 `execute` 方法拿到的就是一个强类型对象，不是 dict
+1. **自动生成 JSON Schema**：告诉 LLM 的 `tools` 参数可以直接从 Pydantic 模型生成
+2. **统一错误处理**：`query.py:150-157` 里用一个 try/except 就能捕获所有 tool 的参数错误
+3. **类型安全**：tool 的 `execute` 方法拿到的就是一个强类型的对象，不是 dict
 
 你在 TypeScript 里用 zod 做的事，这里用 Pydantic 做。
+
+---
 
 ## 五、学习路径建议
 
@@ -528,42 +562,44 @@ if not decision.allowed:
 
 ### 第一天：主干（Phase 1）
 
-1. `cli.py`，看 CLI 参数怎么组织
-2. `ui/app.py` + `ui/runtime.py`，看启动链路
-3. `ui/react_launcher.py` + `ui/backend_host.py`，理解双进程架构
-4. `ui/protocol.py`，看前后端通信协议
-5. `engine/query_engine.py` + `engine/query.py`，**重点，反复读**
-6. `engine/messages.py` + `engine/stream_events.py`，看数据结构
+1. `cli.py` → 看 CLI 参数怎么组织
+2. `ui/app.py` + `ui/runtime.py` → 看启动链路
+3. `ui/react_launcher.py` + `ui/backend_host.py` → 理解双进程架构
+4. `ui/protocol.py` → 看前后端通信协议
+5. `engine/query_engine.py` + `engine/query.py` → **重点，反复读**
+6. `engine/messages.py` + `engine/stream_events.py` → 数据结构
 
 ### 第二天：工具系统
 
-7. `tools/base.py`，看 Tool 基类
-8. `tools/__init__.py`，看注册表
+7. `tools/base.py` → Tool 基类
+8. `tools/__init__.py` → 注册表
 9. 挑 3 个代表性的 tool 深入读：
-   - `tools/bash_tool.py`
-   - `tools/file_edit_tool.py`
-   - `tools/agent_tool.py`
+   - `tools/bash_tool.py`（shell 执行）
+   - `tools/file_edit_tool.py`（文件编辑）
+   - `tools/agent_tool.py`（子 Agent 调用）
 
 ### 第三天：知识系统
 
-10. `prompts/system_prompt.py`，看 System Prompt 怎么组装
-11. `skills/registry.py`，看 Skills 怎么按需加载
-12. `memory/manager.py`，看持久记忆怎么工作
+10. `prompts/system_prompt.py` → System Prompt 怎么组装
+11. `skills/registry.py` → Skills 怎么按需加载
+12. `memory/manager.py` → 持久记忆怎么工作
 
 ### 第四天：扩展系统
 
-13. `permissions/checker.py`，看权限检查细节
-14. `hooks/executor.py`，看 Hook 执行器
-15. `plugins/loader.py`，看插件发现和加载
-16. `mcp/client.py`，看 MCP 协议
+13. `permissions/checker.py` → 权限检查细节
+14. `hooks/executor.py` → Hook 执行器
+15. `plugins/loader.py` → 插件发现和加载
+16. `mcp/client.py` → MCP 协议
+
+---
 
 ## 六、写在最后
 
-读完 Phase 1 之后，我对 “Agent Harness” 这个概念的理解彻底变了。
+读完 Phase 1 之后，我对"Agent Harness" 这个概念的理解彻底变了。
 
-以前觉得 Agent 是一个很神秘的东西。读完代码才发现，**它就是一个 for 循环 + 一个 if 判断**。神秘的部分全在模型里，Harness 干的都是工程活：给模型提供工具、检查权限、记录日志、管理会话、组装上下文。
+以前觉得 Agent 是一个很神秘的东西。读完代码才发现——**它就是一个 for 循环 + 一个 if 判断**。神秘的部分全在模型里，Harness 干的都是工程活：给模型提供工具、检查权限、记录日志、管理会话、组装上下文。
 
-这个认知对我来说很有价值。因为它意味着，**如果你理解了 Harness 的结构，你就能自己搭一个**。OpenAI 和 Anthropic 的论文里反复提到的那些概念，tool use、planning、reflection、memory、multi-agent，全部可以在 OpenHarness 的代码里找到对应实现。
+这个认知对我来说很有价值。因为它意味着：**如果你理解了 Harness 的结构，你就能自己搭一个**。OpenAI 和 Anthropic 的论文里反复提到的那些概念——tool use、planning、reflection、memory、multi-agent——全部可以在 OpenHarness 的代码里找到对应实现。
 
 我接下来会继续读 Phase 2-6，把剩下的 15 个 Topic 也啃完。等读完整个项目，我会再写一篇总结。
 
