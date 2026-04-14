@@ -2,13 +2,14 @@
 title: Jina Embeddings API 深度解析
 description: 关于 Jina Embeddings 在多语言检索、长文本、Late Chunking、v4/v5 选型上的整理笔记。
 date: 2026-03-14
-updatedDate: 2026-03-31
+updatedDate: 2026-04-14
 tags:
   - ai
   - llm
   - rag
   - embedding
   - jina
+  - qwen
 type: research
 status: ready
 source: https://gemini.google.com/share/c221a0c3c0cc
@@ -460,9 +461,90 @@ benchmark 叙事也比之前更具体：
 
 那 v5 可能比 v4 更值得优先试。
 
+## 新增补充：Jina Embeddings vs Qwen3 Embedding
+
+这次又补读了一份 Grok 分享内容，主题是把 Jina Embeddings 和 Qwen3-Embedding 放在一起比较。它不是官方文档，所以更适合当作一份选型视角整理，而不是硬 benchmark 定论，但有几个判断值得并进这张卡。
+
+### 一个很实用的总判断
+
+如果把两边的产品定位压缩成一句话：
+
+- **Qwen3-Embedding** 更像“高精度优先”的选手，尤其适合中文和多语言场景
+- **Jina Embeddings** 更像“高效、长文档、生产友好”的选手，尤其是 v5
+
+这个结论和我前面对 Jina 的理解并不冲突，反而补全了它在选型时的参照物。
+
+### 这份对比里值得记住的几个点
+
+#### 1. Qwen3 在中文、多语言精度上更值得优先考虑
+对比里反复强调：
+
+- Qwen3-Embedding 在中文 / 多语言任务上更强
+- Qwen3-Reranker 在中文重排上优势明显
+- 如果目标是追求极致精度，而不是先压成本，Qwen3-8B 会更像“上限更高”的选择
+
+这点很符合直觉，因为 Qwen 系列本身就更贴近中文生态。
+
+所以如果场景是：
+
+- 中文知识库
+- 中文问答
+- 混合中英资料但中文占大头
+- 对 rerank 质量很敏感
+
+那 Qwen3 这条线应该认真 benchmark，而不是默认只看 Jina。
+
+#### 2. Jina 更强的地方，不只是“小模型便宜”
+这份整理把 Jina 的优势概括得比较准确：
+
+- 长文档处理更稳
+- Late Chunking 思路更成熟
+- v4 能处理多模态内容
+- v5 在质量 / 体积比上非常强
+
+尤其是如果系统里会遇到：
+
+- 超长文档
+- PDF / 图表 /表格
+- 视觉信息密度高的资料
+- 需要更低部署成本
+
+那 Jina 依然是非常合理的优先候选。
+
+#### 3. 一个很现实的混合方案
+这份对比里我最认可的建议其实不是“二选一”，而是：
+
+- **粗召回** 用 Jina v5-small
+- **重排** 用 Qwen3-Reranker-4B / 8B
+
+这个组合很有工程味，因为它承认 embedding 和 reranking 的最优解未必来自同一家。
+
+如果目标是平衡：
+
+- 召回速度
+- 推理成本
+- 中文效果
+- 最终排序质量
+
+那这种混合方案比执着于单模型统一更现实。
+
+### 我现在对两者的工作性判断
+
+可以先这样记：
+
+- **要中文精度、多语言精度、指令感知、强 reranker 生态**，优先看 Qwen3
+- **要长文档、Late Chunking、多模态、生产部署性价比**，优先看 Jina
+- **要综合平衡**，可以考虑 `Jina recall + Qwen rerank`
+
+### 这次补充对原卡的影响
+
+它没有推翻原来对 Jina 的判断，而是让这张卡从“只看 Jina 自己强在哪”变成了“放到真实选型盘里，Jina 在哪里赢、Qwen 在哪里更强”。
+
+这比单看 Jina 官方 release note 更接近真正做系统时的决策方式。
+
 ## 当前理解 / 结论
 
-这次重新读完官方页面后，我对 Jina Embeddings 的判断是：
+这次重新读完官方页面、再补上与 Qwen3-Embedding 的对比后，我对 Jina Embeddings 的判断是：
 
 ### 适合认真尝试的情况
 - 中文或多语言 RAG
@@ -488,21 +570,24 @@ benchmark 叙事也比之前更具体：
 
 后面值得继续补的点：
 
-1. Jina 和 `BGE`、`Voyage`、`OpenAI text-embedding-3-large` 的更细对比
+1. Jina、Qwen3、`BGE`、`Voyage`、`OpenAI text-embedding-3-large` 的统一选型表
 2. Node.js / TypeScript 实际调用示例
 3. Late Chunking 的工程落地方式
 4. 向量维度压缩对 recall 的真实影响
 5. 在中文知识库场景中的真实体验
+6. `Jina recall + Qwen rerank` 这类混合 pipeline 的真实 benchmark
 
 ## 相关链接 / 来源
 
 - Gemini 分享原文：<https://gemini.google.com/share/c221a0c3c0cc>
+- Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_3d5fb2d0-7943-43ac-9f33-1781024a8f87>
 - Jina Embeddings 产品页（本次已实际浏览阅读）：<https://jina.ai/embeddings/>
 - Jina Embeddings v4 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v4-universal-embeddings-for-multimodal-multilingual-retrieval/>
 - Jina Embeddings v5 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v5-text-distilling-4b-quality-into-sub-1b-multilingual-embeddings/>
 
 ## 备注
 
-- 这次补充是基于浏览器直接阅读官网渲染后的页面内容，而不是只依据链接标题或对话摘要。
+- 这次补充一部分来自浏览器直接阅读 Jina 官网渲染页面，另一部分来自浏览器实际读取的 Grok 分享页内容。
+- Grok 分享更适合当作“选型整理”而不是原始官方 benchmark 来源，所以这里主要吸收的是对比框架和工程判断，不把其中数字直接当最终定论。
 - 产品页是交互式页面，能看到 API playground、参数项、计费 / usage 提示等真实产品信息。
 - 页面里出现了账号相关界面元素，但这里不记录任何密钥、个人额度或敏感内容。
