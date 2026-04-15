@@ -543,6 +543,7 @@ benchmark 叙事也比之前更具体：
 
 这比单看 Jina 官方 release note 更接近真正做系统时的决策方式。
 
+<<<<<<< HEAD
 ## 新增补充：RAG 里 Embedding + Reranker 为什么几乎是标配
 
 这次新读的 Grok 分享，最适合补进来的不是 Jina 产品列表本身，而是它把 **Embedding / Reranker 在 RAG 里的分工** 讲得比较顺。
@@ -728,6 +729,11 @@ Reranker 常见是 **cross-encoder** 思路，它会把 query 和候选文本放
 ## 当前理解 / 结论
 
 这次重新读完官方页面、再补上与 Qwen3-Embedding 的对比，以及 Grok 里关于 RAG pipeline 的说明后，我对 Jina Embeddings 的判断是：
+=======
+## 当前理解 / 结论
+
+这次重新读完官方页面、再补上与 Qwen3-Embedding 的对比后，我对 Jina Embeddings 的判断是：
+>>>>>>> origin/main
 
 ### 适合认真尝试的情况
 - 中文或多语言 RAG
@@ -768,7 +774,11 @@ Reranker 常见是 **cross-encoder** 思路，它会把 query 和候选文本放
 ## 相关链接 / 来源
 
 - Gemini 分享原文：<https://gemini.google.com/share/c221a0c3c0cc>
+<<<<<<< HEAD
 - Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_bfcbbc2f-d30d-44f3-85ac-fb7d88b5803e>
+=======
+- Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_3d5fb2d0-7943-43ac-9f33-1781024a8f87>
+>>>>>>> origin/main
 - Jina Embeddings 产品页（本次已实际浏览阅读）：<https://jina.ai/embeddings/>
 - Jina Embeddings v4 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v4-universal-embeddings-for-multimodal-multilingual-retrieval/>
 - Jina Embeddings v5 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v5-text-distilling-4b-quality-into-sub-1b-multilingual-embeddings/>
