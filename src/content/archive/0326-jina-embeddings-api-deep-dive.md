@@ -8,6 +8,7 @@ tags:
   - llm
   - rag
   - embedding
+  - reranker
   - jina
   - qwen
 relatedArchive:
@@ -463,27 +464,39 @@ Jina 的优势并不只是“小模型便宜”，而是整套检索工程能力
 ### 这次补充对原卡的影响
 
 它没有推翻原来对 Jina 的判断，而是把这张卡补成了一个更像“选型面板”的东西。以后再回看，不用重读一大段 prose，直接看表就能快速恢复判断。
+
+## 当前理解 / 结论
 ## 当前理解 / 结论
 
 这次重新读完官方页面、再补上与 Qwen3-Embedding 的对比后，我对 Jina Embeddings 的判断是：
+>>>>>>> origin/main
 
 ### 适合认真尝试的情况
 - 中文或多语言 RAG
 - 长文档检索
 - 需要更高 retrieval quality
+<<<<<<< HEAD
 - 想研究 provider 在 retrieval 基础设施层提供了哪些工程能力
+=======
+- 想要研究 Late Chunking 带来的收益
+- 希望搭两阶段检索，而不只是单层 embedding search
+>>>>>>> origin/main
 - 关心存储成本，希望通过维度压缩省成本
 - 未来可能做多模态检索
 
 ### 暂时不一定优先的情况
 - 只是做一个很小、纯英文、短文本的 demo
 - 没有明显长文档 / 多语言 / 检索质量诉求
+- 只想最短路径验证“能不能搜到”，还没到精排阶段
 - 更看重“最省事的默认接入”而不是检索细节优化
 
 ### 目前最值得记住的几个关键词
 - `Late Chunking`
 - `Matryoshka`
 - `Task-specific Adapters`
+- `Embedding recall + Reranker rerank`
+- `Hybrid Search`
+- `Query Transformation`
 - `v4 = Multimodal`
 - `v5 = Compact / production-oriented`
 - `Jina recall + Qwen rerank`
@@ -503,7 +516,11 @@ Jina 的优势并不只是“小模型便宜”，而是整套检索工程能力
 ## 相关链接 / 来源
 
 - Gemini 分享原文：<https://gemini.google.com/share/c221a0c3c0cc>
+<<<<<<< HEAD
+- Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_bfcbbc2f-d30d-44f3-85ac-fb7d88b5803e>
+=======
 - Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_3d5fb2d0-7943-43ac-9f33-1781024a8f87>
+>>>>>>> origin/main
 - Jina Embeddings 产品页（本次已实际浏览阅读）：<https://jina.ai/embeddings/>
 - Jina Embeddings v4 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v4-universal-embeddings-for-multimodal-multilingual-retrieval/>
 - Jina Embeddings v5 release note（本次已实际浏览阅读）：<https://jina.ai/news/jina-embeddings-v5-text-distilling-4b-quality-into-sub-1b-multilingual-embeddings/>
