@@ -1,0 +1,239 @@
+---
+import PageLayout from '@/layouts/CommonPage.astro'
+
+const title = 'OpenClaw Weekly Usage Report'
+const headings = [
+  { depth: 2, slug: 'weekly-narrative', text: 'Weekly Narrative' },
+  { depth: 2, slug: 'daily-token-trend', text: 'Daily Token Trend' },
+  { depth: 2, slug: 'usage-breakdown', text: 'Usage Breakdown' },
+  { depth: 2, slug: 'top-sessions', text: 'Top Sessions' },
+  { depth: 2, slug: 'notes', text: 'Notes' }
+]
+---
+
+<PageLayout title={title} {headings}>
+  <div class='report-shell not-prose'>
+    <p class='subtitle'>2026-04-05 to 2026-04-12 · local analytics built from OpenClaw session logs</p>
+
+    <section class='glance-card'>
+      <div class='glance-title'>At a glance</div>
+      <p>
+        This week OpenClaw was used mainly for code reading, with 1,416,919 total tokens across 4 sessions.
+        The most-used tool was read, and cache reuse accounted for 87.5% of token volume, which suggests the
+        workload was more iterative and orchestration-heavy than purely fresh prompting.
+      </p>
+    </section>
+
+    <section class='stats-grid'>
+      <div class='stat-card'><div class='stat-value'>1,416,919</div><div class='stat-label'>Total Tokens</div></div>
+      <div class='stat-card'><div class='stat-value'>4</div><div class='stat-label'>Sessions</div></div>
+      <div class='stat-card'><div class='stat-value'>46</div><div class='stat-label'>Tool Calls</div></div>
+      <div class='stat-card'><div class='stat-value'>87.5%</div><div class='stat-label'>Cache Share</div></div>
+      <div class='stat-card'><div class='stat-value'>1</div><div class='stat-label'>Models Used</div></div>
+      <div class='stat-card'><div class='stat-value'>$0.8592</div><div class='stat-label'>Logged Cost</div></div>
+    </section>
+
+    <h2 id='weekly-narrative'>Weekly Narrative</h2>
+    <section class='copy-card'>
+      <p>
+        OpenClaw spent the week mostly acting like a code-reading and execution copilot. The total token volume
+        looks large, but most of it came from cache reuse, which usually means ongoing iteration, tool-assisted
+        workflows, and revisiting context instead of brute-force fresh prompting. In other words, this is a usage
+        pattern closer to agent orchestration than just chatting.
+      </p>
+    </section>
+
+    <h2 id='daily-token-trend'>Daily Token Trend</h2>
+    <section class='chart-card'>
+      <div class='bar-row'>
+        <div class='bar-label'>2026-04-08</div>
+        <div class='bar-track'><div class='bar-fill blue' style='width: 2.8%'></div></div>
+        <div class='bar-value'>38,471</div>
+      </div>
+      <div class='bar-row'>
+        <div class='bar-label'>2026-04-12</div>
+        <div class='bar-track'><div class='bar-fill blue' style='width: 100%'></div></div>
+        <div class='bar-value'>1,378,448</div>
+      </div>
+    </section>
+
+    <h2 id='usage-breakdown'>Usage Breakdown</h2>
+    <div class='two-col'>
+      <section class='chart-card'>
+        <div class='section-label'>Top Tools Used</div>
+        <div class='bar-row'><div class='bar-label'>read</div><div class='bar-track'><div class='bar-fill cyan' style='width: 100%'></div></div><div class='bar-value'>19</div></div>
+        <div class='bar-row'><div class='bar-label'>exec</div><div class='bar-track'><div class='bar-fill cyan' style='width: 42.1%'></div></div><div class='bar-value'>8</div></div>
+        <div class='bar-row'><div class='bar-label'>process</div><div class='bar-track'><div class='bar-fill cyan' style='width: 31.6%'></div></div><div class='bar-value'>6</div></div>
+        <div class='bar-row'><div class='bar-label'>update_plan</div><div class='bar-track'><div class='bar-fill cyan' style='width: 26.3%'></div></div><div class='bar-value'>5</div></div>
+        <div class='bar-row'><div class='bar-label'>write</div><div class='bar-track'><div class='bar-fill cyan' style='width: 26.3%'></div></div><div class='bar-value'>5</div></div>
+        <div class='bar-row'><div class='bar-label'>web_fetch</div><div class='bar-track'><div class='bar-fill cyan' style='width: 15.8%'></div></div><div class='bar-value'>3</div></div>
+      </section>
+
+      <section class='chart-card'>
+        <div class='section-label'>Workload Mix</div>
+        <div class='bar-row'><div class='bar-label'>Code Reading</div><div class='bar-track'><div class='bar-fill green' style='width: 100%'></div></div><div class='bar-value'>19</div></div>
+        <div class='bar-row'><div class='bar-label'>Other</div><div class='bar-track'><div class='bar-fill green' style='width: 57.9%'></div></div><div class='bar-value'>11</div></div>
+        <div class='bar-row'><div class='bar-label'>Automation</div><div class='bar-track'><div class='bar-fill green' style='width: 42.1%'></div></div><div class='bar-value'>8</div></div>
+        <div class='bar-row'><div class='bar-label'>Code Writing</div><div class='bar-track'><div class='bar-fill green' style='width: 26.3%'></div></div><div class='bar-value'>5</div></div>
+        <div class='bar-row'><div class='bar-label'>Research</div><div class='bar-track'><div class='bar-fill green' style='width: 15.8%'></div></div><div class='bar-value'>3</div></div>
+      </section>
+    </div>
+
+    <div class='two-col'>
+      <section class='chart-card'>
+        <div class='section-label'>Model Mix</div>
+        <div class='bar-row'><div class='bar-label'>gpt-5.4</div><div class='bar-track'><div class='bar-fill purple' style='width: 100%'></div></div><div class='bar-value'>1,416,919</div></div>
+      </section>
+
+      <section class='chart-card'>
+        <div class='section-label'>Reliability</div>
+        <ul class='bullet-list'>
+          <li>Tool calls: 46</li>
+          <li>Logged tool/message errors: 0</li>
+          <li>Cache reuse remained high, which usually points to efficient context carry-over.</li>
+        </ul>
+      </section>
+    </div>
+
+    <h2 id='top-sessions'>Top Sessions</h2>
+    <section class='chart-card'>
+      <div class='bar-row'><div class='bar-label'>047833b3-317</div><div class='bar-track'><div class='bar-fill amber' style='width: 100%'></div></div><div class='bar-value'>1,226,462</div></div>
+      <div class='bar-row'><div class='bar-label'>653c6d83-320</div><div class='bar-track'><div class='bar-fill amber' style='width: 10.7%'></div></div><div class='bar-value'>131,589</div></div>
+      <div class='bar-row'><div class='bar-label'>d2f7f127-eab</div><div class='bar-track'><div class='bar-fill amber' style='width: 3.1%'></div></div><div class='bar-value'>38,471</div></div>
+      <div class='bar-row'><div class='bar-label'>94141093-a2b</div><div class='bar-track'><div class='bar-fill amber' style='width: 1.7%'></div></div><div class='bar-value'>20,397</div></div>
+    </section>
+
+    <h2 id='notes'>Notes</h2>
+    <section class='copy-card'>
+      <p>
+        This is a first public-facing prototype. The next obvious step is adding multi-week trend lines,
+        better task categorization, and a more narrative “agent usage story” section so the page reads more
+        like a product analytics artifact than a raw ops dashboard.
+      </p>
+    </section>
+  </div>
+</PageLayout>
+
+<style>
+  .report-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .subtitle {
+    color: var(--muted-foreground);
+    margin-top: -0.5rem;
+  }
+  .glance-card,
+  .stat-card,
+  .chart-card,
+  .copy-card {
+    border: 1px solid rgb(var(--border));
+    border-radius: 1rem;
+    background: rgb(var(--background));
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+  }
+  .glance-card {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(56, 189, 248, 0.12));
+  }
+  .glance-title,
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+    margin-bottom: 0.875rem;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .stat-card {
+    padding: 1.1rem 1rem;
+  }
+  .stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: rgb(var(--foreground));
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin-top: 0.25rem;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .chart-card,
+  .copy-card {
+    padding: 1.15rem 1rem;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+  }
+  .bar-row:last-child {
+    margin-bottom: 0;
+  }
+  .bar-label {
+    width: 8.2rem;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+  }
+  .bar-track {
+    flex: 1;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.18);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .bar-fill.blue { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+  .bar-fill.cyan { background: linear-gradient(90deg, #0891b2, #22d3ee); }
+  .bar-fill.green { background: linear-gradient(90deg, #059669, #34d399); }
+  .bar-fill.purple { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .bar-fill.amber { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .bar-value {
+    width: 5.75rem;
+    text-align: right;
+    font-size: 0.78rem;
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+  }
+  .bullet-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--muted-foreground);
+  }
+  .bullet-list li + li {
+    margin-top: 0.5rem;
+  }
+  @media (min-width: 720px) {
+    .stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .chart-card,
+    .copy-card,
+    .glance-card {
+      padding: 1.35rem 1.5rem;
+    }
+  }
+</style>

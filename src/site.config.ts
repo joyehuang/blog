@@ -50,6 +50,7 @@ export const theme: ThemeUserConfig = {
       { title: 'Blog', link: '/blog' },
       { title: 'Archive', link: '/archive' },
       { title: 'Projects', link: '/projects' },
+      { title: 'OpenClaw Report', link: '/openclaw-report' },
       { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' }
     ]
