@@ -78,3 +78,12 @@ ignore.*
 bunfig.toml
 /src/content/blog/test.*
 /test/
+
+# personal / resume data — never commit
+/*.json
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+
+# claude code agent workdir (worktrees, memory, etc.)
+.claude/

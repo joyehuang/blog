@@ -14,10 +14,19 @@ import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import config from '@/site-config'
 
-const languages = ['TypeScript', 'JavaScript', 'Python', 'Java', 'MySQL']
-const frontend = ['React', 'NextJs', 'Vite']
-const backend = ['Vercel', 'Firebase', 'Nodejs']
-const tools = ['Curor', 'Git', 'Docker', 'Postman', 'ESlint/Prettier', 'Jest']
+const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
+const frontend = ['React', 'Next.js', 'Tailwind CSS', 'Remotion', 'Vite']
+const backend = ['Node.js', 'Vercel', 'Supabase', 'AWS', 'Stripe', 'Inngest']
+const ai = [
+  'Claude Code',
+  'LLM',
+  'Transformer',
+  'Multi-Agent',
+  'RAG',
+  'Function Calling',
+  'Prompt Engineering'
+]
+const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
 
 const MAX_POSTS = 10
 const allPosts = await getBlogCollection()
@@ -70,9 +79,11 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 
     <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6 relative z-0'>
       <Section title='About'>
-        <p class='text-muted-foreground'>Frontend Developer</p>
+        <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
-          一名正在墨尔本上学的大二前端开发者，目标成为一名全栈开发者。最近刚入门摄影圈，平时喜欢弹琴与拉大提琴！
+          墨尔本大学在读，目前在特赞 Tezign 与 fAIshion.ai 做 Agent 开发与 AI 全栈。
+          在意 LLM 的底层机制，也在意产品能不能真正跑起来。
+          Build fast, learn faster — 平时弹琴、拉大提琴、玩摄影。
         </p>
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
@@ -100,6 +111,32 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>
               负责AIGC相关功能的全栈开发工作
+            </li>
+          </ul>
+        </Card>
+        <Card
+          as='a'
+          heading='fAIshion.ai'
+          subheading='AI 全栈工程师（远程）'
+          date='Present'
+          href='https://www.faishion.ai/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>
+              AI 虚拟试衣与服装搭配平台的全栈开发与模型集成
+            </li>
+          </ul>
+        </Card>
+        <Card
+          as='a'
+          heading='Goshu Tech · AIXCut'
+          subheading='AI 剪辑 Agent 研发'
+          date='Present'
+          href='https://aixcut.cn/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>
+              参与 AI 视频剪辑 Agent 的设计与工程化落地
             </li>
           </ul>
         </Card>
@@ -168,6 +205,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <SkillLayout title='Languages' skills={languages} />
         <SkillLayout title='Frontend' skills={frontend} />
         <SkillLayout title='Backend' skills={backend} />
+        <SkillLayout title='AI & Agent' skills={ai} />
         <SkillLayout title='Tools' skills={tools} />
       </Section>
     </div>
