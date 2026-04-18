@@ -31,6 +31,39 @@ const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
 const MAX_POSTS = 10
 const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
+
+const openSourceRepos = [
+  {
+    name: 'Learn-Open-Harness',
+    description: 'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent',
+    fallbackStars: 297
+  },
+  {
+    name: 'minimind-notes',
+    description: '从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验',
+    fallbackStars: 93
+  }
+]
+
+async function fetchStars(repo: string, fallback: number) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/joyehuang/${repo}`, {
+      headers: { Accept: 'application/vnd.github+json' }
+    })
+    if (!res.ok) return fallback
+    const data = (await res.json()) as { stargazers_count?: number }
+    return data.stargazers_count ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
+const openSource = await Promise.all(
+  openSourceRepos.map(async (r) => ({
+    ...r,
+    stars: await fetchStars(r.name, r.fallbackStars)
+  }))
+)
 ---
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
@@ -107,7 +140,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <LinkCard
           heading='上海特赞 Tezign'
           subheading='AIGC 研发部门全栈实习生'
-          date='Present'
           href='https://atypica.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
@@ -119,7 +151,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <LinkCard
           heading='fAIshion.ai'
           subheading='AI 全栈工程师（远程）'
-          date='Present'
           href='https://www.faishion.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
@@ -131,7 +162,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <LinkCard
           heading='Goshu Tech · AIXCut'
           subheading='AI 剪辑 Agent 研发'
-          date='Present'
           href='https://aixcut.cn/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
@@ -142,18 +172,16 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         </LinkCard>
       </Section>
       <Section title='Open Source'>
-        <LinkCard
-          heading='Learn-Open-Harness'
-          subheading='OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent'
-          date='⭐ 297'
-          href='https://github.com/joyehuang/Learn-Open-Harness'
-        />
-        <LinkCard
-          heading='minimind-notes'
-          subheading='从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验'
-          date='⭐ 93'
-          href='https://github.com/joyehuang/minimind-notes'
-        />
+        {
+          openSource.map((repo) => (
+            <LinkCard
+              heading={repo.name}
+              subheading={repo.description}
+              date={`⭐ ${repo.stars}`}
+              href={`https://github.com/joyehuang/${repo.name}`}
+            />
+          ))
+        }
       </Section>
       <Section title='Education'>
         <Card
