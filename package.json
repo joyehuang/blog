@@ -22,16 +22,19 @@
     "@astrojs/rss": "^4.0.11",
     "@astrojs/vercel": "^8.1.4",
     "@playform/compress": "^0.1.9",
+    "@resvg/resvg-js": "^2.6.2",
     "@unocss/preset-wind3": "^66.1.3",
     "@unocss/reset": "^66.1.3",
     "@vercel/analytics": "^1.6.1",
     "@waline/client": "^3.5.7",
     "astro": "^5.8.1",
     "astro-pure": "1.3.0",
+    "base64-js": "^1.5.1",
     "gsap": "^3.13.0",
     "katex": "^0.16.22",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
+    "satori": "^0.26.0",
     "sharp": "^0.34.2",
     "typescript": "^5.8.3"
   },
@@ -45,5 +48,11 @@
     "prettier-plugin-astro": "^0.14.1",
     "rollup-plugin-visualizer": "^6.0.1",
     "typescript-eslint": "^8.33.0"
+  },
+  "overrides": {
+    "base64-js": "^1.5.1"
+  },
+  "resolutions": {
+    "base64-js": "^1.5.1"
   }
 }

@@ -108,6 +108,13 @@ export default defineConfig({
       //     emitFile: true,
       //     filename: 'stats.html'
       //   })
-    ]
+    ],
+    ssr: {
+      external: ['@resvg/resvg-js'],
+      noExternal: ['satori']
+    },
+    optimizeDeps: {
+      include: ['satori', 'linebreak', 'base64-js', 'unicode-trie', 'unicode-properties']
+    }
   }
 })
