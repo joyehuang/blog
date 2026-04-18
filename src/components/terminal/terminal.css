@@ -1,0 +1,329 @@
+.wt-shell {
+  --wt-radius: 0.85rem;
+  --wt-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --wt-grid: 1px;
+  /* light-mode defaults — strong ring so the edge is visible against page bg */
+  --wt-accent: 205 85% 28%;
+  --wt-ring: 210 20% 22%;
+  --wt-ring-alpha: 0.32;
+  --wt-after-opacity: 0.22;
+  --wt-card-top: 0.95;
+  --wt-card-bot: 0.88;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-radius: var(--wt-radius);
+  border: 1px solid hsl(var(--wt-ring) / var(--wt-ring-alpha));
+  background: linear-gradient(
+    180deg,
+    hsl(var(--card) / var(--wt-card-top)) 0%,
+    hsl(var(--card) / var(--wt-card-bot)) 100%
+  );
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 0 0 1px hsl(var(--wt-ring) / calc(var(--wt-ring-alpha) * 0.6)),
+    0 1px 0 hsl(var(--background) / 0.6) inset,
+    0 24px 48px -28px hsl(var(--foreground) / 0.28),
+    0 8px 24px -16px hsl(var(--foreground) / 0.18);
+  overflow: hidden;
+  font-family: var(--wt-mono);
+  color: hsl(var(--foreground));
+  isolation: isolate;
+}
+:root.dark .wt-shell {
+  --wt-accent: var(--primary);
+  --wt-ring: 0 0% 100%;
+  --wt-ring-alpha: 0.08;
+  --wt-after-opacity: 0.5;
+  --wt-card-top: 0.72;
+  --wt-card-bot: 0.55;
+}
+
+.wt-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.025) var(--wt-grid), transparent var(--wt-grid)),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.025) var(--wt-grid), transparent var(--wt-grid));
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 0%, transparent 80%);
+  z-index: 0;
+}
+
+.wt-shell::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    140deg,
+    hsl(var(--wt-accent) / 0.35),
+    transparent 30%,
+    transparent 70%,
+    hsl(var(--wt-accent) / 0.18)
+  );
+  opacity: var(--wt-after-opacity);
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+
+.wt-titlebar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  padding: 0 14px;
+  background: hsl(var(--background) / 0.55);
+  border-bottom: 1px solid hsl(var(--border) / 0.7);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: hsl(var(--muted-foreground));
+  user-select: none;
+}
+
+.wt-lights {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.wt-light {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--foreground) / 0.18);
+  background: hsl(var(--muted) / 1);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+.wt-shell:hover .wt-light--r { background: #ff6058; border-color: #ce4640; }
+.wt-shell:hover .wt-light--y { background: #ffbd2e; border-color: #cf9d20; }
+.wt-shell:hover .wt-light--g { background: #28c93f; border-color: #1e9c30; }
+
+.wt-title {
+  position: absolute;
+  inset-inline: 0;
+  text-align: center;
+  pointer-events: none;
+  font-feature-settings: 'tnum';
+}
+
+.wt-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground) / 0.85);
+}
+.wt-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--border) / 1);
+  background: hsl(var(--muted) / 0.6);
+  color: hsl(var(--foreground) / 0.8);
+  font-size: 10.5px;
+  line-height: 1;
+}
+
+.wt-body {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  height: 420px;
+  max-height: 60vh;
+  padding: 16px 18px 8px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.65;
+  scroll-behavior: smooth;
+}
+.wt-body::-webkit-scrollbar { width: 6px; }
+.wt-body::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 999px;
+}
+
+.wt-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed hsl(var(--border) / 0.7);
+  animation: wt-fade-up 360ms ease both;
+}
+.wt-banner-title {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--wt-accent)) 0%,
+    hsl(var(--foreground)) 60%,
+    hsl(var(--wt-accent)) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: wt-shimmer 6s linear infinite;
+}
+.wt-banner-sub { color: hsl(var(--muted-foreground)); font-size: 12.5px; }
+
+.wt-line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-variant-ligatures: none;
+}
+.wt-line + .wt-line { margin-top: 1px; }
+
+.wt-spacer { display: block; height: 6px; }
+
+.wt-prompt {
+  display: inline;
+  margin-right: 8px;
+  user-select: none;
+  font-feature-settings: 'tnum';
+}
+.wt-prompt-user { color: hsl(var(--wt-accent)); }
+.wt-prompt-at, .wt-prompt-host, .wt-prompt-cwd { color: hsl(var(--muted-foreground)); }
+.wt-prompt-sigil { color: hsl(var(--wt-accent)); margin: 0 6px 0 4px; }
+
+.wt-tone-fg { color: hsl(var(--foreground)); }
+.wt-tone-muted { color: hsl(var(--muted-foreground)); }
+.wt-tone-primary { color: hsl(var(--wt-accent)); }
+.wt-tone-ok { color: #34d399; }
+.wt-tone-err { color: hsl(var(--destructive)); }
+.wt-tone-warn { color: #f59e0b; }
+
+.wt-link {
+  color: hsl(var(--wt-accent));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.wt-link:hover { color: hsl(var(--wt-accent)); filter: brightness(1.15); }
+
+.wt-input-row {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 6px 0 8px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    hsl(var(--card) / 0.72) 30%
+  );
+  z-index: 2;
+  cursor: text;
+}
+.wt-input-display {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: pre;
+  font-feature-settings: 'tnum';
+}
+.wt-input-hint {
+  position: absolute;
+  inset-inline-start: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.wt-input-hidden {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: text;
+}
+
+.wt-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  margin-left: 1px;
+  background: hsl(var(--wt-accent));
+  vertical-align: -2px;
+  animation: wt-blink 1.1s steps(2, end) infinite;
+  border-radius: 1px;
+  pointer-events: none;
+}
+.wt-caret--idle { animation-duration: 1.6s; opacity: 0.7; }
+
+.wt-thinking {
+  display: inline-block;
+  width: 0.7em;
+  letter-spacing: 0.4em;
+  color: hsl(var(--muted-foreground));
+}
+
+.wt-matrix-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  animation: wt-matrix-in 200ms ease-out both;
+}
+.wt-matrix-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@keyframes wt-matrix-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes wt-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes wt-fade-up {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes wt-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes wt-pop {
+  0% { opacity: 0; transform: translateY(2px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.wt-entry { animation: wt-pop 200ms ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-banner, .wt-entry { animation: none; }
+  .wt-caret { animation: none; opacity: 0.6; }
+  .wt-banner-title { animation: none; }
+}
