@@ -1,0 +1,40 @@
+---
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  class?: string
+  href: string
+  heading: string
+  subheading?: string
+  date?: string
+  target?: string
+}
+
+const {
+  class: className,
+  href,
+  heading,
+  subheading,
+  date,
+  target = '_blank'
+} = Astro.props
+---
+
+<a
+  href={href}
+  target={target}
+  rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+  class={cn(
+    'not-prose block relative rounded-2xl border bg-muted px-5 py-3 transition-all hover:border-foreground/25 hover:shadow-sm no-underline',
+    className
+  )}
+>
+  <div class='flex flex-col gap-y-1.5'>
+    <div class='flex flex-col gap-y-0.5'>
+      <h2 class='text-lg font-medium'>{heading}</h2>
+      {subheading && <p class='text-muted-foreground'>{subheading}</p>}
+      {date && <p class='text-muted-foreground'>{date}</p>}
+    </div>
+    <slot />
+  </div>
+</a>

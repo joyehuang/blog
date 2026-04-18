@@ -9,7 +9,7 @@ import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import ProjectCard from '@/components/home/ProjectCard.astro'
+import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import config from '@/site-config'
@@ -81,7 +81,8 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
       <Section title='About'>
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
-          墨尔本大学在读，目前在特赞 Tezign 与 fAIshion.ai 做 Agent 开发与 AI 全栈。
+          墨尔本大学在读，目前在特赞 Tezign 做 atypica（商业研究 Multi-Agent），
+          同时在 fAIshion.ai 与 Goshu Tech 做 AI 全栈与剪辑 Agent。
           在意 LLM 的底层机制，也在意产品能不能真正跑起来。
           Build fast, learn faster — 平时弹琴、拉大提琴、玩摄影。
         </p>
@@ -103,19 +104,19 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
       }
 
       <Section title='Experience'>
-        <Card
+        <LinkCard
           heading='上海特赞 Tezign'
-          subheading='AIGC研发部门全栈实习生'
+          subheading='AIGC 研发部门全栈实习生'
           date='Present'
+          href='https://atypica.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>
-              负责AIGC相关功能的全栈开发工作
+              参与 atypica.ai —— 面向商业研究场景的 Multi-Agent 系统
             </li>
           </ul>
-        </Card>
-        <Card
-          as='a'
+        </LinkCard>
+        <LinkCard
           heading='fAIshion.ai'
           subheading='AI 全栈工程师（远程）'
           date='Present'
@@ -126,9 +127,8 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
               AI 虚拟试衣与服装搭配平台的全栈开发与模型集成
             </li>
           </ul>
-        </Card>
-        <Card
-          as='a'
+        </LinkCard>
+        <LinkCard
           heading='Goshu Tech · AIXCut'
           subheading='AI 剪辑 Agent 研发'
           date='Present'
@@ -139,7 +139,21 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
               参与 AI 视频剪辑 Agent 的设计与工程化落地
             </li>
           </ul>
-        </Card>
+        </LinkCard>
+      </Section>
+      <Section title='Open Source'>
+        <LinkCard
+          heading='Learn-Open-Harness'
+          subheading='OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent'
+          date='⭐ 297'
+          href='https://github.com/joyehuang/Learn-Open-Harness'
+        />
+        <LinkCard
+          heading='minimind-notes'
+          subheading='从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验'
+          date='⭐ 93'
+          href='https://github.com/joyehuang/minimind-notes'
+        />
       </Section>
       <Section title='Education'>
         <Card
