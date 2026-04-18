@@ -4,10 +4,7 @@ import { Button } from 'astro-pure/user'
 const { title, skills } = Astro.props
 ---
 
-<div
-  class='skill-section flex flex-col gap-y-2 md:flex-row md:gap-x-5 md:gap-y-0'
-  data-visible='false'
->
+<div class='skill-section flex flex-col gap-y-2 md:flex-row md:gap-x-5 md:gap-y-0'>
   <h3 class='skill-title w-1/5 font-medium'>
     {title}
   </h3>
@@ -20,80 +17,25 @@ const { title, skills } = Astro.props
   </div>
 </div>
 
-<script is:inline>
-  (() => {
-    let observer
-
-    function showSection(section) {
-      section.dataset.visible = 'true'
-    }
-
-    function initSkillReveal() {
-      const sections = document.querySelectorAll('.skill-section')
-      if (!sections.length) return
-
-      if (
-        !('IntersectionObserver' in window) ||
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      ) {
-        sections.forEach((section) => {
-          if (section instanceof HTMLElement) showSection(section)
-        })
-        return
-      }
-
-      if (!observer) {
-        observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (!(entry.target instanceof HTMLElement) || !entry.isIntersecting) return
-              showSection(entry.target)
-              observer.unobserve(entry.target)
-            })
-          },
-          { rootMargin: '0px 0px -12% 0px', threshold: 0.15 }
-        )
-      }
-
-      sections.forEach((section) => {
-        if (!(section instanceof HTMLElement) || section.dataset.revealBound === 'true') return
-        section.dataset.revealBound = 'true'
-        observer.observe(section)
-      })
-    }
-
-    document.addEventListener('DOMContentLoaded', initSkillReveal)
-    document.addEventListener('astro:page-load', initSkillReveal)
-  })()
-</script>
-
 <style>
+  @keyframes skill-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .skill-title,
   .skill-pill {
-    transition:
-      opacity 0.5s ease,
-      transform 0.5s ease;
-    will-change: transform, opacity;
-  }
-
-  .skill-section[data-visible='false'] .skill-title {
-    opacity: 0;
-    transform: translateX(-1rem);
-  }
-
-  .skill-section[data-visible='false'] .skill-pill {
-    opacity: 0;
-    transform: translateY(0.875rem);
-  }
-
-  .skill-section[data-visible='true'] .skill-title,
-  .skill-section[data-visible='true'] .skill-pill {
-    opacity: 1;
-    transform: translate(0, 0);
+    animation: skill-fade-in 320ms ease both;
   }
 
   .skill-pill {
-    transition-delay: calc(var(--skill-index, 0) * 40ms + 120ms);
+    animation-delay: calc(var(--skill-index, 0) * 28ms + 60ms);
   }
 
   .skill-pill :global(button) {
@@ -109,9 +51,8 @@ const { title, skills } = Astro.props
 
   @media (prefers-reduced-motion: reduce) {
     .skill-title,
-    .skill-pill,
-    .skill-pill :global(button) {
-      transition: none;
+    .skill-pill {
+      animation: none;
     }
   }
 </style>
