@@ -1,5 +1,4 @@
 ---
-import { Comment } from 'astro-pure/advanced'
 import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
@@ -397,10 +396,6 @@ const headings = [
         content: '完成博客基础框架搭建，添加 Projects 和 About 页面'
       },
       {
-        date: '2025-01-20',
-        content: '集成 Waline 评论系统，添加访问统计功能'
-      },
-      {
         date: '2025-01-25',
         content: '发布第一篇技术博客，正式开始内容创作之旅'
       }
@@ -425,16 +420,10 @@ const headings = [
       CI/CD: <a href='https://vercel.com/workflow' target='_blank'>Vercel Workflow</a>
     </li>
     <!-- <li>Resources speedup: <a href='https://cdn.cbd.int/' target='_blank'>CBD CDN</a></li> -->
-    <li>Comment system: <a href='https://waline.js.org' target='_blank'>Waline</a></li>
-    <li>
-      Visits: <a href='https://supabase.com/' target='_blank'>Supabase</a> +
-      <a href='https://waline.js.org/' target='_blank'>Waline</a>
-    </li>
     <li>
       Other statistics: <a href='https://github.com/spencerwooo/substats' target='_blank'
         >Substats</a
       >
     </li>
   </ul>
-  <Comment slot='bottom' />
 </PageLayout>

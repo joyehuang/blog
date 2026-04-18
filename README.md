@@ -22,7 +22,7 @@ TypeScript, JavaScript, Python, Java, MySQL
 React, Next.js, Vite
 
 ### 后端
-Vercel, Waline, Firebase, Node.js
+Vercel, Firebase, Node.js
 
 ### 工具
 Cursor, Git, Docker, Postman, ESLint/Prettier, Jest
@@ -78,7 +78,6 @@ bun yijiansilian
 - 🌐 SEO 友好
 - 📚 文章目录
 - 🖼️ 动态 OG 图片生成
-- 💬 Waline 评论系统
 
 ## 主题
 
