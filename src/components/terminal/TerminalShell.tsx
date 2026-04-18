@@ -125,6 +125,8 @@ function MatrixRain() {
   )
 }
 
+const COLLAPSE_KEY = 'wt-collapsed'
+
 export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: Props) {
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
@@ -132,10 +134,41 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
   const [histIdx, setHistIdx] = useState<number>(-1)
   const [matrixOn, setMatrixOn] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [collapsed, setCollapsed] = useState<boolean>(true)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
   const newId = () => `e${++idRef.current}`
+
+  // hydrate collapsed state from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(COLLAPSE_KEY)
+      if (stored === 'false') setCollapsed(false)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const persistCollapsed = useCallback((next: boolean) => {
+    setCollapsed(next)
+    try {
+      localStorage.setItem(COLLAPSE_KEY, String(next))
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const expand = useCallback(() => {
+    persistCollapsed(false)
+    // focus input after transition settles
+    setTimeout(() => inputRef.current?.focus(), 220)
+  }, [persistCollapsed])
+
+  const collapse = useCallback(() => {
+    persistCollapsed(true)
+    inputRef.current?.blur()
+  }, [persistCollapsed])
 
   const appendEntry = useCallback((entry: HistoryEntry) => {
     setEntries((prev) => [...prev, { ...entry, id: newId() }])
@@ -239,7 +272,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
     body.scrollTop = body.scrollHeight
   }, [entries])
 
-  // global hotkey: ` to focus
+  // global hotkey: ` to focus / expand · Esc to collapse
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
@@ -247,13 +280,18 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
         target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       if (e.key === '`' && !inField) {
         e.preventDefault()
-        inputRef.current?.focus()
+        if (collapsed) expand()
+        else inputRef.current?.focus()
         bodyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      if (e.key === 'Escape' && !collapsed && document.activeElement === inputRef.current && !input) {
+        e.preventDefault()
+        collapse()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [collapsed, expand, collapse, input])
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -316,21 +354,74 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
   const promptUser = useMemo(() => user, [user])
   const promptHost = useMemo(() => host, [host])
 
+  const stopPropagation = (e: React.MouseEvent) => e.stopPropagation()
+
   return (
-    <div className='wt-shell' onClick={focusInput}>
+    <div
+      className={`wt-shell ${collapsed ? 'wt-shell--collapsed' : ''}`}
+      onClick={collapsed ? expand : focusInput}
+      role={collapsed ? 'button' : undefined}
+      aria-expanded={!collapsed}
+      tabIndex={collapsed ? 0 : undefined}
+      onKeyDown={
+        collapsed
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                expand()
+              }
+            }
+          : undefined
+      }
+    >
       <div className='wt-titlebar'>
         <div className='wt-lights' aria-hidden>
-          <span className='wt-light wt-light--r' />
-          <span className='wt-light wt-light--y' />
-          <span className='wt-light wt-light--g' />
+          <button
+            type='button'
+            className='wt-light wt-light--r'
+            onClick={(e) => {
+              if (!collapsed) {
+                stopPropagation(e)
+                collapse()
+              }
+            }}
+            aria-label={collapsed ? 'open terminal' : 'close'}
+            tabIndex={-1}
+          />
+          <button
+            type='button'
+            className='wt-light wt-light--y'
+            onClick={(e) => {
+              if (!collapsed) {
+                stopPropagation(e)
+                collapse()
+              }
+            }}
+            aria-label={collapsed ? 'open terminal' : 'minimize'}
+            tabIndex={-1}
+          />
+          <button
+            type='button'
+            className='wt-light wt-light--g'
+            onClick={(e) => {
+              stopPropagation(e)
+              if (collapsed) expand()
+            }}
+            aria-label={collapsed ? 'open terminal' : 'expand'}
+            tabIndex={-1}
+          />
         </div>
         <div className='wt-title'>{promptUser}@{promptHost} — terminal</div>
         <div className='wt-hint'>
-          press <span className='wt-kbd'>`</span> to focus
+          {collapsed ? (
+            <>click or <span className='wt-kbd'>`</span> to open</>
+          ) : (
+            <>press <span className='wt-kbd'>`</span> to focus</>
+          )}
         </div>
       </div>
 
-      <div className='wt-body' ref={bodyRef}>
+      <div className='wt-body' ref={bodyRef} aria-hidden={collapsed}>
         <div className='wt-banner'>
           <span className='wt-banner-title'>wterm v0.1 · joye.sh</span>
           <span className='wt-banner-sub'>
