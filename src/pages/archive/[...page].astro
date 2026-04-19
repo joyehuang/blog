@@ -44,8 +44,8 @@ const statusCounts = allArchives.reduce(
 )
 
 const meta = {
-  description: '知识库与工作笔记',
-  title: page.currentPage === 1 ? 'Archive' : `Archive - Page ${page.currentPage}`
+  description: 'Agent 学习、工程化选型对比、面试题笔记——未成稿，但都是一手思考',
+  title: page.currentPage === 1 ? 'Notes' : `Notes - Page ${page.currentPage}`
 }
 
 const paginationProps = {
@@ -110,15 +110,16 @@ const typeColors: Record<string, string> = {
     <div id='content-header' class='animate'>
       <div class='mb-3 flex items-center gap-3'>
         <div class='rounded-lg bg-muted/50 p-3'>
-          <span class='text-2xl'>🗂️</span>
+          <span class='text-2xl'>📒</span>
         </div>
         <div>
-          <h1 class='text-3xl font-medium'>Archive</h1>
-          <p class='text-sm text-muted-foreground'>知识库与工作笔记</p>
+          <h1 class='text-3xl font-medium'>Notes</h1>
+          <p class='text-sm text-muted-foreground'>一手笔记 · 持续生长中</p>
         </div>
       </div>
       <p class='max-w-3xl text-muted-foreground'>
-        这里放的是研究笔记、代码片段和一些尚未打磨成正式文章的内容。更像一个持续生长的工作台，而不是已经完成的博客成品区。
+        这里是我平时沉淀的一手笔记：Agent 学习、工程化选型对比（Embedding、向量库、AI SDK 等）、面试里遇到的好题目。
+        还没打磨成博客，但都是最新的思考——比成稿博客更接近"现在在想什么"。
       </p>
     </div>
 

@@ -4,6 +4,7 @@ export const prerender = true
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
 
+import { getCollection } from 'astro:content'
 import { Quote } from 'astro-pure/advanced'
 import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
@@ -64,6 +65,20 @@ const openSource = await Promise.all(
     stars: await fetchStars(r.name, r.fallbackStars)
   }))
 )
+
+const MAX_NOTES = 4
+const archiveTypeLabels: Record<string, string> = {
+  note: '笔记',
+  snippet: '片段',
+  draft: '草稿',
+  idea: '想法',
+  research: '研究',
+  reference: '参考'
+}
+const allNotes = (await getCollection('archive')).filter((e) => !e.data.draft)
+const latestNotes = allNotes
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, MAX_NOTES)
 ---
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
@@ -123,7 +138,7 @@ const openSource = await Promise.all(
       </Section>
       {
         allPostsByDate.length > 0 && (
-          <Section title='Posts'>
+          <Section title='Blog'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {allPostsByDate.map((p) => (
                 <li class='flex flex-col gap-x-2 sm:flex-row'>
@@ -131,7 +146,58 @@ const openSource = await Promise.all(
                 </li>
               ))}
             </ul>
-            <Button title='More posts' class='w-fit self-end' href='/blog' style='ahead' />
+            <Button title='More blogs' class='w-fit self-end' href='/blog' style='ahead' />
+          </Section>
+        )
+      }
+
+      {
+        latestNotes.length > 0 && (
+          <Section title='Notes'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {latestNotes.map((note) => (
+                <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
+                  <a
+                    class='group/link w-full flex flex-col sm:flex-row transition-all hover:text-primary'
+                    href={`/archive/${note.id}`}
+                    data-astro-prefetch
+                  >
+                    <span class='min-w-[95px] py-1 text-xs text-muted-foreground'>
+                      {archiveTypeLabels[note.data.type] || note.data.type}
+                    </span>
+                    <div class='z-10 flex-grow'>
+                      <div class='flex justify-between'>
+                        <div>{note.data.title}</div>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          width='16'
+                          height='16'
+                          viewBox='0 0 24 24'
+                          fill='none'
+                          stroke-width='2.5'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          class='my-1 stroke-muted-foreground group-hover/link:stroke-primary'
+                        >
+                          <line
+                            x1='5'
+                            y1='12'
+                            x2='19'
+                            y2='12'
+                            class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1 group-hover/link:scale-x-100'
+                          />
+                          <polyline
+                            points='12 5 19 12 12 19'
+                            class='translate-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1'
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <Button title='More notes' class='w-fit self-end' href='/archive' style='ahead' />
           </Section>
         )
       }
@@ -160,8 +226,8 @@ const openSource = await Promise.all(
           </ul>
         </LinkCard>
         <LinkCard
-          heading='Goshu Tech · AIXCut'
-          subheading='AI 剪辑 Agent 研发'
+          heading='AIXCut'
+          subheading='AI 全栈研发'
           href='https://aixcut.cn/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
