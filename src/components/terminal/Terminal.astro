@@ -1,0 +1,39 @@
+---
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+
+import TerminalShell from './TerminalShell'
+import type { PostSummary } from './types'
+
+const all = await getBlogCollection()
+const recent = sortMDByDate(all).slice(0, 8)
+
+const posts: PostSummary[] = recent.map((p) => {
+  const fm = p.data as Record<string, unknown>
+  const date = (fm.publishDate ?? fm.date) as Date | string | undefined
+  const formatted =
+    date instanceof Date
+      ? date.toISOString().slice(0, 10)
+      : typeof date === 'string'
+        ? date.slice(0, 10)
+        : ''
+  const slug = p.id
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return {
+    slug,
+    href: `/blog/${encodeURI(p.id)}`,
+    title: (fm.title as string) ?? p.id,
+    date: formatted,
+    description: fm.description as string | undefined
+  }
+})
+---
+
+<div class='wt-intro' aria-hidden='true'>
+  <span class='wt-intro-tag'>// power user?</span>
+  <span class='wt-intro-text'>
+    Skip the scroll — try the interactive CLI. Type <code>help</code>, <code>chat</code>, or <code>ls posts</code>.
+  </span>
+</div>
+<TerminalShell client:load posts={posts} />

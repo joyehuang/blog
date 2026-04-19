@@ -13,6 +13,7 @@ import PageLayout from '@/layouts/BaseLayout.astro'
 import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
+import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
 
 const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
@@ -126,6 +127,9 @@ const latestNotes = allNotes
     </section>
 
     <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6 relative z-0'>
+      <div class='-mt-2'>
+        <Terminal />
+      </div>
       <Section title='About'>
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
