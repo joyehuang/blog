@@ -126,6 +126,7 @@ function MatrixRain() {
 }
 
 const COLLAPSE_KEY = 'wt-collapsed'
+const PEEK_DEMOS = ['whoami', 'help', 'ls posts', 'chat hire-me', 'theme dark', 'matrix']
 
 export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: Props) {
   const [entries, setEntries] = useState<RenderEntry[]>([])
@@ -135,6 +136,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
   const [matrixOn, setMatrixOn] = useState(false)
   const [focused, setFocused] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(true)
+  const [peek, setPeek] = useState<string>('')
   const inputRef = useRef<HTMLInputElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
@@ -169,6 +171,46 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
     persistCollapsed(true)
     inputRef.current?.blur()
   }, [persistCollapsed])
+
+  // typing-peek demo: cycles through PEEK_DEMOS while collapsed
+  useEffect(() => {
+    if (!collapsed) {
+      setPeek('')
+      return
+    }
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      setPeek(PEEK_DEMOS[0])
+      return
+    }
+    let cancelled = false
+    let demoIdx = 0
+    let charIdx = 0
+    let timer: ReturnType<typeof setTimeout> | null = null
+
+    const tick = () => {
+      if (cancelled) return
+      const target = PEEK_DEMOS[demoIdx]
+      if (charIdx <= target.length) {
+        setPeek(target.slice(0, charIdx))
+        charIdx += 1
+        timer = setTimeout(tick, 78 + Math.random() * 60)
+      } else {
+        timer = setTimeout(() => {
+          demoIdx = (demoIdx + 1) % PEEK_DEMOS.length
+          charIdx = 0
+          tick()
+        }, 1700)
+      }
+    }
+    tick()
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [collapsed])
 
   const appendEntry = useCallback((entry: HistoryEntry) => {
     setEntries((prev) => [...prev, { ...entry, id: newId() }])
@@ -411,7 +453,15 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
             tabIndex={-1}
           />
         </div>
-        <div className='wt-title'>{promptUser}@{promptHost} — terminal</div>
+        {collapsed ? (
+          <div className='wt-title wt-title--peek'>
+            <span className='wt-prompt-sigil'>$</span>
+            <span className='wt-tone-fg'>{peek}</span>
+            <span className='wt-caret wt-caret--idle' aria-hidden />
+          </div>
+        ) : (
+          <div className='wt-title'>{promptUser}@{promptHost} — terminal</div>
+        )}
         <div className='wt-hint'>
           {collapsed ? (
             <>click or <span className='wt-kbd'>`</span> to open</>
