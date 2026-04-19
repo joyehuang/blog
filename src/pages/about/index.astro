@@ -1,5 +1,4 @@
 ---
-import { Comment } from 'astro-pure/advanced'
 import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
@@ -97,6 +96,17 @@ const headings = [
         description: 'Graphic Design',
         href: 'https://www.canva.com/',
         icon: import('@/assets/tools/canva.svg?raw')
+      },
+      {
+        name: 'Claude Code',
+        description: 'Agentic Design Partner',
+        href: 'https://claude.ai/',
+        icon: import('@/assets/tools/claude.svg?raw')
+      },
+      {
+        name: 'Pencil',
+        description: 'AI-Native Design Editor',
+        href: 'https://www.pencil.dev/'
       }
       // 备用选项（取消注释即可启用）：
       // {
@@ -338,7 +348,7 @@ const headings = [
         color: '#fe2c55',
         link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
         text: 'followers',
-        count: 601
+        count: 1572
       },
       {
         platform: 'X (Twitter)',
@@ -346,17 +356,13 @@ const headings = [
         color: '#000000',
         link: 'https://x.com/deshiou0604',
         text: 'followers',
-        count: 6
+        count: 57
       }
     ]}
   />
 
   {/* gossips */}
   <h2 id='gossips'>Gossips</h2>
-  <Collapse title='关于编程之路 About My Coding Journey'>
-    大一的时候第一次接触前端开发，被网页的交互效果深深吸引。从最开始的 HTML/CSS 到现在的 React、Vue 全家桶，
-    每一步都充满挑战和惊喜。记得第一次成功部署自己的网站时，那种成就感至今难忘！
-  </Collapse>
   <Collapse title='墨尔本生活碎片 Life in Melbourne'>
     在墨尔本读书的日子既充实又有趣。这里的咖啡文化、街头艺术、以及多元的文化氛围都让我着迷。
     周末会去 St Kilda 海滩散步，或者在 State Library 泡一整天。虽然偶尔会想家，但这段经历让我成长了很多。
@@ -369,17 +375,12 @@ const headings = [
     虽然说是被"逼"着学的乐器，但现在很感谢父母当初的坚持。钢琴让我学会了如何表达情感，
     大提琴则教会我耐心和专注。有时候 debug 累了，就会弹一会琴放松一下，效果比咖啡还好！
   </Collapse>
-  <Collapse title='未来规划 Future Plans'>
-    短期目标是继续深耕前端，同时逐步学习后端知识，争取成为一名全栈开发者。
-    长期来看，希望能在开源社区有更多贡献，也想尝试做一些有意思的个人项目。
-    Build fast, learn faster - 这不仅是我的 motto，也是我的行动指南！
-  </Collapse>
 
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
   <p>
-    这个博客是我的个人技术学习笔记和生活记录空间。在这里，我会分享前端开发、全栈技术、实习经历、
-    以及一些学习心得。希望通过写作来沉淀知识，也希望能帮助到其他正在学习路上的同学们。
+    这个博客是我的个人技术学习笔记和生活记录空间。主要记录 Agent 开发、LLM 原理、全栈开发相关的学习与实践，
+    也会穿插一些实习经历和思考。希望通过写作沉淀知识，也希望能帮到走在同一条路上的同学。
   </p>
   <p>
     博客的建设理念是：简洁、高效、注重内容。使用现代化的技术栈，保持快速的加载速度和良好的用户体验。
@@ -389,20 +390,28 @@ const headings = [
   <Timeline
     events={[
       {
-        date: '2025-01-12',
-        content: '开始使用 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人博客'
+        date: '2025-07-04',
+        content: '使用 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人博客，部署到 Vercel'
       },
       {
-        date: '2025-01-15',
-        content: '完成博客基础框架搭建，添加 Projects 和 About 页面'
+        date: '2025-07-01',
+        content: '发布第一篇技术博客《人生中第一个 PR》，正式开始内容创作'
       },
       {
-        date: '2025-01-20',
-        content: '集成 Waline 评论系统，添加访问统计功能'
+        date: '2025-10-23',
+        content: '写下《国内小厂前端实习面试总结与技术准备指南》'
       },
       {
-        date: '2025-01-25',
-        content: '发布第一篇技术博客，正式开始内容创作之旅'
+        date: '2025-12',
+        content: '开启 LLM 原理系列：RMSNorm、RoPE、Attention、FeedForward 四篇 Transformer 组件深度笔记'
+      },
+      {
+        date: '2026-03-09',
+        content: '发布《一个大二实习生的 Agent 开发面试修炼手册》，博客方向正式转向 Agent 开发'
+      },
+      {
+        date: '2026-04-10',
+        content: '启动源码精读系列，从 OpenHarness 开始读 Agent Harness 实现'
       }
     ]}
   />
@@ -411,7 +420,6 @@ const headings = [
     technical support provided by the following excellent projects/service providers:
   </p>
   <ul>
-    <li>Domain: <a href='#' target='_blank'>Vercel</a></li>
     <li>
       Framework & Theme: <a href='https://astro.build/' target='_blank'>Astro</a> + <a
         href='https://github.com/cworld1/astro-theme-pure'
@@ -422,19 +430,9 @@ const headings = [
       Site hosting: <a href='https://vercel.com/' target='_blank'>Vercel</a>
     </li>
     <li>
-      CI/CD: <a href='https://vercel.com/workflow' target='_blank'>Vercel Workflow</a>
-    </li>
-    <!-- <li>Resources speedup: <a href='https://cdn.cbd.int/' target='_blank'>CBD CDN</a></li> -->
-    <li>Comment system: <a href='https://waline.js.org' target='_blank'>Waline</a></li>
-    <li>
-      Visits: <a href='https://supabase.com/' target='_blank'>Supabase</a> +
-      <a href='https://waline.js.org/' target='_blank'>Waline</a>
-    </li>
-    <li>
       Other statistics: <a href='https://github.com/spencerwooo/substats' target='_blank'
         >Substats</a
       >
     </li>
   </ul>
-  <Comment slot='bottom' />
 </PageLayout>

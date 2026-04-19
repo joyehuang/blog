@@ -4,25 +4,82 @@ export const prerender = true
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
 
+import { getCollection } from 'astro:content'
 import { Quote } from 'astro-pure/advanced'
 import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import ProjectCard from '@/components/home/ProjectCard.astro'
+import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
 
-const languages = ['TypeScript', 'JavaScript', 'Python', 'Java', 'MySQL']
-const frontend = ['React', 'NextJs', 'Vite']
-const backend = ['Vercel', 'Waline', 'Firebase', 'Nodejs']
-const tools = ['Curor', 'Git', 'Docker', 'Postman', 'ESlint/Prettier', 'Jest']
+const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
+const frontend = ['React', 'Next.js', 'Tailwind CSS', 'Remotion', 'Vite']
+const backend = ['Node.js', 'Vercel', 'Supabase', 'AWS', 'Stripe', 'Inngest']
+const ai = [
+  'Claude Code',
+  'LLM',
+  'Transformer',
+  'Multi-Agent',
+  'RAG',
+  'Function Calling',
+  'Prompt Engineering'
+]
+const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
 
 const MAX_POSTS = 10
 const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
+
+const openSourceRepos = [
+  {
+    name: 'Learn-Open-Harness',
+    description: 'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent',
+    fallbackStars: 297
+  },
+  {
+    name: 'minimind-notes',
+    description: '从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验',
+    fallbackStars: 93
+  }
+]
+
+async function fetchStars(repo: string, fallback: number) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/joyehuang/${repo}`, {
+      headers: { Accept: 'application/vnd.github+json' }
+    })
+    if (!res.ok) return fallback
+    const data = (await res.json()) as { stargazers_count?: number }
+    return data.stargazers_count ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
+const openSource = await Promise.all(
+  openSourceRepos.map(async (r) => ({
+    ...r,
+    stars: await fetchStars(r.name, r.fallbackStars)
+  }))
+)
+
+const MAX_NOTES = 4
+const archiveTypeLabels: Record<string, string> = {
+  note: '笔记',
+  snippet: '片段',
+  draft: '草稿',
+  idea: '想法',
+  research: '研究',
+  reference: '参考'
+}
+const allNotes = (await getCollection('archive')).filter((e) => !e.data.draft)
+const latestNotes = allNotes
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, MAX_NOTES)
 ---
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
@@ -74,15 +131,18 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <Terminal />
       </div>
       <Section title='About'>
-        <p class='text-muted-foreground'>Frontend Developer</p>
+        <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
-          一名正在墨尔本上学的大二前端开发者，目标成为一名全栈开发者。最近刚入门摄影圈，平时喜欢弹琴与拉大提琴！
+          墨尔本大学在读，目前在特赞 Tezign 做 atypica（商业研究 Multi-Agent），
+          同时在 fAIshion.ai 与 Goshu Tech 做 AI 全栈与剪辑 Agent。
+          在意 LLM 的底层机制，也在意产品能不能真正跑起来。
+          Build fast, learn faster — 平时弹琴、拉大提琴、玩摄影。
         </p>
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
       {
         allPostsByDate.length > 0 && (
-          <Section title='Posts'>
+          <Section title='Blog'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {allPostsByDate.map((p) => (
                 <li class='flex flex-col gap-x-2 sm:flex-row'>
@@ -90,23 +150,108 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
                 </li>
               ))}
             </ul>
-            <Button title='More posts' class='w-fit self-end' href='/blog' style='ahead' />
+            <Button title='More blogs' class='w-fit self-end' href='/blog' style='ahead' />
+          </Section>
+        )
+      }
+
+      {
+        latestNotes.length > 0 && (
+          <Section title='Notes'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {latestNotes.map((note) => (
+                <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
+                  <a
+                    class='group/link w-full flex flex-col sm:flex-row transition-all hover:text-primary'
+                    href={`/archive/${note.id}`}
+                    data-astro-prefetch
+                  >
+                    <span class='min-w-[95px] py-1 text-xs text-muted-foreground'>
+                      {archiveTypeLabels[note.data.type] || note.data.type}
+                    </span>
+                    <div class='z-10 flex-grow'>
+                      <div class='flex justify-between'>
+                        <div>{note.data.title}</div>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          width='16'
+                          height='16'
+                          viewBox='0 0 24 24'
+                          fill='none'
+                          stroke-width='2.5'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          class='my-1 stroke-muted-foreground group-hover/link:stroke-primary'
+                        >
+                          <line
+                            x1='5'
+                            y1='12'
+                            x2='19'
+                            y2='12'
+                            class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1 group-hover/link:scale-x-100'
+                          />
+                          <polyline
+                            points='12 5 19 12 12 19'
+                            class='translate-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1'
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <Button title='More notes' class='w-fit self-end' href='/archive' style='ahead' />
           </Section>
         )
       }
 
       <Section title='Experience'>
-        <Card
+        <LinkCard
           heading='上海特赞 Tezign'
-          subheading='AIGC研发部门全栈实习生'
-          date='Present'
+          subheading='AIGC 研发部门全栈实习生'
+          href='https://atypica.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>
-              负责AIGC相关功能的全栈开发工作
+              参与 atypica.ai —— 面向商业研究场景的 Multi-Agent 系统
             </li>
           </ul>
-        </Card>
+        </LinkCard>
+        <LinkCard
+          heading='fAIshion.ai'
+          subheading='AI 全栈工程师（远程）'
+          href='https://www.faishion.ai/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>
+              AI 虚拟试衣与服装搭配平台的全栈开发与模型集成
+            </li>
+          </ul>
+        </LinkCard>
+        <LinkCard
+          heading='AIXCut'
+          subheading='AI 全栈研发'
+          href='https://aixcut.cn/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>
+              参与 AI 视频剪辑 Agent 的设计与工程化落地
+            </li>
+          </ul>
+        </LinkCard>
+      </Section>
+      <Section title='Open Source'>
+        {
+          openSource.map((repo) => (
+            <LinkCard
+              heading={repo.name}
+              subheading={repo.description}
+              date={`⭐ ${repo.stars}`}
+              href={`https://github.com/joyehuang/${repo.name}`}
+            />
+          ))
+        }
       </Section>
       <Section title='Education'>
         <Card
@@ -172,6 +317,7 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <SkillLayout title='Languages' skills={languages} />
         <SkillLayout title='Frontend' skills={frontend} />
         <SkillLayout title='Backend' skills={backend} />
+        <SkillLayout title='AI & Agent' skills={ai} />
         <SkillLayout title='Tools' skills={tools} />
       </Section>
     </div>

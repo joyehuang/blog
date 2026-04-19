@@ -16,6 +16,7 @@
       "@/assets/*": ["src/assets/*"],
       "@/components/*": ["src/components/*"],
       "@/layouts/*": ["src/layouts/*"],
+      "@/lib/*": ["src/lib/*"],
       "@/utils": ["src/utils/index.ts"],
       "@/utils/*": ["src/utils/*"],
       "@/plugins/*": ["src/plugins/*"],

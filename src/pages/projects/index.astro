@@ -9,12 +9,12 @@ import Sponsorship from '@/components/projects/Sponsorship.astro'
 import alipay from '@/assets/alipay-qrcode.jpg'
 import KeyIcon from '@/assets/icons/key.svg'
 import wechat from '@/assets/wechat-qrcode.jpg'
-import config from '@/site-config'
 
 const headings = [
-  { depth: 2, slug: 'theme', text: 'Theme' },
+  { depth: 2, slug: 'open-source', text: 'Open Source' },
   { depth: 2, slug: 'programs', text: 'Programs' },
   { depth: 2, slug: 'learnings', text: 'Learnings' },
+  { depth: 2, slug: 'theme', text: 'Theme' },
   { depth: 2, slug: 'sponsorship', text: 'Sponsorship' }
 ]
 ---
@@ -34,19 +34,22 @@ const headings = [
     <Icon class='size-5' name='receive-money' slot='before' />
   </Button>
 
-  <h2 id='theme'>Theme</h2>
+  <h2 id='open-source'>Open Source</h2>
   <ProjectSection
     project={[
       {
-        name: '🍭 Astro-theme-pure',
-        description: 'A simple, clean but powerful blog theme build by astro.',
+        name: 'Learn-Open-Harness',
+        description:
+          'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent。',
         links: [
-          { type: 'github', href: 'https://github.com/cworld1/astro-theme-pure' },
-          { type: 'site', href: 'https://github.com/cworld1/astro-theme-pure' },
-          {
-            type: 'doc',
-            href: 'https://github.com/cworld1/astro-theme-pure/blob/main/src/content/blog/customize/index.md'
-          }
+          { type: 'github', href: 'https://github.com/joyehuang/Learn-Open-Harness' }
+        ]
+      },
+      {
+        name: 'minimind-notes',
+        description: '从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验。',
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }
         ]
       }
     ]}
@@ -61,6 +64,13 @@ const headings = [
           'AI消费者研究平台，负责开发Interview Agent进行AI Persona访谈调研。',
         links: [
           { type: 'site', href: 'https://atypica.ai' }
+        ]
+      },
+      {
+        name: 'AIXCut',
+        description: 'AI 视频剪辑 Agent，参与设计与工程化落地。',
+        links: [
+          { type: 'site', href: 'https://aixcut.cn/' }
         ]
       },
       {
@@ -108,14 +118,27 @@ const headings = [
     class='my-2'
     project={[
       {
-        name: 'MiniMind Notes',
-        description: 'MiniMind项目学习笔记',
-        links: [{ type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }]
-      },
-      {
         name: 'UCB CS61A',
         description: '我自己学习61a的代码',
         links: [{ type: 'github', href: 'https://github.com/joyehuang/interview-prep' }]
+      }
+    ]}
+  />
+
+  <h2 id='theme'>Theme</h2>
+  <ProjectSection
+    project={[
+      {
+        name: '🍭 Astro-theme-pure',
+        description: 'A simple, clean but powerful blog theme build by astro.',
+        links: [
+          { type: 'github', href: 'https://github.com/cworld1/astro-theme-pure' },
+          { type: 'site', href: 'https://github.com/cworld1/astro-theme-pure' },
+          {
+            type: 'doc',
+            href: 'https://github.com/cworld1/astro-theme-pure/blob/main/src/content/blog/customize/index.md'
+          }
+        ]
       }
     ]}
   />
@@ -155,23 +178,6 @@ const headings = [
     ]}
   />
 </PageLayout>
-
-<script
-  is:inline
-  type='module'
-  data-astro-rerun
-  define:vars={{ npmCDN: config.npmCDN, walineServer: config.integ.waline.server }}
->
-  const loadPageviewCount = async () => {
-    const pageview = await import(`${npmCDN}/@waline/client@v3/dist/pageview.js`)
-    pageview.pageviewCount({
-      serverURL: walineServer,
-      path: window.location.pathname
-    })
-  }
-
-  await loadPageviewCount()
-</script>
 
 <style>
   .sponsorship-card {

@@ -11,7 +11,7 @@ interface Props {
     name: string
     description: string
     href: string
-    icon: Promise<typeof import('*.svg?raw')> | ImageMetadata // 支持SVG或图像资源
+    icon?: Promise<typeof import('*.svg?raw')> | ImageMetadata // 支持SVG或图像资源
     darkIcon?: Promise<typeof import('*.svg?raw')> | ImageMetadata
   }[]
 }
@@ -39,7 +39,11 @@ function isImageMetadata(obj: any): obj is ImageMetadata {
           target='_blank'
         >
           <div class='flex items-center gap-x-3 rounded-lg border border-transparent px-1.5 py-1 transition-colors hover:border-border hover:bg-muted'>
-            {tool.darkIcon ? (
+            {!tool.icon ? (
+              <div class='size-10 flex items-center justify-center rounded-lg bg-primary-foreground text-base font-semibold text-foreground'>
+                {tool.name.charAt(0).toUpperCase()}
+              </div>
+            ) : tool.darkIcon ? (
               <>
                 {isImageMetadata(tool.icon) ? (
                   <div class='size-10 rounded-lg bg-primary-foreground p-2 dark:hidden'>
