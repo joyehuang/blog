@@ -14,6 +14,7 @@ import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
+import JoJo from '@/components/mascot/JoJo'
 import config from '@/site-config'
 
 const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
@@ -323,4 +324,11 @@ const latestNotes = allNotes
     </div>
     <Quote class='mt-12' />
   </main>
+
+  {/* JoJo mascot — floating companion bottom-right (hidden on mobile) */}
+  <div class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
+    <div class='pointer-events-auto'>
+      <JoJo client:load size='md' quipPool='idle' />
+    </div>
+  </div>
 </PageLayout>
