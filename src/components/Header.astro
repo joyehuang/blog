@@ -19,7 +19,7 @@ const menuKeyMap: Record<string, Parameters<typeof t>[0]> = {
   '/about': 'nav.about'
 }
 
-const menu = config.header.menu.map((item) => {
+const menu = (config.header?.menu ?? []).map((item) => {
   const key = menuKeyMap[item.link]
   return {
     title: key ? t(key) : item.title,
