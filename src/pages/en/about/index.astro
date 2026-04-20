@@ -1,0 +1,367 @@
+---
+import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+import Substats from '@/components/about/Substats.astro'
+import ToolSection from '@/components/about/ToolSection.astro'
+
+const headings = [
+  { depth: 2, slug: 'hobbies', text: 'Hobbies' },
+  { depth: 2, slug: 'tools', text: 'Tools' },
+  { depth: 2, slug: 'social-networks', text: 'Social Networks' },
+  { depth: 2, slug: 'gossips', text: 'Gossips' },
+  { depth: 2, slug: 'about-blog', text: 'About Blog' }
+]
+---
+
+<PageLayout title='About' {headings} info='/about'>
+  <p>Developer</p>
+  <p>
+    I'm a second-year undergraduate at the University of Melbourne. Outside of coding I spend time
+    on music, scale models, and photography (a new hobby!). Currently focused on frontend, with the
+    goal of becoming a full-stack developer — and an open-source contributor. My taste for music
+    started with piano and cello, which my parents pushed me into.
+  </p>
+  <p>
+    My motto: Build fast, learn faster. <Spoiler></Spoiler>
+  </p>
+  <Button title='Sponsor Me' class='w-fit' href='/en/projects#sponsorship' style='ahead' />
+
+  {/* hobbies */}
+  <h2 id='hobbies'>Hobbies</h2>
+  <ul>
+    <li>
+      <strong>Music</strong> — Learned piano and cello growing up. Though it started as parental
+      pressure, music has become something I can't imagine life without. I'll occasionally play
+      a few favorite pieces to unwind.
+    </li>
+    <li>
+      <strong>Model Building</strong> — I enjoy assembling all kinds of models. The process from
+      zero to finished piece trains both my hands and my patience.
+    </li>
+    <li>
+      <strong>Photography</strong> — A new hobby! I use the camera to capture small moments and
+      explore different perspectives and lighting.
+    </li>
+    <li>
+      <strong>Open Source</strong> — Working toward becoming an active open-source contributor,
+      learning and growing through code and community.
+    </li>
+  </ul>
+
+  {/* tools */}
+  <h2 id='tools'>Tools</h2>
+  <p>Here are the tools and technologies I use daily:</p>
+  <ToolSection
+    class='mb-5'
+    title='AI & Code Assistants'
+    tools={[
+      {
+        name: 'ChatGPT',
+        description: 'AI Assistant',
+        href: 'https://chat.openai.com/',
+        icon: import('@/assets/tools/chatgpt.svg?raw')
+      },
+      {
+        name: 'Claude Code',
+        description: 'AI Coding Assistant',
+        href: 'https://claude.ai/',
+        icon: import('@/assets/tools/claude.svg?raw')
+      },
+      {
+        name: 'GitHub Copilot',
+        description: 'AI Code Completion',
+        href: 'https://github.com/features/copilot',
+        icon: import('@/assets/tools/github.svg?raw')
+      },
+      {
+        name: 'v0 by Vercel',
+        description: 'AI UI Generator',
+        href: 'https://v0.dev/',
+        icon: import('@/assets/tools/v0.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Design'
+    tools={[
+      {
+        name: 'Figma',
+        description: 'UI/UX Design',
+        href: 'https://www.figma.com/',
+        icon: import('@/assets/tools/figma.svg?raw')
+      },
+      {
+        name: 'Canva',
+        description: 'Graphic Design',
+        href: 'https://www.canva.com/',
+        icon: import('@/assets/tools/canva.svg?raw')
+      },
+      {
+        name: 'Claude Code',
+        description: 'Agentic Design Partner',
+        href: 'https://claude.ai/',
+        icon: import('@/assets/tools/claude.svg?raw')
+      },
+      {
+        name: 'Pencil',
+        description: 'AI-Native Design Editor',
+        href: 'https://www.pencil.dev/'
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Development'
+    tools={[
+      {
+        name: 'Cursor',
+        description: 'AI-Powered IDE',
+        href: 'https://cursor.sh/',
+        icon: import('@/assets/tools/cursor.svg?raw')
+      },
+      {
+        name: 'VS Code',
+        description: 'Code Editor',
+        href: 'https://code.visualstudio.com/',
+        icon: import('@/assets/tools/vscode.svg?raw')
+      },
+      {
+        name: 'Git',
+        description: 'Version Control',
+        href: 'https://git-scm.com/',
+        icon: import('@/assets/tools/git.svg?raw')
+      },
+      {
+        name: 'Postman',
+        description: 'API Testing',
+        href: 'https://www.postman.com/',
+        icon: import('@/assets/tools/postman.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Productivity'
+    tools={[
+      {
+        name: 'Obsidian',
+        description: 'Knowledge Base',
+        href: 'https://obsidian.md/',
+        icon: import('@/assets/tools/obsidian.svg?raw')
+      },
+      {
+        name: 'Notion',
+        description: 'Project Management',
+        href: 'https://www.notion.so/',
+        icon: import('@/assets/tools/notion.svg?raw')
+      },
+      {
+        name: 'Chrome',
+        description: 'Web Browser',
+        href: 'https://www.google.com/chrome/',
+        icon: import('@/assets/tools/chrome.svg?raw')
+      },
+      {
+        name: 'Raycast',
+        description: 'Productivity Launcher',
+        href: 'https://www.raycast.com/',
+        icon: import('@/assets/tools/raycast.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='DevOps & Cloud'
+    tools={[
+      {
+        name: 'AWS',
+        description: 'Cloud Platform',
+        href: 'https://aws.amazon.com/',
+        icon: import('@/assets/tools/aws.svg?raw')
+      },
+      {
+        name: 'Vercel',
+        description: 'Deployment Platform',
+        href: 'https://vercel.com/',
+        icon: import('@/assets/tools/vercel.svg?raw')
+      },
+      {
+        name: 'Docker',
+        description: 'Containerization',
+        href: 'https://www.docker.com/',
+        icon: import('@/assets/tools/docker.svg?raw')
+      },
+      {
+        name: 'Supabase',
+        description: 'Backend as a Service',
+        href: 'https://supabase.com/',
+        icon: import('@/assets/tools/supabase.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Runtime & Package Managers'
+    tools={[
+      {
+        name: 'Bun',
+        description: 'JavaScript Runtime',
+        href: 'https://bun.sh/',
+        icon: import('@/assets/tools/bun.svg?raw')
+      },
+      {
+        name: 'npm',
+        description: 'Package Manager',
+        href: 'https://www.npmjs.com/',
+        icon: import('@/assets/tools/npm.svg?raw')
+      }
+    ]}
+  />
+  <ToolSection
+    class='mb-5'
+    title='Environment'
+    tools={[
+      {
+        name: 'macOS',
+        description: 'Mac Mini M4',
+        href: 'https://www.apple.com/macos/',
+        icon: import('@/assets/tools/apple.svg?raw')
+      },
+      {
+        name: 'Ubuntu 24.04.2 LTS',
+        description: 'Linux Distribution',
+        href: 'https://ubuntu.com/',
+        icon: import('@/assets/tools/ubuntu.svg?raw')
+      }
+    ]}
+  />
+
+  {/* social-networks */}
+  <h2 id='social-networks'>Social Networks</h2>
+  <p>
+    Find me around the web — I'm most active on GitHub and X, and I occasionally post on Bilibili
+    and Xiaohongshu.
+  </p>
+  <Substats
+    stats={[
+      {
+        platform: 'GitHub',
+        icon: 'github',
+        link: 'https://github.com/joyehuang',
+        text: 'followers',
+        api: 'github/joyehuang'
+      },
+      {
+        platform: 'Bilibili',
+        icon: 'bilibili',
+        color: '#e71f19',
+        link: 'https://space.bilibili.com/406318693',
+        text: 'followers',
+        api: 'bilibili/406318693'
+      },
+      {
+        platform: 'Xiaohongshu',
+        icon: '/src/assets/icons/xiaohongshu.png',
+        color: '#fe2c55',
+        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
+        text: 'followers',
+        count: 1572
+      },
+      {
+        platform: 'X (Twitter)',
+        icon: 'x',
+        color: '#000000',
+        link: 'https://x.com/deshiou0604',
+        text: 'followers',
+        count: 57
+      }
+    ]}
+  />
+
+  {/* gossips */}
+  <h2 id='gossips'>Gossips</h2>
+  <Collapse title='Life in Melbourne'>
+    Life as a student in Melbourne is both full and fun. The coffee culture, the street art, and the
+    mix of cultures all draw me in. On weekends I'll walk along St Kilda beach or spend the whole
+    day at the State Library. I miss home every so often, but this chapter has grown me a lot.
+  </Collapse>
+  <Collapse title='About Internship'>
+    I'm lucky to intern in Tezign's AIGC R&D team, where I finally get hands-on with frontier AI in
+    real products. Great team, patient mentors — and a lot of practical experience you just can't
+    pick up in a classroom.
+  </Collapse>
+  <Collapse title='About Music'>
+    Though my parents "made" me learn instruments, I'm grateful they held the line. Piano taught me
+    how to express feeling; cello taught me patience and focus. When debugging fries my brain, a
+    few minutes on the keys works better than coffee.
+  </Collapse>
+
+  {/* about-blog */}
+  <h2 id='about-blog'>About Blog</h2>
+  <p>
+    This blog is my space for technical notes and life updates. It mostly covers what I'm learning
+    and building around agents, LLM internals, and full-stack work — with occasional notes from
+    internships and stray thoughts along the way. Writing is how I turn experience into knowledge,
+    and hopefully some of it helps others on the same path.
+  </p>
+  <p>
+    The principle behind the site: keep it simple, fast, and content-first. Modern stack,
+    fast loads, no friction. Comments welcome — let's learn together.
+  </p>
+  <p>Website history:</p>
+  <Timeline
+    events={[
+      {
+        date: '2025-07-04',
+        content:
+          'Launched the personal blog with <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a>, deployed to Vercel.'
+      },
+      {
+        date: '2025-07-01',
+        content:
+          'Published my first post, "My first PR" — the official start of writing here.'
+      },
+      {
+        date: '2025-10-23',
+        content:
+          'Wrote "A frontend intern\u2019s interview guide for Chinese startups", lessons and prep notes.'
+      },
+      {
+        date: '2025-12',
+        content:
+          'Kicked off the LLM internals series: deep-dive notes on RMSNorm, RoPE, Attention, and FeedForward — the four pillars of a Transformer block.'
+      },
+      {
+        date: '2026-03-09',
+        content:
+          'Published "An Agent dev interview handbook for a second-year intern"; the blog\u2019s focus officially shifted toward agent development.'
+      },
+      {
+        date: '2026-04-10',
+        content:
+          'Started a source-reading series — beginning with OpenHarness to study how agent harnesses are implemented.'
+      }
+    ]}
+  />
+  <p>
+    The smooth operation and personalized customization of this site also rely on the resources and
+    technical support from the following excellent projects and service providers:
+  </p>
+  <ul>
+    <li>
+      Framework & Theme: <a href='https://astro.build/' target='_blank'>Astro</a> + <a
+        href='https://github.com/cworld1/astro-theme-pure'
+        target='_blank'>Astro Theme Pure</a
+      >
+    </li>
+    <li>
+      Site hosting: <a href='https://vercel.com/' target='_blank'>Vercel</a>
+    </li>
+    <li>
+      Other statistics: <a href='https://github.com/spencerwooo/substats' target='_blank'
+        >Substats</a
+      >
+    </li>
+  </ul>
+</PageLayout>

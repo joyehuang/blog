@@ -1,0 +1,163 @@
+---
+import { Image } from 'astro:assets'
+
+import { Button, Icon } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+import ProjectSection from '@/components/projects/ProjectSection.astro'
+import Sponsors from '@/components/projects/Sponsors.astro'
+import Sponsorship from '@/components/projects/Sponsorship.astro'
+import alipay from '@/assets/alipay-qrcode.jpg'
+import wechat from '@/assets/wechat-qrcode.jpg'
+
+const headings = [
+  { depth: 2, slug: 'open-source', text: 'Open Source' },
+  { depth: 2, slug: 'programs', text: 'Programs' },
+  { depth: 2, slug: 'learnings', text: 'Learnings' },
+  { depth: 2, slug: 'theme', text: 'Theme' },
+  { depth: 2, slug: 'sponsorship', text: 'Sponsorship' }
+]
+---
+
+<PageLayout title='Projects' {headings} info={{ slug: '/projects', hideComment: true }}>
+  <p>Github Activities:</p>
+  <p>
+    <Image
+      src='https://ghchart.rshah.org/joyehuang'
+      alt='github activities'
+      inferSize
+      loading='lazy'
+    />
+  </p>
+  <p>
+    If you think collaborating on a project would be interesting or meaningful, you can support my work
+    through sponsorship, or reach out to discuss a project together.
+  </p>
+  <Button title='Checkout sponsorship' class='w-fit' href='#sponsorship'>
+    <Icon class='size-5' name='receive-money' slot='before' />
+  </Button>
+
+  <h2 id='open-source'>Open Source</h2>
+  <ProjectSection
+    project={[
+      {
+        name: 'Learn-Open-Harness',
+        description:
+          'A zero-to-hero interactive tutorial for OpenHarness — Agent Loop, Tools, Memory, Multi-Agent.',
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/Learn-Open-Harness' }
+        ]
+      },
+      {
+        name: 'minimind-notes',
+        description:
+          'Building an LLM from scratch — principles and comparative experiments across Transformer, Pretraining, and SFT.',
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }
+        ]
+      }
+    ]}
+  />
+
+  <h2 id='programs'>Programs</h2>
+  <ProjectSection
+    project={[
+      {
+        name: 'Atypica',
+        description:
+          'An AI consumer-research platform. I work on the Interview Agent that conducts research through AI personas.',
+        links: [
+          { type: 'site', href: 'https://atypica.ai' }
+        ]
+      },
+      {
+        name: 'AIXCut',
+        description: 'An AI video-editing agent — involved in design and engineering rollout.',
+        links: [
+          { type: 'site', href: 'https://aixcut.cn/' }
+        ]
+      },
+      {
+        name: 'PrepWise',
+        description:
+          'An AI interview-practice tool I built. Simulates real interviews via voice to help you speak with confidence and improve on the spot.',
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/interview-prep' },
+          { type: 'site', href: 'https://interview-prep-eosin.vercel.app/sign-in' }
+        ]
+      },
+      {
+        name: 'QQ Bot',
+        description:
+          'A QQ group check-in bot that automatically manages records and reminders.',
+        links: [
+          { type: 'github', href: 'https://github.com/joyehuang/qq-bot' }
+        ]
+      }
+    ]}
+  />
+
+  <h2 id='learnings'>Learnings</h2>
+  <ProjectSection
+    class='my-2'
+    project={[
+      {
+        name: 'UCB CS61A',
+        description: 'My own code for working through CS61A.',
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/interview-prep' }]
+      }
+    ]}
+  />
+
+  <h2 id='theme'>Theme</h2>
+  <ProjectSection
+    project={[
+      {
+        name: '🍭 Astro-theme-pure',
+        description: 'A simple, clean but powerful blog theme built with Astro.',
+        links: [
+          { type: 'github', href: 'https://github.com/cworld1/astro-theme-pure' },
+          { type: 'site', href: 'https://github.com/cworld1/astro-theme-pure' },
+          {
+            type: 'doc',
+            href: 'https://github.com/cworld1/astro-theme-pure/blob/main/src/content/blog/customize/index.md'
+          }
+        ]
+      }
+    ]}
+  />
+
+  <h2 id='sponsorship'>Sponsorship</h2>
+  <p>Please leave a message or reach out after sponsoring.</p>
+  <Sponsorship
+    methods={[
+      { name: 'WeChat', icon: 'wechat-pay', image: wechat },
+      { name: 'Alipay', icon: 'alipay', image: alipay }
+    ]}
+  />
+  <p>Thanks to the following sponsors:</p>
+  <Sponsors
+    sponsors={[
+
+    ]}
+  />
+</PageLayout>
+
+<style>
+  .sponsorship-card {
+    & .sponsorship-card-img {
+      opacity: 0.3;
+      --un-blur: blur(4px);
+      filter: var(--un-blur);
+    }
+
+    &:hover {
+      & .sponsorship-card-icon {
+        opacity: 0;
+      }
+      & .sponsorship-card-img {
+        opacity: 1;
+        --un-blur: blur(0);
+      }
+    }
+  }
+</style>
