@@ -1,0 +1,42 @@
+---
+import { useTranslations, type Lang } from '@/i18n/ui'
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const t = useTranslations(lang)
+const label = lang === 'en' ? '中' : 'EN'
+---
+
+<button
+  id='toggleLang'
+  type='button'
+  data-lang={lang}
+  class='box-content flex size-5 items-center justify-center rounded-md border p-1.5 text-xs font-semibold leading-none transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
+>
+  <span class='sr-only'>{t('nav.toggleLang')}</span>
+  <span aria-hidden='true'>{label}</span>
+</button>
+
+<script>
+  function targetPathname(pathname: string, current: 'zh' | 'en'): string {
+    if (current === 'en') {
+      if (pathname === '/en' || pathname === '/en/') return '/'
+      if (pathname.startsWith('/en/')) return pathname.slice(3)
+      return '/'
+    }
+    if (pathname === '/' || pathname === '') return '/en'
+    return `/en${pathname.startsWith('/') ? pathname : `/${pathname}`}`
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement | null
+    const btn = target?.closest('#toggleLang') as HTMLButtonElement | null
+    if (!btn) return
+    const current = (btn.dataset.lang === 'en' ? 'en' : 'zh') as 'zh' | 'en'
+    const next = targetPathname(window.location.pathname, current)
+    window.location.href = next + window.location.search + window.location.hash
+  })
+</script>
