@@ -37,6 +37,9 @@ html {
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
   --radius: 0.5rem;
+  --term-surface: 210 20% 97%;
+  --term-chrome: 210 20% 95%;
+  --term-ok: 142 50% 40%;
 }
 .dark {
   --background: 240 20.54% 5.2%;
@@ -58,6 +61,9 @@ html {
   --border: 240 3.7% 19.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+  --term-surface: 240 18% 7%;
+  --term-chrome: 240 18% 4%;
+  --term-ok: 142 60% 65%;
 }
 :root {
   --un-default-border-color: hsl(var(--border) / 1);
