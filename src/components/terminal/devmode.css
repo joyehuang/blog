@@ -38,24 +38,37 @@
   flex-direction: column;
 }
 
-/* subtle scanline — a single translucent band that sweeps vertically */
+/* subtle scanline — a single translucent band that sweeps vertically.
+ * dark uses `screen` to brighten; light uses `multiply` with the
+ * foreground token to darken — `screen` on a near-white bg is invisible. */
 .dev-root::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    hsl(var(--primary) / 0.035) 48%,
-    hsl(var(--primary) / 0.05) 50%,
-    hsl(var(--primary) / 0.035) 52%,
-    transparent 100%
-  );
-  mix-blend-mode: screen;
   animation: dev-scan 5.5s linear infinite;
   will-change: transform;
   height: 40vh;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    hsl(var(--foreground) / 0.035) 48%,
+    hsl(var(--foreground) / 0.06) 50%,
+    hsl(var(--foreground) / 0.035) 52%,
+    transparent 100%
+  );
+  mix-blend-mode: multiply;
+}
+:root.dark .dev-root::before {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    hsl(var(--primary) / 0.04) 48%,
+    hsl(var(--primary) / 0.06) 50%,
+    hsl(var(--primary) / 0.04) 52%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
 }
 
 .dev-chrome {
@@ -230,8 +243,15 @@
   display: flex;
   align-items: baseline;
   gap: 0.5em;
-  padding: 0.15rem 0 1.5rem;
-  background: hsl(var(--term-surface));
+  padding: 0.9rem 0 1.5rem;
+  /* soft fade into the surface so the scanline dissolves through the
+   * sticky row instead of getting sharply cut off by a hard opaque edge */
+  background: linear-gradient(
+    180deg,
+    hsl(var(--term-surface) / 0) 0%,
+    hsl(var(--term-surface) / 0.72) 40%,
+    hsl(var(--term-surface)) 80%
+  );
   z-index: 2;
   cursor: text;
 }
