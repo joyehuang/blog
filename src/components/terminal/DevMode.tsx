@@ -176,18 +176,6 @@ export default function DevMode({
     body.scrollTop = body.scrollHeight
   }, [entries, bootLines])
 
-  // Esc exits (but only when input is empty, so esc-to-clear doesn't collide)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !input) {
-        e.preventDefault()
-        onExit?.()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [input, onExit])
-
   // lock body scroll while mounted
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -313,6 +301,13 @@ export default function DevMode({
       e.preventDefault()
       appendEntry({ kind: 'input', raw: `${input}^C`, cwd: PROMPT_CWD })
       setInput('')
+      return
+    }
+    if (e.key === 'Escape' && !input) {
+      // scoped to our input — global window listener would fight with
+      // the browser (e.g. exiting fullscreen also fires Esc).
+      e.preventDefault()
+      onExit?.()
     }
   }
 
@@ -420,21 +415,21 @@ export default function DevMode({
                 className={`dev-caret ${focused ? '' : 'dev-caret--idle'}`}
                 aria-hidden
               />
+              <input
+                ref={inputRef}
+                className='dev-input-hidden'
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                spellCheck={false}
+                autoCapitalize='off'
+                autoCorrect='off'
+                aria-label='dev mode input'
+                autoFocus
+              />
             </span>
-            <input
-              ref={inputRef}
-              className='dev-input-hidden'
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              spellCheck={false}
-              autoCapitalize='off'
-              autoCorrect='off'
-              aria-label='dev mode input'
-              autoFocus
-            />
           </div>
         )}
       </div>

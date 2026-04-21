@@ -49,15 +49,22 @@ const posts: PostSummary[] = recent.map((p) => {
     />
     <link rel='stylesheet' href='/styles/global.css' />
     <script is:inline>
-      // match the site's theme for overlay tokens
-      try {
-        const t = localStorage.getItem('theme')
-        if (t === 'dark' || (t === null && matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark')
+      // mirror ThemeProvider.astro: 'system' or missing → follow prefers-color-scheme
+      ;(() => {
+        let stored = null
+        try {
+          stored = localStorage.getItem('theme')
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
-      }
+        const resolved =
+          !stored || stored === 'system'
+            ? matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
+            : stored
+        document.documentElement.classList.toggle('dark', resolved === 'dark')
+      })()
     </script>
   </head>
   <body>
