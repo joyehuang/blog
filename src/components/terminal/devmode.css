@@ -1,0 +1,279 @@
+@keyframes dev-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dev-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+@keyframes dev-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.dev-root {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: hsl(var(--term-surface));
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  animation: dev-overlay-in 0.18s ease-out both;
+  display: flex;
+  flex-direction: column;
+}
+
+/* subtle scanline — a single translucent band that sweeps vertically */
+.dev-root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    hsl(var(--primary) / 0.035) 48%,
+    hsl(var(--primary) / 0.05) 50%,
+    hsl(var(--primary) / 0.035) 52%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  animation: dev-scan 5.5s linear infinite;
+  will-change: transform;
+  height: 40vh;
+}
+
+.dev-chrome {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1.25rem;
+  background: hsl(var(--term-chrome));
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 12px;
+}
+
+.dev-chrome-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.dev-chrome-title {
+  color: hsl(var(--primary));
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dev-chrome-hint {
+  color: hsl(var(--muted-foreground));
+}
+
+.dev-chrome-hint .wt-kbd {
+  margin: 0 0.2em;
+}
+
+.dev-chrome-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+.dev-chrome-dots > span {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+}
+.dev-chrome-dots > span:nth-child(1) {
+  background: hsl(0 60% 55%);
+}
+.dev-chrome-dots > span:nth-child(2) {
+  background: hsl(45 70% 55%);
+}
+.dev-chrome-dots > span:nth-child(3) {
+  background: hsl(142 50% 50%);
+}
+
+.dev-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.25rem clamp(1rem, 4vw, 2.5rem) 1rem;
+  font-size: 14px;
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
+}
+
+.dev-boot {
+  margin-bottom: 1.25rem;
+}
+
+.dev-boot-line {
+  display: block;
+  white-space: pre;
+  animation: dev-overlay-in 0.22s ease-out both;
+}
+
+.dev-boot-time {
+  color: hsl(var(--muted-foreground));
+  margin-right: 0.75em;
+}
+
+.dev-boot-ok {
+  color: hsl(var(--term-ok));
+  margin-left: 0.5em;
+}
+
+.dev-neofetch {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem 2rem;
+  margin-bottom: 1.5rem;
+  animation: dev-overlay-in 0.25s ease-out both;
+}
+
+.dev-neo-ascii {
+  margin: 0;
+  white-space: pre;
+  color: hsl(var(--primary));
+  font-size: 14px;
+  line-height: 1.15;
+  letter-spacing: 0.5px;
+  align-self: start;
+}
+
+.dev-neo-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.9rem;
+  row-gap: 0.2rem;
+  align-content: start;
+}
+
+.dev-neo-facts .hd {
+  grid-column: 1 / -1;
+  margin-bottom: 0.35rem;
+}
+.dev-neo-facts .hd-user {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.dev-neo-facts .hd-at {
+  color: hsl(var(--muted-foreground));
+}
+.dev-neo-facts .hd-host {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.dev-neo-facts .hd-rule {
+  grid-column: 1 / -1;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.45rem;
+}
+
+.dev-neo-facts .key {
+  color: hsl(var(--primary));
+}
+
+.dev-neo-facts .val {
+  color: hsl(var(--foreground));
+}
+
+.dev-neo-facts .val-muted {
+  color: hsl(var(--muted-foreground));
+}
+
+.dev-entries {
+  display: flex;
+  flex-direction: column;
+}
+
+.dev-entry {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.1rem;
+}
+
+.dev-entry .wt-line {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dev-entry .wt-spacer {
+  display: block;
+  height: 0.4em;
+}
+
+.dev-input-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  padding: 0.15rem 0 1.5rem;
+}
+
+.dev-input-display {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  min-width: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.dev-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: hsl(var(--primary));
+  transform: translateY(2px);
+  animation: dev-caret 1s steps(1, start) infinite;
+}
+
+.dev-caret--idle {
+  animation: none;
+  opacity: 0.35;
+}
+
+.dev-input-hidden {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dev-root,
+  .dev-boot-line,
+  .dev-neofetch {
+    animation: none;
+  }
+  .dev-root::before {
+    animation: none;
+    opacity: 0.02;
+  }
+  .dev-caret {
+    animation: none;
+  }
+}
