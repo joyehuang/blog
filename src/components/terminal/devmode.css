@@ -56,9 +56,9 @@
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    hsl(var(--foreground) / 0.035) 48%,
-    hsl(var(--foreground) / 0.06) 50%,
-    hsl(var(--foreground) / 0.035) 52%,
+    hsl(var(--primary) / 0.08) 46%,
+    hsl(var(--primary) / 0.16) 50%,
+    hsl(var(--primary) / 0.08) 54%,
     transparent 100%
   );
   mix-blend-mode: multiply;
