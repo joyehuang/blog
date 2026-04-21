@@ -72,6 +72,14 @@ const searchHref = localizedPath('/search', lang)
     <div class='z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
       <LanguageSwitcher lang={lang} />
       <button
+        id='toggleDevMode'
+        class='group/dev box-content h-5 rounded-md border p-1.5 font-mono text-xs leading-5 tracking-tight text-muted-foreground transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
+        aria-label='Enter dev mode'
+        title='dev mode (press `)'
+      >
+        <span aria-hidden='true'>$_</span>
+      </button>
+      <button
         id='toggleDarkMode'
         class='group/dark box-content size-5 rounded-md border p-1.5 transition-colors hover:bg-border sm:group-[.not-top]:rounded-xl'
       >
@@ -120,6 +128,10 @@ const searchHref = localizedPath('/search', lang)
         const newTheme = setTheme(undefined, true)
         darkModeBtn.dataset.theme = newTheme
         showToast({ message: `Set theme to ${newTheme}` })
+      })
+
+      this.querySelector('#toggleDevMode')?.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('joye:toggle-dev'))
       })
 
       this.querySelector('#toggleMenu')?.addEventListener('click', () => {
