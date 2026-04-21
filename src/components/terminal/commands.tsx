@@ -253,6 +253,20 @@ export const commands: CommandRegistry = {
     run: ({ clear }) => clear()
   },
 
+  exit: {
+    name: 'exit',
+    summary: 'leave dev mode',
+    run: ({ push, setMode }) => {
+      if (setMode) {
+        push([{ kind: 'text', tone: 'muted', text: 'bye ✦ back to human mode…' }])
+        // defer so the farewell line renders before the overlay tears down
+        setTimeout(() => setMode('human'), 180)
+        return
+      }
+      push([{ kind: 'text', tone: 'muted', text: 'already in human mode — try `` ` `` to toggle' }])
+    }
+  },
+
   matrix: {
     name: 'matrix',
     summary: 'easter egg',
