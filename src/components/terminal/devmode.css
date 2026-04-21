@@ -39,12 +39,16 @@
 }
 
 /* subtle scanline — a single translucent band that sweeps vertically.
- * dark uses `screen` to brighten; light uses `multiply` with the
- * foreground token to darken — `screen` on a near-white bg is invisible. */
+ * Sits at z-index: 3 above the body + sticky input row, so the band
+ * blends over *everything* instead of getting cut off by the input row's
+ * opaque backdrop. Dark uses `screen` (brightens) with --primary; light
+ * uses `multiply` (darkens) with --foreground, because `screen` on a
+ * near-white surface is invisible. */
 .dev-root::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 3;
   pointer-events: none;
   animation: dev-scan 5.5s linear infinite;
   will-change: transform;
