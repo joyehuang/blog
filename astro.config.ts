@@ -102,12 +102,28 @@ export default defineConfig({
       //     filename: 'stats.html'
       //   })
     ],
+    resolve: {
+      dedupe: ['react', 'react-dom']
+    },
     ssr: {
       external: ['@resvg/resvg-js'],
       noExternal: ['satori']
     },
     optimizeDeps: {
-      include: ['satori', 'linebreak', 'base64-js', 'unicode-trie', 'unicode-properties']
+      include: ['satori', 'linebreak', 'base64-js', 'unicode-trie', 'unicode-properties'],
+      esbuildOptions: {
+        plugins: [
+          {
+            name: 'externalize-virtual-modules',
+            setup(build) {
+              build.onResolve({ filter: /^virtual:/ }, (args) => ({
+                path: args.path,
+                external: true
+              }))
+            }
+          }
+        ]
+      }
     }
   }
 })
