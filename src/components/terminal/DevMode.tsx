@@ -127,7 +127,7 @@ export default function DevMode({
     const steps: Omit<BootLine, 'ok'>[] = [
       { t: 0, text: 'booting joye-shell v0.1 …' },
       { t: 180, text: 'loading /etc/personality.conf' },
-      { t: 420, text: `mounting /posts (${posts.length} entries)` },
+      { t: 420, text: `mounting /blog (${posts.length} entries)` },
       { t: 710, text: 'spinning up agent mock on localhost:∞' },
       { t: 1020, text: 'resolving @mascot/jojo → ok' },
       { t: 1260, text: 'ready.' }
@@ -362,9 +362,9 @@ export default function DevMode({
               <span className='val'>TypeScript · UnoCSS · MDX</span>
               <span className='key'>editor</span>
               <span className='val'>neovim · VS Code · Claude Code</span>
-              <span className='key'>posts</span>
+              <span className='key'>blog</span>
               <span className='val'>
-                {posts.length} indexed <span className='val-muted'>· `ls posts`</span>
+                {posts.length} indexed <span className='val-muted'>· `ls blog`</span>
               </span>
               <span className='key'>uptime</span>
               <span className='val'>since Apr 2024</span>

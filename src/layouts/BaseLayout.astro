@@ -29,7 +29,7 @@ const {
 const lang = getLangFromUrl(Astro.url)
 const htmlLang = lang === 'en' ? 'en' : config.locale.lang
 
-// Recent posts surfaced inside DevMode's neofetch + `ls posts` command.
+// Recent entries surfaced inside DevMode's neofetch + `ls blog` command.
 // Small slice, serialized once per page render — cheap enough to do here.
 const recent = sortMDByDate(await getBlogCollection()).slice(0, 8)
 const devPosts: PostSummary[] = recent.map((p) => {

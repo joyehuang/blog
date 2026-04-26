@@ -14,7 +14,7 @@ const MOCK_AGENT_REPLIES: Record<string, string[]> = {
   ],
   building: [
     'Right now: this terminal, an AI persona for the homepage,',
-    'and a few half-finished posts about Astro + RSC + agent UX.'
+    'and a few half-finished blog posts about Astro + RSC + agent UX.'
   ],
   hire: [
     'Open to chats — frontend / full-stack / AI-product roles.',
@@ -79,18 +79,18 @@ export const commands: CommandRegistry = {
         { kind: 'text', tone: 'muted', text: '  ↳ AIGC full-stack intern @ Tezign' },
         { kind: 'text', tone: 'muted', text: '  ↳ stays hungry, stays foolish · plays piano + cello' },
         { kind: 'spacer' },
-        { kind: 'text', tone: 'muted', text: 'next: try `ls posts`, `chat`, or `connect`' }
+        { kind: 'text', tone: 'muted', text: 'next: try `ls blog`, `chat`, or `connect`' }
       ])
     }
   },
 
   ls: {
     name: 'ls',
-    summary: 'list things — try `ls posts`',
-    usage: 'ls [posts|socials]',
-    complete: (args) => (args.length <= 1 ? ['posts', 'socials'] : []),
+    summary: 'list things — try `ls blog`',
+    usage: 'ls [blog|socials]',
+    complete: (args) => (args.length <= 1 ? ['blog', 'socials'] : []),
     run: ({ args, push, posts }) => {
-      const target = args[0] ?? 'posts'
+      const target = args[0] ?? 'blog'
       if (target === 'socials' || target === 'connect') {
         push(
           SOCIAL_LINKS.map<OutputLine>((s) => ({
@@ -107,16 +107,16 @@ export const commands: CommandRegistry = {
         )
         return
       }
-      if (target !== 'posts') {
-        push([{ kind: 'text', tone: 'err', text: `ls: unknown target '${target}' — try 'posts' or 'socials'` }])
+      if (target !== 'blog') {
+        push([{ kind: 'text', tone: 'err', text: `ls: unknown target '${target}' — try 'blog' or 'socials'` }])
         return
       }
       if (posts.length === 0) {
-        push([{ kind: 'text', tone: 'muted', text: '(no posts indexed)' }])
+        push([{ kind: 'text', tone: 'muted', text: '(no entries indexed)' }])
         return
       }
       push([
-        { kind: 'text', tone: 'muted', text: `recent ${posts.length} posts — \`cat <slug>\` to read` },
+        { kind: 'text', tone: 'muted', text: `recent ${posts.length} entries — \`cat <slug>\` to read` },
         { kind: 'spacer' },
         ...posts.map<OutputLine>((p) => ({
           kind: 'node',
@@ -140,7 +140,7 @@ export const commands: CommandRegistry = {
     run: ({ args, push, posts, navigate }) => {
       const slug = args[0]
       if (!slug) {
-        push([{ kind: 'text', tone: 'err', text: 'cat: missing slug — `ls posts` first' }])
+        push([{ kind: 'text', tone: 'err', text: 'cat: missing slug — `ls blog` first' }])
         return
       }
       const match = posts.find((p) => p.slug === slug)

@@ -126,7 +126,7 @@ function MatrixRain() {
 }
 
 const COLLAPSE_KEY = 'wt-collapsed'
-const PEEK_DEMOS = ['whoami', 'help', 'ls posts', 'chat hire-me', 'theme dark', 'matrix']
+const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'theme dark', 'matrix']
 
 export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: Props) {
   const [entries, setEntries] = useState<RenderEntry[]>([])
@@ -475,7 +475,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
         <div className='wt-banner'>
           <span className='wt-banner-title'>wterm v0.1 · joye.sh</span>
           <span className='wt-banner-sub'>
-            an interactive shell into this site — try <code>help</code>, <code>chat</code>, <code>ls posts</code>.
+            an interactive shell into this site — try <code>help</code>, <code>chat</code>, <code>ls blog</code>.
           </span>
         </div>
 
