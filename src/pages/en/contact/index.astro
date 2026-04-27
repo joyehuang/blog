@@ -1,0 +1,51 @@
+---
+import PageLayout from '@/layouts/CommonPage.astro'
+import ContactQR from '@/components/contact/ContactQR.astro'
+import wechat from '@/assets/wechat-contact.jpg'
+import qqGroup from '@/assets/qq-group-contact.jpg'
+
+const headings = [
+  { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
+  { depth: 2, slug: 'before-you-add', text: 'Before you add me' }
+]
+---
+
+<PageLayout title='Contact' {headings} info='/en/contact'>
+  <p>
+    Happy to chat — tech, job hunting, blog collaborations, or just hanging out.
+    I'm slow to reply, but I do reply.
+  </p>
+
+  <h2 id='how-to-reach'>How to reach me</h2>
+  <p>Hover over a card to reveal the QR code. WeChat is for 1:1 chats; the QQ group is for casual public discussion.</p>
+  <ContactQR
+    class='my-6'
+    items={[
+      {
+        name: 'WeChat · joye',
+        hint: 'Hover to reveal QR',
+        image: wechat,
+        note: 'Please add a note: "from the blog + topic you want to chat about".'
+      },
+      {
+        name: 'cs Chat Group (QQ)',
+        hint: 'Hover to reveal QR',
+        image: qqGroup,
+        note: 'Group number 831907794 · Verification: title of my latest blog post.'
+      }
+    ]}
+  />
+
+  <h2 id='before-you-add'>Before you add me</h2>
+  <ul>
+    <li>
+      <strong>Tell me why you're reaching out</strong>. One sentence is enough — e.g. "want to chat about agent development" or "blog collab". Friend requests with no note will likely be ignored.
+    </li>
+    <li>
+      <strong>Business / promotion / recruiting</strong>: please share the context and what kind of collaboration you have in mind upfront, instead of opening with "hi".
+    </li>
+    <li>
+      <strong>The QQ group is for tech and life chat</strong>. No ads, spam, or off-platform recruiting — violators will be removed.
+    </li>
+  </ul>
+</PageLayout>

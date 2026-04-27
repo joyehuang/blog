@@ -1,0 +1,51 @@
+---
+import PageLayout from '@/layouts/CommonPage.astro'
+import ContactQR from '@/components/contact/ContactQR.astro'
+import wechat from '@/assets/wechat-contact.jpg'
+import qqGroup from '@/assets/qq-group-contact.jpg'
+
+const headings = [
+  { depth: 2, slug: 'how-to-reach', text: '如何联系我' },
+  { depth: 2, slug: 'before-you-add', text: '加之前请看一下' }
+]
+---
+
+<PageLayout title='Contact' {headings} info='/contact'>
+  <p>
+    欢迎来聊。技术、求职、博客协作、找朋友闲聊都可以。
+    我会比较慢回，但都会回。
+  </p>
+
+  <h2 id='how-to-reach'>如何联系我</h2>
+  <p>把鼠标移到卡片上即可看到二维码。微信用于一对一交流，QQ 群是更轻松的公共讨论。</p>
+  <ContactQR
+    class='my-6'
+    items={[
+      {
+        name: '微信 · joye',
+        hint: '悬停显示二维码',
+        image: wechat,
+        note: '加好友请备注「来自博客 + 想聊的话题」'
+      },
+      {
+        name: 'cs 交流群（QQ）',
+        hint: '悬停显示二维码',
+        image: qqGroup,
+        note: '群号 831907794 · 入群答题：博客最新一篇文章的标题'
+      }
+    ]}
+  />
+
+  <h2 id='before-you-add'>加之前请看一下</h2>
+  <ul>
+    <li>
+      <strong>请简单说明来意</strong>。一句话就行，比如「想聊 Agent 开发」「博客求合作」。没有备注的好友请求我大概率不会通过。
+    </li>
+    <li>
+      <strong>商务 / 推广 / 招聘需求</strong>请直接说明背景和合作形式，避免「在吗」式开场。
+    </li>
+    <li>
+      <strong>QQ 群以技术与生活交流为主</strong>，禁止广告、刷屏、外链拉人。违反会被移出。
+    </li>
+  </ul>
+</PageLayout>

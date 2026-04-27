@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets'
+
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  class?: string
+  items: {
+    name: string
+    hint: string
+    image: ImageMetadata
+    note?: string
+  }[]
+}
+
+const { class: className, items, ...props } = Astro.props
+---
+
+<div class={cn('flex flex-col justify-center gap-4 sm:flex-row', className)} {...props}>
+  {
+    items.map((item) => (
+      <div class='contact-card flex flex-col items-center gap-3'>
+        <div class='contact-card-frame relative aspect-square w-60 max-w-full overflow-hidden rounded-xl border bg-white'>
+          <div class='contact-card-cover absolute inset-0 flex flex-col items-center justify-center gap-2 bg-muted/60 px-4 text-center text-muted-foreground transition-opacity'>
+            <span class='text-base font-medium text-foreground'>{item.name}</span>
+            <span class='text-xs'>{item.hint}</span>
+          </div>
+          <Image
+            class='contact-card-img mx-auto my-0 h-full w-full object-cover blur-md transition-all'
+            src={item.image}
+            alt={item.name}
+            loading='lazy'
+          />
+        </div>
+        {item.note && <p class='m-0 max-w-60 text-center text-xs text-muted-foreground'>{item.note}</p>}
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .contact-card {
+    & .contact-card-img {
+      opacity: 0.25;
+      --un-blur: blur(10px);
+      filter: var(--un-blur);
+    }
+
+    &:hover,
+    &:focus-within {
+      & .contact-card-cover {
+        opacity: 0;
+      }
+      & .contact-card-img {
+        opacity: 1;
+        --un-blur: blur(0);
+      }
+    }
+  }
+</style>
