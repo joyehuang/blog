@@ -91,9 +91,22 @@ export const integ: IntegrationUserConfig = {
   links: {
     // Friend logbook
     logbook: [
-      { date: '2024-07-01', content: 'Lorem ipsum dolor sit amet.' },
-      { date: '2024-07-01', content: 'vidit suscipit at mei.' },
-      { date: '2024-07-01', content: 'Quem denique mea id.' }
+      { date: '2025-07-04', content: '友链页面就绪，等第一位朋友。' },
+      {
+        date: '2025-11-04',
+        content:
+          '收到首位友链：<a href="https://sanbaiblog.cn/" target="_blank">一清三白</a>。'
+      },
+      {
+        date: '2026-04-19',
+        content:
+          '添加 <a href="https://www.wengxiaoxiong.com/" target="_blank">翁小雄</a>。'
+      },
+      {
+        date: '2026-04-27',
+        content:
+          '一天添加三位友链：<a href="http://www.windchant.online/" target="_blank">YinFeng\'s Blog</a>、<a href="https://kyc001.github.io/" target="_blank">Crayon</a>、<a href="https://evanlin.site/" target="_blank">Evan Lin</a>。'
+      }
     ],
     // Yourself link info
     applyTip: [
