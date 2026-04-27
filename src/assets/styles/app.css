@@ -40,6 +40,8 @@ html {
   --term-surface: 210 20% 97%;
   --term-chrome: 210 20% 95%;
   --term-ok: 142 50% 40%;
+  --code-bg: 220 14% 93%;
+  --code-fg: 220 13% 18%;
 }
 .dark {
   --background: 240 20.54% 5.2%;
@@ -64,6 +66,8 @@ html {
   --term-surface: 240 18% 7%;
   --term-chrome: 240 18% 4%;
   --term-ok: 142 60% 65%;
+  --code-bg: 240 5.9% 12%;
+  --code-fg: 0 0% 92%;
 }
 :root {
   --un-default-border-color: hsl(var(--border) / 1);
