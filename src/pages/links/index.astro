@@ -15,6 +15,9 @@ const headings = [
 
 const { friends } = links
 const linksConf = config.integ.links
+
+const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`).join('\n')
+const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'已复制全部信息到剪贴板'}}))`
 ---
 
 <PageLayout title='Links' {headings} info='/links'>
@@ -32,7 +35,16 @@ const linksConf = config.integ.links
 
   <!-- apply-links -->
   <h2 id='apply-links'>Apply Links</h2>
-  <p>本站信息如下 The site information（点击快速复制）：</p>
+  <p>
+    本站信息如下 The site information（点击单行复制，或
+    <button
+      type='button'
+      class='cursor-pointer underline underline-offset-4'
+      onclick={copyAllScript}
+    >
+      一键复制全部
+    </button>）：
+  </p>
   <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
     {
       linksConf.applyTip.map(({ name, val }) => {

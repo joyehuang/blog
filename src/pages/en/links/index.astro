@@ -15,6 +15,9 @@ const headings = [
 
 const { friends } = links
 const linksConf = config.integ.links
+
+const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`).join('\n')
+const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied all info to clipboard'}}))`
 ---
 
 <PageLayout title='Links' {headings} info='/links'>
@@ -31,7 +34,16 @@ const linksConf = config.integ.links
   <FriendList list={friends[2]} />
 
   <h2 id='apply-links'>Apply Links</h2>
-  <p>Site info (click to copy):</p>
+  <p>
+    Site info (click a row to copy, or
+    <button
+      type='button'
+      class='cursor-pointer underline underline-offset-4'
+      onclick={copyAllScript}
+    >
+      copy all
+    </button>):
+  </p>
   <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
     {
       linksConf.applyTip.map(({ name, val }) => {
