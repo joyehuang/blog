@@ -106,6 +106,11 @@ export const integ: IntegrationUserConfig = {
         date: '2026-04-27',
         content:
           '一天添加三位友链：<a href="http://www.windchant.online/" target="_blank">YinFeng\'s Blog</a>、<a href="https://kyc001.github.io/" target="_blank">Crayon</a>、<a href="https://evanlin.site/" target="_blank">Evan Lin</a>。'
+      },
+      {
+        date: '2026-04-28',
+        content:
+          '添加 <a href="https://blog.forhermajesty.com/" target="_blank">Queen\'s DevLog</a> 与 <a href="https://limening.vercel.app/" target="_blank">Lime\'s Blog</a>。'
       }
     ],
     // Yourself link info

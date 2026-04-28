@@ -33,6 +33,18 @@
           "intro": "AI builder",
           "link": "https://evanlin.site/",
           "avatar": "https://evanlin.site/profile.jpg"
+        },
+        {
+          "name": "Queen's DevLog",
+          "intro": "本站是一个分享有意思/有用内容的网站。",
+          "link": "https://blog.forhermajesty.com/",
+          "avatar": "https://blog.forhermajesty.com/upload/Queen-Logo-1973.jpg"
+        },
+        {
+          "name": "Lime's Blog",
+          "intro": "whirling in rags",
+          "link": "https://limening.vercel.app/",
+          "avatar": "https://limening.vercel.app/img/base/avatar.jpg"
         }
       ]
     },
