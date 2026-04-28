@@ -81,8 +81,6 @@ const positioned = friends.map((frd, i) => {
       <span class='constellation-center-label'>{meLabel}</span>
     </div>
 
-    <span class='constellation-coords' aria-hidden='true'>{friends.length} stars · ∞ canvas</span>
-
     {positioned.map(({ frd, x, y, posX, posY, idx }) => (
       <a
         href={frd.link}
@@ -123,6 +121,7 @@ const positioned = friends.map((frd, i) => {
     ))}
 
   </div>
+  <p class='constellation-coords' aria-hidden='true'>{friends.length} stars · ∞ canvas</p>
 </section>
 
 <script>
@@ -190,11 +189,12 @@ const positioned = friends.map((frd, i) => {
     mask-image: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 95%);
   }
 
+  .friend-constellation {
+    margin-bottom: 1rem;
+  }
   .constellation-coords {
-    position: absolute;
-    right: 0;
-    bottom: -1.6rem;
-    z-index: 5;
+    margin: 0.6rem 0 0;
+    text-align: right;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.7rem;
     letter-spacing: 0.1em;
