@@ -49,12 +49,6 @@ const positioned = friends.map((frd, i) => {
 
 <section class='friend-constellation' aria-label='Friend Constellation'>
   <div class='constellation-stage'>
-    <div class='constellation-meta'>
-      <span>FRIEND CONSTELLATION</span>
-      <span class='sep'>·</span>
-      <span>{friends.length} STARS</span>
-    </div>
-
     <svg class='constellation-svg' viewBox='0 0 100 100' preserveAspectRatio='none' aria-hidden='true'>
       {/* faint orbit guides */}
       <circle cx='50' cy='50' r='36' class='orbit' />
@@ -79,6 +73,8 @@ const positioned = friends.map((frd, i) => {
       </span>
       <span class='constellation-center-label'>{meLabel}</span>
     </div>
+
+    <span class='constellation-coords' aria-hidden='true'>{friends.length} stars · ∞ canvas</span>
 
     {positioned.map(({ frd, x, y, posX, posY, idx }) => (
       <a
@@ -119,7 +115,6 @@ const positioned = friends.map((frd, i) => {
       </a>
     ))}
 
-    <span class='constellation-coords' aria-hidden='true'>N 37° · E 144°</span>
   </div>
 </section>
 
@@ -153,57 +148,52 @@ const positioned = friends.map((frd, i) => {
   .friend-constellation {
     --star-size: 56px;
     --center-size: 110px;
-    --line-color: hsl(var(--primary) / 0.55);
-    --orbit-color: hsl(var(--muted-foreground) / 0.35);
-    --orbit-color-faint: hsl(var(--muted-foreground) / 0.18);
+    --line-color: hsl(var(--primary) / 0.5);
+    --orbit-color: hsl(var(--muted-foreground) / 0.18);
+    --orbit-color-faint: hsl(var(--muted-foreground) / 0.1);
   }
 
   .constellation-stage {
     position: relative;
     aspect-ratio: 16 / 11;
     width: 100%;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid hsl(var(--border));
-    background:
-      radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.08) 0%, transparent 55%),
-      radial-gradient(1.5px 1.5px at 12% 18%, hsl(var(--foreground) / 0.45) 50%, transparent 51%),
-      radial-gradient(1px 1px at 78% 22%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
-      radial-gradient(1px 1px at 24% 80%, hsl(var(--foreground) / 0.3) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 88% 72%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
-      radial-gradient(1px 1px at 65% 92%, hsl(var(--foreground) / 0.25) 50%, transparent 51%),
-      radial-gradient(1px 1px at 5% 60%, hsl(var(--foreground) / 0.3) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 95% 40%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
-      radial-gradient(1px 1px at 40% 8%, hsl(var(--foreground) / 0.25) 50%, transparent 51%),
-      radial-gradient(1px 1px at 55% 35%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
-      hsl(var(--background));
+    /* No border / no fill — content (lines, avatars, center) sits directly
+       on the page. The starfield bg is painted via ::before below so only
+       the stars fade at the edges, not the children. */
   }
-
-  .constellation-meta {
+  .constellation-stage::before {
+    content: '';
     position: absolute;
-    top: 1rem;
-    left: 1rem;
-    z-index: 5;
-    display: inline-flex;
-    gap: 0.5rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    color: hsl(var(--muted-foreground));
-  }
-  .constellation-meta .sep {
-    opacity: 0.5;
+    inset: -4% -4%;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(1px 1px at 7% 12%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 18% 32%, hsl(var(--foreground) / 0.22) 50%, transparent 51%),
+      radial-gradient(1px 1px at 26% 78%, hsl(var(--foreground) / 0.32) 50%, transparent 51%),
+      radial-gradient(1px 1px at 35% 14%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 47% 88%, hsl(var(--foreground) / 0.28) 50%, transparent 51%),
+      radial-gradient(1px 1px at 58% 7%, hsl(var(--foreground) / 0.2) 50%, transparent 51%),
+      radial-gradient(1px 1px at 66% 94%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 78% 22%, hsl(var(--foreground) / 0.32) 50%, transparent 51%),
+      radial-gradient(1px 1px at 85% 64%, hsl(var(--foreground) / 0.22) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 92% 38%, hsl(var(--foreground) / 0.32) 50%, transparent 51%),
+      radial-gradient(1px 1px at 96% 84%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
+      radial-gradient(1px 1px at 3% 52%, hsl(var(--foreground) / 0.22) 50%, transparent 51%);
+    /* fade only the starfield at edges so the canvas feels boundless */
+    -webkit-mask-image: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 95%);
+    mask-image: radial-gradient(ellipse at 50% 50%, #000 50%, transparent 95%);
   }
 
   .constellation-coords {
     position: absolute;
-    right: 1rem;
-    bottom: 0.85rem;
+    right: 0;
+    bottom: -1.6rem;
     z-index: 5;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.7rem;
     letter-spacing: 0.1em;
-    color: hsl(var(--muted-foreground) / 0.65);
+    color: hsl(var(--muted-foreground) / 0.6);
   }
 
   .constellation-svg {
