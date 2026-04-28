@@ -23,7 +23,7 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
 <PageLayout title='Links' {headings} info='/links'>
   <h2 id='friend-links'>Friend Links</h2>
   <p>Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it is.</p>
-  <FriendConstellation list={friends[0]} centerSub='joyehuang.me' />
+  <FriendConstellation list={friends[0]} meLabel='joyehuang.me' />
   <Collapse title='Links with Bad Status'>
     <FriendList list={friends[1]} />
   </Collapse>

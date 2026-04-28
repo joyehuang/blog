@@ -1,6 +1,8 @@
 ---
 import { Image } from 'astro:assets'
 
+import defaultMeAvatar from '@/assets/avatar.png'
+
 interface Friend {
   name: string
   intro: string
@@ -19,25 +21,22 @@ interface FriendList {
 
 interface Props {
   list: FriendList
-  centerLabel?: string
-  centerSub?: string
+  meAvatar?: ImageMetadata
+  meLabel?: string
 }
 
-const { list, centerLabel = 'YOU', centerSub = 'joyehuang.me' } = Astro.props
+const { list, meAvatar = defaultMeAvatar, meLabel = 'joyehuang.me' } = Astro.props
 const friends = list.link_list
 
-// Place each friend at an angle using the golden angle for natural distribution.
-// Wrap radius across two rings once we exceed ~7 stars to avoid crowding.
+// Place each friend on a soft orbit using the golden angle.
 const GOLDEN_ANGLE_DEG = 137.508
-const RING_RADII = [38, 44] // % of container half-width
+const RING_RADII = [36, 42] // % of half the stage's smaller dimension
 const positioned = friends.map((frd, i) => {
-  const angleDeg = (i * GOLDEN_ANGLE_DEG) % 360
+  const angleDeg = (i * GOLDEN_ANGLE_DEG + 22) % 360 // +22° rotation so first star isn't due-east
   const ring = i % 2 === 0 ? 0 : 1
-  // Slight radius jitter (deterministic per index) to avoid regularity
-  const jitter = ((i * 31) % 7) - 3 // -3..+3
+  const jitter = ((i * 31) % 7) - 3 // -3..+3 for slight radius variance
   const radius = RING_RADII[ring] + jitter
   const angleRad = (angleDeg * Math.PI) / 180
-  // Coordinates as % from center (50,50)
   const x = 50 + radius * Math.cos(angleRad)
   const y = 50 + radius * Math.sin(angleRad)
   return { frd, x, y, idx: i }
@@ -47,22 +46,34 @@ const positioned = friends.map((frd, i) => {
 <section class='friend-constellation' aria-label='Friend Constellation'>
   <div class='constellation-stage'>
     <div class='constellation-meta'>
-      <span class='constellation-meta-title'>FRIEND CONSTELLATION</span>
-      <span class='constellation-meta-sep'>·</span>
-      <span class='constellation-meta-count'>{friends.length} STARS</span>
+      <span>FRIEND CONSTELLATION</span>
+      <span class='sep'>·</span>
+      <span>{friends.length} STARS</span>
     </div>
 
-    <svg class='constellation-lines' viewBox='0 0 100 100' preserveAspectRatio='none' aria-hidden='true'>
+    <svg class='constellation-svg' viewBox='0 0 100 100' preserveAspectRatio='none' aria-hidden='true'>
+      {/* faint orbit guides */}
+      <circle cx='50' cy='50' r='36' class='orbit' />
+      <circle cx='50' cy='50' r='42' class='orbit faint' />
+      {/* connection lines from center to each star */}
       {positioned.map(({ x, y }) => (
-        <line x1='50' y1='50' x2={x} y2={y} class='constellation-line' />
+        <line x1='50' y1='50' x2={x} y2={y} class='line' />
       ))}
-      <circle cx='50' cy='50' r='38' class='constellation-orbit' />
-      <circle cx='50' cy='50' r='44' class='constellation-orbit constellation-orbit-faint' />
     </svg>
 
     <div class='constellation-center' aria-hidden='true'>
-      <span class='constellation-center-label'>{centerLabel}</span>
-      <span class='constellation-center-sub'>{centerSub}</span>
+      <span class='constellation-center-ring'></span>
+      <span class='constellation-center-avatar'>
+        <Image
+          src={meAvatar}
+          width={140}
+          height={140}
+          alt='You'
+          loading='eager'
+          class='m-0 h-full w-full object-cover'
+        />
+      </span>
+      <span class='constellation-center-label'>{meLabel}</span>
     </div>
 
     {positioned.map(({ frd, x, y, idx }) => (
@@ -70,8 +81,9 @@ const positioned = friends.map((frd, i) => {
         href={frd.link}
         target='_blank'
         rel='noopener noreferrer'
-        class='constellation-star group'
+        class='constellation-star'
         style={{ left: `${x}%`, top: `${y}%` }}
+        data-pos-y={y < 50 ? 'top' : 'bottom'}
         data-star-idx={idx}
         aria-label={frd.name}
       >
@@ -85,18 +97,19 @@ const positioned = friends.map((frd, i) => {
             loading='lazy'
           />
         </span>
+        <span class='constellation-star-name'>{frd.name}</span>
         <span class='constellation-star-card' role='tooltip'>
-          <span class='constellation-star-name'>{frd.name}</span>
-          {frd.intro && <span class='constellation-star-intro'>{frd.intro}</span>}
+          <span class='card-name'>{frd.name}</span>
+          {frd.intro && <span class='card-intro'>{frd.intro}</span>}
           {(frd.since || frd.met) && (
-            <span class='constellation-star-meta'>
+            <span class='card-meta'>
               {frd.met}
               {frd.met && frd.since && <span class='dot'>·</span>}
               {frd.since}
             </span>
           )}
-          {frd.note && <span class='constellation-star-note'>{frd.note}</span>}
-          <span class='constellation-star-link'>{new URL(frd.link).host} ↗</span>
+          {frd.note && <span class='card-note'>{frd.note}</span>}
+          <span class='card-link'>{new URL(frd.link).host} ↗</span>
         </span>
       </a>
     ))}
@@ -104,26 +117,26 @@ const positioned = friends.map((frd, i) => {
     <span class='constellation-coords' aria-hidden='true'>N 37° · E 144°</span>
   </div>
 
-  <details class='constellation-list-fallback'>
-    <summary>List view</summary>
-    <ul>
-      {friends.map((frd) => (
-        <li>
-          <a href={frd.link} target='_blank' rel='noopener noreferrer'>
-            <strong>{frd.name}</strong>
-            {frd.intro && <span class='intro'> — {frd.intro}</span>}
-            {frd.since && <span class='since'> · {frd.since}</span>}
-          </a>
-          {frd.note && <p class='note'>{frd.note}</p>}
-        </li>
-      ))}
-    </ul>
-  </details>
+  <div class='constellation-list'>
+    {friends.map((frd) => (
+      <a class='constellation-list-item' href={frd.link} target='_blank' rel='noopener noreferrer'>
+        <span class='avatar'>
+          <Image src={frd.avatar} width={64} height={64} alt='' loading='lazy' class='m-0 h-full w-full object-cover' />
+        </span>
+        <span class='body'>
+          <span class='line-1'>
+            <span class='name'>{frd.name}</span>
+            {frd.since && <span class='since'>{frd.since}</span>}
+          </span>
+          <span class='intro'>{frd.intro}</span>
+        </span>
+      </a>
+    ))}
+  </div>
 </section>
 
 <script>
-  // Tap-to-toggle on touch / coarse pointers (hover doesn't work).
-  // On click, prevent navigation on first tap, show card; second tap follows.
+  // Tap-to-toggle on touch / coarse pointers (no hover available).
   const isCoarse = window.matchMedia('(hover: none), (pointer: coarse)').matches
   if (isCoarse) {
     document.querySelectorAll<HTMLAnchorElement>('.constellation-star').forEach((star) => {
@@ -152,6 +165,9 @@ const positioned = friends.map((frd, i) => {
   .friend-constellation {
     --star-size: 56px;
     --center-size: 110px;
+    --line-color: hsl(var(--primary) / 0.55);
+    --orbit-color: hsl(var(--muted-foreground) / 0.35);
+    --orbit-color-faint: hsl(var(--muted-foreground) / 0.18);
   }
 
   .constellation-stage {
@@ -162,14 +178,16 @@ const positioned = friends.map((frd, i) => {
     border-radius: 1rem;
     border: 1px solid hsl(var(--border));
     background:
-      radial-gradient(circle at 50% 50%, hsl(var(--muted) / 0.5) 0%, hsl(var(--background)) 70%),
-      radial-gradient(1.5px 1.5px at 12% 18%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
-      radial-gradient(1px 1px at 78% 22%, hsl(var(--foreground) / 0.35) 50%, transparent 51%),
+      radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.08) 0%, transparent 55%),
+      radial-gradient(1.5px 1.5px at 12% 18%, hsl(var(--foreground) / 0.45) 50%, transparent 51%),
+      radial-gradient(1px 1px at 78% 22%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
       radial-gradient(1px 1px at 24% 80%, hsl(var(--foreground) / 0.3) 50%, transparent 51%),
       radial-gradient(1.5px 1.5px at 88% 72%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
       radial-gradient(1px 1px at 65% 92%, hsl(var(--foreground) / 0.25) 50%, transparent 51%),
       radial-gradient(1px 1px at 5% 60%, hsl(var(--foreground) / 0.3) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 95% 40%, hsl(var(--foreground) / 0.35) 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 95% 40%, hsl(var(--foreground) / 0.4) 50%, transparent 51%),
+      radial-gradient(1px 1px at 40% 8%, hsl(var(--foreground) / 0.25) 50%, transparent 51%),
+      radial-gradient(1px 1px at 55% 35%, hsl(var(--foreground) / 0.18) 50%, transparent 51%),
       hsl(var(--background));
   }
 
@@ -185,7 +203,7 @@ const positioned = friends.map((frd, i) => {
     letter-spacing: 0.12em;
     color: hsl(var(--muted-foreground));
   }
-  .constellation-meta-sep {
+  .constellation-meta .sep {
     opacity: 0.5;
   }
 
@@ -200,7 +218,7 @@ const positioned = friends.map((frd, i) => {
     color: hsl(var(--muted-foreground) / 0.65);
   }
 
-  .constellation-lines {
+  .constellation-svg {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -208,21 +226,20 @@ const positioned = friends.map((frd, i) => {
     pointer-events: none;
     z-index: 1;
   }
-  .constellation-line {
-    stroke: hsl(var(--muted-foreground) / 0.3);
-    stroke-width: 0.18;
-    stroke-dasharray: 0.6 0.6;
-    vector-effect: non-scaling-stroke;
+  .constellation-svg .line {
+    stroke: var(--line-color);
+    stroke-width: 0.4;
+    stroke-dasharray: 1.2 1;
+    stroke-linecap: round;
   }
-  .constellation-orbit {
+  .constellation-svg .orbit {
     fill: none;
-    stroke: hsl(var(--muted-foreground) / 0.18);
-    stroke-width: 0.15;
-    stroke-dasharray: 0.5 0.7;
-    vector-effect: non-scaling-stroke;
+    stroke: var(--orbit-color);
+    stroke-width: 0.25;
+    stroke-dasharray: 0.8 1.2;
   }
-  .constellation-orbit-faint {
-    stroke: hsl(var(--muted-foreground) / 0.1);
+  .constellation-svg .orbit.faint {
+    stroke: var(--orbit-color-faint);
   }
 
   .constellation-center {
@@ -237,24 +254,37 @@ const positioned = friends.map((frd, i) => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.15rem;
+  }
+  .constellation-center-ring {
+    position: absolute;
+    inset: -10px;
     border-radius: 9999px;
-    background: hsl(var(--background));
-    border: 1px solid hsl(var(--border));
+    background:
+      radial-gradient(circle, hsl(var(--primary) / 0.35) 0%, transparent 70%);
+    filter: blur(6px);
+    z-index: -1;
+  }
+  .constellation-center-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    overflow: hidden;
+    border: 2px solid hsl(var(--background));
     box-shadow:
-      0 0 0 6px hsl(var(--background) / 0.7),
-      0 0 60px 10px hsl(var(--primary) / 0.18);
+      0 0 0 2px hsl(var(--primary) / 0.6),
+      0 0 30px 6px hsl(var(--primary) / 0.25);
   }
   .constellation-center-label {
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    color: hsl(var(--foreground));
-  }
-  .constellation-center-sub {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.65rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     color: hsl(var(--muted-foreground));
+    white-space: nowrap;
   }
 
   .constellation-star {
@@ -271,7 +301,7 @@ const positioned = friends.map((frd, i) => {
   .constellation-star:focus-visible,
   .constellation-star.is-open {
     z-index: 6;
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1.12);
   }
 
   .constellation-star-avatar {
@@ -284,22 +314,38 @@ const positioned = friends.map((frd, i) => {
     background: hsl(var(--muted));
     box-shadow:
       0 0 0 1px hsl(var(--border)),
-      0 8px 24px hsl(var(--background) / 0.6);
+      0 6px 20px hsl(var(--background) / 0.7);
     transition:
-      box-shadow 200ms ease,
-      border-color 200ms ease;
+      box-shadow 200ms ease;
   }
   .constellation-star:hover .constellation-star-avatar,
   .constellation-star:focus-visible .constellation-star-avatar,
   .constellation-star.is-open .constellation-star-avatar {
     box-shadow:
       0 0 0 1px hsl(var(--primary) / 0.7),
-      0 0 24px 4px hsl(var(--primary) / 0.35);
+      0 0 24px 4px hsl(var(--primary) / 0.4);
+  }
+
+  .constellation-star-name {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.72rem;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    pointer-events: none;
+    transition: color 160ms ease;
+  }
+  .constellation-star:hover .constellation-star-name,
+  .constellation-star:focus-visible .constellation-star-name,
+  .constellation-star.is-open .constellation-star-name {
+    color: hsl(var(--foreground));
   }
 
   .constellation-star-card {
     position: absolute;
-    top: calc(100% + 0.6rem);
+    top: calc(100% + 1.6rem);
     left: 50%;
     transform: translateX(-50%) translateY(-4px);
     z-index: 10;
@@ -329,15 +375,19 @@ const positioned = friends.map((frd, i) => {
     transform: translateX(-50%) translateY(0);
     pointer-events: auto;
   }
-  .constellation-star-name {
+  .constellation-star[data-pos-y='bottom'] .constellation-star-card {
+    top: auto;
+    bottom: calc(100% + 1.6rem);
+  }
+  .constellation-star-card .card-name {
     font-weight: 600;
     color: hsl(var(--foreground));
   }
-  .constellation-star-intro {
+  .constellation-star-card .card-intro {
     font-size: 0.85rem;
     color: hsl(var(--muted-foreground));
   }
-  .constellation-star-meta {
+  .constellation-star-card .card-meta {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -345,91 +395,87 @@ const positioned = friends.map((frd, i) => {
     font-size: 0.7rem;
     color: hsl(var(--muted-foreground));
   }
-  .constellation-star-meta .dot {
+  .constellation-star-card .card-meta .dot {
     opacity: 0.5;
   }
-  .constellation-star-note {
+  .constellation-star-card .card-note {
     font-style: italic;
     font-size: 0.85rem;
     color: hsl(var(--foreground) / 0.85);
     border-left: 2px solid hsl(var(--border));
     padding-left: 0.6rem;
   }
-  .constellation-star-link {
+  .constellation-star-card .card-link {
     margin-top: 0.15rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.7rem;
     color: hsl(var(--primary));
   }
 
-  /* Flip the tooltip above the star when it's in the lower half */
-  .constellation-star[style*='top: 5'] .constellation-star-card,
-  .constellation-star[style*='top: 6'] .constellation-star-card,
-  .constellation-star[style*='top: 7'] .constellation-star-card,
-  .constellation-star[style*='top: 8'] .constellation-star-card,
-  .constellation-star[style*='top: 9'] .constellation-star-card {
-    top: auto;
-    bottom: calc(100% + 0.6rem);
-    transform: translateX(-50%) translateY(4px);
+  /* Compact list under the constellation: same dark theme, no native <details> chrome */
+  .constellation-list {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
-  .constellation-star[style*='top: 5']:hover .constellation-star-card,
-  .constellation-star[style*='top: 6']:hover .constellation-star-card,
-  .constellation-star[style*='top: 7']:hover .constellation-star-card,
-  .constellation-star[style*='top: 8']:hover .constellation-star-card,
-  .constellation-star[style*='top: 9']:hover .constellation-star-card,
-  .constellation-star[style*='top: 5'].is-open .constellation-star-card,
-  .constellation-star[style*='top: 6'].is-open .constellation-star-card,
-  .constellation-star[style*='top: 7'].is-open .constellation-star-card,
-  .constellation-star[style*='top: 8'].is-open .constellation-star-card,
-  .constellation-star[style*='top: 9'].is-open .constellation-star-card {
-    transform: translateX(-50%) translateY(0);
-  }
-
-  /* Always-visible list fallback below — accessible / mobile-friendly */
-  .constellation-list-fallback {
-    margin-top: 1.5rem;
+  .constellation-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.55rem;
     border: 1px solid hsl(var(--border));
-    border-radius: 0.65rem;
-    padding: 0.5rem 1rem;
-  }
-  .constellation-list-fallback summary {
-    cursor: pointer;
-    font-size: 0.85rem;
-    color: hsl(var(--muted-foreground));
-    padding: 0.5rem 0;
-  }
-  .constellation-list-fallback ul {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0 0.75rem;
-  }
-  .constellation-list-fallback li + li {
-    margin-top: 0.6rem;
-    border-top: 1px dashed hsl(var(--border) / 0.5);
-    padding-top: 0.6rem;
-  }
-  .constellation-list-fallback a {
-    text-decoration: none;
+    background: hsl(var(--background));
     color: inherit;
+    text-decoration: none;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
   }
-  .constellation-list-fallback a:hover {
-    color: hsl(var(--primary));
+  .constellation-list-item:hover {
+    background: hsl(var(--muted));
+    border-color: hsl(var(--primary) / 0.5);
   }
-  .constellation-list-fallback .intro {
+  .constellation-list-item .avatar {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: hsl(var(--muted));
+  }
+  .constellation-list-item .body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 0.1rem;
+  }
+  .constellation-list-item .line-1 {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .constellation-list-item .name {
+    font-size: 0.85rem;
+    color: hsl(var(--foreground));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .constellation-list-item .since {
+    flex-shrink: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.65rem;
     color: hsl(var(--muted-foreground));
   }
-  .constellation-list-fallback .since {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  .constellation-list-item .intro {
     font-size: 0.75rem;
     color: hsl(var(--muted-foreground));
-  }
-  .constellation-list-fallback .note {
-    margin: 0.3rem 0 0;
-    font-style: italic;
-    font-size: 0.85rem;
-    color: hsl(var(--foreground) / 0.85);
-    padding-left: 0.6rem;
-    border-left: 2px solid hsl(var(--border));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   @media (max-width: 640px) {
@@ -440,9 +486,17 @@ const positioned = friends.map((frd, i) => {
     .constellation-stage {
       aspect-ratio: 4 / 5;
     }
+    .constellation-meta {
+      top: 0.6rem;
+      left: 0.7rem;
+      font-size: 0.6rem;
+    }
     .constellation-star-card {
       width: 200px;
       font-size: 0.85rem;
+    }
+    .constellation-star-name {
+      font-size: 0.65rem;
     }
   }
 </style>
