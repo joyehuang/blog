@@ -6,7 +6,7 @@ import { Comment } from 'astro-pure/advanced'
 import { Collapse, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
-import FriendTimeline from '@/components/links/FriendTimeline.astro'
+import FriendConstellation from '@/components/links/FriendConstellation.astro'
 
 const headings = [
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
@@ -22,8 +22,8 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
 
 <PageLayout title='Links' {headings} info='/links'>
   <h2 id='friend-links'>Friend Links</h2>
-  <p>都是我朋友的个人站点。按加入时间倒序排列——这个小圈子是这样长出来的。</p>
-  <FriendTimeline list={friends[0]} />
+  <p>朋友是天上的星，你在中央——每条线是一段连接。把鼠标移到星上看 ta 是谁。</p>
+  <FriendConstellation list={friends[0]} />
   <Collapse title='Links with Bad Status'>
     <FriendList list={friends[1]} />
   </Collapse>
