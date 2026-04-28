@@ -110,7 +110,15 @@ export default defineConfig({
       noExternal: ['satori']
     },
     optimizeDeps: {
-      include: ['satori', 'linebreak', 'base64-js', 'unicode-trie', 'unicode-properties'],
+      include: [
+        'satori',
+        'linebreak',
+        'base64-js',
+        'unicode-trie',
+        'unicode-properties',
+        '@waline/client',
+        'recaptcha-v3'
+      ],
       esbuildOptions: {
         plugins: [
           {

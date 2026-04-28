@@ -33,7 +33,8 @@ const blog = defineCollection({
         .optional(),
       tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
       language: z.string().optional(),
-      draft: z.boolean().default(false)
+      draft: z.boolean().default(false),
+      comment: z.boolean().default(true)
     })
 })
 

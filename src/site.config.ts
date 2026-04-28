@@ -148,7 +148,12 @@ export const integ: IntegrationUserConfig = {
     }
   },
   waline: {
-    enable: false
+    enable: true,
+    server: 'https://waline.joyehuang.me',
+    additionalConfigs: {
+      pageview: true,
+      comment: true
+    }
   }
 }
 
