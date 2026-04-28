@@ -31,7 +31,7 @@ Cursor, Git, Docker, Postman, ESLint/Prettier, Jest
 
 环境要求：
 - [Node.js](https://nodejs.org/): 18.0.0+
-- [Bun](https://bun.sh/) (推荐) 或 npm
+- [Bun](https://bun.sh/)（项目统一使用 bun，不要混用 npm）
 
 克隆仓库：
 
