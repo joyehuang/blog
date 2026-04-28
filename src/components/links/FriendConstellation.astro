@@ -39,7 +39,11 @@ const positioned = friends.map((frd, i) => {
   const angleRad = (angleDeg * Math.PI) / 180
   const x = 50 + radius * Math.cos(angleRad)
   const y = 50 + radius * Math.sin(angleRad)
-  return { frd, x, y, idx: i }
+  // Anchor the hover card based on which side of the stage the star sits on,
+  // so it never gets cut off by the stage's right/left border.
+  const posX = x < 33 ? 'left' : x > 67 ? 'right' : 'center'
+  const posY = y < 50 ? 'top' : 'bottom'
+  return { frd, x, y, posX, posY, idx: i }
 })
 ---
 
@@ -76,14 +80,15 @@ const positioned = friends.map((frd, i) => {
       <span class='constellation-center-label'>{meLabel}</span>
     </div>
 
-    {positioned.map(({ frd, x, y, idx }) => (
+    {positioned.map(({ frd, x, y, posX, posY, idx }) => (
       <a
         href={frd.link}
         target='_blank'
         rel='noopener noreferrer'
         class='constellation-star'
         style={{ left: `${x}%`, top: `${y}%` }}
-        data-pos-y={y < 50 ? 'top' : 'bottom'}
+        data-pos-x={posX}
+        data-pos-y={posY}
         data-star-idx={idx}
         aria-label={frd.name}
       >
@@ -115,23 +120,6 @@ const positioned = friends.map((frd, i) => {
     ))}
 
     <span class='constellation-coords' aria-hidden='true'>N 37° · E 144°</span>
-  </div>
-
-  <div class='constellation-list'>
-    {friends.map((frd) => (
-      <a class='constellation-list-item' href={frd.link} target='_blank' rel='noopener noreferrer'>
-        <span class='avatar'>
-          <Image src={frd.avatar} width={64} height={64} alt='' loading='lazy' class='m-0 h-full w-full object-cover' />
-        </span>
-        <span class='body'>
-          <span class='line-1'>
-            <span class='name'>{frd.name}</span>
-            {frd.since && <span class='since'>{frd.since}</span>}
-          </span>
-          <span class='intro'>{frd.intro}</span>
-        </span>
-      </a>
-    ))}
   </div>
 </section>
 
@@ -379,6 +367,32 @@ const positioned = friends.map((frd, i) => {
     top: auto;
     bottom: calc(100% + 1.6rem);
   }
+  /* Anchor card to the LEFT side of the star when star is on the right edge,
+     so the card extends inward (leftward) instead of overflowing the stage. */
+  .constellation-star[data-pos-x='right'] .constellation-star-card {
+    left: auto;
+    right: calc(100% + 0.6rem);
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  .constellation-star[data-pos-x='right']:hover .constellation-star-card,
+  .constellation-star[data-pos-x='right']:focus-visible .constellation-star-card,
+  .constellation-star[data-pos-x='right'].is-open .constellation-star-card {
+    transform: translateY(-50%) translateX(0);
+  }
+  .constellation-star[data-pos-x='left'] .constellation-star-card {
+    right: auto;
+    left: calc(100% + 0.6rem);
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%) translateX(4px);
+  }
+  .constellation-star[data-pos-x='left']:hover .constellation-star-card,
+  .constellation-star[data-pos-x='left']:focus-visible .constellation-star-card,
+  .constellation-star[data-pos-x='left'].is-open .constellation-star-card {
+    transform: translateY(-50%) translateX(0);
+  }
   .constellation-star-card .card-name {
     font-weight: 600;
     color: hsl(var(--foreground));
@@ -410,72 +424,6 @@ const positioned = friends.map((frd, i) => {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.7rem;
     color: hsl(var(--primary));
-  }
-
-  /* Compact list under the constellation: same dark theme, no native <details> chrome */
-  .constellation-list {
-    margin-top: 1rem;
-    display: grid;
-    gap: 0.4rem;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  }
-  .constellation-list-item {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.55rem 0.7rem;
-    border-radius: 0.55rem;
-    border: 1px solid hsl(var(--border));
-    background: hsl(var(--background));
-    color: inherit;
-    text-decoration: none;
-    transition:
-      background 160ms ease,
-      border-color 160ms ease;
-  }
-  .constellation-list-item:hover {
-    background: hsl(var(--muted));
-    border-color: hsl(var(--primary) / 0.5);
-  }
-  .constellation-list-item .avatar {
-    flex: 0 0 auto;
-    width: 32px;
-    height: 32px;
-    border-radius: 9999px;
-    overflow: hidden;
-    background: hsl(var(--muted));
-  }
-  .constellation-list-item .body {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    gap: 0.1rem;
-  }
-  .constellation-list-item .line-1 {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    min-width: 0;
-  }
-  .constellation-list-item .name {
-    font-size: 0.85rem;
-    color: hsl(var(--foreground));
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .constellation-list-item .since {
-    flex-shrink: 0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.65rem;
-    color: hsl(var(--muted-foreground));
-  }
-  .constellation-list-item .intro {
-    font-size: 0.75rem;
-    color: hsl(var(--muted-foreground));
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   @media (max-width: 640px) {
