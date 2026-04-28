@@ -28,32 +28,39 @@ interface Props {
 const { list, meAvatar = defaultMeAvatar, meLabel = 'joyehuang.me' } = Astro.props
 const friends = list.link_list
 
-// Place each friend on a soft orbit using the golden angle.
+// Phyllotactic spiral (golden-angle + sqrt-radius). Gives roughly uniform
+// point density inside an annulus regardless of how many stars there are,
+// so 7 stars look airy and 30 stars stay legible.
 const GOLDEN_ANGLE_DEG = 137.508
-const RING_RADII = [36, 42] // % of half the stage's smaller dimension
+const N = friends.length
+const MIN_R = 24 // % from center — avoids the central avatar
+const MAX_R = Math.max(40, Math.min(48, 38 + N * 0.4)) // expand outward as N grows
+// Shrink star avatars as N grows so they don't visually collide.
+const starSizePx = Math.max(36, Math.min(56, 80 - N * 1.4))
+// Hide always-on name labels once the constellation gets crowded.
+const showNames = N <= 12
 const positioned = friends.map((frd, i) => {
-  const angleDeg = (i * GOLDEN_ANGLE_DEG + 22) % 360 // +22° rotation so first star isn't due-east
-  const ring = i % 2 === 0 ? 0 : 1
-  const jitter = ((i * 31) % 7) - 3 // -3..+3 for slight radius variance
-  const radius = RING_RADII[ring] + jitter
+  const t = (i + 0.5) / N
+  const radius = MIN_R + (MAX_R - MIN_R) * Math.sqrt(t)
+  const angleDeg = (i * GOLDEN_ANGLE_DEG + 22) % 360
   const angleRad = (angleDeg * Math.PI) / 180
   const x = 50 + radius * Math.cos(angleRad)
   const y = 50 + radius * Math.sin(angleRad)
-  // Anchor the hover card based on which side of the stage the star sits on,
-  // so it never gets cut off by the stage's right/left border.
+  // Anchor the hover card to the inner side of the canvas so it doesn't
+  // overflow at the right/left edge.
   const posX = x < 33 ? 'left' : x > 67 ? 'right' : 'center'
   const posY = y < 50 ? 'top' : 'bottom'
   return { frd, x, y, posX, posY, idx: i }
 })
 ---
 
-<section class='friend-constellation' aria-label='Friend Constellation'>
+<section
+  class={`friend-constellation${showNames ? '' : ' is-crowded'}`}
+  style={`--star-size: ${starSizePx}px`}
+  aria-label='Friend Constellation'
+>
   <div class='constellation-stage'>
     <svg class='constellation-svg' viewBox='0 0 100 100' preserveAspectRatio='none' aria-hidden='true'>
-      {/* faint orbit guides */}
-      <circle cx='50' cy='50' r='36' class='orbit' />
-      <circle cx='50' cy='50' r='42' class='orbit faint' />
-      {/* connection lines from center to each star */}
       {positioned.map(({ x, y }) => (
         <line x1='50' y1='50' x2={x} y2={y} class='line' />
       ))}
@@ -149,8 +156,6 @@ const positioned = friends.map((frd, i) => {
     --star-size: 56px;
     --center-size: 110px;
     --line-color: hsl(var(--primary) / 0.5);
-    --orbit-color: hsl(var(--muted-foreground) / 0.18);
-    --orbit-color-faint: hsl(var(--muted-foreground) / 0.1);
   }
 
   .constellation-stage {
@@ -209,15 +214,6 @@ const positioned = friends.map((frd, i) => {
     stroke-width: 0.4;
     stroke-dasharray: 1.2 1;
     stroke-linecap: round;
-  }
-  .constellation-svg .orbit {
-    fill: none;
-    stroke: var(--orbit-color);
-    stroke-width: 0.25;
-    stroke-dasharray: 0.8 1.2;
-  }
-  .constellation-svg .orbit.faint {
-    stroke: var(--orbit-color-faint);
   }
 
   .constellation-center {
@@ -313,11 +309,15 @@ const positioned = friends.map((frd, i) => {
     color: hsl(var(--muted-foreground));
     white-space: nowrap;
     pointer-events: none;
-    transition: color 160ms ease;
+    transition: color 160ms ease, opacity 160ms ease;
+  }
+  .friend-constellation.is-crowded .constellation-star-name {
+    opacity: 0;
   }
   .constellation-star:hover .constellation-star-name,
   .constellation-star:focus-visible .constellation-star-name,
   .constellation-star.is-open .constellation-star-name {
+    opacity: 1;
     color: hsl(var(--foreground));
   }
 
