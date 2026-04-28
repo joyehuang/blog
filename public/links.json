@@ -1,56 +1,80 @@
 {
   "friends": [
     {
-      "id_name": "cf-links",
-      "desc": "Common links included in circle friends",
+      "id_name": "friend-links",
+      "desc": "Friends I exchange blog links with",
       "link_list": [
         {
-          "name": "一清三白",
-          "intro": "克己慎独 守心明性",
-          "link": "https://sanbaiblog.cn/",
-          "avatar": "https://s21.ax1x.com/2025/01/05/pE9CfDU.jpg"
-        },
-        {
-          "name": "翁小雄",
-          "intro": "wengxiaoxiong.com",
-          "link": "https://www.wengxiaoxiong.com/",
-          "avatar": "https://github.com/wengxiaoxiong.png"
-        },
-        {
-          "name": "YinFeng's Blog",
-          "intro": "windchant.online",
-          "link": "http://www.windchant.online/",
-          "avatar": "http://www.windchant.online/wp-content/uploads/2026/03/Aemeath.jpg"
-        },
-        {
-          "name": "Crayon",
-          "intro": "苔花如米小，也学牡丹开",
-          "link": "https://kyc001.github.io/",
-          "avatar": "https://github.com/kyc001.png"
-        },
-        {
-          "name": "Evan Lin",
-          "intro": "AI builder",
-          "link": "https://evanlin.site/",
-          "avatar": "https://evanlin.site/profile.jpg"
-        },
-        {
-          "name": "Queen's DevLog",
-          "intro": "本站是一个分享有意思/有用内容的网站。",
-          "link": "https://blog.forhermajesty.com/",
-          "avatar": "https://blog.forhermajesty.com/upload/Queen-Logo-1973.jpg"
+          "name": "大耳朵图图",
+          "intro": "用 AI 和摄影，让世界更温暖",
+          "link": "https://bigeartutu.beauty/",
+          "avatar": "https://unavatar.io/x/tutu971844",
+          "since": "2026-04-28",
+          "met": "互换友链",
+          "note": "把 AI 和摄影揉在一起的写作者。"
         },
         {
           "name": "Lime's Blog",
           "intro": "whirling in rags",
           "link": "https://limening.vercel.app/",
-          "avatar": "https://limening.vercel.app/img/base/avatar.jpg"
+          "avatar": "https://limening.vercel.app/img/base/avatar.jpg",
+          "since": "2026-04-28",
+          "met": "互换友链",
+          "note": "灵气和颗粒感都还在的写作者。"
         },
         {
-          "name": "大耳朵图图",
-          "intro": "用 AI 和摄影，让世界更温暖",
-          "link": "https://bigeartutu.beauty/",
-          "avatar": "https://unavatar.io/x/tutu971844"
+          "name": "Queen's DevLog",
+          "intro": "本站是一个分享有意思/有用内容的网站。",
+          "link": "https://blog.forhermajesty.com/",
+          "avatar": "https://blog.forhermajesty.com/upload/Queen-Logo-1973.jpg",
+          "since": "2026-04-28",
+          "met": "互换友链",
+          "note": "把「分享有意思的内容」当成一件认真的事来做。"
+        },
+        {
+          "name": "Evan Lin",
+          "intro": "AI builder",
+          "link": "https://evanlin.site/",
+          "avatar": "https://evanlin.site/profile.jpg",
+          "since": "2026-04-27",
+          "met": "互换友链",
+          "note": "也在 AI 这条路上的同行者，看了他的文章会想动手。"
+        },
+        {
+          "name": "Crayon",
+          "intro": "苔花如米小，也学牡丹开",
+          "link": "https://kyc001.github.io/",
+          "avatar": "https://github.com/kyc001.png",
+          "since": "2026-04-27",
+          "met": "互换友链",
+          "note": "名字取自袁枚的诗，刚开始写但很认真的人。"
+        },
+        {
+          "name": "YinFeng's Blog",
+          "intro": "windchant.online",
+          "link": "http://www.windchant.online/",
+          "avatar": "http://www.windchant.online/wp-content/uploads/2026/03/Aemeath.jpg",
+          "since": "2026-04-27",
+          "met": "互换友链",
+          "note": "Windchant 这个域名我记了很久。"
+        },
+        {
+          "name": "翁小雄",
+          "intro": "wengxiaoxiong.com",
+          "link": "https://www.wengxiaoxiong.com/",
+          "avatar": "https://github.com/wengxiaoxiong.png",
+          "since": "2026-04-19",
+          "met": "互换友链",
+          "note": "Builder 的另一面——站点上有他自己造的产品和思考。"
+        },
+        {
+          "name": "一清三白",
+          "intro": "克己慎独 守心明性",
+          "link": "https://sanbaiblog.cn/",
+          "avatar": "https://s21.ax1x.com/2025/01/05/pE9CfDU.jpg",
+          "since": "2025-11-04",
+          "met": "互换友链",
+          "note": "本站第一位友链，文字和站名一样安静。"
         }
       ]
     },
