@@ -7,9 +7,6 @@ import { Collapse, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
 import FriendConstellation from '@/components/links/FriendConstellation.astro'
-import FriendPostcards from '@/components/links/FriendPostcards.astro'
-import FriendLogbook from '@/components/links/FriendLogbook.astro'
-import FriendStickers from '@/components/links/FriendStickers.astro'
 
 const headings = [
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
@@ -25,93 +22,8 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
 
 <PageLayout title='Links' {headings} info='/links'>
   <h2 id='friend-links'>Friend Links</h2>
-  <p>都是我朋友的个人站点。换一种方式看看这群人——</p>
-
-  <div class='friend-views' data-friend-views>
-    <div class='friend-views-tabs' role='tablist' aria-label='Friend list view'>
-      <button type='button' role='tab' data-view='constellation' class='view-tab is-active'>Constellation</button>
-      <button type='button' role='tab' data-view='postcard' class='view-tab'>Postcard</button>
-      <button type='button' role='tab' data-view='logbook' class='view-tab'>Logbook</button>
-      <button type='button' role='tab' data-view='stickers' class='view-tab'>Stickers</button>
-    </div>
-    <div class='view-panel is-active' data-view='constellation'>
-      <FriendConstellation list={friends[0]} />
-    </div>
-    <div class='view-panel' data-view='postcard'>
-      <FriendPostcards list={friends[0]} />
-    </div>
-    <div class='view-panel' data-view='logbook'>
-      <FriendLogbook list={friends[0]} />
-    </div>
-    <div class='view-panel' data-view='stickers'>
-      <FriendStickers list={friends[0]} />
-    </div>
-  </div>
-
-  <script is:inline>
-    ;(() => {
-      const root = document.querySelector('[data-friend-views]')
-      if (!root) return
-      const tabs = root.querySelectorAll('.view-tab')
-      const panels = root.querySelectorAll('.view-panel')
-      const KEY = 'friend-view'
-      const apply = (view) => {
-        tabs.forEach((t) => t.classList.toggle('is-active', t.dataset.view === view))
-        panels.forEach((p) => p.classList.toggle('is-active', p.dataset.view === view))
-      }
-      const saved = localStorage.getItem(KEY)
-      if (saved && root.querySelector(`.view-tab[data-view="${saved}"]`)) apply(saved)
-      tabs.forEach((tab) => {
-        tab.addEventListener('click', () => {
-          const view = tab.dataset.view
-          apply(view)
-          localStorage.setItem(KEY, view)
-        })
-      })
-    })()
-  </script>
-
-  <style>
-    .friend-views {
-      margin: 1rem 0 1.5rem;
-    }
-    .friend-views-tabs {
-      display: inline-flex;
-      gap: 0.25rem;
-      padding: 0.25rem;
-      margin-bottom: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid hsl(var(--border));
-      background: hsl(var(--muted) / 0.4);
-    }
-    .view-tab {
-      padding: 0.35rem 0.85rem;
-      border-radius: 0.35rem;
-      border: none;
-      background: transparent;
-      color: hsl(var(--muted-foreground));
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition:
-        background 160ms ease,
-        color 160ms ease;
-      font-family: inherit;
-    }
-    .view-tab:hover {
-      color: hsl(var(--foreground));
-    }
-    .view-tab.is-active {
-      background: hsl(var(--background));
-      color: hsl(var(--foreground));
-      box-shadow: 0 1px 2px hsl(var(--background) / 0.5);
-    }
-    .view-panel {
-      display: none;
-    }
-    .view-panel.is-active {
-      display: block;
-    }
-  </style>
+  <p>朋友是天上的星，你在中央——每条线是一段连接。把鼠标移到星上看 ta 是谁。</p>
+  <FriendConstellation list={friends[0]} />
   <Collapse title='Links with Bad Status'>
     <FriendList list={friends[1]} />
   </Collapse>
