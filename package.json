@@ -2,6 +2,7 @@
   "name": "astro-theme-pure",
   "type": "module",
   "version": "4.0.5",
+  "packageManager": "bun@1.3.10",
   "scripts": {
     "dev": "astro dev",
     "dev:check": "astro check --watch & astro dev",
