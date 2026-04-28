@@ -5,6 +5,15 @@
       "desc": "Friends I exchange blog links with",
       "link_list": [
         {
+          "name": "董璐瑶",
+          "intro": "AI 产品经理",
+          "link": "https://llingqi77-tech.github.io/cv/",
+          "avatar": "https://github.com/llingqi77-tech.png",
+          "since": "2026-04-28",
+          "met": "互换友链",
+          "note": "AI PM，把简历也做成了站点。"
+        },
+        {
           "name": "大耳朵图图",
           "label": "大奶龙涂涂",
           "intro": "用 AI 和摄影，让世界更温暖",
