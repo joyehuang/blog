@@ -1,0 +1,114 @@
+---
+import { Image } from 'astro:assets'
+
+interface Friend {
+  name: string
+  intro: string
+  link: string
+  avatar: string
+  since?: string
+  met?: string
+  note?: string
+}
+
+interface FriendList {
+  id_name: string
+  desc: string
+  link_list: Friend[]
+}
+
+interface Props {
+  list: FriendList
+}
+
+const { list } = Astro.props
+
+const sorted = [...list.link_list].sort((a, b) => (b.since ?? '').localeCompare(a.since ?? ''))
+---
+
+{
+  sorted.length === 0 ? (
+    <p>Nothing here.</p>
+  ) : (
+    <ul class='friend-timeline list-none ps-0'>
+      {sorted.map((frd) => (
+        <li class='friend-row group relative grid gap-3 py-3 max-sm:grid-cols-1 sm:grid-cols-[110px_1fr] sm:gap-5'>
+          {/* timeline rail (desktop): date + dot + connector */}
+          <div class='relative flex items-start gap-2 sm:justify-end sm:pt-3'>
+            <samp class='shrink-0 text-xs text-muted-foreground sm:text-right'>{frd.since ?? '——'}</samp>
+            <span class='friend-dot relative mt-[5px] hidden h-2.5 w-2.5 shrink-0 rounded-full border-2 border-muted-foreground transition-transform group-hover:scale-125 sm:block' />
+          </div>
+          {/* postcard */}
+          <a
+            href={frd.link}
+            target='_blank'
+            rel='noopener noreferrer'
+            class='friend-card group/card relative block overflow-hidden rounded-2xl border bg-background p-4 no-underline transition-colors hover:bg-muted sm:p-5'
+          >
+            <div class='flex items-start gap-4'>
+              <div class='relative h-16 w-16 min-w-16 overflow-hidden rounded-full border bg-white sm:h-20 sm:w-20 sm:min-w-20'>
+                <Image
+                  class='my-0 h-full w-full'
+                  src={frd.avatar}
+                  width={120}
+                  height={120}
+                  alt={frd.name}
+                  loading='lazy'
+                />
+              </div>
+              <div class='flex min-w-0 flex-1 flex-col gap-1.5'>
+                <div class='flex flex-wrap items-baseline gap-x-2 gap-y-0.5'>
+                  <p class='m-0 truncate text-base font-medium text-foreground'>{frd.name}</p>
+                  {frd.met && (
+                    <span class='friend-meta inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground'>
+                      {frd.met}
+                    </span>
+                  )}
+                </div>
+                <p class='m-0 line-clamp-2 text-sm text-muted-foreground'>{frd.intro}</p>
+                {frd.note && (
+                  <p class='m-0 mt-1 border-l-2 border-border ps-3 text-sm italic text-foreground/85'>
+                    {frd.note}
+                  </p>
+                )}
+              </div>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .friend-timeline > li + li {
+    border-top: 1px dashed hsl(var(--border) / 0.5);
+  }
+  /* connector line behind dots on desktop */
+  @media (min-width: 640px) {
+    .friend-timeline {
+      position: relative;
+    }
+    .friend-timeline::before {
+      content: '';
+      position: absolute;
+      left: 104px;
+      top: 24px;
+      bottom: 24px;
+      width: 1px;
+      background: hsl(var(--border));
+      pointer-events: none;
+    }
+    .friend-row > div:first-child {
+      position: relative;
+      z-index: 1;
+    }
+    .friend-dot {
+      background: hsl(var(--background));
+    }
+    .friend-row:hover .friend-dot {
+      border-color: hsl(var(--primary));
+      background: hsl(var(--primary));
+    }
+  }
+</style>

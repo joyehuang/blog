@@ -6,10 +6,10 @@ import { Comment } from 'astro-pure/advanced'
 import { Collapse, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
+import FriendTimeline from '@/components/links/FriendTimeline.astro'
 
 const headings = [
-  { depth: 2, slug: 'common-links', text: 'Common Links' },
-  { depth: 2, slug: 'special-links', text: 'Special Links' },
+  { depth: 2, slug: 'friend-links', text: 'Friend Links' },
   { depth: 2, slug: 'apply-links', text: 'Apply Links' }
 ]
 
@@ -21,17 +21,20 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
 ---
 
 <PageLayout title='Links' {headings} info='/links'>
-  <p>No order here — it's random.</p>
-  <h2 id='common-links'>Common Links</h2>
-  <FriendList list={friends[0]} />
+  <h2 id='friend-links'>Friend Links</h2>
+  <p>Personal sites of friends I've exchanged links with — sorted by when they joined, newest first. This is how the small circle grew.</p>
+  <FriendTimeline list={friends[0]} />
   <Collapse title='Links with Bad Status'>
     <FriendList list={friends[1]} />
   </Collapse>
   <Collapse title='Link History Book'>
     <Timeline events={linksConf.logbook} />
   </Collapse>
+
+  {/*
   <h2 id='special-links'>Special Links</h2>
   <FriendList list={friends[2]} />
+  */}
 
   <h2 id='apply-links'>Apply Links</h2>
   <p>
