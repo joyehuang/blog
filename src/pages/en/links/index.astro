@@ -6,7 +6,7 @@ import { Comment } from 'astro-pure/advanced'
 import { Collapse, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
-import FriendTimeline from '@/components/links/FriendTimeline.astro'
+import FriendConstellation from '@/components/links/FriendConstellation.astro'
 
 const headings = [
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
@@ -22,8 +22,8 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
 
 <PageLayout title='Links' {headings} info='/links'>
   <h2 id='friend-links'>Friend Links</h2>
-  <p>Personal sites of friends I've exchanged links with — sorted by when they joined, newest first. This is how the small circle grew.</p>
-  <FriendTimeline list={friends[0]} />
+  <p>Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it is.</p>
+  <FriendConstellation list={friends[0]} centerSub='joyehuang.me' />
   <Collapse title='Links with Bad Status'>
     <FriendList list={friends[1]} />
   </Collapse>
