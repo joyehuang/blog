@@ -16,17 +16,17 @@ interface Props {
 const { class: className, items, ...props } = Astro.props
 ---
 
-<div class={cn('flex flex-col justify-center gap-4 sm:flex-row', className)} {...props}>
+<div class={cn('flex flex-col items-start justify-center gap-4 sm:flex-row', className)} {...props}>
   {
     items.map((item) => (
       <div class='contact-card flex flex-col items-center gap-3'>
-        <div class='contact-card-frame relative aspect-[3/4] w-60 max-w-full overflow-hidden rounded-xl border bg-white'>
+        <div class='contact-card-frame relative w-60 max-w-full overflow-hidden rounded-xl border bg-white'>
           <div class='contact-card-cover absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-muted/60 px-4 text-center text-muted-foreground transition-opacity'>
             <span class='text-base font-medium text-foreground'>{item.name}</span>
             <span class='text-xs'>{item.hint}</span>
           </div>
           <Image
-            class='contact-card-img absolute inset-0 h-full w-full object-contain blur-md transition-all'
+            class='contact-card-img block h-auto w-full blur-md transition-all'
             src={item.image}
             alt={item.name}
             loading='lazy'
