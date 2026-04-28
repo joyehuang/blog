@@ -110,7 +110,7 @@ export const integ: IntegrationUserConfig = {
       {
         date: '2026-04-28',
         content:
-          '添加 <a href="https://blog.forhermajesty.com/" target="_blank">Queen\'s DevLog</a> 与 <a href="https://limening.vercel.app/" target="_blank">Lime\'s Blog</a>。'
+          '添加 <a href="https://blog.forhermajesty.com/" target="_blank">Queen\'s DevLog</a>、<a href="https://limening.vercel.app/" target="_blank">Lime\'s Blog</a> 与 <a href="https://bigeartutu.beauty/" target="_blank">大耳朵图图</a>。'
       }
     ],
     // Yourself link info
