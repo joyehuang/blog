@@ -11,6 +11,10 @@ interface Friend {
   since?: string
   met?: string
   note?: string
+  /** Optional personal alias / playful tag — when set, replaces the name
+   *  shown under the star at rest, and becomes the title in the hover card
+   *  with the real name shown as a small subtitle. */
+  label?: string
 }
 
 interface FriendList {
@@ -103,9 +107,10 @@ const positioned = friends.map((frd, i) => {
             loading='lazy'
           />
         </span>
-        <span class='constellation-star-name'>{frd.name}</span>
+        <span class={`constellation-star-name${frd.label ? ' has-label' : ''}`}>{frd.label ?? frd.name}</span>
         <span class='constellation-star-card' role='tooltip'>
-          <span class='card-name'>{frd.name}</span>
+          <span class='card-name'>{frd.label ?? frd.name}</span>
+          {frd.label && <span class='card-real-name'>aka {frd.name}</span>}
           {frd.intro && <span class='card-intro'>{frd.intro}</span>}
           {(frd.since || frd.met) && (
             <span class='card-meta'>
@@ -314,6 +319,10 @@ const positioned = friends.map((frd, i) => {
   .friend-constellation.is-crowded .constellation-star-name {
     opacity: 0;
   }
+  .constellation-star-name.has-label {
+    font-style: italic;
+    color: hsl(var(--primary) / 0.85);
+  }
   .constellation-star:hover .constellation-star-name,
   .constellation-star:focus-visible .constellation-star-name,
   .constellation-star.is-open .constellation-star-name {
@@ -386,6 +395,12 @@ const positioned = friends.map((frd, i) => {
   .constellation-star-card .card-name {
     font-weight: 600;
     color: hsl(var(--foreground));
+  }
+  .constellation-star-card .card-real-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+    margin-top: -0.1rem;
   }
   .constellation-star-card .card-intro {
     font-size: 0.85rem;
