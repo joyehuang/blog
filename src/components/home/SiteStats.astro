@@ -17,8 +17,8 @@ const [blogPosts, notes] = await Promise.all([
 ])
 
 // Live total page views from Waline (/api/stats endpoint on the waline server).
-// Falls back to the manual number in site-stats.ts if the call fails.
-let livePageViews: number | null = null
+// On a transient failure we render 0 — better than a stale number.
+let pageViews = 0
 const walineServer = config.integ.waline.server
 if (walineServer) {
   try {
@@ -27,13 +27,12 @@ if (walineServer) {
     })
     if (res.ok) {
       const data = (await res.json()) as { totalViews?: number }
-      if (typeof data.totalViews === 'number') livePageViews = data.totalViews
+      if (typeof data.totalViews === 'number') pageViews = data.totalViews
     }
   } catch {
-    // Network/timeout — fall back silently.
+    // Network/timeout — leave pageViews at 0.
   }
 }
-const pageViews = livePageViews ?? siteStats.pageViews
 
 const labels =
   lang === 'en'
