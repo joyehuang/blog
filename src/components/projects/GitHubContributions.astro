@@ -117,6 +117,7 @@ const formattedTotal = total.toLocaleString('en-US')
               {
                 [0, 1, 2, 3].map(() => (
                   <span class='gh-odo-col' data-odo-col>
+                    <span class='gh-odo-spacer' aria-hidden='true'>0</span>
                     <span class='gh-odo-reel' data-odo-reel>
                       {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                         <span class='gh-odo-digit'>{d}</span>
@@ -130,10 +131,12 @@ const formattedTotal = total.toLocaleString('en-US')
           </span>
           <span class='gh-tooltip-date'>
             <span class='gh-date-month' data-month-label>Apr</span>
-            <span class='gh-tooltip-count gh-date-day' data-day-odo aria-hidden='true'>
+            {' '}
+            <span class='gh-tooltip-count' data-day-odo aria-hidden='true'>
               {
                 [0, 1].map(() => (
                   <span class='gh-odo-col' data-odo-col>
+                    <span class='gh-odo-spacer' aria-hidden='true'>0</span>
                     <span class='gh-odo-reel' data-odo-reel>
                       {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                         <span class='gh-odo-digit'>{d}</span>
@@ -142,12 +145,12 @@ const formattedTotal = total.toLocaleString('en-US')
                   </span>
                 ))
               }
-            </span>
-            <span class='gh-date-comma'>,</span>
-            <span class='gh-tooltip-count gh-date-year' data-year-odo aria-hidden='true'>
+            </span>,{' '}
+            <span class='gh-tooltip-count' data-year-odo aria-hidden='true'>
               {
                 [0, 1, 2, 3].map(() => (
                   <span class='gh-odo-col' data-odo-col>
+                    <span class='gh-odo-spacer' aria-hidden='true'>0</span>
                     <span class='gh-odo-reel' data-odo-reel>
                       {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
                         <span class='gh-odo-digit'>{d}</span>
@@ -297,11 +300,14 @@ const formattedTotal = total.toLocaleString('en-US')
     background: var(--cell-base);
     transition: transform 0.18s ease;
   }
-  /* Padding cells (leading-Sunday pad + trailing past-today pad) — keep their
-     grid track but render invisibly so the layout stays stable. */
+  /* Padding cells (leading-Sunday alignment fillers) — keep their grid track
+     but render fully invisible (no fill, no shadow, no hit-target). Trailing
+     future-day positions are simply skipped at the template level so the
+     last visible cell is always today. */
   .gh-cell-pad {
     background: transparent !important;
     box-shadow: none !important;
+    visibility: hidden;
     pointer-events: none;
   }
   .gh-contrib-base .gh-cell { --cell-base: var(--gh-base-empty); }
@@ -367,23 +373,19 @@ const formattedTotal = total.toLocaleString('en-US')
     opacity: 0.85;
   }
   .gh-tooltip-date {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 3px;
+    display: inline-block;
     font-size: 0.65rem;
     opacity: 0.85;
     line-height: 1;
+    white-space: nowrap;
+    /* Reset font weight so the date numerals match the month text */
+    font-weight: 600;
   }
   .gh-date-month {
-    font-weight: 600;
     transition: opacity 0.25s ease;
-    margin-right: 2px;
   }
   .gh-date-month.swap {
     opacity: 0;
-  }
-  .gh-date-comma {
-    margin-right: 1px;
   }
   .gh-tooltip-date .gh-tooltip-count {
     font-size: inherit;
@@ -395,6 +397,11 @@ const formattedTotal = total.toLocaleString('en-US')
     font-variant-numeric: tabular-nums;
     height: 1em;
     line-height: 1;
+    /* Anchor inline-flex baseline to the first flex item's baseline (the
+       column's baseline, established by the spacer digit). Without this,
+       inline-flex falls back to the bottom edge and digits sit too low
+       relative to the surrounding text. */
+    vertical-align: baseline;
   }
   /* Each column is a fixed 1ch × 1em window. Reel is absolutely positioned
      inside, so its intrinsic height never escapes the window — much more
@@ -412,8 +419,19 @@ const formattedTotal = total.toLocaleString('en-US')
     height: 1em;
     overflow: hidden;
     text-align: center;
-    vertical-align: top;
+    vertical-align: baseline;
     transition: opacity 0.18s ease;
+  }
+  /* Invisible digit kept in normal flow purely to give the column a real
+     text baseline. Without it the absolutely-positioned reel contributes no
+     baseline and inline-flex falls back to the bottom edge — making digits
+     look misaligned with surrounding text like the month abbreviation. */
+  .gh-odo-spacer {
+    display: inline-block;
+    visibility: hidden;
+    width: 0.6em;
+    height: 1em;
+    line-height: 1;
   }
   .gh-odo-reel {
     position: absolute;
@@ -519,15 +537,17 @@ const formattedTotal = total.toLocaleString('en-US')
     const showTooltip = (cell) => {
       const cellRect = cell.getBoundingClientRect()
       const cellsRect = cells.getBoundingClientRect()
+      const cardRect = card.getBoundingClientRect()
+      const ttRect = tooltip.getBoundingClientRect()
       const cellCenterX = cellRect.left + cellRect.width / 2 - cellsRect.left
       const y = cellRect.top - cellsRect.top
-      // Clamp X so the tooltip stays within the cells container — otherwise
-      // the parent card's overflow:hidden clips it on the right edge.
-      const ttRect = tooltip.getBoundingClientRect()
+      // Clamp using the CARD's bounds (cells coords) so the tooltip stays
+      // inside the visible rounded card — clamping by cellsRect alone left
+      // the box-shadow + rounded corner clipping the right edge.
       const halfW = ttRect.width / 2
-      const margin = 4
-      const minX = halfW + margin
-      const maxX = cellsRect.width - halfW - margin
+      const margin = 8 // covers shadow blur + rounded-corner inset
+      const minX = cardRect.left - cellsRect.left + halfW + margin
+      const maxX = cardRect.right - cellsRect.left - halfW - margin
       const x = Math.max(minX, Math.min(maxX, cellCenterX))
       tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, calc(-100% - 10px))`
       tooltip.dataset.visible = 'true'
