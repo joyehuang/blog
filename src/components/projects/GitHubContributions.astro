@@ -1,0 +1,256 @@
+---
+type Contribution = { date: string; count: number; level: 0 | 1 | 2 | 3 | 4 }
+type ApiResponse = {
+  total: { lastYear?: number } & Record<string, number>
+  contributions: Contribution[]
+}
+
+interface Props {
+  username?: string
+  /** Caption shown next to the avatar — falls back to username */
+  displayName?: string
+}
+
+const { username = 'joyehuang', displayName } = Astro.props
+
+let total = 0
+let contributions: Contribution[] = []
+
+try {
+  const res = await fetch(
+    `https://github-contributions-api.jogruber.de/v4/${username}?y=last`
+  )
+  if (res.ok) {
+    const data = (await res.json()) as ApiResponse
+    contributions = data.contributions ?? []
+    total = data.total?.lastYear ?? 0
+  }
+} catch {
+  // network blip during build — render an empty grid
+}
+
+// Pad the start so the first column begins on Sunday (getDay()===0)
+const leadingEmpty = contributions.length > 0 ? new Date(contributions[0].date).getDay() : 0
+
+const weeks: (Contribution | null)[][] = []
+let column: (Contribution | null)[] = Array(leadingEmpty).fill(null)
+for (const c of contributions) {
+  column.push(c)
+  if (column.length === 7) {
+    weeks.push(column)
+    column = []
+  }
+}
+if (column.length > 0) {
+  while (column.length < 7) column.push(null)
+  weeks.push(column)
+}
+
+// Month label per week column — show abbreviation only when month first appears in that column
+const monthLabels = weeks.map((week, i) => {
+  const firstReal = week.find((c): c is Contribution => c !== null)
+  if (!firstReal) return ''
+  const month = new Date(firstReal.date).getMonth()
+  if (i === 0) return ''
+  const prevWeek = weeks[i - 1]
+  const prevReal = prevWeek?.find((c): c is Contribution => c !== null)
+  if (!prevReal) return ''
+  if (new Date(prevReal.date).getMonth() === month) return ''
+  return new Date(firstReal.date).toLocaleString('en-US', { month: 'short' }).toLowerCase()
+})
+
+const caption = displayName ?? username
+const formattedTotal = total.toLocaleString('en-US')
+---
+
+<figure class='gh-contrib not-prose my-4'>
+  <div class='gh-contrib-card group relative overflow-hidden rounded-2xl border bg-background p-4 sm:p-5'>
+    <div class='gh-contrib-grid' aria-hidden='true'>
+      <div class='gh-contrib-months'>
+        {monthLabels.map((m) => <span>{m}</span>)}
+      </div>
+      <div class='gh-contrib-cells'>
+        <div class='gh-contrib-layer gh-contrib-base'>
+          {
+            weeks.map((week) =>
+              week.map((cell) => (
+                <span class='gh-cell' data-level={cell ? cell.level : 'empty'} />
+              ))
+            )
+          }
+        </div>
+        <div class='gh-contrib-layer gh-contrib-bright' aria-hidden='true'>
+          {
+            weeks.map((week) =>
+              week.map((cell) => (
+                <span class='gh-cell' data-level={cell ? cell.level : 'empty'} />
+              ))
+            )
+          }
+        </div>
+      </div>
+    </div>
+    <figcaption class='mt-4 flex items-center gap-3'>
+      <img
+        src={`https://github.com/${username}.png?size=80`}
+        alt={`${username} avatar`}
+        loading='lazy'
+        class='size-9 rounded-full border object-cover'
+      />
+      <div class='flex flex-col leading-tight'>
+        <span class='text-sm font-semibold'>{caption}</span>
+        <span class='text-xs text-muted-foreground'>{formattedTotal} contributions</span>
+      </div>
+      <a
+        class='ml-auto text-xs text-muted-foreground hover:text-foreground'
+        href={`https://github.com/${username}`}
+        target='_blank'
+        rel='noreferrer'
+      >
+        @{username}
+      </a>
+    </figcaption>
+  </div>
+</figure>
+
+<style>
+  .gh-contrib-card {
+    --mx: 50%;
+    --my: 50%;
+    --gh-cell-size: clamp(8px, 1.4vw, 12px);
+    --gh-gap: 3px;
+    --gh-spotlight: 110px;
+  }
+
+  .gh-contrib-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 4px 6px;
+    min-width: 0;
+  }
+
+  .gh-contrib-months {
+    grid-column: 2;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: repeat(var(--gh-weeks, 53), var(--gh-cell-size));
+    column-gap: var(--gh-gap);
+    font-size: 0.7rem;
+    color: var(--color-muted-foreground, hsl(var(--muted-foreground)));
+    line-height: 1;
+    overflow: hidden;
+  }
+  .gh-contrib-months span {
+    grid-row: 1;
+    white-space: nowrap;
+  }
+
+  .gh-contrib-cells {
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+  }
+
+  .gh-contrib-layer {
+    display: grid;
+    grid-template-rows: repeat(7, var(--gh-cell-size));
+    grid-auto-flow: column;
+    grid-auto-columns: var(--gh-cell-size);
+    gap: var(--gh-gap);
+  }
+
+  .gh-contrib-bright {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    -webkit-mask-image: radial-gradient(
+      circle var(--gh-spotlight) at var(--mx) var(--my),
+      #000 0%,
+      rgba(0, 0, 0, 0.6) 35%,
+      transparent 75%
+    );
+    mask-image: radial-gradient(
+      circle var(--gh-spotlight) at var(--mx) var(--my),
+      #000 0%,
+      rgba(0, 0, 0, 0.6) 35%,
+      transparent 75%
+    );
+  }
+
+  .gh-contrib-card:hover .gh-contrib-bright,
+  .gh-contrib-card:focus-within .gh-contrib-bright {
+    opacity: 1;
+  }
+
+  .gh-cell {
+    border-radius: 2px;
+    background: var(--cell-base);
+  }
+  .gh-contrib-base .gh-cell {
+    --cell-base: rgb(var(--gh-fg) / 0.06);
+  }
+  .gh-contrib-base .gh-cell[data-level='1'] {
+    --cell-base: rgb(var(--gh-fg) / 0.16);
+  }
+  .gh-contrib-base .gh-cell[data-level='2'] {
+    --cell-base: rgb(var(--gh-fg) / 0.26);
+  }
+  .gh-contrib-base .gh-cell[data-level='3'] {
+    --cell-base: rgb(var(--gh-fg) / 0.36);
+  }
+  .gh-contrib-base .gh-cell[data-level='4'] {
+    --cell-base: rgb(var(--gh-fg) / 0.48);
+  }
+
+  .gh-contrib-bright .gh-cell {
+    --cell-base: rgb(var(--gh-fg) / 0.18);
+  }
+  .gh-contrib-bright .gh-cell[data-level='1'] {
+    --cell-base: rgb(var(--gh-fg) / 0.55);
+  }
+  .gh-contrib-bright .gh-cell[data-level='2'] {
+    --cell-base: rgb(var(--gh-fg) / 0.78);
+  }
+  .gh-contrib-bright .gh-cell[data-level='3'] {
+    --cell-base: rgb(var(--gh-fg) / 0.92);
+  }
+  .gh-contrib-bright .gh-cell[data-level='4'] {
+    --cell-base: rgb(var(--gh-fg) / 1);
+    box-shadow: 0 0 8px rgb(var(--gh-fg) / 0.4);
+  }
+
+  /* Theme-aware foreground tint */
+  :root {
+    --gh-fg: 30 30 30;
+  }
+  :root.dark,
+  .dark {
+    --gh-fg: 240 240 240;
+  }
+
+  /* Mobile: drop spotlight reach so it still feels punchy in a smaller card */
+  @media (max-width: 640px) {
+    .gh-contrib-card {
+      --gh-spotlight: 80px;
+      --gh-gap: 2px;
+    }
+  }
+</style>
+
+<script define:vars={{ totalWeeks: weeks.length }}>
+  for (const root of document.querySelectorAll('.gh-contrib-card')) {
+    root.style.setProperty('--gh-weeks', String(totalWeeks))
+    root.addEventListener('pointermove', (e) => {
+      const rect = root.getBoundingClientRect()
+      root.style.setProperty('--mx', `${e.clientX - rect.left}px`)
+      root.style.setProperty('--my', `${e.clientY - rect.top}px`)
+    })
+    root.addEventListener('pointerleave', () => {
+      root.style.setProperty('--mx', `-200px`)
+      root.style.setProperty('--my', `-200px`)
+    })
+  }
+</script>

@@ -1,8 +1,7 @@
 ---
-import { Image } from 'astro:assets'
-
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
+import GitHubContributions from '@/components/projects/GitHubContributions.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
 import Sponsors from '@/components/projects/Sponsors.astro'
 import Sponsorship from '@/components/projects/Sponsorship.astro'
@@ -19,15 +18,8 @@ const headings = [
 ---
 
 <PageLayout title='Projects' {headings} info={{ slug: '/projects', hideComment: true }}>
-  <p>Github Activities:</p>
-  <p>
-    <Image
-      src='https://ghchart.rshah.org/joyehuang'
-      alt='github activities'
-      inferSize
-      loading='lazy'
-    />
-  </p>
+  <p>GitHub Activities</p>
+  <GitHubContributions username='joyehuang' />
   <p>
     If you think collaborating on a project would be interesting or meaningful, you can support my work
     through sponsorship, or reach out to discuss a project together.
