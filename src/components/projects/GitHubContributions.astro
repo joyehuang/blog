@@ -74,7 +74,10 @@ const formattedTotal = total.toLocaleString('en-US')
 ---
 
 <figure class='gh-contrib not-prose my-4'>
-  <div class='gh-contrib-card relative overflow-hidden rounded-2xl border bg-background p-4 sm:p-5'>
+  <div
+    class='gh-contrib-card relative overflow-hidden rounded-2xl border bg-background p-4 sm:p-5'
+    data-username={username}
+  >
     <div class='gh-contrib-grid'>
       <div class='gh-contrib-months' aria-hidden='true'>
         {monthLabels.map((m) => <span>{m}</span>)}
@@ -122,7 +125,9 @@ const formattedTotal = total.toLocaleString('en-US')
       />
       <div class='flex flex-col leading-tight'>
         <span class='text-sm font-semibold'>{caption}</span>
-        <span class='text-xs text-muted-foreground'>{formattedTotal} contributions</span>
+        <span class='text-xs text-muted-foreground' data-total-label>
+          {formattedTotal} contributions
+        </span>
       </div>
       <a
         class='ml-auto text-xs text-muted-foreground hover:text-foreground'
@@ -640,5 +645,103 @@ const formattedTotal = total.toLocaleString('en-US')
         activeCell = null
       }
     })
+
+    // Refresh from the GitHub contributions API on mount so the rightmost
+    // column always reflects today, regardless of how stale the SSR/CDN
+    // snapshot is. Silent fallback to the rendered grid if the fetch fails.
+    refreshGrid(figure).catch(() => {})
+  }
+
+  async function refreshGrid(figure) {
+    const card = figure.querySelector('.gh-contrib-card')
+    const username = card?.dataset.username
+    if (!username) return
+
+    let data
+    try {
+      const res = await fetch(
+        `https://github-contributions-api.jogruber.de/v4/${username}?y=last`,
+        { cache: 'no-store' }
+      )
+      if (!res.ok) return
+      data = await res.json()
+    } catch {
+      return
+    }
+
+    const today = new Date().toISOString().slice(0, 10)
+    const contributions = (data.contributions || []).filter((c) => c.date <= today)
+    if (contributions.length === 0) return
+
+    // Bail if the grid is already up to date (server-side fetch was fresh).
+    const baseLayer = figure.querySelector('.gh-contrib-base')
+    const lastInDom = baseLayer?.querySelector('.gh-cell[data-date]:last-of-type')
+    const lastInApi = contributions[contributions.length - 1].date
+    if (lastInDom && lastInDom.dataset.date === lastInApi) return
+
+    // Build week buckets — mirror of the SSR logic in the frontmatter
+    const leadingEmpty = new Date(contributions[0].date + 'T00:00:00Z').getUTCDay()
+    const weeks = []
+    let column = Array(leadingEmpty).fill(null)
+    for (const c of contributions) {
+      column.push(c)
+      if (column.length === 7) {
+        weeks.push(column)
+        column = []
+      }
+    }
+    if (column.length > 0) weeks.push(column)
+
+    // Month label per week column
+    const monthLabels = weeks.map((week, i) => {
+      const firstReal = week.find((c) => c)
+      if (!firstReal) return ''
+      const month = new Date(firstReal.date + 'T00:00:00Z').getUTCMonth()
+      if (i === 0) return ''
+      const prevReal = weeks[i - 1]?.find((c) => c)
+      if (!prevReal) return ''
+      if (new Date(prevReal.date + 'T00:00:00Z').getUTCMonth() === month) return ''
+      return new Date(firstReal.date + 'T00:00:00Z')
+        .toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+        .toLowerCase()
+    })
+
+    // Replace cell layers
+    const brightLayer = figure.querySelector('.gh-contrib-bright')
+    const buildLayer = (template, withData) => {
+      const layer = template.cloneNode(false)
+      for (const week of weeks) {
+        for (const cell of week) {
+          const span = document.createElement('span')
+          span.className = cell ? 'gh-cell' : 'gh-cell gh-cell-pad'
+          span.dataset.level = cell ? String(cell.level) : 'empty'
+          if (cell && withData) {
+            span.dataset.date = cell.date
+            span.dataset.count = String(cell.count)
+          }
+          if (!cell) span.setAttribute('aria-hidden', 'true')
+          layer.appendChild(span)
+        }
+      }
+      return layer
+    }
+    if (baseLayer) baseLayer.replaceWith(buildLayer(baseLayer, true))
+    if (brightLayer) brightLayer.replaceWith(buildLayer(brightLayer, false))
+
+    // Update grid column count + month labels + total caption
+    card.style.setProperty('--gh-weeks', String(weeks.length))
+    const monthsContainer = figure.querySelector('.gh-contrib-months')
+    if (monthsContainer) {
+      monthsContainer.replaceChildren(
+        ...monthLabels.map((m) => {
+          const s = document.createElement('span')
+          s.textContent = m
+          return s
+        })
+      )
+    }
+    const totalEl = figure.querySelector('[data-total-label]')
+    const total = data.total?.lastYear ?? 0
+    if (totalEl) totalEl.textContent = `${total.toLocaleString('en-US')} contributions`
   }
 </script>
