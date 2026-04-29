@@ -1,0 +1,24 @@
+---
+import { cn } from 'astro-pure/utils'
+
+interface Props {
+  class?: string
+  path?: string
+  hideComment?: boolean
+}
+
+const { class: className, path: pathProp, hideComment } = Astro.props as Props
+
+const path = pathProp ?? Astro.url.pathname
+---
+
+<div class={cn('text-base text-sm text-muted-foreground', className)}>
+  <span class='waline-pageview-count' data-path={path}></span> views
+  {
+    !hideComment && (
+      <a href='#waline'>
+        | <span class='waline-comment-count' data-path={path} /> comments
+      </a>
+    )
+  }
+</div>

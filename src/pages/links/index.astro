@@ -2,8 +2,8 @@
 import links from 'public/links.json'
 import config from 'virtual:config'
 
-import { Comment } from 'astro-pure/advanced'
 import { Collapse, Timeline } from 'astro-pure/user'
+import Comment from '@/components/comment/Comment.astro'
 import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
 import FriendConstellation from '@/components/links/FriendConstellation.astro'
@@ -72,5 +72,5 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     <li>请确保你的站点活着；</li>
     <li>博客内容不违反国家法律。</li>
   </ul>
-  <Comment slot='bottom' />
+  <Comment slot='bottom' path='/links' />
 </PageLayout>
