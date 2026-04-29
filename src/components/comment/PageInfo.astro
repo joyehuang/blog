@@ -9,7 +9,8 @@ interface Props {
 
 const { class: className, path: pathProp, hideComment } = Astro.props as Props
 
-const path = pathProp ?? Astro.url.pathname
+const stripEn = (p: string) => p.replace(/^\/en(?=\/|$)/, '') || '/'
+const path = stripEn(pathProp ?? Astro.url.pathname)
 ---
 
 <div class={cn('text-base text-sm text-muted-foreground', className)}>

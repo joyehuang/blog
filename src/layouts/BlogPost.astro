@@ -5,9 +5,10 @@ import type { CollectionEntry } from 'astro:content'
 // Plugin styles
 import 'katex/dist/katex.min.css'
 
-import { Comment, MediumZoom } from 'astro-pure/advanced'
+import { MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
+import Comment from '@/components/comment/Comment.astro'
 import { integ } from '@/site-config'
 
 interface Props {

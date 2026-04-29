@@ -46,8 +46,20 @@ const { class: className, path } = Astro.props as Props
         (preset) => `${config.npmCDN}/@waline/emojis@1.2.0/${preset}` as WalineEmojiPresets
       )
 
+      const stripEn = (p: string) => p.replace(/^\/en(?=\/|$)/, '') || '/'
       const overridePath = this.dataset.path
-      const path = overridePath && overridePath.length > 0 ? overridePath : window.location.pathname
+      const rawPath =
+        overridePath && overridePath.length > 0 ? overridePath : window.location.pathname
+      const path = stripEn(rawPath)
+
+      // Normalize any pre-rendered counter elements so /en/foo and /foo
+      // share the same Waline counter.
+      document
+        .querySelectorAll<HTMLElement>('.waline-pageview-count, .waline-comment-count')
+        .forEach((el) => {
+          const current = el.dataset.path
+          if (current) el.dataset.path = stripEn(current)
+        })
 
       walineInit({
         el: '#waline',
