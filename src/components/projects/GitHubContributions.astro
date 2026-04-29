@@ -111,57 +111,6 @@ const formattedTotal = total.toLocaleString('en-US')
             )
           }
         </div>
-        <div class='gh-tooltip' data-tooltip aria-hidden='true'>
-          <span class='gh-tooltip-row'>
-            <span class='gh-tooltip-count' data-odo aria-hidden='true'>
-              {
-                [0, 1, 2, 3].map(() => (
-                  <span class='gh-odo-col' data-odo-col>
-                    <span class='gh-odo-spacer' aria-hidden='true'>0</span>
-                    <span class='gh-odo-reel' data-odo-reel>
-                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
-                        <span class='gh-odo-digit'>{d}</span>
-                      ))}
-                    </span>
-                  </span>
-                ))
-              }
-            </span>
-            <span class='gh-tooltip-label' data-noun>contribution</span>
-          </span>
-          <span class='gh-tooltip-date'>
-            <span class='gh-date-month' data-month-label>Apr</span>
-            {' '}
-            <span class='gh-tooltip-count' data-day-odo aria-hidden='true'>
-              {
-                [0, 1].map(() => (
-                  <span class='gh-odo-col' data-odo-col>
-                    <span class='gh-odo-spacer' aria-hidden='true'>0</span>
-                    <span class='gh-odo-reel' data-odo-reel>
-                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
-                        <span class='gh-odo-digit'>{d}</span>
-                      ))}
-                    </span>
-                  </span>
-                ))
-              }
-            </span>,{' '}
-            <span class='gh-tooltip-count' data-year-odo aria-hidden='true'>
-              {
-                [0, 1, 2, 3].map(() => (
-                  <span class='gh-odo-col' data-odo-col>
-                    <span class='gh-odo-spacer' aria-hidden='true'>0</span>
-                    <span class='gh-odo-reel' data-odo-reel>
-                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
-                        <span class='gh-odo-digit'>{d}</span>
-                      ))}
-                    </span>
-                  </span>
-                ))
-              }
-            </span>
-          </span>
-        </div>
       </div>
     </div>
     <figcaption class='mt-4 flex items-center gap-3'>
@@ -185,9 +134,69 @@ const formattedTotal = total.toLocaleString('en-US')
       </a>
     </figcaption>
   </div>
+  {/* Tooltip lives OUTSIDE the card so it's never clipped by overflow:hidden
+      or the rounded corners. Positioned absolutely against the figure. */}
+  <div class='gh-tooltip' data-tooltip aria-hidden='true'>
+    <span class='gh-tooltip-row'>
+      <span class='gh-tooltip-count' data-odo aria-hidden='true'>
+        {
+          [0, 1, 2, 3].map(() => (
+            <span class='gh-odo-col' data-odo-col>
+              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-reel' data-odo-reel>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <span class='gh-odo-digit'>{d}</span>
+                ))}
+              </span>
+            </span>
+          ))
+        }
+      </span>
+      <span class='gh-tooltip-label' data-noun>contribution</span>
+    </span>
+    <span class='gh-tooltip-date'>
+      <span class='gh-date-month' data-month-label>Apr</span>
+      {' '}
+      <span class='gh-tooltip-count' data-day-odo aria-hidden='true'>
+        {
+          [0, 1].map(() => (
+            <span class='gh-odo-col' data-odo-col>
+              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-reel' data-odo-reel>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <span class='gh-odo-digit'>{d}</span>
+                ))}
+              </span>
+            </span>
+          ))
+        }
+      </span>,{' '}
+      <span class='gh-tooltip-count' data-year-odo aria-hidden='true'>
+        {
+          [0, 1, 2, 3].map(() => (
+            <span class='gh-odo-col' data-odo-col>
+              <span class='gh-odo-spacer' aria-hidden='true'>0</span>
+              <span class='gh-odo-reel' data-odo-reel>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                  <span class='gh-odo-digit'>{d}</span>
+                ))}
+              </span>
+            </span>
+          ))
+        }
+      </span>
+    </span>
+  </div>
 </figure>
 
 <style>
+  /* Figure wraps the card AND the tooltip so the tooltip can render outside
+     the clipped card. Position relative so the tooltip's absolute coords
+     resolve against the figure's box. */
+  .gh-contrib {
+    position: relative;
+  }
+
   /* Theme-aware palette: light mode uses the site teal-blue accent (#659EB9),
      dark mode keeps the monochrome white spotlight from the reference. */
   .gh-contrib-card {
@@ -332,12 +341,14 @@ const formattedTotal = total.toLocaleString('en-US')
     position: relative;
   }
 
-  /* Tooltip with sliding-digit odometer */
+  /* Tooltip with sliding-digit odometer. Lives outside the card (sibling at
+     figure level) so neither overflow:hidden nor the rounded corners can
+     clip it. Positioned absolutely against the figure. */
   .gh-tooltip {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 3;
+    z-index: 50;
     pointer-events: none;
     transform: translate(-9999px, -9999px);
     display: flex;
@@ -492,15 +503,16 @@ const formattedTotal = total.toLocaleString('en-US')
     }
   }
 
-  for (const card of document.querySelectorAll('.gh-contrib-card')) {
-    const cells = card.querySelector('[data-cells]')
-    const tooltip = card.querySelector('[data-tooltip]')
-    const countOdo = card.querySelector('[data-odo]')
-    const dayOdo = card.querySelector('[data-day-odo]')
-    const yearOdo = card.querySelector('[data-year-odo]')
-    const monthLabel = card.querySelector('[data-month-label]')
-    const noun = card.querySelector('[data-noun]')
-    if (!cells || !tooltip || !countOdo || !dayOdo || !yearOdo || !monthLabel || !noun) continue
+  for (const figure of document.querySelectorAll('.gh-contrib')) {
+    const card = figure.querySelector('.gh-contrib-card')
+    const cells = figure.querySelector('[data-cells]')
+    const tooltip = figure.querySelector('[data-tooltip]')
+    const countOdo = figure.querySelector('[data-odo]')
+    const dayOdo = figure.querySelector('[data-day-odo]')
+    const yearOdo = figure.querySelector('[data-year-odo]')
+    const monthLabel = figure.querySelector('[data-month-label]')
+    const noun = figure.querySelector('[data-noun]')
+    if (!card || !cells || !tooltip || !countOdo || !dayOdo || !yearOdo || !monthLabel || !noun) continue
 
     card.style.setProperty('--gh-weeks', String(totalWeeks))
 
@@ -535,21 +547,54 @@ const formattedTotal = total.toLocaleString('en-US')
     }
 
     const showTooltip = (cell) => {
+      // Tooltip lives at figure level (sibling to card) so the card's
+      // overflow:hidden + rounded corners can never clip it. We then
+      // anchor it inside the card's visible area through positioning:
+      //   - Vertical: prefer ABOVE the cell, flip BELOW when above would
+      //     pass the card's top edge — keeps it from overlapping the
+      //     rounded top-left/right corners.
+      //   - Horizontal: clamp to the card's straight edges (excluding the
+      //     16px border-radius) so the box never intersects a corner arc.
       const cellRect = cell.getBoundingClientRect()
-      const cellsRect = cells.getBoundingClientRect()
+      const figRect = figure.getBoundingClientRect()
       const cardRect = card.getBoundingClientRect()
       const ttRect = tooltip.getBoundingClientRect()
-      const cellCenterX = cellRect.left + cellRect.width / 2 - cellsRect.left
-      const y = cellRect.top - cellsRect.top
-      // Clamp using the CARD's bounds (cells coords) so the tooltip stays
-      // inside the visible rounded card — clamping by cellsRect alone left
-      // the box-shadow + rounded corner clipping the right edge.
+
       const halfW = ttRect.width / 2
-      const margin = 8 // covers shadow blur + rounded-corner inset
-      const minX = cardRect.left - cellsRect.left + halfW + margin
-      const maxX = cardRect.right - cellsRect.left - halfW - margin
-      const x = Math.max(minX, Math.min(maxX, cellCenterX))
-      tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, calc(-100% - 10px))`
+      const ttHeight = ttRect.height
+      const gap = 10
+      const cornerInset = 16 // matches rounded-2xl border-radius
+      const safeMargin = 4 // small extra so the box-shadow stays comfy
+
+      // Horizontal clamp — convert card's straight-edge bounds into figure-coords
+      const cardLeftInFig = cardRect.left - figRect.left
+      const cardRightInFig = cardRect.right - figRect.left
+      const minX = cardLeftInFig + cornerInset + halfW + safeMargin
+      const maxX = cardRightInFig - cornerInset - halfW - safeMargin
+      const desiredX = cellRect.left + cellRect.width / 2 - figRect.left
+      // If the card is too narrow to fit the tooltip even at its straight
+      // edges, fall back to viewport clamp instead of inverting the bounds.
+      const x = minX <= maxX
+        ? Math.max(minX, Math.min(maxX, desiredX))
+        : desiredX
+
+      // Smart vertical flip
+      const cardTopInFig = cardRect.top - figRect.top
+      const cellTopInFig = cellRect.top - figRect.top
+      const cellBottomInFig = cellRect.bottom - figRect.top
+      const aboveTop = cellTopInFig - ttHeight - gap
+      const wouldClipTop = aboveTop < cardTopInFig + cornerInset
+      const useBelow = wouldClipTop
+
+      if (useBelow) {
+        tooltip.dataset.position = 'below'
+        tooltip.style.transform =
+          `translate(${x}px, ${cellBottomInFig + gap}px) translate(-50%, 0)`
+      } else {
+        tooltip.dataset.position = 'above'
+        tooltip.style.transform =
+          `translate(${x}px, ${cellTopInFig - gap}px) translate(-50%, -100%)`
+      }
       tooltip.dataset.visible = 'true'
     }
 
