@@ -64,18 +64,27 @@ const formattedTotal = total.toLocaleString('en-US')
 ---
 
 <figure class='gh-contrib not-prose my-4'>
-  <div class='gh-contrib-card group relative overflow-hidden rounded-2xl border bg-background p-4 sm:p-5'>
-    <div class='gh-contrib-grid' aria-hidden='true'>
-      <div class='gh-contrib-months'>
+  <div class='gh-contrib-card relative overflow-hidden rounded-2xl border bg-background p-4 sm:p-5'>
+    <div class='gh-contrib-grid'>
+      <div class='gh-contrib-months' aria-hidden='true'>
         {monthLabels.map((m) => <span>{m}</span>)}
       </div>
-      <div class='gh-contrib-cells'>
+      <div class='gh-contrib-cells' data-cells>
         <div class='gh-contrib-layer gh-contrib-base'>
           {
             weeks.map((week) =>
-              week.map((cell) => (
-                <span class='gh-cell' data-level={cell ? cell.level : 'empty'} />
-              ))
+              week.map((cell) =>
+                cell ? (
+                  <span
+                    class='gh-cell'
+                    data-level={cell.level}
+                    data-date={cell.date}
+                    data-count={cell.count}
+                  />
+                ) : (
+                  <span class='gh-cell' data-level='empty' />
+                )
+              )
             )
           }
         </div>
@@ -87,6 +96,13 @@ const formattedTotal = total.toLocaleString('en-US')
               ))
             )
           }
+        </div>
+        <div class='gh-tooltip' data-tooltip aria-hidden='true'>
+          <span class='gh-tooltip-row'>
+            <span class='gh-tooltip-count' data-odo aria-hidden='true'></span>
+            <span class='gh-tooltip-label' data-noun>contribution</span>
+          </span>
+          <span class='gh-tooltip-date' data-date-label></span>
         </div>
       </div>
     </div>
@@ -114,24 +130,51 @@ const formattedTotal = total.toLocaleString('en-US')
 </figure>
 
 <style>
+  /* Theme-aware palette: light mode uses the site teal-blue accent (#659EB9),
+     dark mode keeps the monochrome white spotlight from the reference. */
   .gh-contrib-card {
-    --mx: 50%;
-    --my: 50%;
     --gh-cell-size: clamp(8px, 1.4vw, 12px);
     --gh-gap: 3px;
     --gh-spotlight: 110px;
+
+    --gh-base-empty: #eef1f4;
+    --gh-base-1: #cfe2ec;
+    --gh-base-2: #9bc5d8;
+    --gh-base-3: #6aa6c1;
+    --gh-base-4: #4889a8;
+
+    --gh-bright-empty: #c2cfd7;
+    --gh-bright-1: #5cb0db;
+    --gh-bright-2: #228bc7;
+    --gh-bright-3: #0d6aaa;
+    --gh-bright-4: #064a82;
+    --gh-bright-glow: rgba(13, 106, 170, 0.45);
+  }
+
+  :global(.dark) .gh-contrib-card {
+    --gh-base-empty: rgba(240, 240, 240, 0.06);
+    --gh-base-1: rgba(240, 240, 240, 0.16);
+    --gh-base-2: rgba(240, 240, 240, 0.26);
+    --gh-base-3: rgba(240, 240, 240, 0.36);
+    --gh-base-4: rgba(240, 240, 240, 0.48);
+
+    --gh-bright-empty: rgba(240, 240, 240, 0.18);
+    --gh-bright-1: rgba(240, 240, 240, 0.55);
+    --gh-bright-2: rgba(240, 240, 240, 0.78);
+    --gh-bright-3: rgba(240, 240, 240, 0.92);
+    --gh-bright-4: rgb(240, 240, 240);
+    --gh-bright-glow: rgba(240, 240, 240, 0.4);
   }
 
   .gh-contrib-grid {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
-    gap: 4px 6px;
+    gap: 4px 0;
     min-width: 0;
   }
 
   .gh-contrib-months {
-    grid-column: 2;
     grid-row: 1;
     display: grid;
     grid-template-columns: repeat(var(--gh-weeks, 53), var(--gh-cell-size));
@@ -147,9 +190,12 @@ const formattedTotal = total.toLocaleString('en-US')
   }
 
   .gh-contrib-cells {
-    grid-column: 2;
     grid-row: 2;
     position: relative;
+    --mx: -200px;
+    --my: -200px;
+    /* Clip the spotlight + tooltip strictly to the cell area */
+    isolation: isolate;
   }
 
   .gh-contrib-layer {
@@ -180,77 +226,241 @@ const formattedTotal = total.toLocaleString('en-US')
     );
   }
 
-  .gh-contrib-card:hover .gh-contrib-bright,
-  .gh-contrib-card:focus-within .gh-contrib-bright {
+  .gh-contrib-cells:hover .gh-contrib-bright,
+  .gh-contrib-cells:focus-within .gh-contrib-bright {
     opacity: 1;
   }
 
   .gh-cell {
     border-radius: 2px;
     background: var(--cell-base);
+    transition: transform 0.18s ease;
   }
-  .gh-contrib-base .gh-cell {
-    --cell-base: rgb(var(--gh-fg) / 0.06);
-  }
-  .gh-contrib-base .gh-cell[data-level='1'] {
-    --cell-base: rgb(var(--gh-fg) / 0.16);
-  }
-  .gh-contrib-base .gh-cell[data-level='2'] {
-    --cell-base: rgb(var(--gh-fg) / 0.26);
-  }
-  .gh-contrib-base .gh-cell[data-level='3'] {
-    --cell-base: rgb(var(--gh-fg) / 0.36);
-  }
-  .gh-contrib-base .gh-cell[data-level='4'] {
-    --cell-base: rgb(var(--gh-fg) / 0.48);
-  }
+  .gh-contrib-base .gh-cell { --cell-base: var(--gh-base-empty); }
+  .gh-contrib-base .gh-cell[data-level='1'] { --cell-base: var(--gh-base-1); }
+  .gh-contrib-base .gh-cell[data-level='2'] { --cell-base: var(--gh-base-2); }
+  .gh-contrib-base .gh-cell[data-level='3'] { --cell-base: var(--gh-base-3); }
+  .gh-contrib-base .gh-cell[data-level='4'] { --cell-base: var(--gh-base-4); }
 
-  .gh-contrib-bright .gh-cell {
-    --cell-base: rgb(var(--gh-fg) / 0.18);
-  }
-  .gh-contrib-bright .gh-cell[data-level='1'] {
-    --cell-base: rgb(var(--gh-fg) / 0.55);
-  }
-  .gh-contrib-bright .gh-cell[data-level='2'] {
-    --cell-base: rgb(var(--gh-fg) / 0.78);
-  }
-  .gh-contrib-bright .gh-cell[data-level='3'] {
-    --cell-base: rgb(var(--gh-fg) / 0.92);
-  }
+  .gh-contrib-bright .gh-cell { --cell-base: var(--gh-bright-empty); }
+  .gh-contrib-bright .gh-cell[data-level='1'] { --cell-base: var(--gh-bright-1); }
+  .gh-contrib-bright .gh-cell[data-level='2'] { --cell-base: var(--gh-bright-2); }
+  .gh-contrib-bright .gh-cell[data-level='3'] { --cell-base: var(--gh-bright-3); }
   .gh-contrib-bright .gh-cell[data-level='4'] {
-    --cell-base: rgb(var(--gh-fg) / 1);
-    box-shadow: 0 0 8px rgb(var(--gh-fg) / 0.4);
+    --cell-base: var(--gh-bright-4);
+    box-shadow: 0 0 8px var(--gh-bright-glow);
   }
 
-  /* Theme-aware foreground tint */
-  :root {
-    --gh-fg: 30 30 30;
-  }
-  :root.dark,
-  .dark {
-    --gh-fg: 240 240 240;
+  /* Lift the active cell a touch for HDR feel */
+  .gh-contrib-base .gh-cell[data-active='true'] {
+    transform: scale(1.35);
+    z-index: 2;
+    position: relative;
   }
 
-  /* Mobile: drop spotlight reach so it still feels punchy in a smaller card */
+  /* Tooltip with sliding-digit odometer */
+  .gh-tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    pointer-events: none;
+    transform: translate(-9999px, -9999px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--gh-tooltip-bg, rgba(20, 20, 22, 0.92));
+    color: #fff;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+  }
+  :global(.dark) .gh-tooltip {
+    background: rgba(245, 245, 247, 0.96);
+    color: #111;
+  }
+  .gh-tooltip[data-visible='true'] {
+    opacity: 1;
+  }
+  .gh-tooltip-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    font-weight: 600;
+  }
+  .gh-tooltip-label {
+    font-weight: 500;
+    opacity: 0.85;
+  }
+  .gh-tooltip-date {
+    font-size: 0.65rem;
+    opacity: 0.75;
+    transition: opacity 0.18s ease;
+  }
+  .gh-tooltip-count {
+    display: inline-flex;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+    height: 1em;
+    line-height: 1;
+  }
+  .gh-odo-col {
+    display: inline-block;
+    width: 0.6em;
+    height: 1em;
+    overflow: hidden;
+    text-align: center;
+  }
+  .gh-odo-reel {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .gh-odo-digit {
+    height: 1em;
+    line-height: 1;
+  }
+
+  /* Mobile: tighter geometry */
   @media (max-width: 640px) {
     .gh-contrib-card {
       --gh-spotlight: 80px;
       --gh-gap: 2px;
     }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gh-odo-reel { transition: none; }
+    .gh-cell { transition: none; }
+  }
 </style>
 
 <script define:vars={{ totalWeeks: weeks.length }}>
-  for (const root of document.querySelectorAll('.gh-contrib-card')) {
-    root.style.setProperty('--gh-weeks', String(totalWeeks))
-    root.addEventListener('pointermove', (e) => {
-      const rect = root.getBoundingClientRect()
-      root.style.setProperty('--mx', `${e.clientX - rect.left}px`)
-      root.style.setProperty('--my', `${e.clientY - rect.top}px`)
+  for (const card of document.querySelectorAll('.gh-contrib-card')) {
+    const cells = card.querySelector('[data-cells]')
+    const tooltip = card.querySelector('[data-tooltip]')
+    const odo = card.querySelector('[data-odo]')
+    const dateLabel = card.querySelector('[data-date-label]')
+    const noun = card.querySelector('[data-noun]')
+    if (!cells || !tooltip || !odo || !dateLabel || !noun) continue
+
+    card.style.setProperty('--gh-weeks', String(totalWeeks))
+
+    const dateFmt = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
     })
-    root.addEventListener('pointerleave', () => {
-      root.style.setProperty('--mx', `-200px`)
-      root.style.setProperty('--my', `-200px`)
+
+    let activeCell = null
+
+    const ensureColumns = (n) => {
+      while (odo.children.length < n) {
+        const col = document.createElement('span')
+        col.className = 'gh-odo-col'
+        const reel = document.createElement('span')
+        reel.className = 'gh-odo-reel'
+        for (let d = 0; d <= 9; d++) {
+          const span = document.createElement('span')
+          span.className = 'gh-odo-digit'
+          span.textContent = String(d)
+          reel.appendChild(span)
+        }
+        col.appendChild(reel)
+        col.style.opacity = '0'
+        odo.appendChild(col)
+        // Force layout, then fade in for a smooth column-grow feel
+        requestAnimationFrame(() => {
+          col.style.transition = 'opacity 0.25s ease'
+          col.style.opacity = '1'
+        })
+      }
+      while (odo.children.length > n) {
+        const last = odo.lastElementChild
+        last.style.transition = 'opacity 0.18s ease'
+        last.style.opacity = '0'
+        // Remove after fade — but we also need the layout to collapse;
+        // simpler: remove immediately so digits realign without gap.
+        odo.removeChild(last)
+      }
+    }
+
+    const setCount = (value) => {
+      const str = String(Math.max(0, value | 0))
+      ensureColumns(str.length)
+      for (let i = 0; i < str.length; i++) {
+        const reel = odo.children[i].firstElementChild
+        // Stagger by column so digits roll in cascade — left first, right trailing
+        reel.style.transitionDelay = `${i * 55}ms`
+        const digit = parseInt(str[i], 10)
+        reel.style.transform = `translateY(-${digit}em)`
+      }
+      noun.textContent = value === 1 ? 'contribution' : 'contributions'
+    }
+
+    const setDate = (iso) => {
+      // iso = YYYY-MM-DD; treat as UTC to avoid TZ drift
+      const d = new Date(iso + 'T00:00:00Z')
+      dateLabel.textContent = dateFmt.format(d)
+    }
+
+    const showTooltip = (cell) => {
+      const cellRect = cell.getBoundingClientRect()
+      const cellsRect = cells.getBoundingClientRect()
+      const x = cellRect.left + cellRect.width / 2 - cellsRect.left
+      const y = cellRect.top - cellsRect.top
+      tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, calc(-100% - 10px))`
+      tooltip.dataset.visible = 'true'
+    }
+
+    const hideTooltip = () => {
+      tooltip.dataset.visible = 'false'
+    }
+
+    const setActive = (cell) => {
+      if (activeCell === cell) return
+      if (activeCell) activeCell.removeAttribute('data-active')
+      activeCell = cell
+      if (cell) {
+        cell.setAttribute('data-active', 'true')
+        const date = cell.getAttribute('data-date')
+        const count = parseInt(cell.getAttribute('data-count') || '0', 10)
+        if (date) setDate(date)
+        setCount(count)
+      }
+    }
+
+    cells.addEventListener('pointermove', (e) => {
+      const rect = cells.getBoundingClientRect()
+      cells.style.setProperty('--mx', `${e.clientX - rect.left}px`)
+      cells.style.setProperty('--my', `${e.clientY - rect.top}px`)
+
+      const cell = e.target instanceof Element
+        ? e.target.closest('.gh-contrib-base .gh-cell[data-date]')
+        : null
+      if (cell) {
+        setActive(cell)
+        showTooltip(cell)
+      } else {
+        hideTooltip()
+      }
+    })
+
+    cells.addEventListener('pointerleave', () => {
+      cells.style.setProperty('--mx', `-200px`)
+      cells.style.setProperty('--my', `-200px`)
+      hideTooltip()
+      if (activeCell) {
+        activeCell.removeAttribute('data-active')
+        activeCell = null
+      }
     })
   }
 </script>
