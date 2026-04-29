@@ -29,8 +29,17 @@ try {
   // network blip during build — render an empty grid
 }
 
-// Pad the start so the first column begins on Sunday (getDay()===0)
-const leadingEmpty = contributions.length > 0 ? new Date(contributions[0].date).getDay() : 0
+// Drop any cells dated after today (the API sometimes overshoots the current
+// day, and the user wants the rightmost column to end on today — never future).
+const todayISO = new Date().toISOString().slice(0, 10)
+contributions = contributions.filter((c) => c.date <= todayISO)
+
+// Pad the start so the first column begins on Sunday (getUTCDay()===0).
+// Use UTC to avoid local-TZ drift turning Sunday into Saturday.
+const leadingEmpty =
+  contributions.length > 0
+    ? new Date(contributions[0].date + 'T00:00:00Z').getUTCDay()
+    : 0
 
 const weeks: (Contribution | null)[][] = []
 let column: (Contribution | null)[] = Array(leadingEmpty).fill(null)
@@ -41,22 +50,23 @@ for (const c of contributions) {
     column = []
   }
 }
-if (column.length > 0) {
-  while (column.length < 7) column.push(null)
-  weeks.push(column)
-}
+// Trailing partial column (e.g. just Sun-Wed) — push as-is. With grid-auto-flow
+// column + 7 explicit rows, missing items become invisible empty grid space.
+if (column.length > 0) weeks.push(column)
 
 // Month label per week column — show abbreviation only when month first appears in that column
 const monthLabels = weeks.map((week, i) => {
   const firstReal = week.find((c): c is Contribution => c !== null)
   if (!firstReal) return ''
-  const month = new Date(firstReal.date).getMonth()
+  const month = new Date(firstReal.date + 'T00:00:00Z').getUTCMonth()
   if (i === 0) return ''
   const prevWeek = weeks[i - 1]
   const prevReal = prevWeek?.find((c): c is Contribution => c !== null)
   if (!prevReal) return ''
-  if (new Date(prevReal.date).getMonth() === month) return ''
-  return new Date(firstReal.date).toLocaleString('en-US', { month: 'short' }).toLowerCase()
+  if (new Date(prevReal.date + 'T00:00:00Z').getUTCMonth() === month) return ''
+  return new Date(firstReal.date + 'T00:00:00Z')
+    .toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+    .toLowerCase()
 })
 
 const caption = displayName ?? username
@@ -82,7 +92,7 @@ const formattedTotal = total.toLocaleString('en-US')
                     data-count={cell.count}
                   />
                 ) : (
-                  <span class='gh-cell' data-level='empty' />
+                  <span class='gh-cell gh-cell-pad' data-level='empty' aria-hidden='true' />
                 )
               )
             )
@@ -91,9 +101,13 @@ const formattedTotal = total.toLocaleString('en-US')
         <div class='gh-contrib-layer gh-contrib-bright' aria-hidden='true'>
           {
             weeks.map((week) =>
-              week.map((cell) => (
-                <span class='gh-cell' data-level={cell ? cell.level : 'empty'} />
-              ))
+              week.map((cell) =>
+                cell ? (
+                  <span class='gh-cell' data-level={cell.level} />
+                ) : (
+                  <span class='gh-cell gh-cell-pad' data-level='empty' />
+                )
+              )
             )
           }
         </div>
@@ -114,7 +128,36 @@ const formattedTotal = total.toLocaleString('en-US')
             </span>
             <span class='gh-tooltip-label' data-noun>contribution</span>
           </span>
-          <span class='gh-tooltip-date' data-date-label></span>
+          <span class='gh-tooltip-date'>
+            <span class='gh-date-month' data-month-label>Apr</span>
+            <span class='gh-tooltip-count gh-date-day' data-day-odo aria-hidden='true'>
+              {
+                [0, 1].map(() => (
+                  <span class='gh-odo-col' data-odo-col>
+                    <span class='gh-odo-reel' data-odo-reel>
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                        <span class='gh-odo-digit'>{d}</span>
+                      ))}
+                    </span>
+                  </span>
+                ))
+              }
+            </span>
+            <span class='gh-date-comma'>,</span>
+            <span class='gh-tooltip-count gh-date-year' data-year-odo aria-hidden='true'>
+              {
+                [0, 1, 2, 3].map(() => (
+                  <span class='gh-odo-col' data-odo-col>
+                    <span class='gh-odo-reel' data-odo-reel>
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                        <span class='gh-odo-digit'>{d}</span>
+                      ))}
+                    </span>
+                  </span>
+                ))
+              }
+            </span>
+          </span>
         </div>
       </div>
     </div>
@@ -254,6 +297,13 @@ const formattedTotal = total.toLocaleString('en-US')
     background: var(--cell-base);
     transition: transform 0.18s ease;
   }
+  /* Padding cells (leading-Sunday pad + trailing past-today pad) — keep their
+     grid track but render invisibly so the layout stays stable. */
+  .gh-cell-pad {
+    background: transparent !important;
+    box-shadow: none !important;
+    pointer-events: none;
+  }
   .gh-contrib-base .gh-cell { --cell-base: var(--gh-base-empty); }
   .gh-contrib-base .gh-cell[data-level='1'] { --cell-base: var(--gh-base-1); }
   .gh-contrib-base .gh-cell[data-level='2'] { --cell-base: var(--gh-base-2); }
@@ -317,9 +367,27 @@ const formattedTotal = total.toLocaleString('en-US')
     opacity: 0.85;
   }
   .gh-tooltip-date {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
     font-size: 0.65rem;
-    opacity: 0.75;
-    transition: opacity 0.18s ease;
+    opacity: 0.85;
+    line-height: 1;
+  }
+  .gh-date-month {
+    font-weight: 600;
+    transition: opacity 0.25s ease;
+    margin-right: 2px;
+  }
+  .gh-date-month.swap {
+    opacity: 0;
+  }
+  .gh-date-comma {
+    margin-right: 1px;
+  }
+  .gh-tooltip-date .gh-tooltip-count {
+    font-size: inherit;
+    font-weight: 600;
   }
   .gh-tooltip-count {
     display: inline-flex;
@@ -352,7 +420,9 @@ const formattedTotal = total.toLocaleString('en-US')
     top: 0;
     left: 0;
     width: 100%;
-    transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Slower roll with a strong ease-out so the reel "winds down" onto the
+       target digit instead of snapping. */
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .gh-odo-digit {
     display: block;
@@ -376,60 +446,89 @@ const formattedTotal = total.toLocaleString('en-US')
 </style>
 
 <script define:vars={{ totalWeeks: weeks.length }}>
-  for (const card of document.querySelectorAll('.gh-contrib-card')) {
-    const cells = card.querySelector('[data-cells]')
-    const tooltip = card.querySelector('[data-tooltip]')
-    const odo = card.querySelector('[data-odo]')
-    const dateLabel = card.querySelector('[data-date-label]')
-    const noun = card.querySelector('[data-noun]')
-    if (!cells || !tooltip || !odo || !dateLabel || !noun) continue
-
-    card.style.setProperty('--gh-weeks', String(totalWeeks))
-
-    const dateFmt = new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC'
-    })
-
-    let activeCell = null
-
-    const cols = Array.from(odo.querySelectorAll('[data-odo-col]'))
+  // Build an odometer driver against pre-rendered columns. options.padToFull
+  // disables leading-zero hiding (used for the year column where we always
+  // want all 4 digits visible).
+  function makeOdometer(container, options) {
+    const cols = Array.from(container.querySelectorAll('[data-odo-col]'))
     const reels = cols.map((col) => col.querySelector('[data-odo-reel]'))
-    const MAX_DIGITS = cols.length
+    const max = cols.length
+    const padToFull = !!(options && options.padToFull)
+    const stagger = (options && options.stagger) ?? 100
 
-    const setCount = (value) => {
-      const str = String(Math.max(0, value | 0)).padStart(MAX_DIGITS, '0')
-      const meaningful = String(Math.max(0, value | 0)).length // count from right
-      for (let i = 0; i < MAX_DIGITS; i++) {
+    return function setValue(value) {
+      const v = Math.max(0, value | 0)
+      const str = String(v).padStart(max, '0')
+      const meaningful = padToFull ? max : String(v).length
+      for (let i = 0; i < max; i++) {
         const col = cols[i]
         const reel = reels[i]
-        const digit = parseInt(str[i], 10)
-        // Leading columns (e.g. for "31" cols 0..1) collapse; visible cols expand to 0.6em
-        const isLeading = i < MAX_DIGITS - meaningful
+        const isLeading = i < max - meaningful
         col.dataset.hidden = isLeading ? 'true' : 'false'
         col.style.flexBasis = isLeading ? '0px' : '0.6em'
         col.style.opacity = isLeading ? '0' : '1'
-        // Stagger from left-most visible digit so the roll cascades naturally
-        const order = i - (MAX_DIGITS - meaningful)
-        reel.style.transitionDelay = order >= 0 ? `${order * 55}ms` : '0ms'
-        reel.style.transform = `translateY(-${digit}em)`
+        const order = i - (max - meaningful)
+        reel.style.transitionDelay = order >= 0 ? `${order * stagger}ms` : '0ms'
+        reel.style.transform = `translateY(-${parseInt(str[i], 10)}em)`
       }
+    }
+  }
+
+  for (const card of document.querySelectorAll('.gh-contrib-card')) {
+    const cells = card.querySelector('[data-cells]')
+    const tooltip = card.querySelector('[data-tooltip]')
+    const countOdo = card.querySelector('[data-odo]')
+    const dayOdo = card.querySelector('[data-day-odo]')
+    const yearOdo = card.querySelector('[data-year-odo]')
+    const monthLabel = card.querySelector('[data-month-label]')
+    const noun = card.querySelector('[data-noun]')
+    if (!cells || !tooltip || !countOdo || !dayOdo || !yearOdo || !monthLabel || !noun) continue
+
+    card.style.setProperty('--gh-weeks', String(totalWeeks))
+
+    const setCount = makeOdometer(countOdo)
+    const setDay = makeOdometer(dayOdo)
+    const setYear = makeOdometer(yearOdo, { padToFull: true })
+
+    const monthFmt = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' })
+
+    let activeCell = null
+    let lastMonthText = ''
+
+    const setCountAndNoun = (value) => {
+      setCount(value)
       noun.textContent = value === 1 ? 'contribution' : 'contributions'
     }
 
     const setDate = (iso) => {
-      // iso = YYYY-MM-DD; treat as UTC to avoid TZ drift
       const d = new Date(iso + 'T00:00:00Z')
-      dateLabel.textContent = dateFmt.format(d)
+      const monthText = monthFmt.format(d)
+      if (monthText !== lastMonthText) {
+        // Brief fade-swap so the month change reads as deliberate
+        monthLabel.classList.add('swap')
+        setTimeout(() => {
+          monthLabel.textContent = monthText
+          monthLabel.classList.remove('swap')
+        }, 140)
+        lastMonthText = monthText
+      }
+      setDay(d.getUTCDate())
+      setYear(d.getUTCFullYear())
     }
 
     const showTooltip = (cell) => {
       const cellRect = cell.getBoundingClientRect()
       const cellsRect = cells.getBoundingClientRect()
-      const x = cellRect.left + cellRect.width / 2 - cellsRect.left
+      const cellCenterX = cellRect.left + cellRect.width / 2 - cellsRect.left
       const y = cellRect.top - cellsRect.top
+      // Clamp X so the tooltip stays within the cells container — otherwise
+      // the parent card's overflow:hidden clips it on the right edge.
+      const ttRect = tooltip.getBoundingClientRect()
+      const halfW = ttRect.width / 2
+      const margin = 4
+      const minX = halfW + margin
+      const maxX = cellsRect.width - halfW - margin
+      const x = Math.max(minX, Math.min(maxX, cellCenterX))
       tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, calc(-100% - 10px))`
       tooltip.dataset.visible = 'true'
     }
@@ -447,7 +546,7 @@ const formattedTotal = total.toLocaleString('en-US')
         const date = cell.getAttribute('data-date')
         const count = parseInt(cell.getAttribute('data-count') || '0', 10)
         if (date) setDate(date)
-        setCount(count)
+        setCountAndNoun(count)
       }
     }
 
