@@ -11,6 +11,7 @@ import { getCollection } from 'astro:content'
 import { Paginator } from 'astro-pure/components/pages'
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import PageInfo from '@/components/comment/PageInfo.astro'
 
 export const prerender = true
 
@@ -121,6 +122,7 @@ const typeColors: Record<string, string> = {
         这里是我平时沉淀的一手笔记：Agent 学习、工程化选型对比（Embedding、向量库、AI SDK 等）、面试里遇到的好题目。
         还没打磨成博客，但都是最新的思考——比成稿博客更接近"现在在想什么"。
       </p>
+      <PageInfo class='mt-3 italic' path='/archive' />
     </div>
 
     {
@@ -192,6 +194,16 @@ const typeColors: Record<string, string> = {
                               </div>
                             </>
                           )}
+                          <span>·</span>
+                          <span>
+                            <span
+                              class='waline-pageview-readonly'
+                              data-path={`/archive/${entry.id}`}
+                            >
+                              0
+                            </span>{' '}
+                            views
+                          </span>
                         </div>
                       </div>
 

@@ -1,0 +1,42 @@
+---
+import config from 'virtual:config'
+
+const walineConfig = config.integ.waline
+const enabled = walineConfig.enable && !!walineConfig.server
+---
+
+{enabled && <waline-views data-server={walineConfig.server}></waline-views>}
+
+<script>
+  import { commentCount, pageviewCount } from '@waline/client'
+
+  const stripEn = (p: string) => p.replace(/^\/en(?=\/|$)/, '') || '/'
+
+  class WalineViews extends HTMLElement {
+    connectedCallback() {
+      // The comment widget runs walineInit({ pageview, comment }), which
+      // already drives both counters. Skip here to avoid double-fetching.
+      if (document.querySelector('joye-comment, comment-component')) return
+
+      const serverURL = this.dataset.server || ''
+      if (!serverURL) return
+
+      // Normalize zh/en pairs to one key.
+      document
+        .querySelectorAll<HTMLElement>(
+          '.waline-pageview-count, .waline-pageview-readonly, .waline-comment-count'
+        )
+        .forEach((el) => {
+          if (el.dataset.path) el.dataset.path = stripEn(el.dataset.path)
+        })
+
+      pageviewCount({ serverURL, selector: '.waline-pageview-count' })
+      pageviewCount({ serverURL, selector: '.waline-pageview-readonly', update: false })
+      commentCount({ serverURL, selector: '.waline-comment-count' })
+    }
+  }
+
+  if (!customElements.get('waline-views')) {
+    customElements.define('waline-views', WalineViews)
+  }
+</script>

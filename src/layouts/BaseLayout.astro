@@ -8,6 +8,7 @@ import Header from '@/components/Header.astro'
 import ThemeProvider from '@/components/ThemeProvider.astro'
 import DevModeHost from '@/components/terminal/DevModeHost'
 import type { PostSummary } from '@/components/terminal/types'
+import ViewCounter from '@/components/comment/ViewCounter.astro'
 import config from '@/site-config'
 import { getLangFromUrl } from '@/i18n/ui'
 
@@ -78,6 +79,7 @@ const devPosts: PostSummary[] = recent.map((p) => {
     </div>
     <DevModeHost client:load posts={devPosts} />
     <Analytics />
+    <ViewCounter />
 
     {/* Set highlight color */}
     <style define:vars={{ highlightColor }}>

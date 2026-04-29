@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
+import config from 'virtual:config'
 
 import Section from './Section.astro'
 import { siteStats } from '@/data/site-stats'
@@ -14,6 +15,25 @@ const [blogPosts, notes] = await Promise.all([
   getCollection('blog', ({ data }) => !data.draft),
   getCollection('archive', ({ data }) => !data.draft)
 ])
+
+// Live total page views from Waline (/api/stats endpoint on the waline server).
+// Falls back to the manual number in site-stats.ts if the call fails.
+let livePageViews: number | null = null
+const walineServer = config.integ.waline.server
+if (walineServer) {
+  try {
+    const res = await fetch(`${walineServer}/api/stats`, {
+      signal: AbortSignal.timeout(2000)
+    })
+    if (res.ok) {
+      const data = (await res.json()) as { totalViews?: number }
+      if (typeof data.totalViews === 'number') livePageViews = data.totalViews
+    }
+  } catch {
+    // Network/timeout — fall back silently.
+  }
+}
+const pageViews = livePageViews ?? siteStats.pageViews
 
 const labels =
   lang === 'en'
@@ -39,7 +59,7 @@ const items = [
   { label: labels.notes, value: notes.length.toString() },
   { label: labels.projects, value: siteStats.projects.toString() },
   { label: labels.visitors, value: siteStats.visitors.toLocaleString() },
-  { label: labels.pageViews, value: siteStats.pageViews.toLocaleString() }
+  { label: labels.pageViews, value: pageViews.toLocaleString() }
 ]
 ---
 
