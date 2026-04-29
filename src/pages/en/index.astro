@@ -8,6 +8,7 @@ import { Quote } from 'astro-pure/advanced'
 import { Button, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import Section from '@/components/home/Section.astro'
+import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
 import TranslationNotice from '@/components/TranslationNotice.astro'
@@ -100,6 +101,8 @@ const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
         <SkillLayout title='AI & Agent' skills={ai} />
         <SkillLayout title='Tools' skills={tools} />
       </Section>
+
+      <SiteStats lang='en' />
     </div>
     <Quote class='mt-12' />
   </main>

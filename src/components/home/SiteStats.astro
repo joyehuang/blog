@@ -4,21 +4,46 @@ import { getCollection } from 'astro:content'
 import Section from './Section.astro'
 import { siteStats } from '@/data/site-stats'
 
+interface Props {
+  lang?: 'zh' | 'en'
+}
+
+const { lang = 'zh' } = Astro.props as Props
+
 const [blogPosts, notes] = await Promise.all([
   getCollection('blog', ({ data }) => !data.draft),
   getCollection('archive', ({ data }) => !data.draft)
 ])
 
+const labels =
+  lang === 'en'
+    ? {
+        title: 'Site stats',
+        blog: 'Posts',
+        notes: 'Notes',
+        projects: 'Projects',
+        visitors: 'Visitors',
+        pageViews: 'Page views'
+      }
+    : {
+        title: '站点统计',
+        blog: '文章',
+        notes: '笔记',
+        projects: '项目',
+        visitors: '访客',
+        pageViews: '浏览量'
+      }
+
 const items = [
-  { label: 'Blog 文章', value: blogPosts.length.toString() },
-  { label: 'Notes', value: notes.length.toString() },
-  { label: '项目', value: siteStats.projects.toString() },
-  { label: 'Visitors', value: siteStats.visitors.toLocaleString() },
-  { label: 'Page views', value: siteStats.pageViews.toLocaleString() }
+  { label: labels.blog, value: blogPosts.length.toString() },
+  { label: labels.notes, value: notes.length.toString() },
+  { label: labels.projects, value: siteStats.projects.toString() },
+  { label: labels.visitors, value: siteStats.visitors.toLocaleString() },
+  { label: labels.pageViews, value: siteStats.pageViews.toLocaleString() }
 ]
 ---
 
-<Section title='Site stats'>
+<Section title={labels.title}>
   <div class='grid grid-cols-2 gap-3 sm:grid-cols-5'>
     {
       items.map(({ label, value }) => (
@@ -29,7 +54,4 @@ const items = [
       ))
     }
   </div>
-  <p class='text-xs text-muted-foreground'>
-    Visitors / Page views 来自 Vercel Analytics（手动同步，最近更新 {siteStats.lastSyncedAt}）。
-  </p>
 </Section>

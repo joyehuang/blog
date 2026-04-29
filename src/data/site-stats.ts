@@ -1,16 +1,13 @@
-// Manually-synced site stats shown on the homepage.
+// Numbers shown in the homepage Site stats panel that aren't derivable
+// from the codebase. Update by hand when you want them to refresh:
 //
-// `visitors` and `pageViews` come from the Vercel Web Analytics dashboard
-// (https://vercel.com/joyehuangs-projects/blog/analytics). Vercel doesn't
-// expose a public read API for these, so update them by hand when you want
-// the homepage figures to refresh, then bump `lastSyncedAt`.
-//
-// `projects` is the count of project entries on /projects (active + old +
-// personal). Update when adding or removing a project there.
+// - `visitors` and `pageViews`: from the Vercel Web Analytics dashboard
+//   (https://vercel.com/joyehuangs-projects/blog/analytics). Vercel has
+//   no public read API for these, no CLI command either.
+// - `projects`: total count of entries on /projects.
 
 export const siteStats = {
   visitors: 1089,
   pageViews: 2143,
-  projects: 12,
-  lastSyncedAt: '2026-04-29'
+  projects: 12
 } as const
