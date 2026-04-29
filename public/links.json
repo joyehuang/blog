@@ -5,6 +5,15 @@
       "desc": "Friends I exchange blog links with",
       "link_list": [
         {
+          "name": "Arden's blog",
+          "intro": "A beginner in the AI era",
+          "link": "https://ardenj.pages.dev/",
+          "avatar": "https://ardenj.pages.dev/images/portrait.png",
+          "since": "2026-04-29",
+          "met": "互换友链",
+          "note": "AI 时代的初学者，也在认真把站点搭起来。"
+        },
+        {
           "name": "董璐瑶",
           "intro": "AI 产品经理",
           "link": "https://llingqi77-tech.github.io/cv/",
