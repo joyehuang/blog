@@ -11,14 +11,6 @@ const headings = [
   { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
-
-let siteStats: { totalViews: number; pages: number } | null = null
-try {
-  const res = await fetch('https://waline.joyehuang.me/api/stats', {
-    signal: AbortSignal.timeout(3000)
-  })
-  if (res.ok) siteStats = await res.json()
-} catch {}
 ---
 
 <PageLayout title='About' {headings} info='/about'>
@@ -33,15 +25,6 @@ try {
     My motto: Build fast, learn faster. <Spoiler></Spoiler>
   </p>
   <Button title='Sponsor Me' class='w-fit' href='/en/projects#sponsorship' style='ahead' />
-
-  {
-    siteStats && (
-      <p class='mt-6 text-sm text-muted-foreground'>
-        <strong class='text-foreground'>{siteStats.totalViews.toLocaleString()}</strong> total post
-        reads across {siteStats.pages} {siteStats.pages === 1 ? 'post' : 'posts'} so far.
-      </p>
-    )
-  }
 
   {/* hobbies */}
   <h2 id='hobbies'>Hobbies</h2>

@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content'
+
+import Section from './Section.astro'
+import { siteStats } from '@/data/site-stats'
+
+const [blogPosts, notes] = await Promise.all([
+  getCollection('blog', ({ data }) => !data.draft),
+  getCollection('archive', ({ data }) => !data.draft)
+])
+
+const items = [
+  { label: 'Blog 文章', value: blogPosts.length.toString() },
+  { label: 'Notes', value: notes.length.toString() },
+  { label: '项目', value: siteStats.projects.toString() },
+  { label: 'Visitors', value: siteStats.visitors.toLocaleString() },
+  { label: 'Page views', value: siteStats.pageViews.toLocaleString() }
+]
+---
+
+<Section title='Site stats'>
+  <div class='grid grid-cols-2 gap-3 sm:grid-cols-5'>
+    {
+      items.map(({ label, value }) => (
+        <div class='rounded-xl border bg-muted/30 px-4 py-3 text-center'>
+          <div class='text-2xl font-medium tabular-nums'>{value}</div>
+          <div class='mt-1 text-xs text-muted-foreground'>{label}</div>
+        </div>
+      ))
+    }
+  </div>
+  <p class='text-xs text-muted-foreground'>
+    Visitors / Page views 来自 Vercel Analytics（手动同步，最近更新 {siteStats.lastSyncedAt}）。
+  </p>
+</Section>

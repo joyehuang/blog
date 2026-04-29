@@ -12,6 +12,7 @@ import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
+import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
 import JoJo from '@/components/mascot/JoJo'
@@ -321,6 +322,8 @@ const latestNotes = allNotes
         <SkillLayout title='AI & Agent' skills={ai} />
         <SkillLayout title='Tools' skills={tools} />
       </Section>
+
+      <SiteStats />
     </div>
     <Quote class='mt-12' />
   </main>
