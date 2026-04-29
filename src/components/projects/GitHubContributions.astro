@@ -99,7 +99,19 @@ const formattedTotal = total.toLocaleString('en-US')
         </div>
         <div class='gh-tooltip' data-tooltip aria-hidden='true'>
           <span class='gh-tooltip-row'>
-            <span class='gh-tooltip-count' data-odo aria-hidden='true'></span>
+            <span class='gh-tooltip-count' data-odo aria-hidden='true'>
+              {
+                [0, 1, 2, 3].map(() => (
+                  <span class='gh-odo-col' data-odo-col>
+                    <span class='gh-odo-reel' data-odo-reel>
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+                        <span class='gh-odo-digit'>{d}</span>
+                      ))}
+                    </span>
+                  </span>
+                ))
+              }
+            </span>
             <span class='gh-tooltip-label' data-noun>contribution</span>
           </span>
           <span class='gh-tooltip-date' data-date-label></span>
@@ -133,7 +145,6 @@ const formattedTotal = total.toLocaleString('en-US')
   /* Theme-aware palette: light mode uses the site teal-blue accent (#659EB9),
      dark mode keeps the monochrome white spotlight from the reference. */
   .gh-contrib-card {
-    --gh-cell-size: clamp(8px, 1.4vw, 12px);
     --gh-gap: 3px;
     --gh-spotlight: 110px;
 
@@ -177,7 +188,7 @@ const formattedTotal = total.toLocaleString('en-US')
   .gh-contrib-months {
     grid-row: 1;
     display: grid;
-    grid-template-columns: repeat(var(--gh-weeks, 53), var(--gh-cell-size));
+    grid-template-columns: repeat(var(--gh-weeks, 53), 1fr);
     column-gap: var(--gh-gap);
     font-size: 0.7rem;
     color: var(--color-muted-foreground, hsl(var(--muted-foreground)));
@@ -192,6 +203,10 @@ const formattedTotal = total.toLocaleString('en-US')
   .gh-contrib-cells {
     grid-row: 2;
     position: relative;
+    width: 100%;
+    min-width: 0;
+    /* Aspect ratio anchored on weeks×days — both layers fill this box */
+    aspect-ratio: var(--gh-weeks, 53) / 7;
     --mx: -200px;
     --my: -200px;
     /* Clip the spotlight + tooltip strictly to the cell area */
@@ -199,11 +214,14 @@ const formattedTotal = total.toLocaleString('en-US')
   }
 
   .gh-contrib-layer {
+    position: absolute;
+    inset: 0;
     display: grid;
-    grid-template-rows: repeat(7, var(--gh-cell-size));
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--gh-weeks, 53), minmax(0, 1fr));
     grid-auto-flow: column;
-    grid-auto-columns: var(--gh-cell-size);
     gap: var(--gh-gap);
+    min-width: 0;
   }
 
   .gh-contrib-bright {
@@ -310,27 +328,43 @@ const formattedTotal = total.toLocaleString('en-US')
     height: 1em;
     line-height: 1;
   }
+  /* Each column is a fixed 1ch × 1em window. Reel is absolutely positioned
+     inside, so its intrinsic height never escapes the window — much more
+     defensive than relying on flex-column sizing. */
   .gh-odo-col {
+    position: relative;
     display: inline-block;
-    width: 0.6em;
+    /* JS drives flex-basis inline. Chrome silently no-ops flex-basis
+       transitions, so the width snaps instantly while opacity fades —
+       the digit roll inside the column is the focal animation anyway. */
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 0.6em;
+    min-width: 0;
     height: 1em;
     overflow: hidden;
     text-align: center;
+    vertical-align: top;
+    transition: opacity 0.18s ease;
   }
   .gh-odo-reel {
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .gh-odo-digit {
+    display: block;
     height: 1em;
     line-height: 1;
+    text-align: center;
   }
 
-  /* Mobile: tighter geometry */
+  /* Mobile: shrink spotlight + gap so the effect still feels punchy on a small card */
   @media (max-width: 640px) {
     .gh-contrib-card {
-      --gh-spotlight: 80px;
+      --gh-spotlight: 70px;
       --gh-gap: 2px;
     }
   }
@@ -361,45 +395,25 @@ const formattedTotal = total.toLocaleString('en-US')
 
     let activeCell = null
 
-    const ensureColumns = (n) => {
-      while (odo.children.length < n) {
-        const col = document.createElement('span')
-        col.className = 'gh-odo-col'
-        const reel = document.createElement('span')
-        reel.className = 'gh-odo-reel'
-        for (let d = 0; d <= 9; d++) {
-          const span = document.createElement('span')
-          span.className = 'gh-odo-digit'
-          span.textContent = String(d)
-          reel.appendChild(span)
-        }
-        col.appendChild(reel)
-        col.style.opacity = '0'
-        odo.appendChild(col)
-        // Force layout, then fade in for a smooth column-grow feel
-        requestAnimationFrame(() => {
-          col.style.transition = 'opacity 0.25s ease'
-          col.style.opacity = '1'
-        })
-      }
-      while (odo.children.length > n) {
-        const last = odo.lastElementChild
-        last.style.transition = 'opacity 0.18s ease'
-        last.style.opacity = '0'
-        // Remove after fade — but we also need the layout to collapse;
-        // simpler: remove immediately so digits realign without gap.
-        odo.removeChild(last)
-      }
-    }
+    const cols = Array.from(odo.querySelectorAll('[data-odo-col]'))
+    const reels = cols.map((col) => col.querySelector('[data-odo-reel]'))
+    const MAX_DIGITS = cols.length
 
     const setCount = (value) => {
-      const str = String(Math.max(0, value | 0))
-      ensureColumns(str.length)
-      for (let i = 0; i < str.length; i++) {
-        const reel = odo.children[i].firstElementChild
-        // Stagger by column so digits roll in cascade — left first, right trailing
-        reel.style.transitionDelay = `${i * 55}ms`
+      const str = String(Math.max(0, value | 0)).padStart(MAX_DIGITS, '0')
+      const meaningful = String(Math.max(0, value | 0)).length // count from right
+      for (let i = 0; i < MAX_DIGITS; i++) {
+        const col = cols[i]
+        const reel = reels[i]
         const digit = parseInt(str[i], 10)
+        // Leading columns (e.g. for "31" cols 0..1) collapse; visible cols expand to 0.6em
+        const isLeading = i < MAX_DIGITS - meaningful
+        col.dataset.hidden = isLeading ? 'true' : 'false'
+        col.style.flexBasis = isLeading ? '0px' : '0.6em'
+        col.style.opacity = isLeading ? '0' : '1'
+        // Stagger from left-most visible digit so the roll cascades naturally
+        const order = i - (MAX_DIGITS - meaningful)
+        reel.style.transitionDelay = order >= 0 ? `${order * 55}ms` : '0ms'
         reel.style.transform = `translateY(-${digit}em)`
       }
       noun.textContent = value === 1 ? 'contribution' : 'contributions'
