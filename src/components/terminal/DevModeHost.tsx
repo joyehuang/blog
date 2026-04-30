@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import DevMode from './DevMode'
-import type { PostSummary } from './types'
+import type { FsNode } from './fs/types'
 
 /**
  * Global host mounted once in BaseLayout. Owns the human/dev mode flag
@@ -23,7 +23,7 @@ function isEditable(target: EventTarget | null): boolean {
   return false
 }
 
-export default function DevModeHost({ posts = [] }: { posts?: PostSummary[] }) {
+export default function DevModeHost({ fs }: { fs: FsNode }) {
   const [mode, setMode] = useState<Mode>('human')
 
   const enter = useCallback(() => setMode('dev'), [])
@@ -67,5 +67,5 @@ export default function DevModeHost({ posts = [] }: { posts?: PostSummary[] }) {
   }, [mode])
 
   if (mode !== 'dev') return null
-  return <DevMode posts={posts} onExit={exit} />
+  return <DevMode fs={fs} onExit={exit} />
 }

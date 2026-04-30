@@ -1,10 +1,11 @@
-import type { CommandRegistry, OutputLine, PostSummary } from './types'
-
-const SOCIAL_LINKS: { label: string; href: string }[] = [
-  { label: 'github', href: 'https://github.com/joyehuang' },
-  { label: 'linkedin', href: 'https://www.linkedin.com/in/deshiouhuang/' },
-  { label: 'mail', href: 'mailto:huangdeshiou@gmail.com' }
-]
+import { SOCIAL_LINKS } from './fs/content'
+import { displayPath, getNode, parentOf, resolvePath } from './fs/path'
+import type { DirNode, FsNode } from './fs/types'
+import type {
+  CommandRegistry,
+  CompletionContext,
+  OutputLine
+} from './types'
 
 const MOCK_AGENT_REPLIES: Record<string, string[]> = {
   default: [
@@ -35,6 +36,28 @@ function pickReply(msg: string): string[] {
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+
+function nodeBadge(node: FsNode): string {
+  if (node.type === 'dir') return '/'
+  if (node.type === 'link') return '@'
+  return ' '
+}
+
+function formatLs(dir: DirNode): OutputLine[] {
+  if (dir.children.length === 0) {
+    return [{ kind: 'text', tone: 'muted', text: '(empty)' }]
+  }
+  const width = Math.max(...dir.children.map((c) => c.name.length)) + 2
+  return dir.children.map<OutputLine>((c) => ({
+    kind: 'node',
+    node: (
+      <span>
+        <span className='wt-tone-primary'>{(c.name + nodeBadge(c)).padEnd(width + 1)}</span>
+        <span className='wt-tone-muted'>{c.description ?? ''}</span>
+      </span>
+    )
+  }))
+}
 
 export const commands: CommandRegistry = {
   help: {
@@ -79,79 +102,161 @@ export const commands: CommandRegistry = {
         { kind: 'text', tone: 'muted', text: '  ↳ AIGC full-stack intern @ Tezign' },
         { kind: 'text', tone: 'muted', text: '  ↳ stays hungry, stays foolish · plays piano + cello' },
         { kind: 'spacer' },
-        { kind: 'text', tone: 'muted', text: 'next: try `ls blog`, `chat`, or `connect`' }
+        { kind: 'text', tone: 'muted', text: 'next: try `ls`, `cat about`, or `cd /blog`' }
       ])
+    }
+  },
+
+  pwd: {
+    name: 'pwd',
+    summary: 'print current path',
+    run: ({ cwd, push }) => push([{ kind: 'text', text: cwd }])
+  },
+
+  cd: {
+    name: 'cd',
+    summary: 'change directory',
+    usage: 'cd [path]',
+    complete: (args, ctx) => completePath(args, ctx, 'dir'),
+    run: ({ args, fs, cwd, setCwd, push }) => {
+      const target = args[0] ? resolvePath(cwd, args[0]) : '/'
+      const node = getNode(fs, target)
+      if (!node) {
+        push([{ kind: 'text', tone: 'err', text: `cd: ${args[0]}: no such file or directory` }])
+        return
+      }
+      if (node.type !== 'dir') {
+        push([{ kind: 'text', tone: 'err', text: `cd: ${args[0]}: not a directory` }])
+        return
+      }
+      setCwd(target)
     }
   },
 
   ls: {
     name: 'ls',
-    summary: 'list things — try `ls blog`',
-    usage: 'ls [blog|socials]',
-    complete: (args) => (args.length <= 1 ? ['blog', 'socials'] : []),
-    run: ({ args, push, posts }) => {
-      const target = args[0] ?? 'blog'
-      if (target === 'socials' || target === 'connect') {
-        push(
-          SOCIAL_LINKS.map<OutputLine>((s) => ({
+    summary: 'list directory contents',
+    usage: 'ls [path]',
+    complete: (args, ctx) => completePath(args, ctx, 'any'),
+    run: ({ args, fs, cwd, push }) => {
+      const target = args[0] ? resolvePath(cwd, args[0]) : cwd
+      const node = getNode(fs, target)
+      if (!node) {
+        push([{ kind: 'text', tone: 'err', text: `ls: ${args[0]}: no such file or directory` }])
+        return
+      }
+      if (node.type !== 'dir') {
+        // ls on a file/link → show stat-like one-liner
+        const badge = node.type === 'link' ? '@' : ''
+        push([
+          {
             kind: 'node',
             node: (
               <span>
-                <span className='wt-tone-primary'>{s.label.padEnd(10)}</span>
-                <a className='wt-link' href={s.href} target='_blank' rel='noreferrer'>
-                  {s.href}
-                </a>
+                <span className='wt-tone-primary'>{node.name + badge}</span>
+                <span className='wt-tone-muted'> {node.description ?? ''}</span>
               </span>
             )
-          }))
-        )
+          }
+        ])
         return
       }
-      if (target !== 'blog') {
-        push([{ kind: 'text', tone: 'err', text: `ls: unknown target '${target}' — try 'blog' or 'socials'` }])
-        return
-      }
-      if (posts.length === 0) {
-        push([{ kind: 'text', tone: 'muted', text: '(no entries indexed)' }])
-        return
-      }
-      push([
-        { kind: 'text', tone: 'muted', text: `recent ${posts.length} entries — \`cat <slug>\` to read` },
-        { kind: 'spacer' },
-        ...posts.map<OutputLine>((p) => ({
-          kind: 'node',
-          node: (
-            <span>
-              <span className='wt-tone-muted'>{p.date.padEnd(12)}</span>
-              <span className='wt-tone-primary'>{p.slug.padEnd(28)}</span>
-              <span className='wt-tone-fg'>{p.title}</span>
-            </span>
-          )
-        }))
-      ])
+      push(formatLs(node))
     }
   },
 
   cat: {
     name: 'cat',
-    summary: 'open a post by slug',
-    usage: 'cat <slug>',
-    complete: (args, posts) => (args.length <= 1 ? posts.map((p) => p.slug) : []),
-    run: ({ args, push, posts, navigate }) => {
-      const slug = args[0]
-      if (!slug) {
-        push([{ kind: 'text', tone: 'err', text: 'cat: missing slug — `ls blog` first' }])
+    summary: 'print file contents',
+    usage: 'cat <path>',
+    complete: (args, ctx) => completePath(args, ctx, 'file'),
+    run: ({ args, fs, cwd, push }) => {
+      if (!args[0]) {
+        push([{ kind: 'text', tone: 'err', text: 'cat: missing operand — try `ls` first' }])
         return
       }
-      const match = posts.find((p) => p.slug === slug)
-      if (!match) {
-        push([{ kind: 'text', tone: 'err', text: `cat: ${slug}: no such post` }])
+      const target = resolvePath(cwd, args[0])
+      const node = getNode(fs, target)
+      if (!node) {
+        push([{ kind: 'text', tone: 'err', text: `cat: ${args[0]}: no such file or directory` }])
         return
       }
+      if (node.type === 'dir') {
+        push([{ kind: 'text', tone: 'err', text: `cat: ${args[0]}: is a directory` }])
+        return
+      }
+      if (node.type === 'link') {
+        push([
+          {
+            kind: 'node',
+            node: (
+              <span>
+                <span className='wt-tone-muted'>{node.name} → </span>
+                <a className='wt-link' href={node.href} target='_blank' rel='noreferrer'>
+                  {node.display ?? node.href}
+                </a>
+              </span>
+            )
+          },
+          { kind: 'text', tone: 'muted', text: 'use `open` to follow.' }
+        ])
+        return
+      }
+      // file
+      if (node.content) {
+        const lines = node.content.split('\n')
+        push(lines.map<OutputLine>((text) => ({ kind: 'text', text })))
+        return
+      }
+      // endpoint-only file: B-phase will fetch and stream. For now, hint.
       push([
-        { kind: 'text', tone: 'muted', text: `opening ${match.href} …` }
+        { kind: 'text', tone: 'muted', text: '(inline preview lands in the next phase)' },
+        ...(node.href
+          ? [
+              {
+                kind: 'node' as const,
+                node: (
+                  <span>
+                    <span className='wt-tone-muted'>view rendered: </span>
+                    <a className='wt-link' href={node.href}>
+                      {node.href}
+                    </a>
+                  </span>
+                )
+              }
+            ]
+          : [])
       ])
-      setTimeout(() => navigate(match.href), 300)
+    }
+  },
+
+  open: {
+    name: 'open',
+    summary: 'navigate to a path or link',
+    usage: 'open <path>',
+    complete: (args, ctx) => completePath(args, ctx, 'any'),
+    run: ({ args, fs, cwd, push, navigate }) => {
+      if (!args[0]) {
+        push([{ kind: 'text', tone: 'err', text: 'open: missing operand' }])
+        return
+      }
+      const target = resolvePath(cwd, args[0])
+      const node = getNode(fs, target)
+      if (!node) {
+        push([{ kind: 'text', tone: 'err', text: `open: ${args[0]}: no such file or directory` }])
+        return
+      }
+      if (node.type === 'link') {
+        if (typeof window !== 'undefined') window.open(node.href, '_blank', 'noopener')
+        push([{ kind: 'text', tone: 'muted', text: `opening ${node.href} …` }])
+        return
+      }
+      if (node.type === 'file' && node.href) {
+        push([{ kind: 'text', tone: 'muted', text: `navigating ${node.href} …` }])
+        setTimeout(() => navigate(node.href!), 200)
+        return
+      }
+      push([{ kind: 'text', tone: 'err', text: `open: ${args[0]}: nothing to open` }])
     }
   },
 
@@ -259,7 +364,6 @@ export const commands: CommandRegistry = {
     run: ({ push, setMode }) => {
       if (setMode) {
         push([{ kind: 'text', tone: 'muted', text: 'bye ✦ back to human mode…' }])
-        // defer so the farewell line renders before the overlay tears down
         setTimeout(() => setMode('human'), 180)
         return
       }
@@ -281,9 +385,9 @@ export const commands: CommandRegistry = {
 
   about: {
     name: 'about',
-    summary: 'alias of whoami',
+    summary: 'alias of `cat about`',
     hidden: true,
-    run: (ctx) => commands.whoami.run(ctx)
+    run: (ctx) => commands.cat.run({ ...ctx, args: ['/about'] })
   },
 
   sudo: {
@@ -305,6 +409,40 @@ export const commands: CommandRegistry = {
 
 export const commandNames = Object.keys(commands)
 
+/**
+ * Path completion helper. Splits the partial token into a base directory
+ * and a leaf prefix, walks the FS to that base, and returns full token
+ * candidates filtered by the leaf prefix.
+ *
+ *   filter='dir'  → only directories (used by `cd`)
+ *   filter='file' → files + links     (used by `cat`)
+ *   filter='any'  → everything       (used by `ls`/`open`)
+ */
+function completePath(
+  args: string[],
+  ctx: CompletionContext,
+  filter: 'dir' | 'file' | 'any'
+): string[] {
+  if (args.length > 1) return []
+  const partial = args[0] ?? ''
+  // split prefix vs leaf: everything up to the last '/' is the prefix
+  const slashIdx = partial.lastIndexOf('/')
+  const prefix = slashIdx >= 0 ? partial.slice(0, slashIdx + 1) : ''
+  const leaf = slashIdx >= 0 ? partial.slice(slashIdx + 1) : partial
+  const baseInput = slashIdx >= 0 ? partial.slice(0, slashIdx + 1) || '/' : '.'
+  const baseAbs = resolvePath(ctx.cwd, baseInput)
+  const baseNode = getNode(ctx.fs, baseAbs)
+  if (!baseNode || baseNode.type !== 'dir') return []
+  return baseNode.children
+    .filter((c) => c.name.startsWith(leaf))
+    .filter((c) => {
+      if (filter === 'any') return true
+      if (filter === 'dir') return c.type === 'dir'
+      return c.type !== 'dir'
+    })
+    .map((c) => prefix + c.name + (c.type === 'dir' ? '/' : ''))
+}
+
 function commonPrefix(items: string[]): string {
   if (items.length === 0) return ''
   let prefix = items[0]
@@ -324,9 +462,8 @@ function commonPrefix(items: string[]): string {
  */
 export function completeInput(
   input: string,
-  posts: PostSummary[]
+  ctx: CompletionContext
 ): string | string[] | null {
-  // command-name completion: nothing typed yet, or no space after first token
   const hasSpace = /\s/.test(input)
   if (!hasSpace) {
     const head = input.trimStart()
@@ -340,22 +477,29 @@ export function completeInput(
     return candidates
   }
 
-  // arg completion: dispatch to the command's completer
   const tokens = input.split(/\s+/)
   const cmd = tokens[0].toLowerCase()
   const spec = commands[cmd]
   if (!spec || !spec.complete) return null
   const argTokens = tokens.slice(1)
   const partial = argTokens[argTokens.length - 1] ?? ''
-  const all = spec.complete(argTokens, posts)
+  const all = spec.complete(argTokens, ctx)
   const matches = all.filter((c) => c.startsWith(partial))
   if (matches.length === 0) return null
   const replaceLast = (next: string) => {
     const head = tokens.slice(0, -1).join(' ')
     return head + ' ' + next
   }
-  if (matches.length === 1) return replaceLast(matches[0]) + ' '
+  if (matches.length === 1) {
+    // For dirs we leave the trailing slash so the user can keep typing.
+    const m = matches[0]
+    return m.endsWith('/') ? replaceLast(m) : replaceLast(m) + ' '
+  }
   const lcp = commonPrefix(matches)
   if (lcp.length > partial.length) return replaceLast(lcp)
   return matches
 }
+
+// silence unused-symbol warnings while we keep these helpers around
+void parentOf
+void displayPath

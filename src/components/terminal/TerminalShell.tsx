@@ -2,18 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { commands, completeInput } from './commands'
+import { displayPath } from './fs/path'
+import type { FsNode } from './fs/types'
 import './terminal.css'
-import type { HistoryEntry, OutputLine, PostSummary, Tone } from './types'
+import type { HistoryEntry, OutputLine, Tone } from './types'
 
 type Props = {
-  posts?: PostSummary[]
+  fs: FsNode
   user?: string
   host?: string
 }
 
 type RenderEntry = HistoryEntry & { id: string }
-
-const PROMPT_CWD = '~'
 
 const toneClass: Record<Tone, string> = {
   fg: 'wt-tone-fg',
@@ -128,7 +128,7 @@ function MatrixRain() {
 const COLLAPSE_KEY = 'wt-collapsed'
 const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'theme dark', 'matrix']
 
-export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: Props) {
+export default function Terminal({ fs, user = 'joye', host = 'blog' }: Props) {
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
@@ -137,6 +137,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
   const [focused, setFocused] = useState(false)
   const [collapsed, setCollapsed] = useState<boolean>(true)
   const [peek, setPeek] = useState<string>('')
+  const [cwd, setCwd] = useState<string>('/')
   const inputRef = useRef<HTMLInputElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
@@ -240,7 +241,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
   const runInput = useCallback(
     async (raw: string) => {
       const trimmed = raw.trim()
-      appendEntry({ kind: 'input', raw: trimmed, cwd: PROMPT_CWD })
+      appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
       setHistory((h) => [...h, trimmed])
       setHistIdx(-1)
@@ -260,11 +261,12 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
         return
       }
 
-      const streamId = `s${++idRef.current}`
       const ctx = {
         args,
         raw: trimmed,
-        posts,
+        fs,
+        cwd,
+        setCwd,
         registry: commands,
         push: (lines: OutputLine[]) => appendEntry({ kind: 'output', lines }),
         startStream: (id: string) => {
@@ -285,7 +287,6 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
         setMatrix: setMatrixOn,
         navigate: ctxNavigate
       }
-      void streamId
       try {
         await spec.run(ctx)
       } catch (err) {
@@ -295,7 +296,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
         })
       }
     },
-    [appendEntry, updateStream, posts, ctxSetTheme, ctxNavigate]
+    [appendEntry, updateStream, fs, cwd, ctxSetTheme, ctxNavigate]
   )
 
   // first-load hint, only client side
@@ -366,12 +367,12 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
     }
     if (e.key === 'Tab') {
       e.preventDefault()
-      const completion = completeInput(input, posts)
+      const completion = completeInput(input, { fs, cwd })
       if (!completion) return
       if (typeof completion === 'string') {
         setInput(completion)
       } else {
-        appendEntry({ kind: 'input', raw: input, cwd: PROMPT_CWD })
+        appendEntry({ kind: 'input', raw: input, cwd })
         appendEntry({
           kind: 'output',
           lines: [{ kind: 'text', tone: 'muted', text: completion.join('  ') }]
@@ -386,7 +387,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
     }
     if (e.key === 'c' && e.ctrlKey) {
       e.preventDefault()
-      appendEntry({ kind: 'input', raw: `${input}^C`, cwd: PROMPT_CWD })
+      appendEntry({ kind: 'input', raw: `${input}^C`, cwd })
       setInput('')
     }
   }
@@ -483,7 +484,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
           if (entry.kind === 'input') {
             return (
               <div key={entry.id} className='wt-entry'>
-                <Prompt user={promptUser} host={promptHost} cwd={entry.cwd} />
+                <Prompt user={promptUser} host={promptHost} cwd={displayPath(entry.cwd)} />
                 <span className='wt-tone-fg'>{entry.raw}</span>
               </div>
             )
@@ -507,7 +508,7 @@ export default function Terminal({ posts = [], user = 'joye', host = 'blog' }: P
         })}
 
         <div className='wt-input-row'>
-          <Prompt user={promptUser} host={promptHost} cwd={PROMPT_CWD} />
+          <Prompt user={promptUser} host={promptHost} cwd={displayPath(cwd)} />
           <span className='wt-input-display'>
             <span className='wt-tone-fg'>{input}</span>
             <span className={`wt-caret ${focused ? '' : 'wt-caret--idle'}`} aria-hidden />

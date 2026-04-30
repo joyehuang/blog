@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import type { FsNode } from './fs/types'
+
 export type Tone = 'fg' | 'muted' | 'primary' | 'ok' | 'err' | 'warn'
 
 export type OutputLine =
@@ -12,18 +14,21 @@ export type HistoryEntry =
   | { kind: 'output'; lines: OutputLine[] }
   | { kind: 'stream'; id: string; lines: OutputLine[]; done: boolean }
 
-export type PostSummary = {
-  slug: string
-  href: string
-  title: string
-  date: string
-  description?: string
+/** Subset passed to `complete` so suggestions can read FS state. */
+export type CompletionContext = {
+  fs: FsNode
+  cwd: string
 }
 
 export type CommandContext = {
   args: string[]
   raw: string
-  posts: PostSummary[]
+  /** Pseudo-FS root. Built once server-side; treat as immutable. */
+  fs: FsNode
+  /** Current working directory. Always starts with '/'. */
+  cwd: string
+  /** Mutate the cwd from a command (used by `cd`). */
+  setCwd: (path: string) => void
   push: (lines: OutputLine[]) => void
   startStream: (id: string) => void
   appendStream: (id: string, line: OutputLine) => void
@@ -49,7 +54,7 @@ export type CommandSpec = {
   hidden?: boolean
   run: CommandHandler
   /** Suggest completions for the given args (last entry is the partial token). */
-  complete?: (args: string[], posts: PostSummary[]) => string[]
+  complete?: (args: string[], ctx: CompletionContext) => string[]
 }
 
 export type CommandRegistry = Record<string, CommandSpec>

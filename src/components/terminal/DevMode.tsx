@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { commands, completeInput } from './commands'
+import { displayPath, getNode } from './fs/path'
+import type { FsNode } from './fs/types'
 import './terminal.css'
 import './devmode.css'
-import type { HistoryEntry, OutputLine, PostSummary, Tone } from './types'
+import type { HistoryEntry, OutputLine, Tone } from './types'
 
 type Props = {
-  posts?: PostSummary[]
+  fs: FsNode
   user?: string
   host?: string
   onExit?: () => void
@@ -14,8 +16,6 @@ type Props = {
 
 type RenderEntry = HistoryEntry & { id: string }
 type BootLine = { t: number; text: string; ok?: boolean }
-
-const PROMPT_CWD = '~'
 
 const toneClass: Record<Tone, string> = {
   fg: 'wt-tone-fg',
@@ -51,7 +51,7 @@ function renderLine(line: OutputLine, key: string) {
   }
   return (
     <span key={key} className={`wt-line ${line.tone ? toneClass[line.tone] : ''}`}>
-      {line.text || '\u00A0'}
+      {line.text || ' '}
     </span>
   )
 }
@@ -69,7 +69,7 @@ function Prompt({ user, host, cwd }: { user: string; host: string; cwd: string }
 }
 
 export default function DevMode({
-  posts = [],
+  fs,
   user = 'joye',
   host = 'blog',
   onExit
@@ -81,11 +81,17 @@ export default function DevMode({
   const [history, setHistory] = useState<string[]>([])
   const [histIdx, setHistIdx] = useState<number>(-1)
   const [focused, setFocused] = useState(true)
+  const [cwd, setCwd] = useState<string>('/')
 
   const inputRef = useRef<HTMLInputElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
   const newId = () => `e${++idRef.current}`
+
+  const blogCount = useMemo(() => {
+    const dir = getNode(fs, '/blog')
+    return dir && dir.type === 'dir' ? dir.children.length : 0
+  }, [fs])
 
   const appendEntry = useCallback((entry: HistoryEntry) => {
     setEntries((prev) => [...prev, { ...entry, id: newId() }])
@@ -127,7 +133,7 @@ export default function DevMode({
     const steps: Omit<BootLine, 'ok'>[] = [
       { t: 0, text: 'booting joye-shell v0.1 …' },
       { t: 180, text: 'loading /etc/personality.conf' },
-      { t: 420, text: `mounting /blog (${posts.length} entries)` },
+      { t: 420, text: `mounting /blog (${blogCount} entries)` },
       { t: 710, text: 'spinning up agent mock on localhost:∞' },
       { t: 1020, text: 'resolving @mascot/jojo → ok' },
       { t: 1260, text: 'ready.' }
@@ -139,14 +145,13 @@ export default function DevMode({
           setBootLines((prev) => [...prev, { ...s, ok: i !== steps.length - 1 }])
           if (i === steps.length - 1) {
             setBootDone(true)
-            // focus shell once boot clears
             setTimeout(() => inputRef.current?.focus(), 60)
           }
         }, s.t)
       )
     })
     return () => timers.forEach(clearTimeout)
-  }, [posts.length])
+  }, [blogCount])
 
   // first interactive hint — appended once boot is done
   useEffect(() => {
@@ -189,7 +194,7 @@ export default function DevMode({
   const runInput = useCallback(
     async (raw: string) => {
       const trimmed = raw.trim()
-      appendEntry({ kind: 'input', raw: trimmed, cwd: PROMPT_CWD })
+      appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
       setHistory((h) => [...h, trimmed])
       setHistIdx(-1)
@@ -209,11 +214,12 @@ export default function DevMode({
         return
       }
 
-      const streamId = `s${++idRef.current}`
       const ctx = {
         args,
         raw: trimmed,
-        posts,
+        fs,
+        cwd,
+        setCwd,
         registry: commands,
         push: (lines: OutputLine[]) => appendEntry({ kind: 'output', lines }),
         startStream: (id: string) => {
@@ -235,7 +241,6 @@ export default function DevMode({
         navigate: ctxNavigate,
         setMode: ctxSetMode
       }
-      void streamId
       try {
         await spec.run(ctx)
       } catch (err) {
@@ -245,7 +250,7 @@ export default function DevMode({
         })
       }
     },
-    [appendEntry, updateStream, posts, ctxSetTheme, ctxNavigate, ctxSetMode]
+    [appendEntry, updateStream, fs, cwd, ctxSetTheme, ctxNavigate, ctxSetMode]
   )
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -279,12 +284,12 @@ export default function DevMode({
     }
     if (e.key === 'Tab') {
       e.preventDefault()
-      const completion = completeInput(input, posts)
+      const completion = completeInput(input, { fs, cwd })
       if (!completion) return
       if (typeof completion === 'string') {
         setInput(completion)
       } else {
-        appendEntry({ kind: 'input', raw: input, cwd: PROMPT_CWD })
+        appendEntry({ kind: 'input', raw: input, cwd })
         appendEntry({
           kind: 'output',
           lines: [{ kind: 'text', tone: 'muted', text: completion.join('  ') }]
@@ -299,13 +304,11 @@ export default function DevMode({
     }
     if (e.key === 'c' && e.ctrlKey) {
       e.preventDefault()
-      appendEntry({ kind: 'input', raw: `${input}^C`, cwd: PROMPT_CWD })
+      appendEntry({ kind: 'input', raw: `${input}^C`, cwd })
       setInput('')
       return
     }
     if (e.key === 'Escape' && !input) {
-      // scoped to our input — global window listener would fight with
-      // the browser (e.g. exiting fullscreen also fires Esc).
       e.preventDefault()
       onExit?.()
     }
@@ -364,7 +367,7 @@ export default function DevMode({
               <span className='val'>neovim · VS Code · Claude Code</span>
               <span className='key'>blog</span>
               <span className='val'>
-                {posts.length} indexed <span className='val-muted'>· `ls blog`</span>
+                {blogCount} indexed <span className='val-muted'>· `ls /blog`</span>
               </span>
               <span className='key'>uptime</span>
               <span className='val'>since Apr 2024</span>
@@ -381,7 +384,7 @@ export default function DevMode({
               return (
                 <div key={entry.id} className='dev-entry'>
                   <span>
-                    <Prompt user={user} host={host} cwd={entry.cwd} />
+                    <Prompt user={user} host={host} cwd={displayPath(entry.cwd)} />
                     <span className='wt-tone-fg'> {entry.raw}</span>
                   </span>
                 </div>
@@ -408,7 +411,7 @@ export default function DevMode({
         {/* prompt */}
         {bootDone && (
           <div className='dev-input-row'>
-            <Prompt user={user} host={host} cwd={PROMPT_CWD} />
+            <Prompt user={user} host={host} cwd={displayPath(cwd)} />
             <span className='dev-input-display'>
               <span className='wt-tone-fg'>{input}</span>
               <span
