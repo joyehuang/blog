@@ -41,7 +41,6 @@ const labels =
         blog: 'Posts',
         notes: 'Notes',
         projects: 'Projects',
-        visitors: 'Visitors',
         pageViews: 'Page views'
       }
     : {
@@ -49,7 +48,6 @@ const labels =
         blog: '文章',
         notes: '笔记',
         projects: '项目',
-        visitors: '访客',
         pageViews: '浏览量'
       }
 
@@ -57,7 +55,6 @@ const items = [
   { label: labels.blog, value: blogPosts.length.toString() },
   { label: labels.notes, value: notes.length.toString() },
   { label: labels.projects, value: siteStats.projects.toString() },
-  { label: labels.visitors, value: siteStats.visitors.toLocaleString() },
   { label: labels.pageViews, value: pageViews.toLocaleString() }
 ]
 ---
