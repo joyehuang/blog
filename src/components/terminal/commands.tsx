@@ -1,5 +1,5 @@
 import { SOCIAL_LINKS } from './fs/content'
-import { displayPath, getNode, parentOf, resolvePath } from './fs/path'
+import { displayPath, getNode, parentOf, prettyPath, resolvePath } from './fs/path'
 import type { DirNode, FsNode } from './fs/types'
 import type {
   CommandRegistry,
@@ -110,7 +110,7 @@ export const commands: CommandRegistry = {
   pwd: {
     name: 'pwd',
     summary: 'print current path',
-    run: ({ cwd, push }) => push([{ kind: 'text', text: cwd }])
+    run: ({ cwd, push }) => push([{ kind: 'text', text: prettyPath(cwd) }])
   },
 
   cd: {

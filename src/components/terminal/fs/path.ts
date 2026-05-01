@@ -1,3 +1,4 @@
+import { ROOT_LABEL } from './content'
 import type { FsNode } from './types'
 
 /**
@@ -48,9 +49,18 @@ export function getNode(root: FsNode, path: string): FsNode | null {
   return node
 }
 
-/** Render a path for the prompt. Root displays as `~`. */
+/** Render a path for the prompt. Root displays as `~` (bash-style). */
 export function displayPath(path: string): string {
   return path === '/' ? '~' : path
+}
+
+/**
+ * Hostname-prefixed path for `pwd` output. Root → `joye.devserver`,
+ * children → `joye.devserver/blog/<slug>`. Always anchors the tree on
+ * a visible host name, so the FS feels like a real machine.
+ */
+export function prettyPath(path: string): string {
+  return path === '/' ? ROOT_LABEL : `${ROOT_LABEL}${path}`
 }
 
 function segs(path: string): string[] {

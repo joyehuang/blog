@@ -4,6 +4,13 @@
  * blog posts is fetched lazily through `endpoint`.
  */
 
+/**
+ * Hostname-style label for the FS root. Surfaced in the prompt host
+ * segment and as the prefix of `pwd` output (so the tree visibly
+ * "lives" on this machine). Change here, propagates everywhere.
+ */
+export const ROOT_LABEL = 'joye.devserver'
+
 export const SOCIAL_LINKS: { label: string; href: string }[] = [
   { label: 'github', href: 'https://github.com/joyehuang' },
   { label: 'linkedin', href: 'https://www.linkedin.com/in/deshiouhuang/' },

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { commands, completeInput } from './commands'
+import { ROOT_LABEL } from './fs/content'
 import { displayPath } from './fs/path'
 import type { FsNode } from './fs/types'
 import './terminal.css'
@@ -128,7 +129,7 @@ function MatrixRain() {
 const COLLAPSE_KEY = 'wt-collapsed'
 const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'theme dark', 'matrix']
 
-export default function Terminal({ fs, user = 'joye', host = 'blog' }: Props) {
+export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props) {
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])

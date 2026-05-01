@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { commands, completeInput } from './commands'
+import { ROOT_LABEL } from './fs/content'
 import { displayPath, getNode } from './fs/path'
 import type { FsNode } from './fs/types'
 import './terminal.css'
@@ -71,7 +72,7 @@ function Prompt({ user, host, cwd }: { user: string; host: string; cwd: string }
 export default function DevMode({
   fs,
   user = 'joye',
-  host = 'blog',
+  host = ROOT_LABEL,
   onExit
 }: Props) {
   const [bootLines, setBootLines] = useState<BootLine[]>([])
