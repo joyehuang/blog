@@ -16,9 +16,13 @@ const { username = 'joyehuang', displayName } = Astro.props
 let total = 0
 let contributions: Contribution[] = []
 
+// Hit our own /api endpoint — it proxies the authenticated GitHub GraphQL
+// API so the calendar includes private contributions (the public scrape
+// undercounts and lags behind today by several days).
+const apiOrigin = Astro.url.origin
 try {
   const res = await fetch(
-    `https://github-contributions-api.jogruber.de/v4/${username}?y=last`
+    `${apiOrigin}/api/github-contributions?username=${encodeURIComponent(username)}`
   )
   if (res.ok) {
     const data = (await res.json()) as ApiResponse
@@ -660,7 +664,7 @@ const formattedTotal = total.toLocaleString('en-US')
     let data
     try {
       const res = await fetch(
-        `https://github-contributions-api.jogruber.de/v4/${username}?y=last`,
+        `/api/github-contributions?username=${encodeURIComponent(username)}`,
         { cache: 'no-store' }
       )
       if (!res.ok) return
