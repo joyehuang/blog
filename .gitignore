@@ -87,3 +87,4 @@ bunfig.toml
 
 # claude code agent workdir (worktrees, memory, etc.)
 .claude/
+.env*.local
