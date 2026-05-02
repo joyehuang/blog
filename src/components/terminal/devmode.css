@@ -316,3 +316,98 @@
     animation: none;
   }
 }
+
+/* ─────────────── post viewer (B-phase inline `cat post`) ─────────────── */
+
+.dev-viewer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 90; /* above .dev-root (80) */
+  background: hsl(var(--term-surface));
+  color: hsl(var(--foreground));
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  animation: dev-overlay-in 0.16s ease-out both;
+  display: flex;
+  flex-direction: column;
+}
+
+.dev-viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: hsl(var(--term-chrome));
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 0.82rem;
+  flex-wrap: wrap;
+}
+
+.dev-viewer-marker {
+  color: hsl(var(--primary));
+}
+
+.dev-viewer-title {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  max-width: 60ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dev-viewer-date {
+  color: hsl(var(--muted-foreground));
+}
+
+.dev-viewer-spacer {
+  flex: 1;
+}
+
+.dev-viewer-hint {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+.dev-viewer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.2rem clamp(1rem, 4vw, 3rem);
+}
+
+.dev-viewer-text {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: hsl(var(--foreground));
+}
+
+.dev-viewer-caret {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1em;
+  vertical-align: text-bottom;
+  background: hsl(var(--primary));
+  margin-inline-start: 1px;
+  animation: dev-caret 1s steps(1) infinite;
+}
+
+.dev-viewer-caret.done {
+  display: none;
+}
+
+.dev-viewer-status {
+  padding: 1rem 0;
+  font-size: 0.92rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dev-viewer-root {
+    animation: none;
+  }
+  .dev-viewer-caret {
+    animation: none;
+  }
+}

@@ -75,8 +75,9 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
     tags: p.data.tags ?? []
   })
   const href = `${hrefRoot}/${encodeURI(p.id)}`
-  // Endpoint is wired in B-phase; placeholder path is shape-stable for callers.
-  const endpoint = `${hrefRoot}/${encodeURI(p.id)}/raw.txt`
+  // Inline `cat post` viewer fetches plaintext from this endpoint. Only
+  // wired up for blog so far; archive entries fall back to a placeholder.
+  const endpoint = hrefRoot === '/blog' ? `/api/blog/${encodeURI(p.id)}` : undefined
   return {
     type: 'dir',
     name: slug,
@@ -98,7 +99,7 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
       {
         type: 'file',
         name: 'post',
-        description: 'full text (inline open coming in B-phase)',
+        description: endpoint ? 'full text (inline)' : 'full text (rendered page only)',
         endpoint,
         href,
         meta: { slug, date, title: p.data.title }

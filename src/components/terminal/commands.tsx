@@ -170,7 +170,7 @@ export const commands: CommandRegistry = {
     summary: 'print file contents',
     usage: 'cat <path>',
     complete: (args, ctx) => completePath(args, ctx, 'file'),
-    run: ({ args, fs, cwd, push }) => {
+    run: ({ args, fs, cwd, push, openViewer }) => {
       if (!args[0]) {
         push([{ kind: 'text', tone: 'err', text: 'cat: missing operand — try `ls` first' }])
         return
@@ -208,9 +208,15 @@ export const commands: CommandRegistry = {
         push(lines.map<OutputLine>((text) => ({ kind: 'text', text })))
         return
       }
-      // endpoint-only file: B-phase will fetch and stream. For now, hint.
+      // endpoint-backed file → inline viewer if the host supports it
+      if (node.endpoint && openViewer) {
+        push([{ kind: 'text', tone: 'muted', text: `opening ${target} in viewer …` }])
+        openViewer(node, target)
+        return
+      }
+      // No endpoint, or no viewer host (e.g. home-page TerminalShell).
       push([
-        { kind: 'text', tone: 'muted', text: '(inline preview lands in the next phase)' },
+        { kind: 'text', tone: 'muted', text: '(inline preview not available for this entry)' },
         ...(node.href
           ? [
               {

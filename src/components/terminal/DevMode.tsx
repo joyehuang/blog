@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { commands, completeInput } from './commands'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath, getNode } from './fs/path'
-import type { FsNode } from './fs/types'
+import type { FileNode, FsNode } from './fs/types'
+import PostViewer from './PostViewer'
 import './terminal.css'
 import './devmode.css'
 import type { HistoryEntry, OutputLine, Tone } from './types'
@@ -17,6 +18,14 @@ type Props = {
 
 type RenderEntry = HistoryEntry & { id: string }
 type BootLine = { t: number; text: string; ok?: boolean }
+type ViewerState = {
+  meta: { title?: string; date?: string; slug: string }
+  status: 'loading' | 'ready' | 'error'
+  content: string
+  error?: string
+  /** Increments per `cat`, used to ignore stale fetches. */
+  reqId: number
+}
 
 const toneClass: Record<Tone, string> = {
   fg: 'wt-tone-fg',
@@ -83,10 +92,12 @@ export default function DevMode({
   const [histIdx, setHistIdx] = useState<number>(-1)
   const [focused, setFocused] = useState(true)
   const [cwd, setCwd] = useState<string>('/')
+  const [viewer, setViewer] = useState<ViewerState | null>(null)
 
   const inputRef = useRef<HTMLInputElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
+  const viewerReqRef = useRef(0)
   const newId = () => `e${++idRef.current}`
 
   const blogCount = useMemo(() => {
@@ -128,6 +139,43 @@ export default function DevMode({
     },
     [onExit]
   )
+
+  const ctxOpenViewer = useCallback((file: FileNode, _path: string) => {
+    if (!file.endpoint) return
+    const reqId = ++viewerReqRef.current
+    const meta = {
+      title: (file.meta?.title as string) ?? file.name,
+      date: file.meta?.date as string | undefined,
+      slug: (file.meta?.slug as string) ?? file.name
+    }
+    setViewer({ meta, status: 'loading', content: '', reqId })
+    void fetch(file.endpoint)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.text()
+      })
+      .then((text) => {
+        // ignore stale fetches if the user has since opened another post
+        if (viewerReqRef.current !== reqId) return
+        setViewer({ meta, status: 'ready', content: text, reqId })
+      })
+      .catch((err: unknown) => {
+        if (viewerReqRef.current !== reqId) return
+        setViewer({
+          meta,
+          status: 'error',
+          content: '',
+          reqId,
+          error: err instanceof Error ? err.message : 'failed to load'
+        })
+      })
+  }, [])
+
+  const closeViewer = useCallback(() => {
+    setViewer(null)
+    // return focus to the prompt
+    setTimeout(() => inputRef.current?.focus(), 30)
+  }, [])
 
   // boot sequence: roughly "loading" steps, streamed in
   useEffect(() => {
@@ -240,6 +288,7 @@ export default function DevMode({
           /* no matrix overlay inside dev mode */
         },
         navigate: ctxNavigate,
+        openViewer: ctxOpenViewer,
         setMode: ctxSetMode
       }
       try {
@@ -251,7 +300,7 @@ export default function DevMode({
         })
       }
     },
-    [appendEntry, updateStream, fs, cwd, ctxSetTheme, ctxNavigate, ctxSetMode]
+    [appendEntry, updateStream, fs, cwd, ctxSetTheme, ctxNavigate, ctxOpenViewer, ctxSetMode]
   )
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -437,6 +486,15 @@ export default function DevMode({
           </div>
         )}
       </div>
+      {viewer && (
+        <PostViewer
+          meta={viewer.meta}
+          content={viewer.content}
+          status={viewer.status}
+          error={viewer.error}
+          onClose={closeViewer}
+        />
+      )}
     </div>
   )
 }

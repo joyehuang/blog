@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import type { FsNode } from './fs/types'
+import type { FileNode, FsNode } from './fs/types'
 
 export type Tone = 'fg' | 'muted' | 'primary' | 'ok' | 'err' | 'warn'
 
@@ -37,6 +37,12 @@ export type CommandContext = {
   setTheme: (mode: 'dark' | 'light' | 'toggle') => void
   setMatrix: (on: boolean) => void
   navigate: (path: string) => void
+  /**
+   * Open a `FileNode` in the inline post viewer. Supplied by DevMode
+   * (which renders the overlay); absent in the home-page TerminalShell.
+   * Commands should fall back gracefully when undefined.
+   */
+  openViewer?: (file: FileNode, path: string) => void
   /**
    * Switch the site display mode. Supplied by DevMode host, absent in the
    * Human-Mode terminal. Handlers should `ctx.setMode?.('human')`.
