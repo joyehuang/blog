@@ -1,0 +1,619 @@
+---
+title: 'Reading OpenHarness in a Day: What Does an 11,733-Line Agent Harness Actually Look Like?'
+description: 'HKUDS lab just open-sourced OpenHarness, an Agent Harness implementation modeled after Claude Code. This post is my one-day study notes on its core architecture — a complete walkthrough of Phase 1, from CLI launch to the Agent Loop.'
+publishDate: 2026-04-10 00:00:00
+tags: ['AI Agent', 'Harness', 'Claude Code', 'OpenHarness', 'source code', 'Python']
+language: en
+---
+
+## Preface
+
+I have been using Claude Code for nearly half a year now — it is my daily driver for coding work. But one thing has been bugging me the entire time: **I have never actually seen what it looks like on the inside**.
+
+Claude Code is a closed-source TypeScript product, and the code is obfuscated on top of that. As a developer aiming to grow into a full-stack AI Agent engineer, I am very aware that knowing how to "use" something is not enough — I need to understand how a production-grade Agent is actually built.
+
+A few days ago, the HKUDS lab (the team at the University of Hong Kong behind Nanobot) open-sourced **OpenHarness**, a project that rewrites Claude Code's core architecture in Python. Only 11,733 lines of code, yet it implements 43 tools, 54 commands, a complete Agent Loop, a permission system, a plugin system, and multi-agent collaboration.
+
+For me, this was nothing short of manna from heaven.
+
+> **What is a Harness?** If you have read OpenAI and Anthropic's recent papers on Agents, you should be familiar with the consensus: **the model is responsible for intelligence, the Harness is responsible for everything else**. The Harness is the complete infrastructure wrapped around the LLM — tools, memory, permissions, context, multi-agent coordination. As the project's authors put it: *"The model is the agent. The code is the harness."*
+
+This article is my study notes from spending one day chewing through OpenHarness's core architecture. I will walk you through all of Phase 1: **from the moment you type `oh`, all the way down to the heart of the Agent Loop**.
+
+Three reasons this project is worth studying:
+
+1. **It is small enough**: 11,733 lines of Python vs. Claude Code's 512,664 lines of TypeScript — 44x leaner
+2. **It is complete enough**: everything you need is there — Agent Loop, Tools, Hooks, MCP, Plugins, Multi-Agent
+3. **It is real enough**: not a teaching toy, but a production-grade implementation you can actually use
+
+Alright, let's get going.
+
+---
+
+## I. 14 Subsystems: The Big Picture First
+
+Open the `src/openharness/` directory and you will see the project carved into 14 submodules. The first time I looked at it I felt a bit lost — so many things, where do I even start?
+
+After spending some time scanning each module's `__init__.py`, I drew this structure diagram:
+
+```txt
+src/openharness/
+│
+├── cli.py                 ← Entry point: Typer CLI
+│
+├── engine/                ← 🧠 Core of the core: Agent Loop
+│   ├── query_engine.py    ← while True: stream → tool_use → execute → loop
+│   ├── query.py           ← The actual loop implementation
+│   ├── messages.py        ← Message format
+│   ├── cost_tracker.py    ← Token billing
+│   └── stream_events.py   ← Streaming event types
+│
+├── tools/                 ← 🔧 43 Tools (Bash, Read, Write, Glob...)
+│   ├── base.py            ← BaseTool + ToolRegistry
+│   └── *_tool.py          ← One Tool implementation per file
+│
+├── permissions/           ← 🛡️ Permission checks (default/plan/full_auto)
+├── hooks/                 ← ⚡ Lifecycle hooks (PreToolUse/PostToolUse)
+│
+├── prompts/               ← 📝 System Prompt assembly factory
+├── skills/                ← 📚 On-demand .md knowledge files
+├── memory/                ← 🧠 Cross-session persistent memory
+├── plugins/               ← 🔌 Plugin system
+├── commands/              ← 💬 Slash command registry
+├── mcp/                   ← 🌐 Model Context Protocol Client
+├── tasks/                 ← 📋 Background task management
+├── coordinator/           ← 🤝 Multi-Agent orchestration
+│
+├── config/                ← ⚙️ Configuration management
+├── state/                 ← State storage
+├── services/              ← Helper services
+├── bridge/                ← Python ↔ React TUI communication bridge
+├── ui/                    ← UI layer entry point
+└── keybindings/           ← Keyboard shortcut configuration
+```
+
+There is a key observation here: **these 14 modules are not at the same level**. They split into three layers:
+
+- **Execution layer**: engine, tools, permissions, hooks — how the Agent runs
+- **Knowledge layer**: prompts, skills, memory — what the Agent knows
+- **Extension layer**: mcp, plugins, coordinator, tasks, commands — how the Agent connects to the outside world
+
+If you are reading a project like this for the first time, I recommend going execution → knowledge → extension. Once you have the trunk, everything else is just an ornament.
+
+---
+
+## II. From `oh` to Agent Ready: The Complete Boot Chain
+
+Let's start the moment the user types `uv run oh` and follow the data through the system.
+
+### Entry Point: Typer CLI
+
+Open `src/openharness/cli.py` and you will see familiar CLI parameter definitions. This project uses [Typer](https://typer.tiangolo.com/) — if you have written Python, you can think of it as the Python equivalent of `yargs` or `commander`:
+
+```python
+# cli.py:12-21
+app = typer.Typer(
+    name="openharness",
+    help="Oh my Harness! An AI-powered coding assistant.",
+    invoke_without_command=True,
+)
+```
+
+All CLI parameters are defined inside the `main()` function (`cli.py:179-334`), including `-p/--print`, `--model`, `--permission-mode`, and so on. After the parameters are parsed, the code reaches this point:
+
+```python
+# cli.py:346-377
+if print_mode is not None:
+    # Non-interactive mode
+    asyncio.run(run_print_mode(...))
+    return
+
+# Interactive mode
+asyncio.run(run_repl(...))
+```
+
+Two paths: **interactive mode** (default) and **print mode** (`-p` flag). Print mode is a single-process direct-output mode, suitable for script integration; interactive mode launches the slick React TUI — the interface you see in everyday use.
+
+### The Dual-Process Architecture That Confused Me for a While
+
+When I was reading `ui/app.py:27-47`, I got stuck for a moment:
+
+```python
+async def run_repl(...) -> None:
+    if backend_only:
+        await run_backend_host(...)
+        return
+
+    exit_code = await launch_react_tui(...)
+```
+
+What on earth is this `backend_only` branch? I followed the code further and opened `ui/react_launcher.py`:
+
+```python
+# react_launcher.py:78-102
+env["OPENHARNESS_FRONTEND_CONFIG"] = json.dumps({
+    "backend_command": build_backend_command(...),  # ← python -m openharness --backend-only
+    "initial_prompt": prompt,
+})
+
+process = await asyncio.create_subprocess_exec(
+    npm, "exec", "--", "tsx", "src/index.tsx", ...
+)
+```
+
+That is when it clicked: **OpenHarness in interactive mode actually runs two processes**.
+
+The complete boot chain looks like this:
+
+```txt
+Step 1: You type `oh`
+        → Python process A starts
+        → Its only job is one thing: launch Node.js
+
+Step 2: Node.js starts
+        → Renders the TUI you see using React/Ink
+        → But Node.js does not know any AI logic
+        → So it spawns Python process B in turn (--backend-only mode)
+
+Step 3: Python process B starts
+        → This is the backend that actually does the work
+        → Process A's mission is complete, it exits
+```
+
+In the end only two processes are running: **Node.js (UI)** and **Python B (Agent engine)**. They communicate through a JSON-lines protocol over stdin/stdout.
+
+### Why This Design?
+
+This is the most interesting architectural decision in the whole boot flow. To put it bluntly, it is about **language ecosystem choices**:
+
+| Need | Best Tool |
+|------|-----------|
+| Rich terminal UI (syntax highlighting, popups, animations) | React/Ink (Node.js ecosystem) |
+| AI Agent engine (LLM SDK, asyncio, filesystem) | Python ecosystem |
+
+The best tool for each need lives in a different language. Rather than half-assing it in one language, let two processes each do what they do best and talk via JSON.
+
+This idea should feel familiar — **when you write Next.js, the browser runs React, the server runs Node.js, and they talk over HTTP**. OpenHarness swaps HTTP for the simpler stdin/stdout JSON-lines, because both processes run on the same machine in the same terminal — no need for a network stack.
+
+### What the Communication Protocol Looks Like
+
+In `ui/protocol.py`, the message contract between front and back end is laid out crisply with Pydantic models.
+
+**Frontend → Backend** (`protocol.py:15-22`):
+
+```python
+class FrontendRequest(BaseModel):
+    type: Literal[
+        "submit_line",           # User submits a line
+        "permission_response",   # Reply to a permission popup
+        "question_response",     # Reply to a question popup
+        "list_sessions",
+        "shutdown",
+    ]
+    line: str | None = None
+    allowed: bool | None = None
+    answer: str | None = None
+```
+
+**Backend → Frontend** (`protocol.py:55-86`): 14 event types, including `assistant_delta` (streaming text), `tool_started`/`tool_completed` (tool lifecycle), `modal_request` (popup requests), and so on.
+
+The essence of this protocol is: **one JSON object per line, read/write is just stdin/stdout**. No ports, no handshake, no timeout retries. When you debug, just `tail` the log and you can see all communication content.
+
+### `build_runtime()`: The Assembly Line for the Whole Harness
+
+The first thing backend process B does after starting up is call the `build_runtime()` function in `ui/runtime.py:89`. This is the most important function in the entire project — it assembles all subsystems into a `RuntimeBundle`:
+
+```python
+# runtime.py:89-176 (simplified)
+async def build_runtime(...) -> RuntimeBundle:
+    settings = load_settings().merge_cli_overrides(...)
+    plugins = load_plugins(settings, cwd)
+
+    resolved_api_client = AnthropicApiClient(
+        api_key=settings.resolve_api_key(),
+        base_url=settings.base_url,
+    )
+    mcp_manager = McpClientManager(load_mcp_server_configs(settings, plugins))
+    await mcp_manager.connect_all()
+
+    tool_registry = create_default_tool_registry(mcp_manager)
+    hook_executor = HookExecutor(...)
+
+    engine = QueryEngine(
+        api_client=resolved_api_client,
+        tool_registry=tool_registry,
+        permission_checker=PermissionChecker(settings.permission),
+        system_prompt=build_runtime_system_prompt(...),
+        hook_executor=hook_executor,
+        ...
+    )
+
+    return RuntimeBundle(
+        api_client=resolved_api_client,
+        tool_registry=tool_registry,
+        hook_executor=hook_executor,
+        engine=engine,
+        ...
+    )
+```
+
+Notice **how** these dependencies are assembled:
+
+1. First load settings and plugins (data configuration)
+2. Create `AnthropicApiClient` from settings
+3. Create `McpClientManager` and connect all external servers
+4. Create `ToolRegistry` (register all 43 Tools)
+5. Create `HookExecutor`
+6. Finally pass everything above as arguments into `QueryEngine`
+
+This is the classic **dependency injection pattern**. `QueryEngine` does not create any of its own dependencies — they all get passed in from outside. The benefits are immediate:
+
+- **Testing**: you can pass in a mock `api_client` and a mock `tool_registry`
+- **Switching to Kimi**: just change `settings.base_url` — not a single line of `QueryEngine` needs to change
+- **Switching modes**: headless/print/interactive can share the same core
+
+### RuntimeBundle: The Container for All Dependencies
+
+Look at `runtime.py:35-48`:
+
+```python
+@dataclass
+class RuntimeBundle:
+    api_client: SupportsStreamingMessages   # LLM API client
+    cwd: str                                 # Working directory
+    mcp_manager: McpClientManager           # MCP external tools
+    tool_registry: ToolRegistry             # 43 Tools
+    app_state: AppStateStore                # UI state
+    hook_executor: HookExecutor             # Lifecycle Hooks
+    engine: QueryEngine                     # Agent Loop engine
+    commands: object                        # Slash commands
+    external_api_client: bool
+    session_id: str = ""
+```
+
+To use a React analogy you might be familiar with: **`RuntimeBundle` is like packaging all your Context Providers into one object**. From now on, no matter which function needs which subsystem, all it needs is the bundle.
+
+This pattern is so much better than global variables — every dependency relationship is explicit, and during testing you can construct a mock bundle to run things without touching any business code.
+
+---
+
+## III. The Agent Loop: The Heart of the Whole Project
+
+Finally, the core. The most critical question in any Harness engineering project boils down to one thing: **how does the Agent Loop run?**
+
+### The Essential Difference Between a Plain Chatbot and an Agent
+
+If you have ever built a chat app with the Vercel AI SDK, you know the simplest chat flow looks like this:
+
+```txt
+User sends a message → call API → AI replies → done
+```
+
+But an Agent is different. The AI might say "I need to read this file first," and once you give it the file content, it says "okay, now I need to edit line 42," and after you execute and pass back the result, it says "done."
+
+**A single user message can trigger multiple rounds of AI ↔ Tool interaction.**
+
+This loop is the Agent Loop. Its implementation is surprisingly simple — only **70 lines of code**, all in `src/openharness/engine/query.py`.
+
+### Walking Through `run_query` Line by Line
+
+Let me paste the key parts and walk through them section by section:
+
+```python
+# query.py:53-86
+async def run_query(
+    context: QueryContext,
+    messages: list[ConversationMessage],
+) -> AsyncIterator[tuple[StreamEvent, UsageSnapshot | None]]:
+    """Run the conversation loop until the model stops requesting tools."""
+    for _ in range(context.max_turns):
+        final_message: ConversationMessage | None = None
+        usage = UsageSnapshot()
+
+        async for event in context.api_client.stream_message(
+            ApiMessageRequest(
+                model=context.model,
+                messages=messages,
+                system_prompt=context.system_prompt,
+                max_tokens=context.max_tokens,
+                tools=context.tool_registry.to_api_schema(),
+            )
+        ):
+            if isinstance(event, ApiTextDeltaEvent):
+                yield AssistantTextDelta(text=event.text), None
+                continue
+
+            if isinstance(event, ApiMessageCompleteEvent):
+                final_message = event.message
+                usage = event.usage
+
+        if final_message is None:
+            raise RuntimeError("Model stream finished without a final message")
+
+        messages.append(final_message)
+        yield AssistantTurnComplete(message=final_message, usage=usage), usage
+
+        if not final_message.tool_uses:
+            return
+```
+
+There are six key points in this code:
+
+**① Turn loop (line 58)**
+
+```python
+for _ in range(context.max_turns):   # Default 8 turns
+```
+
+A safety net. Prevents the AI from getting stuck in an infinite tool-call loop.
+
+**② Pass all tool schemas to the API call (line 68)**
+
+```python
+tools=context.tool_registry.to_api_schema()
+```
+
+This is the key to letting the AI "know" what it can do. The names, descriptions, and parameter formats of all 43 tools are told to the AI in one go, so it can decide when to call which one. This corresponds to the `tools` parameter in the Anthropic API.
+
+**③ Streaming handles two event types (lines 71-77)**
+
+```python
+if isinstance(event, ApiTextDeltaEvent):
+    yield AssistantTextDelta(text=event.text), None  # Typing increment
+    continue
+
+if isinstance(event, ApiMessageCompleteEvent):
+    final_message = event.message  # Complete message
+    usage = event.usage
+```
+
+Delta events are immediately yielded so the UI can show the "typing" effect; Complete events record the full message and token usage. This is the same pattern as `onToken` + `onFinish` in the Vercel AI SDK.
+
+**④ The watershed between Agent and Chatbot (lines 85-86)**
+
+```python
+if not final_message.tool_uses:
+    return
+```
+
+**Just these two lines.** If the AI's reply contains no tool_use requests, it means it considers the task done, and the entire Agent Loop ends. If there are tool_uses, it continues down to execute the tools.
+
+If anyone asks you "what is the essential difference between an Agent and a Chatbot," pointing at these two lines is enough.
+
+### Single Tool vs Multiple Tools: Two Execution Strategies
+
+Continuing on, `query.py:88-118`:
+
+```python
+tool_calls = final_message.tool_uses
+
+if len(tool_calls) == 1:
+    # Single tool: sequential (stream events immediately)
+    tc = tool_calls[0]
+    yield ToolExecutionStarted(tool_name=tc.name, tool_input=tc.input), None
+    result = await _execute_tool_call(context, tc.name, tc.id, tc.input)
+    yield ToolExecutionCompleted(
+        tool_name=tc.name,
+        output=result.content,
+        is_error=result.is_error,
+    ), None
+    tool_results = [result]
+else:
+    # Multiple tools: execute concurrently, emit events after
+    for tc in tool_calls:
+        yield ToolExecutionStarted(tool_name=tc.name, tool_input=tc.input), None
+
+    async def _run(tc):
+        return await _execute_tool_call(context, tc.name, tc.id, tc.input)
+
+    results = await asyncio.gather(*[_run(tc) for tc in tool_calls])
+    tool_results = list(results)
+
+    for tc, result in zip(tool_calls, tool_results):
+        yield ToolExecutionCompleted(
+            tool_name=tc.name,
+            output=result.content,
+            is_error=result.is_error,
+        ), None
+```
+
+There is a very pragmatic design here:
+
+- **Single tool**: streaming events first, started and completed come one at a time
+- **Multiple tools**: speed first, run them concurrently with `asyncio.gather`
+
+Why split them? **Balancing performance and user experience.**
+
+Imagine the AI requests reading 3 files at the same time:
+- Sequential execution: 100ms + 100ms + 100ms = **300ms**
+- Parallel execution: max(100, 100, 100) ≈ **100ms**
+
+Multi-tool parallelism brings the latency down to that of the slowest tool. This is why Claude Code has been increasingly fond of letting the AI call multiple tools at once — the parallelism mechanism behind it is `asyncio.gather`, equivalent to `Promise.all` in JS.
+
+But for a single tool, there is no need to use `asyncio.gather` — it would actually lose the immediate feedback. So the code intentionally splits into two branches.
+
+### The Safety Chain for Tool Execution
+
+Before each tool actually runs, it has to go through a complete safety check chain. This lives in the `_execute_tool_call` function at `query.py:124-211`:
+
+```txt
+AI requests tool execution
+    │
+    ▼
+① PreToolUse Hook
+   → e.g., the security-guidance plugin checks for dangerous commands
+   → The Hook can directly block this execution
+    │
+    ▼
+② Find the tool implementation
+   → tool_registry.get(tool_name)
+    │
+    ▼
+③ Validate input parameters (with Pydantic)
+   → tool.input_model.model_validate(tool_input)
+   → Wrong type → immediate error
+    │
+    ▼
+④ Permission check
+   → permission_checker.evaluate(...)
+   → Check mode (default/plan/full_auto)
+   → Check path_rules (some paths not allowed)
+   → Check denied_commands (some commands not allowed)
+   → If confirmation needed → call permission_prompt popup
+    │
+    ▼
+⑤ Actually execute the tool
+    │
+    ▼
+⑥ PostToolUse Hook (logging, etc.)
+```
+
+That "Allow / Deny" popup you see every time in Claude Code is step ④. Here is the implementation in code (`query.py:168-182`):
+
+```python
+decision = context.permission_checker.evaluate(
+    tool_name,
+    is_read_only=tool.is_read_only(parsed_input),
+    file_path=_file_path,
+    command=_command,
+)
+if not decision.allowed:
+    if decision.requires_confirmation and context.permission_prompt is not None:
+        confirmed = await context.permission_prompt(tool_name, decision.reason)
+        if not confirmed:
+            return ToolResultBlock(
+                tool_use_id=tool_use_id,
+                content=f"Permission denied for {tool_name}",
+                is_error=True,
+            )
+```
+
+`context.permission_prompt` is an async callback function. In print mode it is a no-op (everything allowed); in interactive mode it sends a `BackendEvent.modal_request` to the React frontend, the frontend renders the popup, and after the user clicks Allow/Deny the result is sent back via `FrontendRequest.permission_response`.
+
+The dual-process architecture mentioned earlier is shown in full glory here — **the permission popup is a cross-process async wait**.
+
+### A Complete Agent Loop
+
+Let's tie it together with a concrete example. Suppose you ask the AI "read README.md and summarize it":
+
+```txt
+Turn 1:
+  messages = [{ role: "user", text: "read README.md and summarize it" }]
+  → Call API, pass in all tool schemas
+  → AI replies: "Let me read it" + tool_use: Read({ file_path: "README.md" })
+  → tool_uses non-empty, continue the loop
+  → Execute Read tool:
+    ① PreToolUse Hook passes
+    ② tool_registry.get("Read") finds the tool
+    ③ Pydantic validates file_path
+    ④ Permission check (read-only operation, passes)
+    ⑤ Reads file
+    ⑥ PostToolUse Hook
+  → Append the tool result as a user message
+  → messages now has 3 entries
+
+Turn 2:
+  → Call API
+  → AI replies: "This README mainly covers three points: 1... 2... 3..."
+  → tool_uses is empty
+  → return, loop ends
+```
+
+That's the complete lifecycle of an Agent — two for loops and one if check. **But these two lines `if not final_message.tool_uses: return` are the soul of an Agent.**
+
+---
+
+## IV. A Few Design Decisions Worth Remembering
+
+After reading Phase 1, there are several design decisions I think are particularly worth keeping in mind.
+
+### Decision 1: Why `RuntimeBundle` Instead of Global Variables?
+
+In a session lifecycle, lots of things (api client, tool registry, permission checker...) are needed everywhere. The lazy approach is to make them module-level globals and import them wherever needed.
+
+But OpenHarness chose to package them into `RuntimeBundle` and pass it along. The cost is longer function signatures; the benefit is that **all dependencies are explicit**, and it supports running multiple sessions in parallel.
+
+This is the difference between writing production-grade code and a toy project.
+
+### Decision 2: Why Two Branches for Single Tool vs Multiple Tools?
+
+You could absolutely just unify on `asyncio.gather`, with a single tool being a one-element gather. The code would be simpler.
+
+But OpenHarness intentionally splits them because **in single-tool scenarios, immediate feedback matters more than parallelism**. When the user only triggers one tool, they want to see the full "started → (executing) → completed" stream.
+
+This is a subtle UX decision, but it reflects the authors' attention to detail.
+
+### Decision 3: Why Pydantic for Validating Tool Inputs?
+
+You could absolutely have each tool write its own `if not isinstance(x, str): raise` inside `execute`. But OpenHarness mandates an `input_model: type[BaseModel]` field in the `BaseTool` base class — every tool must provide a Pydantic model.
+
+The benefits are multifold:
+
+1. **Auto-generated JSON Schema**: the `tools` parameter passed to the LLM can be generated directly from the Pydantic model
+2. **Unified error handling**: `query.py:150-157` uses one try/except to catch parameter errors from all tools
+3. **Type safety**: the tool's `execute` method receives a strongly-typed object, not a dict
+
+What you do with zod in TypeScript, you do here with Pydantic.
+
+---
+
+## V. A Suggested Learning Path
+
+If you want to read this project yourself, here is the order I recommend:
+
+### Day 1: The Trunk (Phase 1)
+
+1. `cli.py` → see how CLI parameters are organized
+2. `ui/app.py` + `ui/runtime.py` → see the boot chain
+3. `ui/react_launcher.py` + `ui/backend_host.py` → understand the dual-process architecture
+4. `ui/protocol.py` → see the front/back-end communication protocol
+5. `engine/query_engine.py` + `engine/query.py` → **the focus, read it again and again**
+6. `engine/messages.py` + `engine/stream_events.py` → data structures
+
+### Day 2: The Tool System
+
+7. `tools/base.py` → Tool base class
+8. `tools/__init__.py` → registry
+9. Pick 3 representative tools and read them deeply:
+   - `tools/bash_tool.py` (shell execution)
+   - `tools/file_edit_tool.py` (file editing)
+   - `tools/agent_tool.py` (sub-Agent invocation)
+
+### Day 3: The Knowledge System
+
+10. `prompts/system_prompt.py` → how the System Prompt is assembled
+11. `skills/registry.py` → how Skills are loaded on demand
+12. `memory/manager.py` → how persistent memory works
+
+### Day 4: The Extension System
+
+13. `permissions/checker.py` → permission check details
+14. `hooks/executor.py` → Hook executor
+15. `plugins/loader.py` → plugin discovery and loading
+16. `mcp/client.py` → MCP protocol
+
+---
+
+## VI. Closing Thoughts
+
+After finishing Phase 1, my understanding of the concept of "Agent Harness" has completely changed.
+
+I used to think Agents were something mystical. After reading the code, I realized — **it is just a for loop and an if check**. The mystical parts are all in the model; the Harness does the engineering work: providing tools to the model, checking permissions, recording logs, managing sessions, assembling context.
+
+This realization is valuable to me. Because it means: **if you understand the structure of a Harness, you can build one yourself**. All those concepts repeated in OpenAI's and Anthropic's papers — tool use, planning, reflection, memory, multi-agent — can all be found in OpenHarness's code with a corresponding implementation.
+
+I will continue with Phase 2-6 next, chewing through the remaining 15 Topics. Once I have read the whole project, I will write another summary.
+
+If you also want to learn Agent development, I highly recommend spending a few days reading OpenHarness. It is not long, but it is real.
+
+Project link: [HKUDS/OpenHarness](https://github.com/HKUDS/OpenHarness)
+
+---
+
+**About the author**
+
+I'm Joye, a developer in the AI Agent full-stack direction. My day job is interning with TypeScript + Next.js + AI SDK. This is the first article in my study notes series, with continuing updates on other Phases of OpenHarness to come.
+
+Blog: [joyehuang.me](https://joyehuang.me)
+
+If this article helped you, feel free to find me on Xiaohongshu to chat.
