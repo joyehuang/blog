@@ -18,10 +18,13 @@ type Props = {
 
 type RenderEntry = HistoryEntry & { id: string }
 type BootLine = { t: number; text: string; ok?: boolean }
+type ViewerHeading = { depth: number; slug: string; text: string }
 type ViewerState = {
   meta: { title?: string; date?: string; slug: string }
   status: 'loading' | 'ready' | 'error'
-  content: string
+  /** Pre-rendered HTML from /api/blog/<id> (shiki-colored code blocks). */
+  html: string
+  headings: ViewerHeading[]
   error?: string
   /** Increments per `cat`, used to ignore stale fetches. */
   reqId: number
@@ -148,23 +151,30 @@ export default function DevMode({
       date: file.meta?.date as string | undefined,
       slug: (file.meta?.slug as string) ?? file.name
     }
-    setViewer({ meta, status: 'loading', content: '', reqId })
+    setViewer({ meta, status: 'loading', html: '', headings: [], reqId })
     void fetch(file.endpoint)
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        return r.text()
+        return r.json() as Promise<{ html: string; headings: ViewerHeading[] }>
       })
-      .then((text) => {
+      .then((payload) => {
         // ignore stale fetches if the user has since opened another post
         if (viewerReqRef.current !== reqId) return
-        setViewer({ meta, status: 'ready', content: text, reqId })
+        setViewer({
+          meta,
+          status: 'ready',
+          html: payload.html ?? '',
+          headings: payload.headings ?? [],
+          reqId
+        })
       })
       .catch((err: unknown) => {
         if (viewerReqRef.current !== reqId) return
         setViewer({
           meta,
           status: 'error',
-          content: '',
+          html: '',
+          headings: [],
           reqId,
           error: err instanceof Error ? err.message : 'failed to load'
         })
@@ -489,7 +499,8 @@ export default function DevMode({
       {viewer && (
         <PostViewer
           meta={viewer.meta}
-          content={viewer.content}
+          html={viewer.html}
+          headings={viewer.headings}
           status={viewer.status}
           error={viewer.error}
           onClose={closeViewer}

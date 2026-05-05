@@ -1,35 +1,72 @@
 import type { APIRoute } from 'astro'
+import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import { getEntry } from 'astro:content'
 
 /**
- * Plaintext endpoint consumed by the dev-mode `cat post` viewer. We
- * keep the file under `/api/` rather than nested under `/blog/` so it
- * doesn't fight the existing `[...id].astro` catch-all on that prefix.
+ * Plaintext-ish endpoint consumed by the dev-mode `cat post` viewer.
+ * Returns rendered HTML (with shiki syntax-highlighted code blocks)
+ * plus a flat heading list for in-viewer navigation.
  *
- * SSR (no prerender) — entry ids contain spaces and a `/post` suffix,
- * which Astro's spread-param prerender match fails to round-trip
- * cleanly. Going through the request lookup avoids that whole class.
+ * SSR (no prerender) — entry ids contain spaces and a `/post` suffix
+ * which Astro's spread-param prerender match round-trips poorly.
+ *
+ * Lives under `/api/` so it doesn't fight `[...id].astro` on /blog.
  */
+
+let processorPromise: Promise<Awaited<ReturnType<typeof createMarkdownProcessor>>> | null = null
+
+function getProcessor() {
+  if (!processorPromise) {
+    processorPromise = createMarkdownProcessor({
+      gfm: true,
+      smartypants: true,
+      shikiConfig: {
+        themes: { light: 'github-light', dark: 'github-dark' }
+      }
+    })
+  }
+  return processorPromise
+}
+
 export const GET: APIRoute = async ({ params }) => {
   const id = params.id
   if (!id) return new Response('Not found', { status: 404 })
   const entry = await getEntry('blog', id)
   if (!entry) return new Response('Not found', { status: 404 })
-  const body = (entry as { body?: string }).body ?? ''
-  return new Response(cleanForTerminal(body), {
-    headers: {
-      'content-type': 'text/plain; charset=utf-8',
-      'cache-control': 'public, max-age=300, s-maxage=86400'
+
+  const raw = (entry as { body?: string }).body ?? ''
+  const cleaned = stripMdxMachinery(raw)
+  const processor = await getProcessor()
+  const result = await processor.render(cleaned)
+
+  // Astro markdown returns metadata.headings as { depth, slug, text }[].
+  const headings = (result.metadata?.headings ?? []) as Array<{
+    depth: number
+    slug: string
+    text: string
+  }>
+
+  return new Response(
+    JSON.stringify({
+      html: result.code,
+      headings
+    }),
+    {
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'cache-control': 'public, max-age=300, s-maxage=86400'
+      }
     }
-  })
+  )
 }
 
 /**
- * Soft-clean the raw mdx so it reads well in a terminal viewer.
- * Strips mdx machinery; leaves prose markdown alone — `## headings`,
- * fenced code blocks, lists already render fine in monospace.
+ * Drop mdx-only constructs so the body parses cleanly as plain markdown.
+ * (Imports/exports up top, JSX components.) The processor itself doesn't
+ * understand mdx, only markdown — anything left over gets rendered as
+ * literal text and looks ugly.
  */
-function cleanForTerminal(body: string): string {
+function stripMdxMachinery(body: string): string {
   return (
     body
       .replace(/^[ \t]*import\s+[^\n]*\n/gm, '')
