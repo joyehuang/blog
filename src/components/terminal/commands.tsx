@@ -214,25 +214,37 @@ export const commands: CommandRegistry = {
         openViewer(node, target)
         return
       }
-      // No endpoint, or no viewer host (e.g. home-page TerminalShell).
-      push([
-        { kind: 'text', tone: 'muted', text: '(inline preview not available for this entry)' },
-        ...(node.href
-          ? [
-              {
-                kind: 'node' as const,
-                node: (
-                  <span>
-                    <span className='wt-tone-muted'>view rendered: </span>
-                    <a className='wt-link' href={node.href}>
-                      {node.href}
-                    </a>
-                  </span>
-                )
-              }
-            ]
-          : [])
-      ])
+      // No viewer host: home-page TerminalShell. Point users at dev mode
+      // (which has the inline reader) and the rendered blog page as a
+      // fallback. `node.href` is set by the manifest for blog/notes posts.
+      const lines: OutputLine[] = []
+      if (node.endpoint) {
+        lines.push({
+          kind: 'text',
+          tone: 'muted',
+          text: 'inline preview only in dev mode — press ` to enter, then `cat` again.'
+        })
+      } else {
+        lines.push({
+          kind: 'text',
+          tone: 'muted',
+          text: '(inline preview not available for this entry)'
+        })
+      }
+      if (node.href) {
+        lines.push({
+          kind: 'node',
+          node: (
+            <span>
+              <span className='wt-tone-muted'>view rendered: </span>
+              <a className='wt-link' href={node.href}>
+                {node.href}
+              </a>
+            </span>
+          )
+        })
+      }
+      push(lines)
     }
   },
 
