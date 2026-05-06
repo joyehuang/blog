@@ -447,6 +447,19 @@
 }
 .dev-viewer-article pre code { font-family: inherit; background: none; padding: 0; }
 
+/* Dual-theme shiki: inline `style="color:#X;--shiki-dark:#Y"` ships both
+ * palettes; we have to flip to the dark var by hand when the site is in
+ * dark mode. !important wins over the inline color. */
+html.dark .dev-viewer-article .astro-code,
+html.dark .dev-viewer-article .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  /* shiki also ships --shiki-dark-font-style and --shiki-dark-font-weight */
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
 .dev-viewer-article blockquote {
   margin: 1em 0;
   padding: 0.4em 1em;
