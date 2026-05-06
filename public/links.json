@@ -95,6 +95,15 @@
           "since": "2025-11-04",
           "met": "互换友链",
           "note": "本站第一位友链，文字和站名一样安静。"
+        },
+        {
+          "name": "Yaya Jiang",
+          "intro": "ML @ UCSD, EMNLP 2024",
+          "link": "https://yayajjiang.github.io/",
+          "avatar": "https://github.com/yayajjiang.png",
+          "since": "2026-05-06",
+          "met": "互换友链",
+          "note": "UCSD ML 硕士，在做文本分类的弱监督学习。"
         }
       ]
     },
