@@ -45,7 +45,13 @@ export function buildManifest({ blog, notes }: BuildArgs): FsNode {
       buildPostsDir('blog', 'recent blog posts', blog, '/blog'),
       buildPostsDir('notes', 'short-form notes', notes, '/archive'),
       buildContactDir(),
-      buildEtcDir()
+      buildEtcDir(),
+      {
+        type: 'link',
+        name: 'manifest',
+        description: 'agent-facing site map (well-known JSON)',
+        href: '/.well-known/joye-manifest.json'
+      }
     ]
   }
 }

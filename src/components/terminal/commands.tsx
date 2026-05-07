@@ -278,6 +278,67 @@ export const commands: CommandRegistry = {
     }
   },
 
+  manifest: {
+    name: 'manifest',
+    summary: 'fetch the agent-facing site map (well-known JSON)',
+    usage: 'manifest [--url]',
+    run: async ({ args, push }) => {
+      const url = '/.well-known/joye-manifest.json'
+      // `manifest --url` just prints the public URL (handy for sharing)
+      if (args[0] === '--url' || args[0] === '-u') {
+        push([
+          {
+            kind: 'node',
+            node: (
+              <span>
+                <span className='wt-tone-muted'>public manifest: </span>
+                <a className='wt-link' href={url} target='_blank' rel='noreferrer'>
+                  {url}
+                </a>
+              </span>
+            )
+          }
+        ])
+        return
+      }
+      push([{ kind: 'text', tone: 'muted', text: `fetching ${url} …` }])
+      try {
+        const r = await fetch(url, { headers: { accept: 'application/json' } })
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        const text = await r.text()
+        // Single node — rendering 200+ separate lines through setState
+        // each was choking React, so dump the whole pretty JSON in one
+        // <pre> with a small banner above it.
+        push([
+          {
+            kind: 'node',
+            node: (
+              <span>
+                <span className='wt-tone-muted'>fetched · </span>
+                <a className='wt-link' href={url} target='_blank' rel='noreferrer'>
+                  view raw
+                </a>
+              </span>
+            )
+          },
+          { kind: 'spacer' },
+          {
+            kind: 'node',
+            node: <pre className='wt-json'>{text}</pre>
+          }
+        ])
+      } catch (err) {
+        push([
+          {
+            kind: 'text',
+            tone: 'err',
+            text: `manifest: ${err instanceof Error ? err.message : 'fetch failed'}`
+          }
+        ])
+      }
+    }
+  },
+
   chat: {
     name: 'chat',
     summary: 'talk to my agent (mock)',

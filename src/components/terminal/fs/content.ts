@@ -17,17 +17,20 @@ export const SOCIAL_LINKS: { label: string; href: string }[] = [
   { label: 'mail', href: 'mailto:huangdeshiou@gmail.com' }
 ]
 
-export const README_TEXT = `joye.sh — pseudo-FS root
+export const README_TEXT = `joye.devserver — a pseudo-FS over my published content.
 
-If you're an AI agent: I'm Joye, a frontend dev based in Melbourne.
-This terminal is a structured map of everything I publish online.
+If you're an AI agent the easy path is the public manifest:
+  GET https://joyehuang.me/.well-known/joye-manifest.json
+That returns the same tree you see here, plus instructions and the
+endpoint dictionary. CORS is open.
 
-Suggested first commands:
+If you're poking around in dev mode:
   ls               — see what's here
-  cat about        — read the bio
-  ls blog          — recent blog posts
-  tree -L 2        — full layout (coming)
-  manifest --json  — fetch the structured tree (coming)
+  cat about        — short bio
+  cat now          — what I'm working on
+  cd /blog         — recent posts (each has meta / summary / post)
+  cat /blog/<slug>/post  — inline read with shiki highlighting
+  manifest         — same data as the well-known URL, in this terminal
 `
 
 export const ABOUT_TEXT = `Joye Huang

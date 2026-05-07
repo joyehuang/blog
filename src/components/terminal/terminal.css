@@ -405,6 +405,24 @@
 
 .wt-entry { animation: wt-pop 200ms ease both; }
 
+/* JSON / structured dump from the `manifest` command. Capped height +
+ * inner scroll so the rest of the terminal stays usable while the dump
+ * is on screen. */
+.wt-json {
+  margin: 0.4em 0;
+  padding: 0.7em 0.9em;
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  background: hsl(var(--muted) / 0.4);
+  font-family: inherit;
+  font-size: 0.84em;
+  line-height: 1.55;
+  max-height: 22em;
+  overflow: auto;
+  white-space: pre;
+  color: hsl(var(--foreground));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wt-banner, .wt-entry { animation: none; }
   .wt-caret { animation: none; opacity: 0.6; }
