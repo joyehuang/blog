@@ -2,6 +2,7 @@
 import { Footer } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import Analytics from '@vercel/analytics/astro'
+import SpeedInsights from '@vercel/speed-insights/astro'
 import BaseHead from '@/components/BaseHead.astro'
 import Header from '@/components/Header.astro'
 import ThemeProvider from '@/components/ThemeProvider.astro'
@@ -56,6 +57,7 @@ const fs = await buildSiteFs()
     </div>
     <DevModeHost client:load fs={fs} />
     <Analytics />
+    <SpeedInsights />
     <ViewCounter />
 
     {/* Set highlight color */}
