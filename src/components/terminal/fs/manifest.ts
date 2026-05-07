@@ -74,11 +74,14 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
   const slug = slugify(p.id)
   const date = formatDate(p.data.publishDate)
   const summary = p.data.description ?? '(no description)'
-  const meta = formatMeta({
+  const tags = p.data.tags ?? []
+  const lang = inferLang(p)
+  const metaContent = formatMeta({
     title: p.data.title,
     date,
     slug,
-    tags: p.data.tags ?? []
+    lang,
+    tags
   })
   const href = `${hrefRoot}/${encodeURI(p.id)}`
   // Inline `cat post` viewer fetches plaintext from this endpoint. Only
@@ -88,13 +91,27 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
     type: 'dir',
     name: slug,
     description: p.data.title,
+    // Dir-level meta lets agents sort/filter without descending into
+    // children. `endpoint` is duplicated here from the `post` child for
+    // the same reason — avoids the "look up the post node, then read
+    // its endpoint" hop. Note: the URL slug differs from `name` (Astro
+    // collection ids vs FS-safe names) — agents should follow `endpoint`
+    // verbatim, never construct it from `name`.
+    meta: {
+      date,
+      title: p.data.title,
+      lang,
+      tags,
+      endpoint,
+      href
+    },
     children: [
       {
         type: 'file',
         name: 'meta',
         description: 'frontmatter',
-        content: meta,
-        meta: { slug, date, title: p.data.title, tags: p.data.tags ?? [] }
+        content: metaContent,
+        meta: { slug, date, title: p.data.title, lang, tags }
       },
       {
         type: 'file',
@@ -108,10 +125,22 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
         description: endpoint ? 'full text (inline)' : 'full text (rendered page only)',
         endpoint,
         href,
-        meta: { slug, date, title: p.data.title }
+        meta: { slug, date, title: p.data.title, lang }
       }
     ]
   }
+}
+
+/**
+ * Best-effort language guess for a post: explicit `data.language` wins,
+ * else look for an `/en/` segment in the entry id (i18n convention used
+ * by content collection — `<slug>/en/post.mdx`), else default to zh.
+ */
+function inferLang(p: FsCollectionEntry): string {
+  const explicit = (p.data as { language?: string }).language
+  if (explicit) return explicit
+  if (/(^|\/)en\//.test(p.id)) return 'en'
+  return 'zh'
 }
 
 function buildContactDir(): DirNode {

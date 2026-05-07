@@ -11,6 +11,12 @@ export type DirNode = {
   name: string
   description?: string
   children: FsNode[]
+  /**
+   * Optional structured metadata at the dir level. Surfaced so an agent
+   * can sort or filter (`date`, `lang`, `tags`) without descending into
+   * the children. Used for blog/note dirs.
+   */
+  meta?: Record<string, unknown>
 }
 
 export type FileNode = {

@@ -53,7 +53,12 @@ export const GET: APIRoute = async () => {
         method: 'GET',
         format: 'json',
         fields: ['html', 'headings'],
-        note: 'id matches FsNode children of /blog (e.g. 20260410---openharnessphase1/post)'
+        note:
+          'Always use the `endpoint` field from a post node directly — do not ' +
+          'construct the URL from the FsNode `name`. Astro collection ids and ' +
+          'FS-safe names diverge here (e.g. name=20260410-openharnessphase1-post, ' +
+          'endpoint=/api/blog/20260410---openharnessphase1/post). The dir-level ' +
+          '`meta.endpoint` mirrors the `post` child for convenience.'
       },
       well_known_manifest: {
         url: `${SITE_URL}/.well-known/joye-manifest.json`,
