@@ -1,8 +1,9 @@
 ---
-import { Icon } from 'astro-pure/user'
-import config from '@/site-config'
 import { getLangFromUrl, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
+
+import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
+import config from '@/site-config'
 
 interface Props {
   lang?: Lang
@@ -33,7 +34,7 @@ const searchHref = localizedPath('/search', lang)
 ---
 
 <header-component
-  class='group sticky top-4 z-30 mb-12 flex items-center justify-between rounded-xl border border-transparent max-sm:py-1 sm:rounded-2xl'
+  class='group sticky top-4 z-[70] mb-12 flex items-center justify-between rounded-xl border border-transparent max-sm:py-1 sm:rounded-2xl'
 >
   <a
     class='z-30 text-xl font-semibold group-[.not-top]:ms-2 sm:group-[.not-top]:ms-3'
@@ -92,6 +93,8 @@ const searchHref = localizedPath('/search', lang)
       <button
         id='toggleMenu'
         class='rounded-md border p-1.5 transition-colors hover:bg-border sm:hidden sm:group-[.not-top]:rounded-xl'
+        aria-controls='headerExpandContent'
+        aria-expanded='false'
       >
         <span class='sr-only'>{t('nav.toggleMenu')}</span>
         <Icon class='size-5' name='menu' />
@@ -111,8 +114,31 @@ const searchHref = localizedPath('/search', lang)
   import { setTheme, showToast } from 'astro-pure/utils'
 
   class Header extends HTMLElement {
+    private toggleMenuBtn: HTMLElement | null = null
+
     constructor() {
       super()
+    }
+
+    private setMenuExpanded(expanded: boolean) {
+      this.classList.toggle('expanded', expanded)
+      this.toggleMenuBtn?.setAttribute('aria-expanded', expanded.toString())
+    }
+
+    private handleDocumentPointerDown = (event: PointerEvent) => {
+      if (!this.classList.contains('expanded')) return
+
+      const target = event.target
+      if (!(target instanceof Element)) return
+
+      if (!this.contains(target)) {
+        this.setMenuExpanded(false)
+        return
+      }
+
+      if (target.closest('a, button')) return
+
+      this.setMenuExpanded(false)
     }
 
     connectedCallback() {
@@ -135,9 +161,16 @@ const searchHref = localizedPath('/search', lang)
         window.dispatchEvent(new CustomEvent('joye:toggle-dev'))
       })
 
-      this.querySelector('#toggleMenu')?.addEventListener('click', () => {
-        this.classList.toggle('expanded')
+      this.toggleMenuBtn = this.querySelector('#toggleMenu')
+      this.toggleMenuBtn?.addEventListener('click', () => {
+        this.setMenuExpanded(!this.classList.contains('expanded'))
       })
+
+      document.addEventListener('pointerdown', this.handleDocumentPointerDown)
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener('pointerdown', this.handleDocumentPointerDown)
     }
   }
 
@@ -182,6 +215,7 @@ const searchHref = localizedPath('/search', lang)
   /* header menu */
   @media (max-width: 640px) {
     #headerExpandContent {
+      top: calc(100% + 0.5rem);
       grid-template-rows: 0fr;
       transition:
         opacity 0.3s,
