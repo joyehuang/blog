@@ -4,12 +4,22 @@ import '@pagefind/default-ui/css/ui.css'
 const isLocalDev = import.meta.env.DEV
 ---
 
-<joye-site-search data-disabled={isLocalDev ? 'true' : undefined}>
+<joye-site-search data-mode={isLocalDev ? 'local' : 'pagefind'}>
   <aside class='form my-4'>
     {
       isLocalDev ? (
-        <div class='w-full rounded-xl border-2 bg-transparent px-4 py-2 pe-3 outline-none focus:border-foreground'>
-          Search is unavailable on the local dev server because Pagefind indexes are generated at build time.
+        <div id='local-site-search' class='local-search'>
+          <input
+            id='local-search-input'
+            class='local-search-input'
+            type='search'
+            placeholder='Search posts and notes...'
+            autocomplete='off'
+            spellcheck='false'
+            aria-label='Search posts and notes'
+          />
+          <div id='local-search-status' class='local-search-status' aria-live='polite'></div>
+          <ol id='local-search-results' class='local-search-results'></ol>
         </div>
       ) : (
         <div id='site-search' />
@@ -19,39 +29,130 @@ const isLocalDev = import.meta.env.DEV
 </joye-site-search>
 
 <script>
+  type LocalSearchResult = {
+    collection: 'blog' | 'archive'
+    title: string
+    description?: string
+    url: string
+    date: string
+    tags: string[]
+    excerpt: string
+  }
+
   class JoyeSiteSearch extends HTMLElement {
-    constructor() {
-      super()
+    connectedCallback() {
+      if (this.dataset.ready === 'true') return
+      this.dataset.ready = 'true'
 
+      if (this.dataset.mode === 'local') {
+        this.initLocalSearch()
+      } else {
+        this.initPagefind()
+      }
+    }
+
+    private initPagefind() {
       const formatURL = (path: string) => path.replace(/(.)\/(#.*)?$/, '$1$2')
+      const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
 
-      window.addEventListener('DOMContentLoaded', () => {
-        if (this.dataset.disabled === 'true') return
-
-        const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
-        onIdle(async () => {
-          // @ts-expect-error — Missing types for @pagefind/default-ui package.
-          const { PagefindUI } = await import('@pagefind/default-ui')
-          new PagefindUI({
-            element: '#site-search',
-            baseUrl: import.meta.env.BASE_URL,
-            bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
-            showImages: false,
-            showSubResults: true,
-            processResult: (result: { url: string; sub_results: Array<{ url: string }> }) => {
-              result.url = formatURL(result.url)
-              result.sub_results = result.sub_results.map((sub_result) => {
-                sub_result.url = formatURL(sub_result.url)
-                return sub_result
-              })
-            }
-          })
+      onIdle(async () => {
+        // @ts-expect-error — Missing types for @pagefind/default-ui package.
+        const { PagefindUI } = await import('@pagefind/default-ui')
+        new PagefindUI({
+          element: '#site-search',
+          baseUrl: import.meta.env.BASE_URL,
+          bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
+          showImages: false,
+          showSubResults: true,
+          processResult: (result: { url: string; sub_results: Array<{ url: string }> }) => {
+            result.url = formatURL(result.url)
+            result.sub_results = result.sub_results.map((sub_result) => {
+              sub_result.url = formatURL(sub_result.url)
+              return sub_result
+            })
+          }
         })
+      })
+    }
+
+    private initLocalSearch() {
+      const input = this.querySelector<HTMLInputElement>('#local-search-input')
+      const status = this.querySelector<HTMLElement>('#local-search-status')
+      const results = this.querySelector<HTMLOListElement>('#local-search-results')
+      if (!input || !status || !results) return
+
+      let timer: ReturnType<typeof setTimeout> | undefined
+      let activeRequest: AbortController | undefined
+
+      const renderResults = (items: LocalSearchResult[]) => {
+        results.replaceChildren(...items.map((item) => createResultItem(item)))
+      }
+
+      const runSearch = async () => {
+        const query = input.value.trim()
+        activeRequest?.abort()
+
+        if (query.length < 2) {
+          status.textContent = ''
+          results.replaceChildren()
+          return
+        }
+
+        activeRequest = new AbortController()
+        status.textContent = 'Searching...'
+
+        try {
+          const response = await fetch(
+            `/api/search.json?q=${encodeURIComponent(query)}&limit=10`,
+            { signal: activeRequest.signal }
+          )
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          const payload = (await response.json()) as { results: LocalSearchResult[] }
+          renderResults(payload.results)
+          status.textContent =
+            payload.results.length === 0
+              ? 'No results.'
+              : `${payload.results.length} result${payload.results.length === 1 ? '' : 's'}`
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'AbortError') return
+          status.textContent = 'Search failed.'
+          results.replaceChildren()
+        }
+      }
+
+      input.addEventListener('input', () => {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(runSearch, 180)
       })
     }
   }
 
-  customElements.define('joye-site-search', JoyeSiteSearch)
+  function createResultItem(item: LocalSearchResult) {
+    const li = document.createElement('li')
+    li.className = 'local-search-item'
+
+    const link = document.createElement('a')
+    link.className = 'local-search-title'
+    link.href = item.url
+    link.textContent = item.title
+
+    const meta = document.createElement('div')
+    meta.className = 'local-search-meta'
+    meta.textContent = [item.collection === 'blog' ? 'Blog' : 'Notes', item.date]
+      .filter(Boolean)
+      .join(' · ')
+
+    const excerpt = document.createElement('p')
+    excerpt.className = 'local-search-excerpt'
+    excerpt.textContent = item.excerpt || item.description || ''
+
+    li.append(link, meta, excerpt)
+    return li
+  }
+
+  if (!customElements.get('joye-site-search')) {
+    customElements.define('joye-site-search', JoyeSiteSearch)
+  }
 </script>
 
 <style>
@@ -67,5 +168,73 @@ const isLocalDev = import.meta.env.DEV
     --pagefind-ui-image-border-radius: calc(var(--radius) + 2px);
     --pagefind-ui-image-box-ratio: 3 / 2;
     --pagefind-ui-font: sans-serif;
+  }
+
+  .local-search {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .local-search-input {
+    width: 100%;
+    min-height: 3.15rem;
+    border: 2px solid hsl(var(--border));
+    border-radius: calc(var(--radius) + 2px);
+    background: transparent;
+    color: hsl(var(--foreground));
+    padding: 0.7rem 1rem;
+    font: inherit;
+    font-size: 1rem;
+    outline: none;
+  }
+
+  .local-search-input:focus {
+    border-color: hsl(var(--foreground));
+  }
+
+  .local-search-status {
+    min-height: 1.2rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9rem;
+  }
+
+  .local-search-results {
+    display: grid;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .local-search-item {
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) + 2px);
+    padding: 0.85rem 1rem;
+    background: hsl(var(--muted) / 0.35);
+  }
+
+  .local-search-title {
+    color: hsl(var(--foreground));
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .local-search-title:hover {
+    color: hsl(var(--primary));
+  }
+
+  .local-search-meta {
+    margin-top: 0.25rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.82rem;
+  }
+
+  .local-search-excerpt {
+    margin: 0.5rem 0 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.92rem;
+    line-height: 1.55;
   }
 </style>

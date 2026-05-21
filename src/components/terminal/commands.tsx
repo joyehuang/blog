@@ -7,6 +7,15 @@ import type {
   OutputLine
 } from './types'
 
+type SearchApiResult = {
+  collection: 'blog' | 'archive'
+  title: string
+  description?: string
+  url: string
+  date: string
+  excerpt: string
+}
+
 const MOCK_AGENT_REPLIES: Record<string, string[]> = {
   default: [
     'Hey, this is Joye (well, a tiny mock of him).',
@@ -261,6 +270,11 @@ export const commands: CommandRegistry = {
       const target = resolvePath(cwd, args[0])
       const node = getNode(fs, target)
       if (!node) {
+        if (/^\/(blog|archive|search|projects|links|about|contact)(\/|$)/.test(args[0])) {
+          push([{ kind: 'text', tone: 'muted', text: `navigating ${args[0]} …` }])
+          setTimeout(() => navigate(args[0]), 200)
+          return
+        }
         push([{ kind: 'text', tone: 'err', text: `open: ${args[0]}: no such file or directory` }])
         return
       }
@@ -275,6 +289,77 @@ export const commands: CommandRegistry = {
         return
       }
       push([{ kind: 'text', tone: 'err', text: `open: ${args[0]}: nothing to open` }])
+    }
+  },
+
+  search: {
+    name: 'search',
+    summary: 'search posts and notes',
+    usage: 'search <query>',
+    run: async ({ args, push }) => {
+      const query = args.join(' ').trim()
+      if (query.length < 2) {
+        push([{ kind: 'text', tone: 'err', text: 'search: query must be at least 2 characters' }])
+        return
+      }
+
+      push([{ kind: 'text', tone: 'muted', text: `searching "${query}" …` }])
+
+      try {
+        const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}&limit=6`)
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        const payload = (await response.json()) as { results: SearchApiResult[] }
+
+        if (payload.results.length === 0) {
+          push([{ kind: 'text', tone: 'muted', text: 'no results' }])
+          return
+        }
+
+        const lines: OutputLine[] = [
+          { kind: 'text', tone: 'muted', text: `${payload.results.length} results` },
+          { kind: 'spacer' }
+        ]
+
+        payload.results.forEach((result, index) => {
+          lines.push(
+            {
+              kind: 'node',
+              node: (
+                <span>
+                  <span className='wt-tone-primary'>{String(index + 1).padStart(2, '0')}. </span>
+                  <span className='wt-tone-muted'>
+                    [{result.collection === 'blog' ? 'blog' : 'note'}]{' '}
+                  </span>
+                  <a className='wt-link' href={result.url}>
+                    {result.title}
+                  </a>
+                  <span className='wt-tone-muted'> · {result.date}</span>
+                </span>
+              )
+            },
+            {
+              kind: 'text',
+              tone: 'muted',
+              text: `    ${result.excerpt || result.description || result.url}`
+            },
+            {
+              kind: 'text',
+              tone: 'muted',
+              text: `    open ${result.url}`
+            }
+          )
+        })
+
+        push(lines)
+      } catch (err) {
+        push([
+          {
+            kind: 'text',
+            tone: 'err',
+            text: `search: ${err instanceof Error ? err.message : 'request failed'}`
+          }
+        ])
+      }
     }
   },
 

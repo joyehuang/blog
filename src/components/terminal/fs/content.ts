@@ -26,6 +26,7 @@ endpoint dictionary. CORS is open.
 
 If you're poking around in dev mode:
   ls               — see what's here
+  search agent     — search posts and notes
   cat about        — short bio
   cat now          — what I'm working on
   cd /blog         — recent posts (each has meta / summary / post)
