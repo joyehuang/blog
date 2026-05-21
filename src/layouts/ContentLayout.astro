@@ -66,6 +66,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
     <button
       slot='other-icons'
       aria-label='Toggle sidebar'
+      aria-controls='sidebar'
       class='size-10 flex items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground duration-300 hover:border-border/75 md:hidden sm:size-12'
       id='sidebar-btn'
     >
@@ -78,27 +79,59 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
   // Toggle sidebar visibility on button click
   const sidebarButton = document.getElementById('sidebar-btn')
   const sidebar = document.getElementById('sidebar')
-  const sidebarShade = document.getElementById('sidebar-shade') as HTMLElement
+  const sidebarShade = document.getElementById('sidebar-shade') as HTMLElement | null
 
   if (sidebarShade) {
     sidebarShade.addEventListener('click', () => {
-      toggleSidebar()
+      closeSidebar()
     })
   }
 
+  function openSidebar() {
+    if (!sidebar) return
+
+    sidebar.classList.add('show')
+    if (sidebarShade) sidebarShade.style.display = 'block'
+    sidebarButton?.setAttribute('aria-expanded', 'true')
+  }
+
+  function closeSidebar() {
+    if (!sidebar) return
+
+    sidebar.classList.remove('show')
+    if (sidebarShade) sidebarShade.style.display = 'none'
+    sidebarButton?.setAttribute('aria-expanded', 'false')
+  }
+
   function toggleSidebar() {
-    if (sidebar && sidebar.classList.contains('show')) {
-      sidebar.classList.remove('show')
-      sidebarShade.style.display = 'none'
-    } else if (sidebar) {
-      sidebar.classList.add('show')
-      sidebarShade.style.display = 'block'
+    if (sidebar?.classList.contains('show')) {
+      closeSidebar()
     } else {
+      openSidebar()
     }
   }
 
+  sidebar?.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement | null
+    if (target?.closest('a')) window.setTimeout(closeSidebar, 0)
+  })
+
+  window.addEventListener('hashchange', closeSidebar)
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeSidebar()
+  })
+
+  sidebarButton?.setAttribute('aria-expanded', 'false')
   sidebarButton?.addEventListener('click', () => {
     toggleSidebar()
+  })
+
+  window.addEventListener('resize', () => {
+    if (window.matchMedia('(min-width: 769px)').matches) {
+      sidebar?.classList.remove('show')
+      if (sidebarShade) sidebarShade.style.display = 'none'
+      sidebarButton?.setAttribute('aria-expanded', 'false')
+    }
   })
 </script>
 <style>
