@@ -5,6 +5,7 @@ import { ROOT_LABEL } from './fs/content'
 import { displayPath, getNode } from './fs/path'
 import type { FileNode, FsNode } from './fs/types'
 import PostViewer from './PostViewer'
+import JoJo from '../mascot/JoJo'
 import './terminal.css'
 import './devmode.css'
 import type { HistoryEntry, OutputLine, Tone } from './types'
@@ -38,15 +39,6 @@ const toneClass: Record<Tone, string> = {
   err: 'wt-tone-err',
   warn: 'wt-tone-warn'
 }
-
-const JOJO_ASCII = [
-  '  ╭──────╮',
-  '  │ ●  ● │',
-  '  │  ᴗ   │',
-  '  ╰─┬──┬─╯',
-  '    │  │  ',
-  '    ╵  ╵  '
-].join('\n')
 
 function formatBootTime(ms: number): string {
   const s = (ms / 1000).toFixed(2)
@@ -409,9 +401,10 @@ export default function DevMode({
         {/* neofetch */}
         {bootDone && (
           <div className='dev-neofetch'>
-            <pre className='dev-neo-ascii' aria-hidden>
-              {JOJO_ASCII}
-            </pre>
+            <div className='dev-neo-mascot'>
+              <JoJo size='md' quipPool='greet' className='dev-neo-jojo' />
+              <span className='dev-neo-mascot-caption'>jojo v0.1 · learning</span>
+            </div>
             <div className='dev-neo-facts'>
               <div className='hd'>
                 <span className='hd-user'>{user}</span>

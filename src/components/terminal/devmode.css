@@ -162,20 +162,49 @@
 
 .dev-neofetch {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: minmax(15rem, auto) 1fr;
   gap: 1.25rem 2rem;
   margin-bottom: 1.5rem;
   animation: dev-overlay-in 0.25s ease-out both;
 }
 
-.dev-neo-ascii {
-  margin: 0;
-  white-space: pre;
-  color: hsl(var(--primary));
-  font-size: 14px;
-  line-height: 1.15;
-  letter-spacing: 0.5px;
+.dev-neo-mascot {
+  min-width: 15rem;
   align-self: start;
+  color: hsl(var(--primary));
+}
+
+.dev-neo-jojo {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dev-neo-jojo .jojo-bubble {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  margin-top: 0.35rem;
+  max-width: min(13.75rem, 42vw);
+  white-space: nowrap;
+}
+
+.dev-neo-jojo .jojo-bubble-tail {
+  left: -5px;
+  right: auto;
+  top: 12px;
+  border-right: 0;
+  border-left: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.dev-neo-mascot-caption {
+  display: block;
+  margin-top: 0.4rem;
+  padding-inline-start: 1.1rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .dev-neo-facts {
@@ -314,6 +343,25 @@
   }
   .dev-caret {
     animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .dev-neofetch {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .dev-neo-mascot {
+    min-width: 0;
+  }
+
+  .dev-neo-jojo .jojo-bubble {
+    max-width: min(13.75rem, calc(100vw - 8rem));
+  }
+
+  .dev-neo-facts {
+    grid-template-columns: minmax(4.75rem, auto) 1fr;
   }
 }
 
