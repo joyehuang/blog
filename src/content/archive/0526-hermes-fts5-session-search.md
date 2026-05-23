@@ -12,7 +12,7 @@ tags:
   - software engineering
 type: research
 status: ready
-source: hermes-agent — hermes_state.py + session_search_tool.py
+source: https://github.com/nousresearch/hermes-agent
 relatedArchive:
   - 0504-hermes-memory-safety-mechanisms
 draft: false

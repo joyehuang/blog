@@ -11,7 +11,8 @@ tags:
   - concurrency
 type: research
 status: ready
-source: hermes-agent — src/hermes/memory/ — Hermes Agent 源码
+# source removed — synthesized knowledge from LLM discussion
+# this card documents hermes-agent memory internals; see src/hermes/memory/
 draft: false
 ---
 
