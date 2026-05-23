@@ -2,8 +2,8 @@
 title: Prompt Caching 设计哲学——缓存不是优化，是约束
 description: 从 Claude Code 的 prompt caching 实践出发，整理"动态信息放 messages 不放 system prompt"、defer_loading 模式、以及三家 LLM 厂商的缓存策略对比。对做 agent 的人来说是必读的工程纪律。
 date: 2026-05-24
-source: https://claude.ai/share/e3a7dc4a-7f40-4a2f-b015-6c7a83f9dba9
-sourceTitle: Claude Code Prompt Caching 深度讨论
+source: https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything
+sourceTitle: Prompt caching is everything — Lessons from building Claude Code
 type: blog
 status: digested
 tags:

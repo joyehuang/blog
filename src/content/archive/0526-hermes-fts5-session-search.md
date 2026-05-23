@@ -12,7 +12,7 @@ tags:
   - software engineering
 type: research
 status: ready
-source: https://claude.ai/share/3b628472-9217-41bb-90a0-2c9ea0129ced
+source: hermes-agent — hermes_state.py + session_search_tool.py
 relatedArchive:
   - 0504-hermes-memory-safety-mechanisms
 draft: false
@@ -145,6 +145,5 @@ Query-focused summary 实际上是**带推理的软 rerank**：小模型读 100k
 
 ## 相关链接 / 来源
 
-- 对话来源：https://claude.ai/share/3b628472-9217-41bb-90a0-2c9ea0129ced
 - Hermes Agent 源码：`hermes_state.py`、`tools/session_search_tool.py`
 - 相关 archive：0504-hermes-memory-safety-mechanisms
