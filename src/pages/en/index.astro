@@ -4,6 +4,7 @@ export const prerender = true
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
 
+import { getCollection } from 'astro:content'
 import { Quote } from 'astro-pure/advanced'
 import { Button, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
@@ -101,6 +102,41 @@ const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
         <SkillLayout title='AI & Agent' skills={ai} />
         <SkillLayout title='Tools' skills={tools} />
       </Section>
+
+      {
+        (await getCollection('curated')).filter((e) => !e.data.draft).length > 0 && (
+          <Section title='Curated'>
+            <ul class='flex flex-col gap-y-3'>
+              {
+                (await getCollection('curated'))
+                  .filter((e) => !e.data.draft)
+                  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+                  .slice(0, 5)
+                  .map((item) => (
+                    <li class='flex flex-col rounded-2xl border bg-background px-5 py-4 transition-colors hover:bg-muted'>
+                      <div class='flex items-center gap-2 text-xs text-muted-foreground mb-1.5'>
+                        <span class='rounded-md border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider'>
+                          {item.data.type === 'paper' ? '📄 Paper' : item.data.type === 'blog' ? '📝 Blog' : item.data.type === 'article' ? '📰 Article' : '📋 Report'}
+                        </span>
+                        <span>{item.data.sourceTitle || item.data.source.replace(/https?:\/\//, '').split('/')[0]}</span>
+                      </div>
+                      <a
+                        href={item.data.source}
+                        target='_blank'
+                        class='font-medium hover:text-primary transition-colors'
+                      >
+                        {item.data.title}
+                      </a>
+                      <p class='mt-1 text-sm text-muted-foreground line-clamp-2'>
+                        {item.data.description}
+                      </p>
+                    </li>
+                  ))
+              }
+            </ul>
+          </Section>
+        )
+      }
 
       <SiteStats lang='en' />
     </div>
