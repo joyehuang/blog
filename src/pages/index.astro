@@ -32,7 +32,7 @@ const ai = [
 ]
 const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
 
-const MAX_POSTS = 10
+const MAX_POSTS = 5
 const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 

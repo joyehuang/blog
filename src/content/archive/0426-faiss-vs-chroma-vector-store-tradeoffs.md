@@ -18,9 +18,9 @@ tags:
   - ann
 type: research
 status: ready
+# source removed — synthesized knowledge from LLM discussion
 relatedArchive:
   - 0426-rag-retrieval-details-and-pipeline-design
-source: https://grok.com/share/c2hhcmQtMw_b7e297d7-8c50-4cb8-8e2b-cf958a287c0b
 draft: false
 ---
 

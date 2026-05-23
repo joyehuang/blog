@@ -11,7 +11,7 @@ tags:
   - concurrency
 type: research
 status: ready
-source: https://chatgpt.com/share/69f83a2d-664c-83a1-8a8e-e7c36e1e6ab7
+source: hermes-agent — src/hermes/memory/ — Hermes Agent 源码
 draft: false
 ---
 

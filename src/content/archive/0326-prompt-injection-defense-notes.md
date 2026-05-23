@@ -11,7 +11,7 @@ tags:
   - llm
 type: research
 status: ready
-source: https://gemini.google.com/share/60f993dfc73a
+# source removed — synthesized knowledge from LLM discussion
 draft: false
 ---
 

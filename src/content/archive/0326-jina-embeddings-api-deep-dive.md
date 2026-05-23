@@ -15,7 +15,7 @@ relatedArchive:
   - 0426-rag-retrieval-details-and-pipeline-design
 type: research
 status: ready
-source: https://gemini.google.com/share/c221a0c3c0cc
+source: https://jina.ai/embeddings/
 draft: false
 ---
 

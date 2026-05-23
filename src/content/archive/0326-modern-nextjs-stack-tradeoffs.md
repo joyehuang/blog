@@ -12,7 +12,7 @@ tags:
   - reference
 type: research
 status: ready
-source: https://grok.com/share/c2hhcmQtMw_cd0724ae-7bf8-49c0-88f9-f6f0a496513f
+# source removed — synthesized knowledge from LLM discussion
 draft: false
 ---
 

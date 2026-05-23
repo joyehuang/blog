@@ -14,7 +14,7 @@ type: research
 status: ready
 relatedArchive:
   - 0326-jina-embeddings-api-deep-dive
-source: https://grok.com/share/c2hhcmQtMw_bfcbbc2f-d30d-44f3-85ac-fb7d88b5803e
+# source removed — synthesized knowledge from LLM discussion
 draft: false
 ---
 
