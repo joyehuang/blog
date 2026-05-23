@@ -62,4 +62,29 @@ const archive = defineCollection({
   })
 })
 
-export const collections = { blog, archive }
+const curated = defineCollection({
+  loader: glob({ base: './src/content/curated', pattern: '**/*.{md,mdx}' }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string().max(200),
+      date: z.coerce.date(),
+      updatedDate: z.coerce.date().optional(),
+      source: z.string().url(), // link to the original paper/blog/article
+      sourceTitle: z.string().optional(), // original title
+      sourceAuthor: z.string().optional(), // author / organization
+      tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+      type: z.enum(['paper', 'blog', 'article', 'report']).default('blog'),
+      status: z.enum(['curated', 'digested']).default('curated'),
+      relatedArchive: z.array(z.string()).optional(),
+      heroImage: z
+        .object({
+          src: image(),
+          alt: z.string().optional(),
+        })
+        .optional(),
+      draft: z.boolean().default(false),
+    })
+})
+
+export const collections = { blog, archive, curated }
