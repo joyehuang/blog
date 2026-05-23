@@ -17,10 +17,18 @@ const headings = [
   </p>
 
   <h2 id='how-to-reach'>如何联系我</h2>
-  <p>把鼠标移到卡片上即可看到二维码。微信用于一对一交流，QQ 群是更轻松的公共讨论。</p>
+  <p>
+    把鼠标移到卡片上即可看到二维码。付费咨询请走微信并备注来意，普通一对一交流和 QQ 群也都在这里。
+  </p>
   <ContactQR
     class='my-6'
     items={[
+      {
+        name: '付费咨询 · 微信',
+        hint: '悬停显示二维码',
+        image: wechat,
+        note: '备注「付费咨询」+ 你的具体需求'
+      },
       {
         name: '微信 · joye',
         hint: '悬停显示二维码',
