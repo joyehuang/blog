@@ -2,7 +2,7 @@
 title: Hermes FTS5 会话检索——搜索与理解的解耦
 description: Hermes Agent 用 SQLite FTS5 + LLM query-focused summary 替代向量检索做会话搜索，把"召回"和"理解"拆成两个独立系统。单用户场景下比 vector RAG 更便宜、更稳、零运维。
 date: 2026-05-24
-source: https://github.com/joyehuang/hermes-agent
+source: https://github.com/nousresearch/hermes-agent
 sourceTitle: Hermes Agent — hermes_state.py + session_search_tool.py
 type: blog
 status: digested
