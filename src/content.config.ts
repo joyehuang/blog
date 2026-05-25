@@ -70,20 +70,23 @@ const curated = defineCollection({
       description: z.string().max(200),
       date: z.coerce.date(),
       updatedDate: z.coerce.date().optional(),
-      source: z.string().url(), // link to the original paper/blog/article
+      source: z.string().url(), // link to the original paper/blog/article/repo
       sourceTitle: z.string().optional(), // original title
       sourceAuthor: z.string().optional(), // author / organization
+      why: z.string().max(180).optional(),
       tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
-      type: z.enum(['paper', 'blog', 'article', 'report']).default('blog'),
+      type: z.enum(['paper', 'blog', 'article', 'report', 'repo']).default('blog'),
       status: z.enum(['curated', 'digested']).default('curated'),
+      difficulty: z.enum(['intro', 'intermediate', 'deep']).optional(),
+      relatedBlog: z.array(z.string()).optional(),
       relatedArchive: z.array(z.string()).optional(),
       heroImage: z
         .object({
           src: image(),
-          alt: z.string().optional(),
+          alt: z.string().optional()
         })
         .optional(),
-      draft: z.boolean().default(false),
+      draft: z.boolean().default(false)
     })
 })
 

@@ -1,22 +1,24 @@
 ---
-export const prerender = true
-
 import { Image } from 'astro:assets'
+import { getCollection } from 'astro:content'
+import { sortCuratedEntries } from '@/lib/curated'
 import avatar from 'src/assets/avatar.png'
 
-import { getCollection } from 'astro:content'
 import { Quote } from 'astro-pure/advanced'
 import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import CuratedItem from '@/components/curated/CuratedItem.astro'
 import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
-import Terminal from '@/components/terminal/Terminal.astro'
 import JoJo from '@/components/mascot/JoJo'
+import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
+
+export const prerender = true
 
 const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
 const frontend = ['React', 'Next.js', 'Tailwind CSS', 'Remotion', 'Vite']
@@ -82,10 +84,19 @@ const allNotes = (await getCollection('archive')).filter((e) => !e.data.draft)
 const latestNotes = allNotes
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, MAX_NOTES)
+
+const MAX_CURATED = 2
+const latestCurated = sortCuratedEntries(
+  (await getCollection('curated')).filter((e) => !e.data.draft)
+).slice(0, MAX_CURATED)
 ---
+
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
-    <section class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50' id='content-header'>
+    <section
+      class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'
+      id='content-header'
+    >
       <Image
         src={avatar}
         alt='profile'
@@ -99,12 +110,7 @@ const latestNotes = allNotes
           <Label title='Melbourne, Australia'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
-          <Label
-            title='GitHub'
-            as='a'
-            href='https://github.com/joyehuang'
-            target='_blank'
-          >
+          <Label title='GitHub' as='a' href='https://github.com/joyehuang' target='_blank'>
             <Icon name='github' class='size-5' slot='icon' />
           </Label>
         </div>
@@ -128,16 +134,18 @@ const latestNotes = allNotes
       </div>
     </section>
 
-    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6 relative z-0'>
+    <div
+      id='content'
+      class='animate relative z-0 flex w-full min-w-0 max-w-full flex-col gap-y-10 md:w-4/5 lg:w-5/6'
+    >
       <div class='-mt-2'>
         <Terminal />
       </div>
       <Section title='About'>
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
-          墨尔本大学在读，目前在特赞 Tezign 做 atypica（商业研究 Multi-Agent），
-          同时在 fAIshion.ai 与 Goshu Tech 做 AI 全栈与剪辑 Agent。
-          在意 LLM 的底层机制，也在意产品能不能真正跑起来。
+          墨尔本大学在读，目前在特赞 Tezign 做 atypica（商业研究 Multi-Agent）， 同时在 fAIshion.ai
+          与 Goshu Tech 做 AI 全栈与剪辑 Agent。 在意 LLM 的底层机制，也在意产品能不能真正跑起来。
           Build fast, learn faster — 平时弹琴、拉大提琴、玩摄影。
         </p>
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
@@ -209,59 +217,14 @@ const latestNotes = allNotes
       }
 
       {
-        (await getCollection('curated')).filter((e) => !e.data.draft).length > 0 && (
+        latestCurated.length > 0 && (
           <Section title='Curated'>
-            <ul class='flex flex-col gap-y-3'>
-              {
-                (await getCollection('curated'))
-                  .filter((e) => !e.data.draft)
-                  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-                  .slice(0, 5)
-                  .map((item) => {
-                    const linkHref = item.data.relatedArchive?.length
-                      ? `/archive/${item.data.relatedArchive[0]}`
-                      : item.data.source
-
-                    return (
-                    <li class='flex flex-col rounded-2xl border bg-background px-5 py-4 transition-colors hover:bg-muted'>
-                      <div class='flex items-center gap-2 text-xs text-muted-foreground mb-1.5'>
-                        <span class='rounded-md border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider'>
-                          {item.data.type === 'paper' ? '📄 论文' : item.data.type === 'blog' ? '📝 博客' : item.data.type === 'article' ? '📰 文章' : '📋 报告'}
-                        </span>
-                        <span>{item.data.sourceAuthor || item.data.sourceTitle || item.data.source.replace(/https?:\/\//, '').split('/')[0]}</span>
-                      </div>
-                      <div class='flex items-start justify-between gap-4'>
-                        <div class='min-w-0 flex-1'>
-                          <a
-                            href={linkHref}
-                            target={item.data.relatedArchive?.length ? '_self' : '_blank'}
-                            class='font-medium hover:text-primary transition-colors'
-                          >
-                            {item.data.title}
-                          </a>
-                          <p class='mt-1 text-sm text-muted-foreground line-clamp-2'>
-                            {item.data.description}
-                          </p>
-                        </div>
-                      </div>
-                      {
-                        item.data.relatedArchive?.length && (
-                          <div class='mt-1.5 text-xs text-muted-foreground'>
-                            <a
-                              href={`/archive/${item.data.relatedArchive[0]}`}
-                              class='hover:text-primary transition-colors'
-                            >
-                              → 阅读笔记
-                            </a>
-                          </div>
-                        )
-                      }
-                    </li>
-                    )
-                  })
-              }
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {latestCurated.map((item) => (
+                <CuratedItem item={item} lang='zh' variant='compact' />
+              ))}
             </ul>
-            <Button title='View all →' class='w-fit self-end' href='/curated' style='ahead' />
+            <Button title='More curated' class='w-fit self-end' href='/curated' style='ahead' />
           </Section>
         )
       }
@@ -273,9 +236,7 @@ const latestNotes = allNotes
           href='https://atypica.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
-            <li>
-              参与 atypica.ai —— 面向商业研究场景的 Multi-Agent 系统
-            </li>
+            <li>参与 atypica.ai —— 面向商业研究场景的 Multi-Agent 系统</li>
           </ul>
         </LinkCard>
         <LinkCard
@@ -284,20 +245,12 @@ const latestNotes = allNotes
           href='https://www.faishion.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
-            <li>
-              AI 虚拟试衣与服装搭配平台的全栈开发与模型集成
-            </li>
+            <li>AI 虚拟试衣与服装搭配平台的全栈开发与模型集成</li>
           </ul>
         </LinkCard>
-        <LinkCard
-          heading='AIXCut'
-          subheading='AI 全栈研发'
-          href='https://aixcut.cn/'
-        >
+        <LinkCard heading='AIXCut' subheading='AI 全栈研发' href='https://aixcut.cn/'>
           <ul class='ms-4 list-disc text-muted-foreground'>
-            <li>
-              参与 AI 视频剪辑 Agent 的设计与工程化落地
-            </li>
+            <li>参与 AI 视频剪辑 Agent 的设计与工程化落地</li>
           </ul>
         </LinkCard>
       </Section>
@@ -330,7 +283,7 @@ const latestNotes = allNotes
         </ul> */
           }
         </Card>
-      </Section> 
+      </Section>
       <!--
       <Section title='Website List'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>

@@ -1,0 +1,43 @@
+---
+import type { Lang } from '@/i18n/ui'
+import type { CuratedEntry } from '@/lib/curated'
+
+import CuratedItem from '@/components/curated/CuratedItem.astro'
+
+interface Props {
+  items: CuratedEntry[]
+  lang?: Lang
+}
+
+const { items, lang = 'zh' } = Astro.props
+
+const labels = {
+  zh: {
+    title: 'Curated',
+    description: '我筛过的外部原文链接，每条只保留一句推荐。',
+    empty: '没有匹配的收录内容。'
+  },
+  en: {
+    title: 'Curated',
+    description: 'Original links I would recommend, each with a one-line reason.',
+    empty: 'No curated resources match this filter.'
+  }
+} as const
+---
+
+<main class='mt-6 lg:mt-10' data-curated-library>
+  <div id='content-header' class='animate'>
+    <h1 class='mb-3 mt-6 text-3xl font-medium sm:mt-10'>{labels[lang].title}</h1>
+    <p class='max-w-2xl text-sm leading-6 text-muted-foreground'>{labels[lang].description}</p>
+  </div>
+
+  <section id='content' class='animate mt-8' aria-label={labels[lang].title}>
+    <ul class='text-start' data-curated-list>
+      {items.map((item) => <CuratedItem item={item} lang={lang} variant='full' />)}
+    </ul>
+
+    <p class='py-12 text-center text-sm text-muted-foreground' data-curated-empty hidden>
+      {labels[lang].empty}
+    </p>
+  </section>
+</main>

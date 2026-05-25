@@ -1,0 +1,105 @@
+---
+import type { Lang } from '@/i18n/ui'
+import {
+  curatedTypeLabels,
+  getCuratedDigestHref,
+  getCuratedSourceHost,
+  type CuratedEntry
+} from '@/lib/curated'
+
+interface Props {
+  item: CuratedEntry
+  variant?: 'compact' | 'full'
+  lang?: Lang
+}
+
+const { item, variant = 'full', lang = 'zh' } = Astro.props
+const isCompact = variant === 'compact'
+
+const labels = {
+  zh: {
+    note: '笔记'
+  },
+  en: {
+    note: 'Note'
+  }
+} as const
+
+const digestHref = getCuratedDigestHref(item)
+const sourceHost = getCuratedSourceHost(item.data.source)
+const sourceLabel = item.data.sourceAuthor || sourceHost
+const typeLabel = curatedTypeLabels[lang][item.data.type]
+const recommendation = item.data.why || item.data.description
+---
+
+<li
+  data-curated-item
+  data-type={item.data.type}
+  class:list={[
+    'min-w-0 list-none',
+    isCompact
+      ? 'post-preview group/card rounded-2xl border bg-background transition-colors ease-in-out hover:bg-muted'
+      : 'border-b border-border/70 py-4 first:pt-0 last:border-b-0'
+  ]}
+>
+  <article
+    class:list={[
+      'min-w-0',
+      isCompact ? 'px-5 py-2.5 sm:grid sm:grid-cols-[95px_minmax(0,1fr)] sm:gap-x-3' : ''
+    ]}
+  >
+    <div
+      class:list={[
+        'flex min-w-0 items-center gap-2 text-xs text-muted-foreground',
+        isCompact ? 'py-1' : 'mb-1'
+      ]}
+    >
+      <span class='shrink-0'>{typeLabel}</span>
+      <span aria-hidden='true' class='shrink-0 text-border'>/</span>
+      <span class='truncate'>{sourceLabel}</span>
+      {
+        !isCompact && digestHref && (
+          <>
+            <span aria-hidden='true' class='shrink-0 text-border'>
+              /
+            </span>
+            <a
+              href={digestHref}
+              class='shrink-0 opacity-70 hover:text-primary hover:opacity-100'
+              data-astro-prefetch
+            >
+              {labels[lang].note}
+            </a>
+          </>
+        )
+      }
+    </div>
+
+    <div class='min-w-0'>
+      <a
+        href={item.data.source}
+        target='_blank'
+        rel='noopener noreferrer'
+        class:list={[
+          'block min-w-0 font-medium leading-6 hover:text-primary group-hover/card:text-primary',
+          isCompact ? 'truncate' : 'text-base sm:text-lg'
+        ]}
+      >
+        {item.data.sourceTitle || item.data.title}
+      </a>
+      {
+        recommendation && (
+          <p
+            class:list={[
+              'mt-0.5 text-sm leading-6 text-muted-foreground',
+              isCompact ? 'truncate' : ''
+            ]}
+          >
+            {recommendation}
+          </p>
+        )
+      }
+      {/* Notes are intentionally kept in the tiny metadata row. */}
+    </div>
+  </article>
+</li>

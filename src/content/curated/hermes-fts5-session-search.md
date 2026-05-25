@@ -4,8 +4,10 @@ description: Hermes Agent 用 SQLite FTS5 + LLM query-focused summary 替代向�
 date: 2026-05-24
 source: https://github.com/nousresearch/hermes-agent
 sourceTitle: Hermes Agent — hermes_state.py + session_search_tool.py
-type: blog
+why: 单用户 agent 场景下，搜索系统可以先做词法召回，再把理解交给 LLM。
+type: repo
 status: digested
+difficulty: intermediate
 tags:
   - agent
   - llm

@@ -11,6 +11,7 @@ export const ui = {
   zh: {
     'nav.blog': 'Blog',
     'nav.notes': 'Notes',
+    'nav.curated': 'Curated',
     'nav.projects': 'Projects',
     'nav.links': 'Links',
     'nav.about': 'About',
@@ -26,6 +27,7 @@ export const ui = {
   en: {
     'nav.blog': 'Blog',
     'nav.notes': 'Notes',
+    'nav.curated': 'Curated',
     'nav.projects': 'Projects',
     'nav.links': 'Links',
     'nav.about': 'About',

@@ -4,8 +4,11 @@ description: 从 Claude Code 的 prompt caching 实践出发，整理"动态信�
 date: 2026-05-24
 source: https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything
 sourceTitle: Prompt caching is everything — Lessons from building Claude Code
+sourceAuthor: Anthropic
+why: 让 prompt caching 从成本优化变成 agent prompt 组织约束，直接影响长期 loop 成本。
 type: blog
 status: digested
+difficulty: intermediate
 tags:
   - agent
   - llm

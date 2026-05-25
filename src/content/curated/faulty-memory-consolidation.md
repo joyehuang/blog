@@ -5,6 +5,7 @@ date: 2026-05-24
 source: https://arxiv.org/abs/2605.12978
 sourceTitle: Useful Memories Become Faulty When Continuously Updated by LLMs — Zhang et al.
 sourceAuthor: UIUC / Tsinghua
+why: 直接挑战 LLM memory consolidation 的常见设计，给 Hermes 记忆系统提供了反证。
 tags:
   - agent
   - memory
@@ -12,6 +13,7 @@ tags:
   - research
 type: paper
 status: digested
+difficulty: deep
 relatedArchive:
   - 0526-hermes-fts5-session-search
 draft: false

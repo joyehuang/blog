@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content'
 export const prerender = false
 
 type SearchDoc = {
-  collection: 'blog' | 'archive'
+  collection: 'blog' | 'archive' | 'curated'
   title: string
   description?: string
   url: string
@@ -51,9 +51,10 @@ function clampLimit(limit: number) {
 }
 
 async function buildSearchDocs(): Promise<SearchDoc[]> {
-  const [blogPosts, archiveEntries] = await Promise.all([
+  const [blogPosts, archiveEntries, curatedEntries] = await Promise.all([
     getCollection('blog', ({ data }) => !data.draft),
-    getCollection('archive', ({ data }) => !data.draft)
+    getCollection('archive', ({ data }) => !data.draft),
+    getCollection('curated', ({ data }) => !data.draft)
   ])
 
   const blogDocs = blogPosts.map<SearchDoc>((entry) => ({
@@ -76,7 +77,26 @@ async function buildSearchDocs(): Promise<SearchDoc[]> {
     body: normalizeBody((entry as { body?: string }).body ?? '')
   }))
 
-  return [...blogDocs, ...archiveDocs]
+  const curatedDocs = curatedEntries.map<SearchDoc>((entry) => ({
+    collection: 'curated',
+    title: entry.data.sourceTitle || entry.data.title,
+    description: entry.data.why || entry.data.description,
+    url: entry.data.source,
+    date: formatDate(entry.data.date),
+    tags: entry.data.tags,
+    body: normalizeBody(
+      [
+        entry.data.sourceTitle,
+        entry.data.sourceAuthor,
+        entry.data.why,
+        (entry as { body?: string }).body
+      ]
+        .filter(Boolean)
+        .join(' ')
+    )
+  }))
+
+  return [...blogDocs, ...archiveDocs, ...curatedDocs]
 }
 
 function scoreDoc(doc: SearchDoc, query: string): SearchResult | null {

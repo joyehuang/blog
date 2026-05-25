@@ -483,7 +483,7 @@ const formattedTotal = total.toLocaleString('en-US')
   }
 </style>
 
-<script define:vars={{ totalWeeks: weeks.length }}>
+<script is:inline define:vars={{ totalWeeks: weeks.length }}>
   // Build an odometer driver against pre-rendered columns. options.padToFull
   // disables leading-zero hiding (used for the year column where we always
   // want all 4 digits visible).

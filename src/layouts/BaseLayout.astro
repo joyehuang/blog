@@ -55,7 +55,7 @@ const fs = await buildSiteFs()
       <slot />
       <Footer />
     </div>
-    <DevModeHost client:load fs={fs} />
+    <DevModeHost client:only='react' fs={fs} />
     <Analytics />
     <SpeedInsights />
     <ViewCounter />
