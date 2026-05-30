@@ -57,7 +57,7 @@ The key to understanding the Hermes memory architecture is understanding the **e
 
 **How the prefix cache works**: the core cost of LLM inference comes from prefill (processing the input tokens). Anthropic, OpenAI, and Google all optimize for this — if the first N tokens of the current request are exactly identical to a previous request, the KV cache can be reused directly, skipping prefill. The cache is indexed by **prefix hash**, matching contiguously from token 0. Anthropic's prompt caching bills the cache-hit portion at 10% of the normal price (writes are billed at 1.25x), with a default 5-minute TTL.
 
-**The explosive payoff of the prefix cache in agent scenarios**: in a typical long agent task, by turn 50 the input might be 80,000 tokens — but those 5,000 tokens of system prompt never change, so every turn can pull them from cache. The first 49 turns of conversation history are also unchanged, so they come from cache too. The only thing that genuinely needs prefill on turn 50 is the latest increment. If the cache stays warm the whole way through, Anthropic claims it can save 90% of input cost and 2x latency — **and in agent scenarios the savings are even more dramatic**.
+**The explosive payoff of the prefix cache in agent scenarios**: in a typical long agent task, by turn 50 the input might be 80,000 tokens — but those 5,000 tokens of system prompt never change, so every turn can pull them from cache. The first 49 turns of conversation history are also unchanged, so they come from cache too. The only thing that genuinely needs prefill on turn 50 is the latest increment. If the cache stays warm the whole way through, Anthropic claims it can cut input cost by 90% and improve latency 2x — **and in agent scenarios the savings are even more dramatic**.
 
 **The hidden cost of the frozen snapshot**: if you switch to the naive approach (dynamically inject memory → the moment the agent writes one entry, update the system prompt immediately), the instant the system prompt changes, **the entire session's prefix cache is invalidated**. The 49 turns of cache you'd built up are thrown away for nothing. Writing one memory entry is equivalent to discarding tens of thousands of tokens of cache — roughly $0.10–0.30 per write at Sonnet prices.
 
@@ -376,7 +376,7 @@ This is an MVP-level scheme — it works because memory grows slowly in Hermes's
 The main limitations of using just the two files MEMORY.md + USER.md:
 
 - **No structured index**: all memory is flattened into a single file, with no categories, no tags, no recency.
-- **A capacity ceiling**: once you exceed 2200/1375 characters, all you can do is lossy compression. If the memory volume keeps growing, this architecture has no fallback — short of raising the mnemonic's own capacity (limited by how much the system prompt can hold).
+- **A capacity ceiling**: once you exceed 2200/1375 characters, all you can do is lossy compression. If the memory volume keeps growing, this architecture has no fallback — short of raising the memory store's own capacity (limited by how much the system prompt can hold).
 - **The write path and read path are coupled**: writes are persisted immediately, but reads depend on the snapshot taken at session startup. A write can't take effect within the same session.
 
 ### 3. Comparison with alternatives

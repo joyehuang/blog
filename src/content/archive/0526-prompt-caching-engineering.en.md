@@ -89,7 +89,7 @@ The payoff: the prefix is untouched, so the historical tokens keep their 10% pri
 | TTL | A few minutes (opaque) | 5 min or 1 h (explicit) | Up to 60 min |
 | Minimum cacheable | 1024 tokens | 1024–4096 tokens (model-dependent) | Unclear |
 
-**The key difference**: OpenAI is "freebie discount" — writes cost nothing extra, but you only save half. Anthropic is "pay for membership" — writes cost more, but reads save you 90%.
+**The key difference**: OpenAI is the "freebie" model — writes cost nothing extra, but you only save half. Anthropic is "pay for membership" — writes cost more, but reads save you 90%.
 
 **How to choose in practice**:
 - Quick prototype → OpenAI, no fuss

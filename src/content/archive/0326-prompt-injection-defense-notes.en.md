@@ -1,6 +1,6 @@
 ---
 title: Defense-in-Depth Notes on Prompt Injection
-description: A consolidation of the core ideas — and interview-ready answers — behind OpenAI's, Anthropic's, and common engineering defenses against prompt injection.
+description: A consolidation of the core ideas — and interview-ready answers — from OpenAI, Anthropic, and common engineering defenses against prompt injection.
 date: 2026-03-14
 updatedDate: 2026-03-14
 tags:

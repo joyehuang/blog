@@ -205,7 +205,7 @@ It contains more than just text — it may also include:
 - `finish`
 - step-boundary events
 
-And `textStream` is just a lighter-weight view that filters out the pure text deltas from these events.
+And `textStream` is just a lighter-weight view that picks out only the pure text deltas from these events.
 
 So if you want to truly understand streaming in the Vercel AI SDK, you shouldn't fixate on the function name `streamText()` — you need to see the whole chain:
 
