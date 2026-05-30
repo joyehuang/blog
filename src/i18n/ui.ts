@@ -73,3 +73,22 @@ export function localizedPath(path: string, lang: Lang): string {
   if (path === '/') return '/en'
   return `/en${path.startsWith('/') ? path : `/${path}`}`
 }
+
+/**
+ * Whether a bare (zh-form) path has a real `/en` mirror page.
+ *
+ * Drives hreflang + og:locale:alternate emission: we only declare an English
+ * alternate for pages that genuinely exist in both languages. Chinese-only
+ * content — blog posts, archive entries, tag/year indexes — returns false so we
+ * never fabricate an `/en/...` URL that 404s and never claim a translation that
+ * isn't there. When a post is actually translated later, extend this.
+ */
+export function hasEnAlternate(barePath: string): boolean {
+  if (barePath === '/') return true
+  if (['/about', '/projects', '/links', '/contact', '/search', '/curated'].includes(barePath))
+    return true
+  // blog & archive: only the paginated list is mirrored under /en, not detail pages
+  if (/^\/blog(\/\d+)?$/.test(barePath)) return true
+  if (/^\/archive(\/\d+)?$/.test(barePath)) return true
+  return false
+}
