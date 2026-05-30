@@ -1,0 +1,842 @@
+---
+title: "FeedForward and the Transformer Block: The Other Half"
+description: A deep dive into the FeedForward network and how RMSNorm, RoPE, Attention, and FeedForward assemble into a complete Transformer Block.
+publishDate: 2025-12-19 00:00:00
+tags: ['LLM', 'Transformer', 'MiniMind', 'FeedForward', 'SwiGLU', 'Architecture']
+language: en
+translationKey: '20251219---feedforward-transformer-block/post'
+---
+
+> This is the fourth post (of four) in my MiniMind learning series. It takes a deep dive into the FeedForward network and shows how the four core components — RMSNorm, RoPE, Attention, and FeedForward — assemble into a complete Transformer Block. By the end, you'll have a thorough grasp of the full Transformer architecture.
+
+## About this series
+
+[MiniMind](https://github.com/jingyaogong/minimind) is a concise yet complete project for training a large language model, covering the full pipeline from data processing and model training to inference and deployment. As I worked through it, I distilled the core technical points into the [minimind-notes](https://github.com/joyehuang/minimind-notes) repository and produced this four-part blog series, walking through the core components of the Transformer in a systematic way.
+
+This series covers:
+1. **Normalization** — why we need RMSNorm
+2. **RoPE positional encoding** — how to make the model understand word order
+3. **The Attention mechanism** — the core engine of the Transformer
+4. **FeedForward and the full architecture** (this post) — how the components work together
+
+---
+
+## 1. Introduction
+
+### 1.1 The neglected other half
+
+When people think of the Transformer, the usual associations are:
+- ✅ The Attention mechanism (the star component)
+- ✅ Positional encoding (RoPE)
+- ❓ FeedForward? What's that?
+
+**The facts**:
+- FeedForward accounts for 40% of the code in a Transformer Block
+- FeedForward makes up **two-thirds** of the total parameters!
+- You can't train a good model with Attention alone, without FeedForward
+
+### 1.2 Questions this post answers
+
+- What does FeedForward actually do?
+- Why "expand then compress" (768 → 2048 → 768)?
+- What makes SwiGLU better than a plain FFN?
+- How do Attention and FeedForward divide the labor?
+- How do the four components assemble into a complete Transformer Block?
+- What does the residual connection do?
+
+### 1.3 Who this is for
+
+- You've studied Attention but FFN is still fuzzy
+- You want a complete understanding of the Transformer architecture
+- You're getting ready to implement a Transformer from scratch
+- You want to know why the Transformer "works"
+
+---
+
+## 2. What is FeedForward?
+
+### 2.1 The core idea
+
+> "Apply a complex nonlinear transformation to each token's vector."
+
+**Key characteristics**:
+- ✅ Each token is processed **independently** (no token-to-token interaction)
+- ✅ Input dimension = output dimension (768)
+- ✅ But the content changes completely (it goes through a nonlinear transformation)
+- ✅ It boosts expressive power by routing through a high-dimensional space
+
+### 2.2 A typical structure
+
+```python
+input:   [batch, seq_len, 768]
+  ↓
+expand:  Linear(768 → 2048)
+  ↓
+activate: a nonlinear function (ReLU/GELU/SiLU)
+  ↓
+compress: Linear(2048 → 768)
+  ↓
+output:  [batch, seq_len, 768]
+```
+
+### 2.3 A simple implementation
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class SimpleFeedForward(nn.Module):
+    def __init__(self, hidden_size=768, intermediate_size=2048):
+        super().__init__()
+        self.w1 = nn.Linear(hidden_size, intermediate_size, bias=False)
+        self.w2 = nn.Linear(intermediate_size, hidden_size, bias=False)
+
+    def forward(self, x):
+        # x: [batch, seq_len, 768]
+        h = self.w1(x)       # expand: [batch, seq_len, 2048]
+        h = F.relu(h)        # activation
+        output = self.w2(h)  # compress: [batch, seq_len, 768]
+        return output
+```
+
+### 2.4 Comparison with Attention
+
+```python
+# Attention
+sentence: "I love coding"
+# "love" can see "I" and "coding"
+# → tokens interact, fusing context
+
+# FeedForward
+sentence: "I love coding"
+# "love" only looks at itself, transformed independently
+# → each token is independent, processed in depth
+```
+
+**An analogy**:
+- Attention = a meeting where everyone exchanges information
+- FeedForward = everyone thinking on their own, digesting that information independently
+
+
+---
+
+## 3. Why "expand then compress"?
+
+### 3.1 A common question
+
+> "Why not just go 768 → 768 directly? Taking a big detour out to 2048 and back — isn't that wasted compute?"
+
+That's a great question!
+
+### 3.2 The intuition: expressive power
+
+**Option 1: a direct transformation**
+```python
+# 768 → 768
+output = W @ x  # W is a [768, 768] matrix
+
+# This is just a linear transformation!
+# Expressive power = a single matrix multiply
+```
+
+**Option 2: expand then compress**
+```python
+# 768 → 2048 → 768
+h = W1 @ x           # [2048, 768] @ [768] = [2048]
+h = activation(h)    # nonlinear!
+output = W2 @ h      # [768, 2048] @ [2048] = [768]
+
+# Expressive power = two matrix multiplies + a nonlinear activation
+# Can fit far more complex functions!
+```
+
+### 3.3 The mathematical essence: the magic of high-dimensional space
+
+**Key insight**: in a high-dimensional space, vectors have more "degrees of freedom."
+
+**A simplified view**:
+
+- **Direct transformation (768 → 768)**: can only form linear combinations, constrained by the original dimensionality
+- **Expanding to high dimensions (768 → 2048)**: more degrees of freedom in the high-dimensional space
+- **Nonlinear activation**: introduces nonlinear transformation capacity
+- **Compressing back to the original dimension (2048 → 768)**: retains the complex patterns learned in the high-dimensional space
+
+**Experimental verification**: when fitting a complex function (such as y = sin(x) + cos(2x)):
+- Direct transformation `Linear(1, 1)`: can only fit a linear function, large error ❌
+- Expand-compress `Linear(1, 64) → ReLU → Linear(64, 1)`: can fit nonlinear functions, small error ✅
+- **Conclusion**: expand-compress = expressive power++
+
+### 3.4 Analogies
+
+**Analogy 1: cooking**
+```
+Direct transformation (768 → 768):
+  raw ingredients → plated
+  no processing, one-note flavor ❌
+
+Expand-compress (768 → 2048 → 768):
+  ingredients → chopped, seasoned, cooked (2048-dim high-dimensional space) → plated
+  "processed" in a high-dimensional space, rich flavor ✅
+```
+
+**Analogy 2: photo editing**
+```
+Direct transformation:
+  original → a simple filter → output
+  limited effect ❌
+
+Expand-compress:
+  original → extract features (more dimensions) → complex transformation → compress back to original size
+  enables complex operations like denoising and super-resolution ✅
+```
+
+
+### 3.5 Why 2048 dimensions (and not 1024 or 4096)?
+
+**Rule of thumb**: intermediate_size ≈ **hidden_size × 2.67 to 4**
+
+| Model | hidden_size | intermediate_size | Ratio |
+|------|-------------|-------------------|------|
+| BERT-Base | 768 | 3072 | 4.0 |
+| GPT-2 | 768 | 3072 | 4.0 |
+| Llama-7B | 4096 | 11008 | 2.69 |
+| MiniMind | 768 | 2048 | 2.67 |
+
+**Why not larger?**
+- Larger = more parameters = slower and more memory-hungry
+- 2.67–4× is the empirically validated sweet spot
+
+---
+
+## 4. SwiGLU: the modern Transformer's choice
+
+### 4.1 The evolution of FeedForward
+
+**Generation 1 (GPT-2 / BERT, 2018–2019)**:
+```python
+h = ReLU(W1 @ x)
+output = W2 @ h
+```
+
+**Generation 2 (GPT-3, 2020)**:
+```python
+h = GELU(W1 @ x)  # a smoother activation function
+output = W2 @ h
+```
+
+**Generation 3 (Llama / MiniMind, 2023)**:
+```python
+gate = SiLU(W_gate @ x)
+up = W_up @ x
+h = gate * up  # a gating mechanism! ⭐
+output = W_down @ h
+```
+
+### 4.2 SwiGLU in detail
+
+**Full name**: Swish-Gated Linear Unit
+
+**Core idea**: use two branches, one controlling the other.
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class SwiGLU(nn.Module):
+    def __init__(self, dim=768, hidden_dim=2048):
+        super().__init__()
+        # three linear layers
+        self.gate_proj = nn.Linear(dim, hidden_dim, bias=False)  # gating branch
+        self.up_proj = nn.Linear(dim, hidden_dim, bias=False)    # up-projection branch
+        self.down_proj = nn.Linear(hidden_dim, dim, bias=False)  # down-projection
+
+    def forward(self, x):
+        # two branches
+        gate = self.gate_proj(x)  # [batch, seq, 2048]
+        up = self.up_proj(x)      # [batch, seq, 2048]
+
+        # SiLU activation + gating (element-wise product)
+        hidden = F.silu(gate) * up
+
+        # compress back to the original dimension
+        output = self.down_proj(hidden)
+        return output
+```
+
+**Dimension changes**:
+```
+input:  [batch, seq, 768]
+  ↓
+gate:  [batch, seq, 2048]  ← W_gate @ x
+up:    [batch, seq, 2048]  ← W_up @ x
+  ↓
+hidden: [batch, seq, 2048]  ← SiLU(gate) * up
+  ↓
+output:  [batch, seq, 768]   ← W_down @ hidden
+```
+
+### 4.3 The SiLU activation function
+
+```python
+# SiLU(x) = x * sigmoid(x)
+def silu(x):
+    return x * torch.sigmoid(x)
+
+# also known as Swish
+```
+
+**Compared with common activation functions**:
+
+| Activation | Formula | Characteristics |
+|---------|------|------|
+| ReLU | `max(0, x)` | simple, but the gradient can be 0 |
+| GELU | `x * Φ(x)` | smooth, but slightly slower to compute |
+| SiLU/Swish | `x * σ(x)` | **smooth and fast to compute** ✅ |
+
+
+### 4.4 The power of the gating mechanism
+
+**Intuition**: the gate branch controls which information from the up branch gets through.
+
+```python
+# example
+gate = torch.tensor([0.1, 0.9, 0.5, 0.2])  # gating values
+up = torch.tensor([5.0, 3.0, 2.0, 8.0])    # up-projection values
+
+# element-wise product
+hidden = gate * up
+# = [0.5, 2.7, 1.0, 1.6]
+
+# observe:
+# where gate=0.9: most of the information passes (2.7 ≈ 3.0)
+# where gate=0.1: only a little passes (0.5 << 5.0)
+```
+
+**An analogy**:
+```
+Plain FFN:
+  all information passes through the same "gate" (a single activation function)
+
+SwiGLU:
+  the gate branch acts like a "security guard," deciding which information from the up branch can enter
+  a dynamic, more flexible choice!
+```
+
+### 4.5 Plain FFN vs SwiGLU
+
+| Feature | Plain FFN | SwiGLU |
+|------|---------|--------|
+| **Number of branches** | 1 | 2 (gate + up) |
+| **Activation** | ReLU/GELU | SiLU |
+| **Gating** | none | yes (gate × up) |
+| **Parameters** | 2 × 768 × 2048 | 3 × 768 × 2048 (**50% more**) |
+| **Compute** | less | slightly more |
+| **Performance** | good | **better** (empirically proven) |
+| **Models used in** | GPT-2, BERT | Llama, MiniMind, PaLM |
+
+### 4.6 Why the extra parameters are worth it
+
+```python
+# parameter comparison (using MiniMind as an example)
+plain FFN parameters:
+  W1: 768 × 2048 = 1,572,864
+  W2: 2048 × 768 = 1,572,864
+  total: 3,145,728
+
+SwiGLU parameters:
+  gate_proj: 768 × 2048 = 1,572,864
+  up_proj: 768 × 2048 = 1,572,864
+  down_proj: 2048 × 768 = 1,572,864
+  total: 4,718,592 (50% more)
+
+# but!
+# Attention layer parameters: 768 × 768 × 4 ≈ 2.4M
+# SwiGLU parameters: 4.7M
+
+# FeedForward share of total parameters: 4.7M / (2.4M + 4.7M) ≈ 66%
+# improving this part has a big effect on the model as a whole!
+```
+
+**Experimental results** (the Llama paper):
+- At equal parameter counts, SwiGLU outperforms GELU by **5–10%**
+- For equal performance, SwiGLU trains faster (gradients are more stable)
+
+---
+
+## 5. The division of labor: Attention vs FeedForward
+
+### 5.1 The full comparison
+
+| Feature | Attention | FeedForward |
+|------|-----------|-------------|
+| **How it processes** | tokens interact | each token independently |
+| **Role** | information exchange (a meeting) | deep thinking (digesting independently) |
+| **Input** | [seq, 768] | [seq, 768] |
+| **Intermediate dimension** | [seq, seq] (score matrix) | [seq, 2048] (expansion) |
+| **Output** | [seq, 768] | [seq, 768] |
+| **Positional encoding** | required (RoPE) | not needed |
+| **Parameters** | about 33% | about 67% |
+| **Compute bottleneck** | seq² (quadratic in sequence length) | batch×seq (linear) |
+| **Analogy** | looking up a dictionary, a meeting | solving a math problem, thinking |
+
+### 5.2 Why you can't do without either one
+
+**Attention only**:
+- ✅ Tokens can interact
+- ❌ Lacks "deep understanding"
+- It's like having meetings to discuss but never thinking on your own
+- The model can't learn complex patterns
+
+**FeedForward only**:
+- ✅ Each token can be transformed in complex ways
+- ❌ Has no sense of context
+- It's like working in isolation, never listening to others' input
+- The model has no idea how tokens relate to one another
+
+**The two combined**:
+```
+Step 1: Attention
+  → lets the model know "which tokens are relevant"
+  → fuses contextual information
+
+Step 2: FeedForward
+  → lets the model know "how to process that information"
+  → a deep nonlinear transformation
+
+Step 3: repeat N times
+  → refine the understanding layer by layer
+```
+
+
+### 5.3 A full walkthrough
+
+```python
+sentence: "I love coding"
+
+# ========== Attention stage ==========
+# "love" gathers information from "I" and "coding"
+"love" ← "I" (29%) + "love" (36%) + "coding" (25%)
+# "love" now knows: it connects "I" and "coding"
+
+# ========== FeedForward stage ==========
+# "love" thinks deeply based on the information it gathered
+representation of "love" [768-dim]
+  ↓ expand into a high-dimensional space
+[2048-dim]
+  ↓ gating mechanism + nonlinear transformation
+[2048-dim]  # complex reasoning in the high-dimensional space
+  ↓ compress back to the original dimension
+[768-dim]  # the refined understanding
+
+# in the end
+# "love" has both fused context (Attention)
+# and completed a deep understanding (FeedForward)
+```
+
+---
+
+## 6. Assembling the Transformer Block
+
+### 6.1 The four core components
+
+A recap of the four components we've studied:
+
+1. **RMSNorm**: stabilizes the numbers (normalization)
+2. **Attention**: tokens interact (information exchange)
+3. **FeedForward**: independent deepening (deep thinking)
+4. **Residual Connection**: a safety net (the residual connection)
+
+### 6.2 The complete Transformer Block structure
+
+```python
+import torch
+import torch.nn as nn
+
+class TransformerBlock(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        # RMSNorm #1: before Attention
+        self.input_layernorm = RMSNorm(config.hidden_size)
+
+        # Multi-Head Attention
+        self.self_attn = Attention(config)
+
+        # RMSNorm #2: before FeedForward
+        self.post_attention_layernorm = RMSNorm(config.hidden_size)
+
+        # FeedForward (SwiGLU)
+        self.mlp = FeedForward(config)
+
+    def forward(self, x, position_embeddings):
+        # ========== Part 1: Attention ==========
+        # 1. save the input (for the residual connection)
+        residual = x
+
+        # 2. RMSNorm #1 (normalization)
+        x = self.input_layernorm(x)
+
+        # 3. Multi-Head Attention
+        x = self.self_attn(x, position_embeddings)
+
+        # 4. residual connection
+        x = residual + x
+
+        # ========== Part 2: FeedForward ==========
+        # 5. save the current state (for the residual connection)
+        residual = x
+
+        # 6. RMSNorm #2 (normalization)
+        x = self.post_attention_layernorm(x)
+
+        # 7. FeedForward (SwiGLU)
+        x = self.mlp(x)
+
+        # 8. residual connection
+        x = residual + x
+
+        return x
+```
+
+### 6.3 The data flow diagram
+
+```
+input x: [batch, seq_len, 768]
+  ↓
+  ├──────┐ (save residual)
+  ↓      │
+RMSNorm #1  ← normalization
+  ↓
+Multi-Head Attention (+ RoPE)  ← tokens interact
+  ↓
+  └──────┘ (add residual) ← residual connection
+  ↓
+  ├──────┐ (save residual)
+  ↓      │
+RMSNorm #2  ← normalization
+  ↓
+FeedForward (SwiGLU)  ← independent deepening
+  ↓
+  └──────┘ (add residual) ← residual connection
+  ↓
+output x: [batch, seq_len, 768]
+```
+
+
+### 6.4 The residual connection
+
+**The formula**:
+```python
+y = x + F(x)
+
+# rather than
+y = F(x)  # no residual
+```
+
+**Three big benefits**:
+
+#### Benefit 1: a safety net
+
+```python
+# worst case: F learns nothing
+y = x + 0 = x  # at least you still have the input!
+
+# without the residual
+y = F(x) = noise  # completely broken ❌
+```
+
+#### Benefit 2: incremental learning
+
+```python
+# with a residual: only need to learn the "adjustment"
+y = x + Δx  # Δx is a small adjustment
+
+# without a residual: need to learn the "full output"
+y = F(x)  # F has to learn to build y from scratch
+```
+
+**An analogy**:
+```
+Without a residual: each edit fully overwrites the original
+  original → filter → new image (the original is lost)
+
+With a residual: original + each adjustment
+  original → original + adjustment 1 → original + adjustment 1 + adjustment 2 ...
+  all the information is preserved!
+```
+
+#### Benefit 3: a gradient highway
+
+```python
+# backpropagation
+dy/dx = 1 + dF/dx
+
+# even if F's gradient vanishes (dF/dx → 0)
+dy/dx = 1  # the gradient can still flow back! ✅
+
+# without a residual
+dy/dx = dF/dx  # once it vanishes, the path is cut entirely ❌
+```
+
+
+### 6.5 Pre-Norm vs Post-Norm
+
+**Post-Norm (the original Transformer, 2017)**:
+```python
+# normalization comes after the sublayer
+x = x + Attention(x)
+x = Norm(x)
+x = x + FeedForward(x)
+x = Norm(x)
+```
+
+**Pre-Norm (modern Transformers, Llama / MiniMind)**:
+```python
+# normalization comes before the sublayer
+x = x + Attention(Norm(x))
+x = x + FeedForward(Norm(x))
+```
+
+**Pre-Norm's advantages**:
+
+| Feature | Post-Norm | Pre-Norm |
+|------|-----------|----------|
+| **Training stability** | difficult for deep networks | more stable ✅ |
+| **Gradient flow** | can be interrupted by Norm | a cleaner residual path ✅ |
+| **Learning rate** | needs warmup | can use a larger learning rate ✅ |
+{/* | **Suitable for** | shallow networks (&lt; 12 layers) | deep networks (&gt; 12 layers) ✅ | */}
+
+**Every modern LLM uses Pre-Norm** (GPT-3, Llama, MiniMind, Mistral, …).
+
+
+---
+
+## 7. The complete MiniMind architecture
+
+### 7.1 The overall structure
+
+```
+MiniMindForCausalLM
+├─ lm_head: output layer (hidden_size → vocab_size)
+│   maps a 768-dim vector to a probability distribution over 6400 tokens
+│
+└─ MiniMindModel
+    ├─ embed_tokens: token embedding layer (vocab_size → hidden_size)
+    │   converts a token ID into a 768-dim vector
+    │
+    ├─ layers: N TransformerBlocks (8 by default)
+    │   └─ TransformerBlock × 8
+    │       ├─ input_layernorm: RMSNorm
+    │       ├─ self_attn: Multi-Head Attention
+    │       ├─ post_attention_layernorm: RMSNorm
+    │       └─ mlp: FeedForward (SwiGLU)
+    │
+    └─ norm: the final RMSNorm
+        normalizes the last layer's output once more
+```
+
+### 7.2 The forward pass
+
+```python
+# input
+token_ids = [34, 128, 556, 89, ...]  # the IDs for "I love coding"
+
+# ========== token embedding ==========
+x = embed_tokens(token_ids)
+# [batch, seq_len] → [batch, seq_len, 768]
+
+# ========== precompute RoPE ==========
+cos, sin = precompute_freqs_cis(...)  # positional encoding
+
+# ========== TransformerBlock #1 ==========
+x = block_1(x, position_embeddings=(cos, sin))
+# [batch, seq_len, 768] → [batch, seq_len, 768]
+
+# ========== TransformerBlock #2 ==========
+x = block_2(x, position_embeddings=(cos, sin))
+
+# ...
+
+# ========== TransformerBlock #8 ==========
+x = block_8(x, position_embeddings=(cos, sin))
+
+# ========== final normalization ==========
+x = self.norm(x)
+# [batch, seq_len, 768]
+
+# ========== output layer ==========
+logits = lm_head(x)
+# [batch, seq_len, 768] → [batch, seq_len, 6400]
+# each position predicts the probability distribution of the next token
+
+# ========== generation ==========
+next_token_id = torch.argmax(logits[:, -1, :], dim=-1)
+# pick the highest-probability token
+```
+
+### 7.3 Parameter breakdown
+
+```python
+# MiniMind2 (104M parameters)
+
+# token embedding
+embed_tokens: 6400 × 768 = 4,915,200
+
+# 8 TransformerBlocks
+each Block:
+  Attention:
+    q_proj: 768 × 768 = 589,824
+    k_proj: 768 × 768 = 589,824
+    v_proj: 768 × 768 = 589,824
+    o_proj: 768 × 768 = 589,824
+    subtotal: 2,359,296
+
+  FeedForward (SwiGLU):
+    gate_proj: 768 × 2048 = 1,572,864
+    up_proj: 768 × 2048 = 1,572,864
+    down_proj: 2048 × 768 = 1,572,864
+    subtotal: 4,718,592
+
+  per-Block total: 7,077,888
+
+8 Blocks: 8 × 7,077,888 = 56,623,104
+
+# output layer
+lm_head: 768 × 6400 = 4,915,200
+
+# grand total
+4.9M + 56.6M + 4.9M ≈ 104M ✅
+```
+
+**Observations**:
+- FeedForward parameters (4.7M) are **2×** the Attention parameters (2.4M)!
+- FeedForward accounts for **67%** of each Block's parameters
+
+### 7.4 Configuration parameters
+
+```python
+# MiniMind config (model/model_minimind.py)
+class MiniMindConfig:
+    hidden_size = 768           # hidden dimension
+    num_hidden_layers = 8       # number of Transformer Block layers
+    num_attention_heads = 8     # number of attention heads
+    num_key_value_heads = 2     # GQA: number of KV heads
+    intermediate_size = 2048    # FFN intermediate dimension
+    vocab_size = 6400           # vocabulary size
+    max_position_embeddings = 32768  # maximum sequence length
+    rope_theta = 1000000.0      # RoPE base frequency
+    rms_norm_eps = 1e-5         # RMSNorm epsilon
+    use_moe = False             # whether to use MoE
+```
+
+---
+
+## 8. Hands-on experiments
+
+To really understand FeedForward, try the following experiments:
+
+1. **Compare a plain FFN with SwiGLU**: implement both architectures and compare parameter counts (SwiGLU has 50% more) and training performance.
+2. **Verify the necessity of expand-compress**: try a direct 768→768 transformation vs 768→2048→768, and observe the difference in fitting ability.
+3. **Test the residual connection**: compare the training stability and convergence speed of networks with and without a residual connection.
+
+See the MiniMind project's `learning_materials/feedforward_explained.py` for the complete experiment code.
+
+---
+
+## 9. Summary
+
+### 9.1 Key takeaways
+
+- ✅ **What FeedForward does**: independent deepening — a complex nonlinear transformation applied to each token
+- ✅ **Why expand-compress is necessary**: a high-dimensional space has greater expressive power and can fit complex functions
+- ✅ **SwiGLU's advantage**: a gating mechanism with two branches, 5–10% better than a plain FFN
+- ✅ **Attention vs FFN**: interaction vs independence, a meeting vs thinking — you can't do without either
+- ✅ **The Transformer Block**: four components combined perfectly (Norm + Attn + Norm + FFN + Residual)
+- ✅ **The residual connection**: a safety net + incremental learning + a gradient highway
+- ✅ **Pre-Norm**: the standard choice for modern deep Transformers
+
+### 9.2 The Transformer Block mantra
+
+```
+Norm → Attention → residual
+Norm → FeedForward → residual
+repeat N times → a complete model!
+```
+
+### 9.3 A look back at the series
+
+Congratulations on completing the study of MiniMind's core architecture!
+
+**A recap of the four posts**:
+1. ✅ **RMSNorm**: the principles of normalization, and why it's 7.7× faster than LayerNorm
+2. ✅ **RoPE**: positional encoding, with an in-depth analysis of the multi-frequency mechanism
+3. ✅ **Attention**: Q, K, V, and a complete understanding of Multi-Head
+4. ✅ **FeedForward + architecture**: expand-compress, and the full assembly
+
+**What you now have**:
+- ✅ All the core components of the Transformer
+- ✅ The mathematical principles and code implementation of each component
+- ✅ How the components work together
+- ✅ Why the Transformer "works"
+- ✅ The ability to implement a small Transformer from scratch!
+
+### 9.4 Suggested next steps
+
+#### 1. Get hands-on
+```bash
+# clone MiniMind
+git clone https://github.com/jingyaogong/minimind
+cd minimind
+
+# train a small model
+cd trainer
+python train_pretrain.py
+```
+
+#### 2. Go deeper
+- GQA (Grouped Query Attention): saves memory
+- Flash Attention: optimizes compute efficiency
+- MoE (Mixture of Experts): increases capacity
+- KV Cache: speeds up inference
+
+#### 3. The implementation challenge
+```python
+# challenge: implement MiniMind from scratch
+class MyMiniMind(nn.Module):
+    def __init__(self):
+        # over to you!
+        pass
+```
+
+---
+
+## 10. References
+
+### Papers
+- [Attention Is All You Need](https://arxiv.org/abs/1706.03762) - the original Transformer paper
+- [GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202) - the SwiGLU paper
+- [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) - ResNet / residual connections
+
+### Code
+- MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
+- This post's learning materials: `learning_materials/feedforward_explained.py`
+- Transformer Block: `model/model_minimind.py:359-380`
+
+### Related reading
+- [Part 1: Why does the Transformer need normalization? From vanishing gradients to RMSNorm](/en/blog/20251216---normalization/post)
+- [Part 2: RoPE positional encoding: from permutation invariance to the multi-frequency mechanism](/en/blog/20251217---rope-position-encoding/post)
+- [Part 3: The Attention mechanism explained](/en/blog/20251218---attention-mechanism/post)
+
+---
+
+**Author**: joye
+**Published**: 2025-12-30
+**Last updated**: 2025-12-30
+**Series**: MiniMind learning notes (4/4)
+
+If you found this helpful, feel free to:
+- ⭐ Star the original project, [MiniMind](https://github.com/jingyaogong/minimind)
+- ⭐ Star my study notes, [minimind-notes](https://github.com/joyehuang/minimind-notes)
+- 💬 Leave a comment with your own learning takeaways
+- 🔗 Share it with other friends learning about LLMs

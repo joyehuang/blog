@@ -1,0 +1,647 @@
+---
+title: 'Understanding Attention: From Q, K, V to Multi-Head'
+description: 'A deep dive into Attention, the Transformer''s core engine: grasp Q, K, V via a database-query analogy, master Multi-Head, and clear up Softmax vs RMSNorm.'
+publishDate: 2025-12-18 00:00:00
+tags: ['LLM', 'Transformer', 'MiniMind', 'Attention', 'Multi-Head']
+language: en
+translationKey: '20251218---attention-mechanism/post'
+---
+
+> This is the third post in my MiniMind learning series, a deep dive into Attention — the core engine of the Transformer. I'll use a database-query analogy to give you a thorough understanding of what Q, K, V actually mean, walk you through implementing Multi-Head Attention, and clear up the common confusion between Softmax and RMSNorm.
+
+## About this series
+
+[MiniMind](https://github.com/jingyaogong/minimind) is a concise but complete large-language-model training project, covering the full pipeline from data processing to model training to inference deployment. While working through it, I distilled the key technical points into my [minimind-notes](https://github.com/joyehuang/minimind-notes) repo and produced this four-part series of blog posts that systematically explain the core components of the Transformer.
+
+This series covers:
+1. **Normalization** — why we need RMSNorm
+2. **RoPE positional encoding** — how to make the model understand word order
+3. **Attention** (this post) — the core engine of the Transformer
+4. **FeedForward and the full architecture** — how the components work together
+
+---
+
+## 1. Introduction
+
+### 1.1 The soul of the Transformer
+
+If the Transformer is a building:
+- **Normalization (RMSNorm)** is the foundation — it stabilizes training
+- **Positional encoding (RoPE)** is the coordinate system — it distinguishes positions
+- **Attention** is the core engine — it understands meaning ⭐
+
+Without Attention, there is no Transformer.
+
+### 1.2 Questions this post answers
+
+- What exactly are Q, K, and V? (It's not magic!)
+- Why split into 8 heads?
+- What's the difference between Softmax and RMSNorm? (a common point of confusion)
+- How does Attention work together with RoPE?
+- How do the dimensions change in Multi-Head Attention?
+
+### 1.3 Who this is for
+
+- You've heard of Attention but don't understand the computational details
+- You want to grasp the Multi-Head mechanism at the code level
+- You're getting ready to implement your own Transformer
+- You're not afraid of the math (this post explains it in detail)
+
+---
+
+## 2. The essence of Attention: relevance between words
+
+### 2.1 The core question
+
+> "When understanding a word, which other words in the sentence should we pay attention to?"
+
+**Example**:
+```
+Sentence: "Xiaoming loves his cat; it always sleeps by the window"
+
+When the model interprets the word "it":
+  "it" ← "Xiaoming"  relevance: 0.1   (unlikely — a pronoun rarely refers to a name)
+  "it" ← "loves"     relevance: 0.05  (almost unrelated)
+  "it" ← "cat"       relevance: 0.8   (highly relevant!) ✅
+  "it" ← "window"    relevance: 0.05  (almost unrelated)
+
+Final representation of "it" = 0.1×[Xiaoming] + 0.05×[loves] + 0.8×[cat] + 0.05×[window]
+                             ≈ mostly information from "cat"
+```
+
+**What Attention does**:
+1. **Compute relevance scores** (between every pair of words)
+2. **Normalize them into a probability distribution** (Softmax — they sum to 1)
+3. **Take a weighted sum** (fuse in the context)
+
+
+### 2.2 Input vs output
+
+```python
+# Input: isolated word vectors (each word knows nothing about its context)
+input = [
+    [768-dim vector for "I"],         # doesn't know whether "love" or "hate" comes next
+    [768-dim vector for "love"],      # doesn't know who the subject or object is
+    [768-dim vector for "programming"] # doesn't know whether it's loved or hated
+]
+
+# Attention processing
+
+# Output: word vectors that have absorbed the context
+output = [
+    [new vector for "I"],          # now knows: "I" is the subject of the action "love"
+    [new vector for "love"],       # now knows: it connects "I" and "programming"
+    [new vector for "programming"] # now knows: it's the object of the action "love"
+]
+```
+
+### 2.3 Self-Attention vs Cross-Attention
+
+**Self-Attention (used by MiniMind)**:
+```python
+# The sentence attends to words "within itself"
+sentence = "I love programming"
+# Compute the relevance among: I ← → love ← → programming
+```
+
+**Cross-Attention (used by translation models)**:
+```python
+# Sentence A attends to sentence B
+chinese = "我爱编程"
+english = "I love programming"
+# Compute: "我" ← "I", "爱" ← "love", "编程" ← "programming"
+```
+
+**Why is it called "Self"**?
+- Because it computes relationships **within the same sentence**
+- Not "a token with itself" (even though q_i · k_i is also computed)
+
+---
+
+## 3. Q, K, V in detail: the database-query analogy
+
+### 3.1 The classic analogy: a database query
+
+The best way to understand Q, K, V is to compare them to a SQL query:
+
+```sql
+SELECT value          ← return the Value
+FROM memory_bank      ← the memory bank (all the words)
+WHERE key MATCHES query  ← the Key matches the Query
+```
+
+**The correspondence**:
+
+| SQL concept | Attention concept | Role | Analogy |
+|---------|---------------|------|------|
+| **Query** | Query (Q) | "What information am I looking for?" | search condition |
+| **Key** | Key (K) | "What information do I have here?" | index label |
+| **Value** | Value (V) | "My actual content" | data value |
+
+### 3.2 A concrete example: understanding "love"
+
+Sentence: "I love programming"
+
+**When interpreting the word "love"**:
+
+1. **Query (what "love" wants to know)**: Who are the subject and object? What action am I expressing?
+
+2. **Keys (what information the other words offer)**:
+   - Key("I") = "I'm the subject, a first-person pronoun"
+   - Key("programming") = "I'm the object, denoting an activity"
+
+3. **Compute similarity**:
+   - Q of "love" · K of "I" = 0.6 (moderately relevant)
+   - Q of "love" · K of "programming" = 0.8 (highly relevant!)
+
+4. **Softmax normalization**: `[0.25, 0.15, 0.60]` (60% attention on "programming")
+
+5. **Weighted sum of Values**:
+   - New representation of "love" = 0.25×Value("I") + 0.15×Value("love") + 0.60×Value("programming")
+   - It has absorbed the context and knows it connects "I" and "programming"
+
+
+### 3.3 Where do Q, K, V come from?
+
+**The key insight**: Q, K, and V all come from the **same input X**, transformed by **different weight matrices**!
+
+```python
+# Input X: [3, 768] (3 words, each 768-dimensional)
+# Weight matrices W_Q, W_K, W_V: [768, 768]
+
+Q = X @ W_Q  # Query: "What do I want to know?"
+K = X @ W_K  # Key:   "What information do I have?"
+V = X @ W_V  # Value: "My actual content"
+```
+
+**Same dimensions, different meanings.** The three matrices transform the input into three different "perspectives."
+
+### 3.4 What the weight matrices really are
+
+**A common question**: "Where do W_Q, W_K, W_V come from?"
+
+**The answer**:
+- **What they are**: learnable parameters of the neural network
+- **Where they come from**: learned from training data via backpropagation
+- **Where they're stored**: saved in the model file (.pth, .safetensors)
+- **What they do**: transform the input into three different "perspectives"
+
+In MiniMind they are three `nn.Linear` layers (`q_proj`, `k_proj`, `v_proj`). After training, W_Q learns to extract "query features," W_K learns to extract "index features," and W_V learns to extract "content features."
+
+---
+
+## 4. The Attention computation pipeline
+
+### 4.1 The full formula
+
+```
+Attention(Q, K, V) = softmax(Q @ K^T / √d_k) @ V
+```
+
+This single formula captures the entire Attention mechanism!
+
+### 4.2 Step by step
+
+**Step 1: Compute similarity (dot product)**
+```python
+scores = Q @ K.T  # [seq_len, seq_len]
+# scores[i, j] = Q[i] · K[j] (the more similar two vectors are, the larger the dot product)
+```
+
+**Step 2: Scale (divide by √d_k)**
+```python
+scaled_scores = scores / math.sqrt(head_dim)
+```
+**Why scale?** The larger the dimension, the larger the dot products. Without scaling, Softmax becomes too "peaked" and the gradients vanish. After scaling, the distribution is smoother and the gradients are more stable.
+
+**Step 3: Softmax normalization**
+```python
+attn_weights = softmax(scaled_scores, dim=-1)
+```
+This turns the scores into a probability distribution: every weight is ≥ 0, each row sums to 1, and the result can be read as "how much attention" to pay.
+
+**Step 4: Weighted sum of Values**
+```python
+output = attn_weights @ V
+```
+For example: new representation of "love" = 0.29×Value("I") + 0.36×Value("love") + 0.25×Value("programming")
+
+
+### 4.3 Full code implementation
+
+```python
+def attention(Q, K, V, mask=None):
+    head_dim = Q.shape[-1]
+
+    # 1-2. Compute similarity and scale
+    scores = (Q @ K.transpose(-2, -1)) / math.sqrt(head_dim)
+
+    # 3. Apply the mask (optional, for causal attention)
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, -1e9)
+
+    # 4-5. Softmax + weighted sum
+    attn_weights = F.softmax(scores, dim=-1)
+    output = attn_weights @ V
+
+    return output, attn_weights
+```
+
+---
+
+## 5. Multi-Head Attention
+
+### 5.1 Why do we need multiple heads?
+
+**The limitation of a single head**: it can only attend to one aspect.
+
+Sentence: "Xiaoming studies artificial intelligence at Tsinghua University in Beijing"
+
+**A single-head Attention might only attend to**:
+- Subject-verb-object relations (grammar)
+
+**But we want to attend to all of these at once**:
+- Grammatical structure (subject-verb-object)
+- Entity relations (Xiaoming–Tsinghua)
+- Geographic location (Tsinghua–Beijing)
+- Topic domain (artificial intelligence)
+- Semantic relevance (studies–artificial intelligence)
+- ...
+
+**The solution**: Multi-Head Attention!
+
+### 5.2 The "multiple pairs of glasses" analogy
+
+```
+Head 1: grammar glasses 👓
+  → attends to subject-verb-object relations and syntactic structure
+
+Head 2: entity glasses 🕶️
+  → attends to names of people, places, and organizations
+
+Head 3: semantic glasses 👓
+  → attends to synonyms and related concepts
+
+Head 4: long-range-dependency glasses 🕶️
+  → attends to words that are far apart but related
+
+Head 5: sentiment glasses 👓
+  → attends to emotional and attitudinal words
+
+...
+
+Head 8: topic glasses 🕶️
+  → attends to topics and domain vocabulary
+
+Finally: take off all the glasses and fuse the 8 perspectives!
+```
+
+
+### 5.3 The Multi-Head implementation pipeline
+
+```python
+# MiniMind configuration
+hidden_size = 768
+num_heads = 8
+head_dim = hidden_size // num_heads = 96
+
+# Full pipeline
+Input X: [batch, seq_len, 768]
+  ↓
+Generate Q, K, V: [batch, seq_len, 768]
+  ↓
+Split into 8 heads: [batch, seq_len, 8, 96]
+  ↓
+Transpose: [batch, 8, seq_len, 96]  # makes parallel computation convenient
+  ↓
+Each head computes Attention independently (in parallel)
+  ↓
+Output: [batch, 8, seq_len, 96]
+  ↓
+Transpose back: [batch, seq_len, 8, 96]
+  ↓
+Merge (reshape): [batch, seq_len, 768]
+  ↓
+Output projection: [batch, seq_len, 768]
+```
+
+### 5.4 Code implementation
+
+```python
+class MultiHeadAttention(nn.Module):
+    def __init__(self, hidden_size=768, num_heads=8):
+        super().__init__()
+        self.num_heads = num_heads
+        self.head_dim = hidden_size // num_heads  # 96
+
+        self.q_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.k_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.v_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.o_proj = nn.Linear(hidden_size, hidden_size, bias=False)
+
+    def forward(self, x, mask=None):
+        batch, seq_len, _ = x.shape
+
+        # 1. Generate Q, K, V and split into multiple heads
+        Q = self.q_proj(x).view(batch, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        K = self.k_proj(x).view(batch, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        V = self.v_proj(x).view(batch, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        # [batch, num_heads, seq_len, head_dim]
+
+        # 2. Compute Attention (8 heads in parallel)
+        scores = (Q @ K.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        attn_weights = F.softmax(scores, dim=-1)
+        output = attn_weights @ V
+
+        # 3. Merge the heads and apply the output projection
+        output = output.transpose(1, 2).contiguous().view(batch, seq_len, -1)
+        return self.o_proj(output)
+```
+
+### 5.5 Tracking the dimensions
+
+```
+Input: [batch, seq_len, 768]
+  → Q, K, V: [batch, seq_len, 768]
+  → Split + transpose: [batch, 8, seq_len, 96]
+  → Attention: [batch, 8, seq_len, 96]
+  → Merge: [batch, seq_len, 768]
+  → Output projection: [batch, seq_len, 768]
+
+Key invariant: num_heads × head_dim = 768
+```
+
+### 5.6 Why concatenate after splitting?
+
+**Splitting**: lets each head focus on a different aspect
+```python
+# Head 1 learns to attend to grammar
+# Head 2 learns to attend to entities
+# ...
+```
+
+**Concatenating**: fuses the information from all perspectives
+```python
+# Analogy: 8 experts each analyze the same case
+# Each expert writes a 96-word report
+# In the end they're stitched into one 768-word combined report
+```
+
+**Why not just average?**
+- Concatenating preserves all the information (768 dimensions)
+- Averaging would lose information (still only 96 dimensions)
+- The downstream FFN can learn how to fuse this information
+
+---
+
+## 6. A common point of confusion: Softmax vs RMSNorm
+
+### 6.1 A question many people have
+
+> "The Softmax inside Attention and the RMSNorm in the Transformer block are both normalization. What's the difference?"
+
+**This is a common point of confusion!**
+
+### 6.2 The key differences
+
+| Property | Softmax (inside Attention) | RMSNorm (between blocks) |
+|------|------------------------|---------------------|
+| **Location** | **inside** the Attention computation | **before** Attention/FFN |
+| **What it normalizes** | similarity scores (each row of the score matrix) | word vectors (the magnitude of each vector) |
+| **Purpose** | turn them into a probability distribution | stabilize the values, prevent exploding gradients |
+| **Input** | arbitrary scores (-∞ to +∞) | a 768-dim vector |
+| **Output** | values in [0, 1] that sum to 1 | a normalized vector (direction unchanged) |
+| **Formula** | `exp(x_i) / Σexp(x_j)` | `x / sqrt(mean(x²))` |
+| **Scope** | each row is normalized independently | each vector is normalized independently |
+
+### 6.3 Where they sit in the code
+
+```python
+# Transformer Block
+def forward(self, x):
+    # ========== RMSNorm ==========
+    residual = x
+    x = self.input_norm(x)  # ← RMSNorm: normalizes the word vectors
+
+    # ========== Inside Attention ==========
+    Q, K, V = self.q_proj(x), self.k_proj(x), self.v_proj(x)
+
+    # Split into heads...
+
+    scores = Q @ K.T
+    weights = F.softmax(scores, dim=-1)  # ← Softmax: normalizes the scores
+    output = weights @ V
+
+    # ==========  Residual connection ==========
+    x = residual + output
+
+    return x
+```
+
+### 6.4 A detailed side-by-side example
+
+**Softmax example**:
+```python
+# One row of the Attention score matrix
+scores = torch.tensor([2.5, 1.3, 3.7, 0.8])
+
+# Softmax normalization
+weights = F.softmax(scores, dim=-1)
+print(weights)
+# Output: tensor([0.1722, 0.0518, 0.5678, 0.0082])
+# Characteristics:
+# - all values are in [0, 1]
+# - they sum to 1
+# - the large ones grow larger (3.7 → 0.5678, accounting for 56.78%)
+```
+
+**RMSNorm example**:
+```python
+# One word vector
+x = torch.tensor([2.5, 1.3, 3.7, 0.8])
+
+# RMSNorm normalization
+rms = torch.sqrt((x ** 2).mean())
+x_norm = x / rms
+print(x_norm)
+# Output: tensor([1.0698, 0.5563, 1.5833, 0.3424])
+# Characteristics:
+# - values can be any positive or negative number
+# - RMS ≈ 1
+# - direction unchanged (only the magnitude is scaled)
+```
+
+
+### 6.5 A mnemonic
+
+```
+Softmax: normalizes a "score distribution" → turns it into probability weights
+RMSNorm: normalizes a "vector's magnitude" → stabilizes training
+
+Completely different kinds of normalization!
+Different location, different purpose, different formula!
+```
+
+---
+
+## 7. How RoPE is applied within Attention
+
+### 7.1 Where it's applied
+
+RoPE is applied after Q and K are generated but before Attention is computed:
+
+```python
+def forward(self, x, position_embeddings):
+    # 1. Generate Q, K, V
+    Q = self.q_proj(x)
+    K = self.k_proj(x)
+    V = self.v_proj(x)
+
+    # 2. Split into heads
+    Q = Q.view(batch, seq_len, num_heads, head_dim)
+    K = K.view(batch, seq_len, num_heads, head_dim)
+    V = V.view(batch, seq_len, num_heads, head_dim)
+
+    # 3. Transpose
+    Q = Q.transpose(1, 2)  # [batch, num_heads, seq_len, head_dim]
+    K = K.transpose(1, 2)
+
+    # 4. ⭐ Apply RoPE (only to Q and K)
+    cos, sin = position_embeddings
+    Q, K = apply_rotary_pos_emb(Q, K, cos, sin)
+
+    # 5. Compute Attention
+    scores = Q @ K.transpose(-2, -1) / sqrt(head_dim)
+    attn = softmax(scores, dim=-1)
+    output = attn @ V
+
+    return output
+```
+
+### 7.2 Why rotate only Q and K?
+
+Recall what I covered earlier:
+
+**The reason**:
+- Q and K compute **similarity** → they need positional information
+- V represents **content** → it doesn't need positional information
+
+**The flow**:
+```
+1. scores = Q @ K.T  ← compute similarity (needs position)
+2. weights = softmax(scores)
+3. output = weights @ V  ← weighted sum of content (doesn't need position)
+```
+
+**Analogy**:
+- Q and K are "map coordinates" → they need RoPE
+- V is the "treasure content" → it doesn't need RoPE
+
+---
+
+
+## 8. Hands-on experiments
+
+The full learning materials are open source, so you can run them and verify everything yourself:
+
+```bash
+# Clone the code
+git clone https://github.com/joyehuang/minimind-notes
+cd minimind-notes/learning_materials
+
+# Experiment 1: the basics of Q, K, V
+python attention_qkv_explained.py
+
+# Experiment 2: implementing Multi-Head Attention
+python multihead_attention.py
+
+# Experiment 3: Softmax vs RMSNorm
+python softmax_vs_rmsnorm.py
+```
+
+---
+
+## 9. Summary
+
+### 9.1 Key takeaways
+
+- ✅ **The essence of Attention**: compute relevance between words and fuse in the context
+- ✅ **Q, K, V**: a database-query analogy, not magic
+- ✅ **Weight matrices**: parameters learned through training, stored in the model file
+- ✅ **The 4-step pipeline**: similarity → scaling → Softmax → weighted sum
+- ✅ **Multi-Head**: 8 pairs of glasses looking at the same sentence, fusing multiple perspectives
+- ✅ **Softmax ≠ RMSNorm**: completely different kinds of normalization, different location and purpose
+- ✅ **RoPE is only for Q and K**: similarity needs position, content doesn't
+
+### 9.2 The 4-step Attention pipeline (to memorize)
+
+```
+1. Q @ K.T          → compute similarity
+2. / √d             → scale
+3. softmax(...)     → normalize into probabilities
+4. @ V              → weighted sum
+```
+
+### 9.3 The Multi-Head dimension changes (to memorize)
+
+```
+[batch, seq, 768]
+  → generate Q, K, V
+  → split into 8 heads: [batch, seq, 8, 96]
+  → transpose: [batch, 8, seq, 96]
+  → Attention (in parallel)
+  → transpose back: [batch, seq, 8, 96]
+  → merge: [batch, seq, 768]
+```
+
+### 9.4 Key code locations (MiniMind)
+
+- Attention implementation: `model/model_minimind.py:140-220`
+- Q, K, V projections: `model/model_minimind.py:159-161`
+- RoPE application: `model/model_minimind.py:182`
+- Learning example: `learning_materials/attention_qkv_explained.py`
+
+### 9.5 Going further
+
+1. **GQA (Grouped Query Attention)**:
+   - MiniMind uses GQA (`num_key_value_heads=2`)
+   - Saves memory and speeds up inference
+
+2. **Flash Attention**:
+   - Optimizes Attention's computation and memory access
+   - 2-3× faster training
+
+3. **Sparse Attention**:
+   - Not every word needs to attend to every other word
+   - An optimization for long-text scenarios
+
+---
+
+## 10. References
+
+**Papers**:
+- [Attention Is All You Need](https://arxiv.org/abs/1706.03762) — the original Transformer paper
+- [GQA: Training Generalized Multi-Query Transformer](https://arxiv.org/abs/2305.13245) — the GQA paper
+- [FlashAttention: Fast and Memory-Efficient Exact Attention](https://arxiv.org/abs/2205.14135)
+
+**Code**:
+- MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
+- Attention implementation: `model/model_minimind.py:140-220`
+
+**Other posts in this series**:
+- [Part 1: Normalization](/en/blog/20251216---normalization/post)
+- [Part 2: RoPE positional encoding](/en/blog/20251217---rope-position-encoding/post)
+- [Part 4: FeedForward and the full architecture](/en/blog/20251219---feedforward-transformer-block/post)
+
+---
+
+**Author**: joye
+**Published**: 2025-12-29
+**Last updated**: 2025-12-29
+**Series**: MiniMind learning notes (3/4)
+
+If you found this helpful, feel free to:
+- ⭐ Star the original project [MiniMind](https://github.com/jingyaogong/minimind)
+- ⭐ Star my learning notes [minimind-notes](https://github.com/joyehuang/minimind-notes)
+- 💬 Leave a comment with what you've learned
+- 🔗 Share it with other friends learning about LLMs

@@ -1,0 +1,567 @@
+---
+title: 'I Grilled Another Agent Candidate: 46-Minute Mock Interview'
+description: 'A 46-minute 1v1 Agent engineer mock interview: deep-diving two personal projects, plus RAG, Agent evaluation, Skills, MCP, prefix caching, and Q&A.'
+publishDate: 2026-05-28 00:00:00
+tags: ['Agent', '面试', 'LLM', 'AI', '模拟面试', '求职', 'RAG']
+language: en
+translationKey: '20260528---agentmockinterviewreview/post'
+---
+
+import WechatReveal from '@/components/WechatReveal.astro'
+
+> Date: May 28, 2026 | Duration: 46 min 41 sec
+> Interviewer: Joye (me) | Candidate: H
+> Format: paid mock interview · built around two personal Agent projects + Agent fundamentals + a reverse-question/debrief round
+>
+> Author: Joye | [joyehuang.me](https://www.joyehuang.me) | [GitHub](https://github.com/joyehuang) | WeChat `joye050604`
+
+---
+
+## Before we start
+
+My last post, [*A 1-Hour-19-Minute Agent Engineer Mock Interview*](/en/blog/20260512---agentmockinterview/post), was also a debrief from **my seat as the interviewer** — except that one had two interviewers, whereas this time it was just me grilling H one-on-one.
+
+H booked a paid mock interview, targeting an Agent engineer role. I ran it at the same intensity as a real interview — digging deep into the two personal projects on his résumé, then filling in Agent fundamentals in the back half, and finally reserving nearly 20 minutes for a debrief and some sharing.
+
+Compared with the last post, this one is more focused on the **deep-dive-into-projects + exposing-fundamentals-gaps** thread. The back-half material — reverse questions, the "vibe coding gear" playbook, résumé advice — is stuff I cover in every interview, but I always tune it to the candidate's weak spots. This time I specifically reinforced the areas H couldn't answer (RAG, Agent evaluation, the engineering tradeoffs around prefix caching).
+
+> ⚠️ Annotation key for this post:
+>
+> - 🟢 **H answered well** | 🟡 **H answered partially / off-target** | 🔴 **H couldn't answer / got it wrong**
+> - 💡 **= the standard answer / correct line of thinking I gave on the spot**
+> - 🔧 **= corrections I made afterward against Anthropic's official docs** (I did a pass before publishing; there were a few spots where I wasn't precise enough during the interview either, and I'm flagging them honestly — knowledge moves so fast that this is just the nature of the field)
+
+---
+
+## Part 1 · Project One: a long-term personal assistant Agent
+
+> H's project is similar to [Hermes](/en/archive/0526-hermes-fts5-session-search) — a long-term personal AI Agent deployed on EC2, centered on a memory system (consolidation + memory.md) and prefix-cache optimization. This was H's strongest area, so I probed it the deepest.
+
+### 1.1 How often does consolidation (memory distillation) trigger? 🟢
+
+**My question: You said you do consolidation. After each conversation, how frequently does consolidation run? How do you decide?**
+
+H's answer:
+
+- Consolidation isn't triggered on a time basis, but **on a "new-information-count" threshold**.
+- He set a threshold on the count of new information; once it's hit, consolidation triggers once.
+- The information counted toward that total has three parts: **① the user's input ② the assistant's output after the ReAct loop ③ some tool output**.
+- Once the accumulated count reaches a certain number, consolidation runs a round of summarization.
+
+### 1.2 What exactly is the input to consolidation? 🟢
+
+**I confirmed repeatedly: The stuff you feed in includes both assistant messages and user messages, right? You consolidate both of them?**
+
+H's answer:
+
+- **Everything goes in** — user messages and the AI's responses are both added to the running total.
+- The consolidation step uses a **separate LLM (large language model)** of its own.
+- It **extracts some long-term facts and the like** from this information, then stores them in a memory-like DB.
+
+### 1.3 Is consolidation a standalone agent? 🟡
+
+**My question: So is this consolidation done by another standalone agent with its own system prompt?**
+
+H's answer:
+
+- It shouldn't count as an agent; it's just **a very simple tool call**.
+
+**I pressed: Does this consolidation step live inside your main conversation agent, or somewhere else? Who initiates the API call that runs consolidation — the main agent, or that extra standalone module?**
+
+H's answer:
+
+- **Not the main agent.** It's **a fixed process hardcoded into the workflow**.
+- At the end of a ReAct loop, it makes a judgment about whether to trigger consolidation.
+
+> 🟡 **My debrief**: H's phrasing here was a bit tangled, and it took me several follow-ups to nail down "who actually initiates the API call." His design is actually correct — consolidation is a fixed step in the workflow, independent of the main conversation agent, triggered by orchestration logic that checks the threshold at the end of each ReAct loop, using a separate LLM call (with a dedicated extraction prompt). He just didn't articulate it cleanly. **Clarity of expression is itself an interview criterion** — especially when the interviewer is probing a core ownership question like "who initiates the call," a vague answer makes people wonder whether you actually implemented it yourself.
+
+### 1.4 What happens when the context overflows? 🟡
+
+**My question: People usually handle context overflow. How do you handle it on your end?**
+
+H's answer (two parts):
+
+- Inside the ReAct loop, after each call he runs a check, hanging a test: **whether it has hit 80% of the context window**.
+- The history isn't summarized-after-it-overflows; instead, **history holds a fixed number of entries** that stay fixed — pulling the latest N rounds from the full record into the prompt.
+- If it overflows, he **just deletes**: e.g. cut from 40 entries straight down to 20, and if that's still not enough, down to 10.
+- Summarization is **already handled in consolidation** (consolidation summarizes this information and stores it in the memory base), so he **doesn't do a separate summarization for "overflow" — the two are kept separate**.
+
+**I pressed: Why just delete?** 🔴
+
+> 🔴 **H couldn't answer.**
+>
+> 💡 **My standard line of thinking at the time**: The biggest problem with FIFO-deleting old messages is **information loss** — the rounds you cut may contain key facts that later turns still need to reference. A better approach:
+>
+> - Before cutting, do a **summarization-compression** pass (compress the old rounds you're about to drop into 1-2 summary lines that stay in context) instead of mindlessly deleting.
+> - But summarization introduces a **prefix-cache-invalidation** cost (see 1.6), so engineering-wise it's a tradeoff.
+> - Actually, there's a good reason H's project gets away with deleting directly — because consolidation has already extracted the long-term facts into storage, so what gets deleted is only the short-term conversation. He could absolutely have raised this argument himself, but in the moment he didn't realize he needed to connect "my consolidation design already provides a backstop" with "so deleting directly is reasonable." **This is the classic case of "did the right thing but can't explain it."**
+
+### 1.5 Is memory.md fixed-length, or can it grow without bound? 🟢
+
+**My question: Is your memory.md (the user-profile document) fixed-length, or can it keep growing?**
+
+H's answer:
+
+- memory.md is tied to the **padding layer (the cache layer)**.
+- If it gets updated at the end of every conversation, **the cache won't hit**.
+- So consolidation **asynchronously writes** the long-term user preferences, profession/job info, etc. **into the padding-layer file**.
+
+**My question: Does this document have a cap? Like, only so many entries? Or can it accumulate indefinitely?**
+
+H's answer:
+
+- It **has no cap set**.
+- Because it's not all dumped into the prompt — there's **a retrieval round** that pulls out the relevant info before injecting it into the prompt, so **overflow shouldn't be a concern**.
+
+### 1.6 "memory.md in the middle of the prompt" = full injection? 🟡
+
+**My question (asking against his résumé/project doc): You wrote "memory.md, as the user profile, sits in the middle of the prompt." Do you put the entire memory.md in there?**
+
+H's answer:
+
+- **Not the whole thing** — what's written there is wrong (the résumé/doc phrasing is inaccurate).
+- In the actual project it should be **a retrieval round first**, then "memory retrieval results + user profile" both get injected — what goes in is the relevant portion that was retrieved.
+
+> 🟡 **My debrief**: This is a textbook **résumé landmine**. The wording on the résumé/doc ("sits in the middle of the prompt") didn't match the real implementation (inject-after-retrieval), and I caught it on the spot. **Every single sentence on your résumé has to map to a real implementation, otherwise it's a vulnerability that will get dug into** — especially since an Agent-track interviewer will almost certainly latch onto every technical term you wrote and grill you on the implementation details.
+
+### 1.7 Should memory.md have a cap? (open design question) 🟢
+
+**My question: Suppose, like [Hermes agent](/en/archive/0526-hermes-fts5-session-search), memory.md is fixed-length and stuffed in full into the system prompt. I give you two choices — ① with a cap (say 3000 tokens) ② can grow without bound. Which do you think works better?**
+
+H's answer:
+
+- I think **a cap is better**.
+- Because unbounded growth wastes resources no matter what, and may contain duplicate information, which means **the model can't focus its attention**.
+
+🟢 The direction here is right (a cap is better).
+
+### 1.8 You have a cap, but a genuinely useful new memory comes in — now what? 🟢
+
+**I pressed: If there's a cap and I've already hit it, but I now detect a genuinely useful memory that needs to be stored, what do you do?**
+
+H's answer:
+
+- First do **dedup detection** — which existing memories does the new one overlap with, and is there any overlap at all.
+- If business needs require a real-time update, update it in.
+- If there's no overlap, **merge (consolidate)** with the existing content — merge what can be merged, **rather than dumping it in verbatim**.
+
+**I pressed: Do you think merging is a good operation?**
+
+H's answer:
+
+- Merging **will definitely cause information distortion**.
+- But if there's a token-count limit, I think **merging is a necessary operation** (distortion is an acceptable price paid for space).
+
+🟢 This set was well answered — he gave both a plan (dedup → update/merge) and pointed out the trade-off (merge vs. distortion). This is an answer structure I appreciate: **a plan plus a tradeoff**.
+
+### 1.9 Any more techniques to improve the prefix cache? 🟢
+
+**My question: For prefix cache, what other techniques do you have to improve it?**
+
+H's answer:
+
+- Core idea: **find the parts of each conversation round that don't change**, and put the unchanging content where the prefix cache can hit, to cut token consumption.
+- Example: if the user profile **updates frequently**, it definitely won't hit the cache; but if it's **updated asynchronously on a schedule via a function** (so it changes infrequently), it can go in the cache-hit region.
+- So it's a **relative, depends-on-how-you-set-it-up** problem — separate volatile content from stable content, and front-load the stable part as much as possible.
+
+🟢 Well answered — he caught the core of "front-load the stable, update the volatile asynchronously."
+
+### 1.10 In Plan mode, how do you avoid breaking the prefix cache? (Claude Code scenario) 🔴
+
+**My question: You know Claude Code / Codex has a Plan mode, right? In Plan mode we want to restrict tools — it can't have edit permissions. But I also want to guarantee the prefix cache stays alive, so I can't change the tool list (otherwise switching from plan mode back to work mode would invalidate the cache). How do you handle this?**
+
+> 🔴 **H started with "I genuinely don't know this one."**
+> Then he tried to answer, but his thinking was wrong — he assumed "the tools visible each round change, and you reassemble the currently active tools on every call."
+>
+> I corrected him on the spot: **if the tools differ, the prefix cache invalidates.** His résumé also says "40+ tools, full schema injection," and that tool schema should sit in the prefix-cache section and **be touched as little as possible**.
+>
+> H even pushed back, saying "the prefix-cache section and this are separate; the tools section is rewritten every time" — which is actually his project's design, but I'd argue that design **is wasteful instead**.
+
+💡 **The standard answer (I wasn't precise enough live; filling it in here based on [Anthropic's official blog *Lessons from building Claude Code: Prompt caching is everything*](https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything))**:
+
+- What Claude Code does: **the tool list is completely identical in plan and non-plan mode, byte-identical, with no disable flags or schema changes whatsoever.**
+- The way Plan mode is implemented: **`EnterPlanMode` and `ExitPlanMode` themselves exist as two tools in the tool list.** When the model calls `EnterPlanMode`, a `<system-reminder>` is injected via the tool result (appended as a subsequent message, rather than modifying the system prompt), telling the model "you're in plan mode now, you MUST NOT do any edits."
+- This is a **"soft-constraint / trust-based" design** — the model can still physically call Edit, Bash, and all other tools; it's just been explicitly instructed "don't use them right now." By contrast, GitHub Copilot's plan mode **physically removes 43 tools** (a hard constraint); Claude Code chose to keep all the tools + constrain behavior with a system reminder, **for the core purpose of not blowing through the prefix cache.**
+- A related design worth adding: Claude Code also has a **[`defer_loading` tool-search mechanism](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)** — a large set of MCP tools isn't injected with full schemas; instead only lightweight stubs are sent (just the tool name + `defer_loading: true`), and the model "discovers" and loads full schemas on demand via the tool-search tool. This is another way to protect prefix-cache stability.
+- The core principle: **Tools are part of the cache prefix; any change to a tool schema blows through the entire cache — so engineering-wise, everything revolves around "the tool list never changes."**
+
+> 🔧 **My own correction on review**: During the interview I said "marked as disabled / inert," which isn't entirely accurate — Anthropic's actual approach is to **leave the tool list completely untouched and switch modes via the extra EnterPlanMode/ExitPlanMode tools + a system-reminder soft constraint.** The direction was right (both are about preserving the prefix cache), but I got the specific implementation detail slightly off. This is also a reverse example — **as the interviewer, you have to be willing to admit when you weren't precise; knowledge moves too fast.**
+
+---
+
+## Part 2 · Project Two: a music-radio Agent
+
+> Core: a song semantic-retrieval pipeline + vector recall + async TTS narration, packaged into an "interactive radio experience."
+
+### 2.1 Which vector database do you use? Looked into others? 🟡
+
+**My question: Your project implements a song semantic-retrieval pipeline and vector recall — which vector database do you use? Have you looked into others?**
+
+H's answer:
+
+- He uses something very lightweight: **SQLite**.
+- He's heard of **Neoverse / the Neo family** (a slip of the tongue; he probably meant some other vector store).
+- And **PostgreSQL (PGSQL) probably has a vector store too** (meaning pgvector) — he'd seen it before.
+
+> 🟡 **My debrief**: His knowledge of vector stores is clearly thin. The common ones should roll off the tongue: **Pinecone, Milvus, Qdrant, Weaviate, Chroma, pgvector, FAISS**, etc., along with their respective use cases (local/cloud, scale, whether hybrid retrieval is needed). I didn't keep pushing, because he couldn't answer the RAG pain points at all afterward, so I just skipped this part.
+
+### 2.2 The biggest difficulty in vector recall / the biggest pain point of RAG? 🔴
+
+**My question: What do you think is the biggest difficulty in the vector-recall process? Or what do you think is the biggest pain point of RAG technology today?**
+
+> 🔴 **H couldn't answer.** He only said "it might recall some irrelevant stuff," and for pain points he "hasn't really looked into it."
+>
+> 💡 I've put the complete answer to this in the big RAG primer in Part 4 (in the debrief I added a whole section on this), see 4.5.
+
+### 2.3 What is the "120-second black-box wait"? How did you solve it? 🟢
+
+**My question (pointing at his résumé): You wrote here "unsolved / agent's synchronous 120-second black-box wait" and "users can confirm or skip after each round of recommendation, paired with async TTS" — what is this?**
+
+H's answer:
+
+- The problem: the whole pipeline is **generated as one chunk**. If you pick a song, you have to wait for the entire pipeline to finish generating before it returns, so the user has to **sit there waiting** (the 120-second black box).
+- His fix: **it tells you the song as soon as it generates one**; if you decide to add it to the upcoming playlist, you click "confirm" and it's added to the playlist, with **the subsequent steps pushed to the background.**
+- This turns "synchronous waiting on a long pipeline" into "**return first + user confirms + process asynchronously in the background**," eliminating the black-box wait.
+
+🟢 After hearing this I said "oh, I get it" — this async interaction design is the highlight of Project Two, and he explained it clearly.
+
+> After that I stopped asking about Project Two, my exact words: **"I feel like there's nothing worth asking about the project — let's do fundamentals."** → Project Two lacked depth overall and got skipped through quickly. This is also a hint: **if a project has only one highlight, ten minutes is enough to grill it dry**; a project that genuinely holds up to grilling needs at least 3-5 design decisions you can discuss in depth.
+
+---
+
+## Part 3 · Agent fundamentals
+
+### 3.1 How does an Agent become aware that Skills exist? 🟡→🔴
+
+**My question: Skills — how does an agent become aware that skills exist?**
+
+H's answer:
+
+- There should be a **front-end option**, like how in a client you can toggle some skills on or off.
+- During use, you definitely don't dump them all in; you put some of their **describe (description)** in, and if you think this round of conversation will need it, you read out the full skill like calling a tool.
+
+> 🟡→🔴 My on-the-spot verdict: **"Said a lot, didn't hit the point."**
+
+💡 **The standard answer I gave (verified against the [official Claude Skills docs](https://platform.claude.com/docs/en/agents-and-tools/skills/overview), mostly accurate)**:
+
+- A skill has a **fixed template**, and **the first three lines are its frontmatter** — containing its **name** and **description**.
+- **This part (name + description) is loaded into the system prompt at session startup** — so the LLM can "see" the existence of all skills from the start. In Anthropic's own words: "Provides just enough information for Claude to know when each skill should be used without loading all of it into context."
+- Only once the LLM decides which skill to use does it **load the full body of SKILL.md into context via a file read (bash Read)** (the second level of progressive disclosure).
+- If SKILL.md further references specific files under references/ or scripts/, the model can **load them on demand one more level (the third level)**. This is why a project can mount dozens of skills with tiny startup overhead — each skill only costs ~30-60 tokens (frontmatter) at startup.
+- **Conclusion: this puts a lot of weight on how well you write your skill description** — because the model relies on the description to decide "should I trigger this skill this round." Write the description imprecisely and the model will either misfire or miss the trigger.
+
+### 3.2 Should a skill's description be long or short? 🟢
+
+**I followed up: Suppose a skill is "do frontend design" — do you think its description should be detailed (long) or concise (short)?**
+
+H's answer:
+
+- **It depends on the skill's internal content:**
+  - If it's **high-level guidance**, write a **brief description** — that way it gets pulled in for reference as long as there's "a bit of relevance."
+  - If it targets a **very specific scenario**, write it **more detailed** — that way it only gets used when a scenario "matches more closely."
+
+🟢 Well answered — he caught the core that "the verbosity of the description determines the granularity at which a skill triggers." He couldn't answer 3.1 but caught 3.2, which shows he actually has a feel for the underlying logic; he just hasn't encountered the concrete implementation.
+
+### 3.3 Do you know Agent Evaluation? 🔴
+
+**My question: Have you looked into the Agent evaluation part at all?**
+
+> 🔴 H flatly said **"haven't really looked into it."** This is one of the key things I told him to fill in (see the debrief checklist in Part 4).
+
+### 3.4 What's the relationship between MCP and Skills? 🟡
+
+**My question: What do you think the relationship is between MCP and Skills?**
+
+H's answer:
+
+- MCP **provides some methods/tools**; a Skill is **a methodology**.
+- The two are a **methodology vs. practice** relationship.
+
+> 🟡 **My debrief**: This answer is fairly vague. A more accurate distinction:
+>
+> - **[MCP (Model Context Protocol)](https://modelcontextprotocol.io/docs/getting-started/intro)**: a **standardized protocol** that lets an agent connect to external tools/data sources (essentially "a standard for plugging in tools/capabilities").
+> - **Skills**: a set of **packaged, progressively loadable capability bundles** (SKILL.md + resources) that solve "when and how to use a certain class of specialized capability."
+> - In short: **MCP solves "what to plug in and how to plug in external capabilities"; Skills solve "in what scenario the model should invoke which packaged approach."** The two can be combined.
+
+### 3.5 To save tokens / cut costs on an Agent project, what methods are there? 🟡
+
+**My question: Suppose a business-research agent whose goal is to save tokens and cut costs — what specific methods do you generally use?**
+
+H's answer (two points):
+
+1. **Progressive tool loading**: don't put all the tools in context; build a **tool-ingestion (retrieval) tool** that progressively pulls out the tools you need.
+2. **Forced formatted output**: add constraints in the prompt so the model outputs **formatted data**, reducing the tokens consumed in interaction (a hard constraint).
+
+**I pressed: Besides relying on the prompt, what other methods are there for hard constraints?**
+
+H's answer:
+
+- Add a **validation layer** after output finishes — validate whether it output in the required format, and **if it doesn't pass, send it back for another round** (retry).
+
+> 🟡 **My debrief**: Both points are correct, but not comprehensive. Other token-saving levers worth adding: **prefix-cache-hit-rate optimization, context compression / summarization, using cheaper models for subtasks (model tiering), retrieval injection instead of full injection, trimming a redundant system prompt, batching, capping max_tokens and reasoning length**, etc. Among these, **model tiering** and **prefix-cache optimization** are the two biggest items, and he didn't bring them up unprompted — a bit of a shame, especially since he's already doing prefix caching in his own project.
+
+### 3.6 Multi-Agent vs. single-Agent — when do you use which? 🟡
+
+**My question: Multi-agent vs. single-agent — in what situations would you use each? Why? Pros and cons?**
+
+H's answer:
+
+- **Projects where the functions can't be cleanly separated → single agent**: e.g. a personal assistant or a radio, where the functions aren't separated, a single agent is enough. Plus **the context is shared across the various calls, so it works better too**.
+- **Big projects where responsibilities are cleanly separated → multi-agent collaboration**: e.g. one side does docs, another writes code, another does review, with each module's function clearly separated; if you merge them all together, **the context gets messy**.
+
+**I pressed: For something like a research workflow (research first → read the literature → draft one → draft two → review), do you think that counts as multi-agent?**
+
+H's answer:
+
+- I think **it probably doesn't / wouldn't use multi-agent**, because **its workflow is fairly fixed** — there's no need for multiple agents to negotiate who goes first, and no need for a master agent to decide which agent to call.
+
+> I didn't reject this; I added "things orchestrated like a workflow" (i.e. a fixed-orchestration workflow is another form, sitting between a single agent and a true multi-agent setup).
+
+**I kept pressing: Besides "separating responsibilities," what other advantages does multi-agent have? Give me one advantage and one disadvantage.**
+
+H's answer:
+
+- **Disadvantage (he said first)**: in multi-agent collaboration, **how to coordinate the interactions between each agent** is a very hard point.
+- **Advantage**: it can accomplish complex tasks.
+
+> 🟡 I rejected the "accomplish complex tasks" advantage, my exact words: **"After all that, all you've said is multi-agent is complex and single-agent is simple."** This is a textbook "looks like an answer but actually says nothing" answer — a single agent plus workflow orchestration can equally accomplish complex tasks, so that's not a differentiating advantage of multi-agent.
+
+💡 **The two core advantages of multi-Agent (my answer + post-hoc refinement)**:
+
+1. **You can swap models / combine multiple models**: for a company project, multi-model is very important —
+   - Different features use different models: **text features, reasoning features, image-generation features** each use the appropriate model.
+   - **The real logic of saving money**: it's not that "multi-agent itself saves money," but that **"multi-agent lets you sensibly use cheap models for grunt work, so you don't pay top-tier-model prices for every subtask."** For example, Claude Code's Research system uses Opus 4 for orchestration and Sonnet 4 for subagents — total token volume goes up, but the per-token price comes down, and on balance it's reasonable.
+2. **You can run things concurrently in the background**: multiple agents can **run at the same time**, saving wall-clock time. A single agent, even on the same task, can only run serially to completion; multi-agent can process things concurrently.
+   - [Anthropic's official data](https://www.anthropic.com/engineering/multi-agent-research-system): their Research system (Opus 4 lead + Sonnet 4 subagents) outperforms a single-agent Opus 4 by **90.2%**, and the core mechanism is exactly **concurrent decomposition + an independent context window per sub-agent.**
+
+> 🔧 **A one-line post-hoc refinement**: In the interview I presented "saving money" as the core advantage of multi-agent, and that point is **strictly speaking skewed** — according to [Anthropic's official data](https://www.anthropic.com/engineering/multi-agent-research-system), a multi-agent system consumes roughly **15×** the total tokens of a single agent; it is by no means a "money-saving" architecture. Its real value is **"spending more tokens to buy better results + shorter wall-clock time,"** and "swapping in cheaper models" is merely an optimization for lowering the per-token cost. So the more precise statement is: **the advantage of multi-agent is concurrent performance and the flexibility of model combination, not absolute cost savings.**
+
+### 3.7 What orchestration / communication patterns does multi-Agent have? 🟡
+
+**My question: Roughly what orchestration or communication patterns does multi-agent have?**
+
+H's answer (three):
+
+1. **Master-slave**: a master agent decides which agent to call right now, with several agents below it in parallel.
+2. **Sequential orchestration**: like a fixed workflow, run the agents in order.
+3. **Loop-style**: like ReAct — run, check, and if it's not done, run another round.
+
+> 🟡 I said "I roughly get what you mean, but it's not quite right," and gave a clearer classification:
+
+💡 **Multi-Agent orchestration / communication patterns (my answer)**:
+
+1. **Call a sub-agent like calling a tool**: the master agent tells the sub-agent what to do and hands it the task. In Claude Code / Codex you'd use a **cheap model** for tasks like searching and reading code, and once the sub-agent is done it returns a **simple summary** to the master agent.
+2. **Agents talk to each other / share a document**: build a **shared intermediate document** and constrain them to "write whatever ideas you have into this document," communicating through the document.
+3. **Peer or hierarchical**: the core is whether there's **a hierarchy** — it can be master-slave, or peer-to-peer.
+
+### 3.8 What are your own techniques for writing code with AI? 🟢
+
+**My question: When you write code with AI yourself, what are your techniques?**
+
+H's answer:
+
+- Have the AI **first produce something like a requirements doc**, so it's clear about what we're doing right now, and **go step by step.**
+- Have it **lay out the work pipeline first, then go do it**, so it's less likely to get halfway through and lose track of what it's doing.
+- Put **repetitive conventions** straight into a file like `CLAUDE.md` as fixed context, so **you don't have to re-declare them each time — it reads them itself.**
+
+🟢 This was answered pragmatically, with real feel for it (requirements-first + pipeline planning + crystallizing conventions in CLAUDE.md). It's an open-ended question with no standard answer, but the way he answered made me feel he'd genuinely used it.
+
+---
+
+## Part 4 · Debrief + reverse-question round (my "exclusive stash")
+
+> After the interview ended, I spent nearly 20 minutes on a debrief and sharing real-world experience. This part is the most valuable content of the whole session for H, and it's also the part I cover in every mock interview but that very few people have written out systematically.
+
+### 4.1 The to-study checklist for H
+
+- 🔴 **RAG**: completely doesn't understand it; his biggest weakness.
+- 🔴 **Agent Evaluation**: needs to fill it in.
+- 🟡 **Newer things like OpenClaw / Hermes / Skills**: skim them lightly, enough to "hold the wall (get by / hold your own)" in an interview.
+- Overall feedback: he was suddenly a bit unfamiliar with his projects (he said himself he'd been fluent on them just two days ago); he needs another pass.
+
+### 4.2 The reverse-question round: be "aggressive"
+
+I've stressed this repeatedly — **your reverse-question time absolutely must be aggressive**, especially when facing a founder / CEO, where you can challenge them directly.
+
+**① Ask directly about product competitiveness (prerequisite: you understand the space and the product)**
+
+- Ask straight up: **"What advantages does your product have over competitors?"**
+- I asked exactly this in my own second-round interview, and discussed it with them for half an hour.
+- The logic: **if a founder isn't even confident in their own product and can't articulate how it differs from competitors, you can write this company off** (they may just be there to bait funding).
+
+**② Ask about the project's release cycle (especially for startups)**
+
+- Get clear on it: is the product **in development, in closed beta (round one / round two of closed beta), or already launched**?
+- By analogy to how games split closed-beta rounds, ask down to the specific stage.
+
+**③ Ask about the business model / revenue projections (note: not everyone is willing to answer)**
+
+- You can ask about next quarter's expected **ARR (annual revenue), MRR (monthly revenue)** magnitude, target user count, target revenue.
+- The revenue model has nuances too: you can't price out of thin air — you look at **competitors' pricing logic** — is it **subscription** or **usage-based (API metering)**.
+
+**④ Ask about team size**
+
+- Ask about the company's total headcount + the engineering team's headcount.
+- Ask **who your mentor will be** — definitely get this clear, because many roles claim to be agent development but **once you're in you do traditional development**, never touching agents.
+
+**⑤ Talk about growth (my personal preference)**
+
+- I like talking about growth and target customers.
+- My view: **an early-stage startup's engineering team doesn't need that many people; what it needs more is a growth team** — building the product isn't the finish line; **how to publicize it and get everyone to know about and use it is what matters.**
+
+### 4.3 How to "soft-handle" questions you can't answer
+
+I shared a few moves for dealing with questions you can't answer:
+
+**① Pivot via "room for improvement"**
+
+- For example, when asked about your memory system, you can say: **"I do think my memory system isn't done that well, and there's a lot of room for improvement."** Then ride that into your thinking.
+
+**② Proactively bring up things not on your résumé**
+
+- I discussed this in the interview — what's written on the résumé **is only 30%-50%**; what I'd rather do in this hour is **draw out the things that aren't on the résumé.**
+- So: **if a project has iterated (it's already at v2, v3, but the résumé is still stuck at v1), you can absolutely bring that up unprompted.**
+- On a cutting-edge topic like memory, you can proactively say: **"I recently read some fairly new papers and have some ideas..."**
+  - Benefit one: it proves you've **thought deeply about the project** and are continuously iterating, rather than finishing it and dumping it on the résumé.
+  - Benefit two: it shows you **follow the frontier.**
+  - ⚠️ But read the room and manage the pacing — I got interrupted plenty of times myself this morning.
+
+**③ For brain-dead fundamentals, just admit it + dissolve it with an AI angle**
+
+- An example I gave: asked "the difference between threads and processes" or "how to do inter-process communication," I just say I **forgot / don't know.**
+- But add: **"There's AI now; if I hit this problem in engineering practice / an internship, I'd definitely use AI to search and solve it. If it's a domain I've never touched at all, I'd worry about a single AI hallucinating, so I could use multi-agent to cross-verify."**
+- This kind of answer **sounds very pleasant and cleverly dodges the brain-dead fundamentals question.**
+- My attitude: **fundamentals questions are brain-dead to begin with; who still asks traditional fundamentals now that there's AI** (but some interviewers still test them, see the résumé advice).
+
+### 4.4 Other questions worth asking in the reverse-question round
+
+**① Ask about the development program (depends on the company, depends on your own performance)**
+
+- Prerequisite: first **assess your performance in this interview.** If even you don't think you're a sure pass, there's no point asking this kind of question — better to ask something else.
+- When you're confident, you can ask: does the company have a **complete intern development program**? Who's the mentor?
+
+**② Reverse-engineer your interview performance via a "challenge question"**
+
+- Ask: **"For the role you're hiring for, what do you think the biggest challenge of the internship would be?"**
+- This kind of question suits big/mid-sized companies (they usually won't directly reveal your performance at the end of the interview).
+- You can **reverse-engineer the interviewer's assessment of today's performance from the answer to this question.**
+
+**③ "Besides money, what else can I get from joining the company?" — ask with caution**
+
+- This question **is better asked once you have plenty of offers**, otherwise it's a bit inappropriate.
+
+### 4.5 The big RAG primer (filling in everything H couldn't answer)
+
+> Because H completely doesn't understand RAG, I gave a whole long section on it. This is the complete RAG knowledge map, and it's the checklist I personally run through every time I prep RAG questions:
+
+**RAG's overall flow has three steps: ① vectorize → ② store in a vector DB → ③ recall. Every step can be dug into.**
+
+**Step one: how to store vectors (vectorization + chunking)**
+
+- **Dimension choice**: more dimensions = more information, but **storage cost is higher too** — that's a trade-off.
+- **Key insight: vector distance is only an "approximation" of semantic distance** (in the interview I said "close vectors ≠ close semantics," which strictly speaking isn't entirely accurate — embedding models are trained precisely to make "close vectors ≈ close semantics"; but **this approximation frequently distorts**: homonyms, negation semantics, domain mismatch, content outside the training distribution all decouple vector distance from true semantic distance. A large part of RAG's pain points hides in this "approximation distortion").
+- **Chunking strategy**:
+  - **chunk size**: the strategy for how big to cut a chunk.
+  - **chunk overlap**: there should be **overlap** between chunks, to avoid "cutting on the dotted line" and breaking the semantics. A common practice is 10-20% overlap (e.g. a 500-token chunk with 50-100 tokens of overlap).
+    - The "apple" example I gave in the interview — the two characters of "苹果" getting split — is strictly not quite right; modern chunking is token-level or character-level and won't actually cleave the two characters of "苹果" apart. **A more accurate example**: "Apple released a new product. This product is powered by the M5 chip" — if you cut between the two sentences, the latter chunk loses its subject, so you can't recall the semantics of "Apple released the M5." That's the real problem overlap solves.
+  - **late chunking**: vectorize **the whole document first** (with a long-context embedding model), then chunk — that way each chunk's embedding "knows" the full-document context and preserves long-range semantic signal.
+  - **how to chunk PDFs / images**: this is a dedicated difficulty (some tools/solutions handle it).
+  - **embedding model selection**: which embedding model to use is also a point you can go deep on.
+
+**Step two: storing (not much to say at the moment)**
+
+**Step three: recall (retrieval), where there's the most to optimize**
+
+- **query optimization**: before the user query comes in, you can do rewriting/expansion.
+- **recall count + rerank**: e.g. recall Top 50 — do you **re-rank**? What's the re-rank based on? All optimizable.
+- **recall quality evaluation (two dimensions)**:
+  - **recall rate (completeness)**: suppose there are 100 correct answers — did you recall all 100?
+  - **ranking quality**: how good is the ordering of what you recalled.
+
+**Engineering level**
+
+- **Model fallback strategy ([LiteLLM](https://www.litellm.ai/))**: run LiteLLM in the project for **model fallback** — if the first model provider goes down, automatically switch to the second.
+
+> 💡 This whole section maps directly to that "biggest pain point of RAG" question in 2.2 that H couldn't answer — **the pain points hide in the trade-offs at every step: close vectors ≠ close semantics, chunk boundaries breaking semantics, recall rate vs. ranking, dimensions vs. cost.**
+
+### 4.6 Treat the interview as "making friends / exchanging ideas," don't get one-sidedly interrogated
+
+- This field is very new, so **an interview can be treated as a chance to make friends** — don't put too much pressure on yourself; go exchange ideas like you're chatting.
+- **Manage the interview's pacing** — don't let it become a one-sided interrogation. **Grilling for the answer itself is pointless**; getting grilled for an hour and not even landing the offer is a pure loss.
+- A reverse-question technique: when the interviewer asks you something (say "what are your vibe coding techniques"), after you answer in three sentences, **turn around and ask the interviewer for their take**: "I'm not too familiar with this; I'd love to hear your insights."
+  - **Flatter them a little** — as long as the interviewer isn't out of their mind, they'll basically be happy to share.
+
+### 4.7 The "gear" techniques for the live vibe coding round
+
+I shared practical techniques for doing screen-shared vibe coding problems:
+
+- **Typical format**: share your screen and vibe code live.
+- **The core mindset: no matter how simple the problem, pile on all the advanced gear.**
+  - Open your **most expensive vibe coding software.**
+  - **Definitely install skills** (never mind whether they're useful — installing them earns you big points with the interviewer).
+  - Or use **MCP** — basically pile on all the fancy stuff.
+  - To install skills, don't install from GitHub; install from **[skills.sh](https://www.skills.sh/)** (that website Vercel put out).
+- **Use the waiting time**: vibe coding has wait time, during which you can **open another model on the side** (Claude / ChatGPT — **don't use Gemini, too bush-league**) and chat about technical choices or search for competitors' solutions.
+- My real case: I was asked to whip up a "video-editing framework" (a project my co-founder and I are building), and during the wait I chatted with the interviewer about other players in the space and searched the web for competitors.
+
+### 4.8 Résumé revision advice (the scattered tips at the end)
+
+- **Put a tech stack on the résumé** (H left it out).
+- **Put professional skills at the bottom and projects up top.**
+- **You can write a bit more for professional skills.**
+- **Get your projects live where possible**: build a website or get it deployed; if all else fails, **put the repo link on there.**
+  - (H's situation: Project Two isn't done yet; he plans to finish it before summer and then attach a link. It's a client tool, possibly with no frontend/backend.)
+- **You still have to memorize some backend fundamentals** — some interviewers (the "moronic interviewers" I griped about) will test them.
+
+---
+
+## One-line summary (my assessment as the interviewer)
+
+| Dimension          | H's performance                                                                                                                                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🟢 Answered well   | the memory-system consolidation mechanism, the stable-front-loading idea for prefix caching, the dedup/merge trade-off for the memory cap, the async interaction design, judging skill-description verbosity, the AI-coding methodology |
+| 🟡 Off / incomplete | tangled phrasing on consolidation, thin vector-store knowledge, vague MCP vs. Skills, incomplete token-saving, didn't fully answer multi-agent advantages, imprecise orchestration patterns |
+| 🔴 Couldn't answer | why delete context directly, preserving the prefix cache in Plan mode, the Skills awareness mechanism (frontmatter), Agent Evaluation, the full RAG stack |
+
+**The three areas I'd most recommend H fill in: RAG (the whole flow from vectorization to recall reranking), Agent Evaluation, and the engineering trade-offs between prefix caching and the tool list.**
+
+**The core mindset I most want to share: be aggressive in the reverse-question round, soft-handle questions you can't answer with an "AI angle + room for improvement," treat the interview as an exchange rather than an interrogation, and pile on all the advanced gear for vibe coding.**
+
+---
+
+## A final word (a few feelings as the interviewer)
+
+With every candidate I mock-interview, I understand one layer deeper —
+
+**The core of an Agent engineer interview has never been "how much you know," but "whether you can clearly explain the things you've done."**
+
+H's project is actually well made — the consolidation mechanism shows thought, the prefix caching has real feel, the async interaction is a genuine highlight. **But several times he clearly did the right thing yet couldn't explain "why he did it that way"** (e.g. that question about cutting context directly — he could absolutely have defended it with "I have consolidation as a backstop," but didn't realize it).
+
+This is a problem most candidates share: **they finish and stop, missing the "reverse-SSH-into-your-own-brain" debrief step.**
+
+If you're also prepping for an Agent-track interview, my advice:
+
+1. **Ask "why" of every single design decision in every project** — only if you can say it clearly in one sentence do you actually understand it.
+2. **For every sentence you write on your résumé, ask yourself "if this gets dug into three layers deep, can I answer?"** — if you can't, don't write it.
+3. **RAG / Agent Evaluation / prefix caching — these three are the high-frequency deep-dive zones in 2026 Agent interviews** — don't wait to be asked before filling them in.
+4. **Being aggressive in the reverse-question round isn't about one-upping the interviewer; it's about screening the company** — many people don't dare do this, but the effect is striking.
+
+---
+
+## About the paid service
+
+Going forward I'll keep compiling these kinds of **paid mock-interview debriefs.** Each one will try to preserve the real follow-up chain, the candidate's raw answers, my on-the-spot judgments, and the standard thinking I add afterward.
+
+A mock interview isn't just "practicing answers"; more than that, it **lets you go through a complete experience of "being seriously interrogated" at the lowest possible risk.** Once you've been through it once, your fear of the real interview drops by an order of magnitude.
+
+If you're also prepping for an Agent-track job search but don't know how to revise your résumé, how to pitch your projects, or how to prepare for the interview, I currently offer these three 1v1 services (please get in touch for specific pricing):
+
+| Service                        | Price tier | Who it's for                                                            |
+| ------------------------------ | ---------- | ----------------------------------------------------------------------- |
+| **Résumé revision**            | ￥         | you have a résumé but don't know how to "pitch" it so the interviewer's eyes light up |
+| **1v1 mock interview**         | ￥￥       | interview coming up, need a complete live run-through + debrief         |
+| **Learning roadmap / onboarding companion** | ￥￥￥ | total beginner or lacking direction, need a 1-3 month weekly companion |
+
+Contact: WeChat <WechatReveal /> (note "paid consult" or "mock interview").
+
+—— Joye · [joyehuang.me](https://www.joyehuang.me)

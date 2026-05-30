@@ -12,17 +12,21 @@ import Comment from '@/components/comment/Comment.astro'
 import { integ } from '@/site-config'
 
 interface Props {
-  post: CollectionEntry<'blog'>
-  posts: CollectionEntry<'blog'>[]
+  post: CollectionEntry<'blog' | 'blogEn'>
+  posts: CollectionEntry<'blog' | 'blogEn'>[]
   headings: MarkdownHeading[]
   remarkPluginFrontmatter: Record<string, unknown>
+  back?: string
+  recommend?: boolean
 }
 
 const {
   post: { id, data },
   posts,
   headings,
-  remarkPluginFrontmatter
+  remarkPluginFrontmatter,
+  back = '/blog',
+  recommend = true
 } = Astro.props
 
 const {
@@ -32,7 +36,8 @@ const {
   updatedDate
 } = data
 
-const socialImage = `/og/blog/${id}.png`
+// English mirrors (id ends in `.en`) reuse the Chinese post's OG image.
+const socialImage = `/og/blog/${id.replace(/\.en$/, '')}.png`
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
 ---
@@ -40,7 +45,7 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
   highlightColor={primaryColor}
-  back='/blog'
+  back={back}
 >
   {!!headings.length && <TOC {headings} slot='sidebar' />}
 
@@ -52,7 +57,7 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
     {/* Copyright */}
     <Copyright {data} />
     {/* Article recommend */}
-    <ArticleBottom collections={posts} {id} class='mt-3 sm:mt-6' />
+    {recommend && <ArticleBottom collections={posts} {id} class='mt-3 sm:mt-6' />}
     {/* Comments */}
     {data.comment && <Comment class='mt-6' />}
   </Fragment>

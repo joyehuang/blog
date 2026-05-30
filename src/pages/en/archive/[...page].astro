@@ -6,12 +6,11 @@ import { getCollection } from 'astro:content'
 import { Paginator } from 'astro-pure/components/pages'
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import TranslationNotice from '@/components/TranslationNotice.astro'
 
 export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
-  const allArchives = await getCollection('archive')
+  const allArchives = await getCollection('archiveEn')
   const sortedArchives = allArchives
     .filter((entry) => !entry.data.draft)
     .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
@@ -27,7 +26,7 @@ interface Props {
 
 const { page } = Astro.props as unknown as Props
 
-const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
+const allArchives = (await getCollection('archiveEn')).filter((entry) => !entry.data.draft)
 const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))].sort()
 const uniqueStatuses = [...new Set(allArchives.map((entry) => entry.data.status))].sort()
 
@@ -119,9 +118,6 @@ const typeColors: Record<string, string> = {
         vector databases, AI SDKs), and sharp interview questions. Not yet polished into posts —
         but closer to "what I'm thinking right now" than any finished article.
       </p>
-      <div class='mt-6'>
-        <TranslationNotice lang='en' />
-      </div>
     </div>
 
     {
@@ -145,7 +141,7 @@ const typeColors: Record<string, string> = {
               {page.data.map((entry) => (
                 <li>
                   <a
-                    href={`/archive/${entry.id}`}
+                    href={`/en/archive/${entry.data.translationKey}`}
                     class='group block rounded-xl border border-border bg-card px-5 py-5 transition hover:border-foreground/20 hover:shadow-sm'
                     data-astro-prefetch
                   >

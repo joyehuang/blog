@@ -1,0 +1,246 @@
+---
+title: "A Sophomore Intern's Field Guide to Agent Dev Interviews"
+description: "After interviewing nearly 10 AI startups, what Agent-role interviews actually test, and the things that matter a hundred times more than memorizing answers."
+publishDate: 2026-03-09 00:00:00
+tags: ['实习', 'Agent', 'LLM', '面试', 'AI']
+language: en
+translationKey: '20260309---agentinterview/post'
+---
+
+> After interviewing with nearly 10 AI startups, I want to talk about what Agent-role interviews actually test, and the things that matter a hundred times more than "memorizing answers."
+
+## Before We Start
+
+I'm Joye, a sophomore at the University of Melbourne studying Computing and Software Engineering. For the past few months I've been doing an AIGC R&D internship at Tezign in Shanghai, working mainly on Atypica — a Multi-Agent system focused on business research.
+
+I've recently been looking for new opportunities and have interviewed with close to 10 companies, all of them AI startups or overseas startups, with roles concentrated in Agent development and LLM application engineering. Looking back after the fact, I realized that interview experience for this field is pretty scarce on the Chinese internet — unlike frontend and backend, where there's a systematic body of canned interview questions to grind, Agent development interviews feel more like a deep conversation about "do you actually understand what you're building?"
+
+So I'm writing this article partly to organize and review my own interview notes, and partly to offer a reference to others exploring the same direction.
+
+But first I want to say one thing: **this article isn't only for people preparing for interviews — it's just as much for people who are learning Agent development and building their own Agent projects.**
+
+Why do I say that? Because there's a fundamental difference between Agent development interview questions and frontend trivia — you might memorize frontend trivia and never use it in your life, but the questions you get asked in an Agent interview are **design decisions you genuinely have to grapple with while building the project**. "What do you do when the context overflows?" isn't an interview question; it's an engineering problem you're guaranteed to hit when your Agent reaches its 20th turn of conversation. "How do you stop the LLM from misusing tools?" isn't the interviewer being difficult; it's a bug report you'll receive in your first week after shipping to production.
+
+Look at it from another angle: if you've already done serious context engineering in your own project, built in reliability safeguards for tool-calling, and thought through defenses against prompt injection — then these aren't interview questions you need to "prepare," they're hands-on experience you can naturally talk through, and that's what genuinely sets you apart. Going forward, I'll carry these same questions into the design of every new project I build.
+
+---
+
+## What Agent-Role Interviews Actually Test
+
+### How It Differs from Traditional Dev Interviews
+
+After this many rounds, my single biggest takeaway is that Agent development interviews have almost no "right answers."
+
+In a traditional frontend interview you can memorize closures, the event loop, and the virtual DOM diff algorithm, and once you have, you're 70–80% covered. Agent interviews are different. A lot of the questions are open-ended — the interviewer isn't testing what you've memorized, they're testing what you've **been through**. "What did you do when your Agent got stuck in an infinite loop?" — you can't make up an answer to that if you've never fallen into the pit yourself.
+
+From what I've observed, the things interviewers care about fall roughly into three layers:
+
+1. **Can you use it?** — Have you used LangChain? How did you build the RAG? How did you design the MCP Server?
+2. **Do you understand why it's designed that way?** — Why does a structured Prompt work better? Why do memory layers matter? Why did you pick the Vercel AI SDK?
+3. **Can you make trade-offs under engineering constraints?** — What do you do when the token budget is tight? How do you balance response speed against quality? How do you backstop model hallucination?
+
+The first layer comes from experience, the second from understanding, the third from judgment. Each one is harder to prepare for than the last, but each also reveals more about a person's engineering maturity.
+
+### A Full Map of the Interview Questions
+
+I sorted the questions I ran into over this period by theme. Together they cover most of what gets probed in an Agent development interview:
+
+**RAG and Retrieval Augmentation**
+- The difference between multi-RAG and single-RAG, and when each fits
+- How to do Retrieval Augmentation
+- When RAG should use vector retrieval versus graph-database retrieval
+- How to do data cleaning for RAG
+- The evolution path of RAG → Agentic Search → Agentic Memory
+
+**Agent Architecture and Orchestration**
+- Agent routing design: how to decide which Sub-Agent to call
+- Designing the Agent's fallback mechanism
+- Are Sub-Agents parallel or asynchronous? Can they communicate with each other?
+- How to stop the LLM from misusing tools
+- How to handle the LLM calling tools in an infinite loop
+- How to design an MCP Server
+- Overall framework design for the Agent flow
+- How to build a callback mechanism
+
+**Context Engineering and Token Management**
+- How to save tokens
+- What to do when the context overflows (beyond FIFO, what other options are there?)
+- How to convert short-term memory into long-term memory
+- Prompt compression strategies
+- Where to place Prompt Cache hits
+
+**Prompt Engineering and Security**
+- Why a structured Prompt helps improve response quality
+- How to design a subtle, emotionally-aware CoT for affective tasks
+- How to prevent malicious prompt injection
+- How to translate abstract requirements into concrete ones (making the AI "smarter" and "more human")
+- Did you build prompt-injection protection at the start and end of the interview flow?
+- The downside of one-shot: examples that aren't differentiated enough constrain the model's thinking
+
+**LLM Fundamentals and Model Engineering**
+- The Attention mechanism (general knowledge)
+- Pretraining and LoRA fine-tuning
+- The design and limitations of LLM-as-a-Judge
+- The trade-off between response speed and response quality
+- How to avoid OOC (Out of Character)
+- How to handle LLM hallucination
+
+**AI Infra and Productionization**
+- Designing a model gateway / Agent gateway
+- Building an Eval platform
+- Evaluating DPO / APO algorithms
+- Why use the Vercel AI SDK
+
+**Industry Awareness and System Design**
+- How Manus, OpenClaw, and OpenCode each approach their architecture
+- The main application scenarios for Agents: AI search, Chat-to-BI chart generation, Vibe Coding
+- The relationship and difference between Skill and MCP
+- Experience with LangChain / LangGraph
+
+Once you've read this list, you'll probably notice that not a single one of these can be solved by "memorizing." What they test is your holistic understanding of the system and your judgment in real engineering.
+
+---
+
+## The Questions That Made Me Grow the Most
+
+Rather than listing a "model answer" for every question, I'd rather share a few moments in interviews that genuinely made me grow. Some of these I answered well at the time, some I didn't — but all of them kept reshaping how I think about Agent development long after the interview ended.
+
+### "What do you do when the context overflows? Besides FIFO, what else?"
+
+Almost every company asked this, and the interviewer usually wasn't satisfied with just "FIFO — evict the oldest messages."
+
+The first time I got asked this, I really did only come up with FIFO. The interviewer pressed further: what if the user stated a critical constraint at the very start of the conversation, and FIFO just threw it away? I froze.
+
+It was only when I reviewed the interview afterward that I realized this question is fundamentally testing your big-picture grasp of **Context Engineering**. On the Atypica project we were actually already doing all of this — memory layering (Working Memory / Short-term / Long-term), summary compression, retrieval splicing, token-budget control — but I hadn't strung them together into a complete pipeline in my answer.
+
+This experience taught me one thing: **having done something isn't the same as being able to explain it clearly.** A lot of the time you've already solved some problem in your project, but if you never abstracted it into a systematic approach, you'll fumble and fail to articulate it in the interview. From then on, I deliberately started re-mapping every design decision in Atypica using a "problem → solution → trade-off → result" framework.
+
+### "How do you stop the LLM from misusing tools?"
+
+This sounds simple at first — just add some permission controls, right? But interviewers wanted far more than that.
+
+In Atypica we built an asynchronous state machine for tool-calling, with mechanisms like checkpoints, retries, idempotency, timeout rollback, and state recovery. But "preventing misuse" isn't only about backstopping after the fact — what matters more is the **upfront constraints**: is the Tool Schema design clear enough? Are the Function Calling descriptions free of ambiguity? Does the routing logic correctly dispatch requests to the right tool?
+
+In one interview the interviewer kept pressing: what if the LLM enters an infinite loop and keeps calling the same tool over and over? I mentioned the watermark and deduplication mechanisms we built, plus the checkpoint-resume design. The interviewer nodded, but then said something that stuck with me: "Have you ever considered that, rather than building so much defense at runtime, it might be better to spell out the boundaries of tool usage at the Prompt layer in the first place?"
+
+That remark was a wake-up call. The root of many Agent reliability problems isn't in the runtime layer but in the Prompt layer — if the instructions you give the LLM are vague to begin with, no amount of engineering backstop is anything more than cleaning up after a bad Prompt. That's exactly why I've come to put more and more weight on structured Prompt design and front-loaded guardrails.
+
+### "Why does a structured Prompt work better than a natural-language Prompt?"
+
+I thought this one was easy at first: "Because structured information is easier for the model to parse." But the interviewer followed up: "From the standpoint of the Attention mechanism, can you explain why?"
+
+At the time my understanding of Attention was still stuck at "Q, K, V take dot products to compute relevance," and I'd never thought deeply about its relationship to Prompt format. The interviewer offered a genuinely illuminating line of thinking: a structured Prompt (using XML tags, a JSON Schema, or explicit delimiters, say) is actually helping the model allocate its attention — it gives key information clearer "anchors" within the token sequence, lowering the difficulty of the model "finding the point" in a long context. Natural-language phrasing, by contrast, tends to bury key information under a pile of modifiers and transitional sentences, scattering attention.
+
+This conversation made me realize that a lot of the Prompt optimizations we do at the engineering level are actually backed by very solid model mechanics. **Knowing the "what" matters, but knowing the "why" matters more** — and that's especially true in interviews, where an interviewer can quickly tell whether you're "reciting experience" or "actually understand it."
+
+### "How do you translate abstract requirements into concrete ones?"
+
+This might be the most "soft" hard question I ran into.
+
+The interviewer's exact words were roughly: "The user says 'make the AI a bit smarter' or 'make it feel more like a real person' — how do you turn that kind of fuzzy requirement into a technical solution you can actually ship?"
+
+This happened to be exactly what I'd spent a huge amount of time on in Atypica. We designed a Counter-Questioning system: when a user's requirement is vague, the Agent doesn't grit its teeth and guess — instead, through explicit and implicit intent recognition, it decomposes the fuzzy requirement into structured constraints: what's the goal, who's the audience, what are the style preferences, what are the limitations.
+
+I walked through the full design rationale of this system in the interview, and after listening the interviewer asked a question I thought was really sharp: "So how do you judge the quality of the Counter-Questioning? How do you know the questions you're asking are effective and not just burning the user's patience?"
+
+Honestly, I didn't answer that one well at the time. I thought about it for a long while afterward and figured it would probably need LLM-as-a-Judge or indirect indicators like user satisfaction to evaluate — but that's a direction I genuinely haven't yet explored in depth. **That's just how interviews work: they pinpoint the exact edge of your knowledge.**
+
+### "How do you prevent malicious prompt injection?"
+
+This question came up in multiple interviews, but what really benefited me wasn't the interview itself — it was the homework I did afterward.
+
+In the interviews I touched on some basic defensive ideas — input filtering, role locking, output validation, that sort of thing. But the interviewers were clearly hoping for a more systematic answer. So afterward I went and seriously read OpenAI's and Anthropic's respective technical blogs on prompt security, and found that the field actually has two very clear core ideas:
+
+One is OpenAI's **Instruction Hierarchy** — the core idea is to assign priorities to instructions from different sources: System Prompt > developer instructions > user input, so the model knows whom to listen to when it hits conflicting instructions. The other is Anthropic's **sandboxing approach** — isolating untrusted external content inside a restricted execution environment, limiting the blast radius of malicious instructions at the architectural level.
+
+Why do I single this out? Because I genuinely recommend that everyone doing Agent development spend time reading OpenAI's and Anthropic's technical blogs. These aren't academic papers stuck at the theoretical level — they're excellent, frontline engineering practice advice, and after reading them your understanding of many problems will level up. Papers are worth reading too, of course — I'll be putting out a **curated paper series** on my personal blog, picking out and breaking down the papers most valuable to Agent development practice. I'm also building an **RSS subscription feed** that aggregates the latest Agent development practices from the major AI labs, daily or weekly, with my own take and commentary added — not just reposting, but opinionated curation and interpretation. If you're interested, follow my blog at [joyehuang.me](https://joyehuang.me) for updates.
+
+### "Do you understand the design of Manus / OpenClaw / OpenCode?"
+
+This isn't a question about technical depth — it's a question about **industry breadth**. What the interviewer wants to know is: are you paying attention to what's happening in this industry? Are you only heads-down grinding on your own project, or do you also look up and see how other people are solving similar problems?
+
+At the time I had some familiarity with Manus and OpenCode (I'd studied OpenCode's architecture), but I didn't know much about OpenClaw and my answer was a bit weak. This question reminded me: **Agent development is still in a phase of rapid evolution, and when interviewers probe industry awareness, they're essentially testing your learning speed and your sensitivity to new information.**
+
+If you don't regularly check GitHub Trending, don't follow the AI discussion on Twitter/X, and don't dig into newly released open-source projects, you'll be in a really weak position when this kind of question comes up. I later built a habit of spending a fixed block of time each week looking at the changelogs and design docs of projects like Manus and OpenCode — not necessarily deeply, but at least enough to know which way the industry wind is blowing.
+
+---
+
+## The Things That Matter More Than "Grinding Questions"
+
+### On the Interview Itself
+
+**Reviewing afterward is the biggest lever in interviewing.**
+
+This is the point I most want to stress: an interview you don't review is meaningless. If recording isn't an option, then the moment the interview ends, find a place to sit down and — while your memory is still warm — write down every question and your own answer. Especially the ones you couldn't answer, or stumbled through — those are the most valuable review material. The list of interview questions you're reading in this article was recorded exactly this way, round after round.
+
+**Let the interviewer review you.**
+
+A lot of people overlook the value of the Q&A segment at the end. I later made it a habit to always ask two questions in that segment: "Where did I not do so well today, and what should I improve?" and "Where did I do reasonably well?" You might think asking this is too direct, but in practice most interviewers are very willing to answer. The feedback they give you is far more precise than your own guessing, and it also shows you're someone who actively seeks growth.
+
+Besides those two questions, you can also ask "What would the first project be that I'd take on after joining?" — this shows your sincerity and also helps you judge whether the actual work matches the JD.
+
+**The interviewer is also part of your network.**
+
+After the interview, regardless of the outcome, try to add the person on WeChat or LinkedIn. You never know when that relationship will pay off. Here's a real story: I interviewed with a toB Fintech Agent company and passed the first round, but the interviewer felt their product direction might not fit my interests, so they proactively referred me to another company. I'm now in that company's written-test stage. **Sometimes opportunities come exactly like this — you never know where a "failed" interview will lead.**
+
+### On Choosing Offers: Advice for Interns and Startup-Bound Folks
+
+**Use one question to filter out unreliable startups.**
+
+When interviewing with a startup, I always ask one question in the Q&A segment: "Compared to your competitors, what's the core advantage of your product?" It sounds simple, but its filtering power is excellent — if a startup's interviewer can't even articulate their own product's differentiation, then that company's direction is probably fuzzy. If a startup doesn't even have confidence in its own product, what can you possibly learn there? Just steer clear.
+
+**Don't get suckered by "raised X million in angel funding."**
+
+The funding amount is only one dimension for judging a startup — it's absolutely not the only one. That said, a company with no funding at all does warrant extra caution. But having funding doesn't mean everything's fine — you still need to look at whether the product direction is sound, the team's background, whether you'll genuinely learn something there, and whether there's a mentor to guide you. An internship isn't just selling time; it's a learning investment, and you need to think clearly about where your time yields the highest return.
+
+For me personally, the things I care about most when choosing an offer are: is the product interesting? Am I actually genuinely curious about it? Is it overseas-facing? Is it toC? These preferences vary from person to person, but the point is that you need your own framework for judgment, rather than being led around by the funding amount or a company's name.
+
+**Take the initiative — don't let the "full-time" label scare you off.**
+
+On Boss Zhipin and various recruiting platforms, a lot of postings say they're hiring full-time. But if you feel the role is a great fit, you can absolutely reach out proactively and explain your situation: "I'm still a student, but if your company has any need for interns, I hope you'll take a look at my résumé." The worst outcome is getting rejected, but a lot of the time the company actually does have intern headcount — they just didn't post it separately.
+
+A tangent: if your internship experience is solid enough, you can even go straight for full-time roles. I interviewed for a full-time Agent development role, got grilled badly, and somehow passed — the interviewer only realized at the very end that I hadn't graduated yet. That made me realize that **you shouldn't limit yourself; other people's expectations of you are often not as low as your own expectations of yourself.**
+
+---
+
+## Industry Observations: Reading the Agent Dev Winds from Interview Questions
+
+Interview questions are themselves an industry weathervane — what interviewers ask reflects, to some degree, what the industry cares about most right now. Across these nearly 10 interviews, I observed a few clear trends.
+
+### RAG Is Evolving Toward Agentic
+
+Almost every interview asked about RAG, but not a single one stopped at the basic "retrieval + generation" level. Interviewers cared more about Agentic Search and Agentic Memory — meaning retrieval is no longer a passive pipeline, but something the Agent itself decides: "when to search, what to search for, and how to use the results." This is a qualitative shift from a tool to a capability.
+
+### The Three Big Agent Use Cases Come Up Again and Again
+
+In conversations with interviewers from different companies, three application scenarios came up most often: **AI search** (the upgrade from keyword matching to semantic understanding), **Chat-to-BI** (generating data-analysis charts from natural language), and **Vibe Coding** (using AI to assist or even lead the writing of code). Each of these places different demands on Agent architecture design, but their common thread is the pursuit of stronger "autonomy" and "reliability."
+
+### The AI Infra Layer Is Starting to Be Taken Seriously
+
+In the early days of Agent development, everyone focused more on the upper-layer application logic — how to write Prompts, how to chain things together. But interviews increasingly feature AI Infra–layer questions: How do you design a model gateway? How does an Agent gateway handle routing and rate limiting? How do you build an Eval platform? How much do you know about alignment algorithms like DPO/APO? This signals that the industry is moving from the "demo stage" toward "production-grade," and infrastructure maturity is becoming a key factor in determining product reliability.
+
+### MCP and the Skill System Are Standardizing
+
+MCP (Model Context Protocol) came up very frequently in interviews; it represents a direction toward standardizing how Agents invoke capabilities. At the same time, the concept of Skill is emerging from products like Manus — packaging an Agent's capabilities into reusable, composable modules. For developers, this trend means: **future Agent development may no longer be building from scratch, but assembling and orchestrating within a standardized capability marketplace.**
+
+### Tool-Chain Choices Reveal Engineering Taste
+
+Why use the Vercel AI SDK instead of LangChain? A question like this looks like it's testing your tech-stack choices, but it's really testing your understanding of the tool-chain ecosystem and your own engineering judgment. Being able to clearly explain in an interview "why I chose this, what its trade-offs are, and in what scenarios I'd switch to something else" is far more convincing than simply saying "I've used X."
+
+---
+
+## Closing Thoughts
+
+After this many rounds, my biggest takeaway is: **an interview is a mirror, and it won't lie to you.**
+
+It will pinpoint every gap in your knowledge, and it will make you discover the things you thought you understood but had really only "used." Going from "I've used Agents in my project" to "I can design a reliable Agent system" — what lies between them isn't more project experience, but deeper understanding and more systematic thinking.
+
+As a student still in my sophomore year, I know I still have a lot to learn. But this stretch of intensive interviewing gave me a far clearer panorama of Agent development than I had before — not just technically, but in terms of industry judgment too.
+
+Finally, a line for friends walking the same path:
+
+**Build fast, learn faster.** An interview isn't the finish line; it's the starting line of the next stretch of growth.
+
+---
+
+*If this article helped you, feel free to share your own interview experiences in the comments, and you can also find me on [GitHub](https://github.com/joyehuang).*

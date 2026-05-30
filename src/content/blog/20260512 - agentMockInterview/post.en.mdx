@@ -1,0 +1,607 @@
+---
+title: 'A 1h19m Agent Engineer Mock Interview: What We Asked'
+description: 'An 80-minute mock interview with a dev pivoting to Agent work. Every question, his answers, our feedback, and how I would answer them better.'
+language: en
+translationKey: '20260512---agentmockinterview/post'
+publishDate: 2026-05-12 00:00:00
+tags: ['Agent', '面试', 'LLM', 'AI', '模拟面试', '求职']
+---
+
+> This is a mock-interview retrospective. The candidate was a student from a 211 university, with two AI projects on his résumé: a multi-Agent healthy-eating assistant built on LangGraph, and a long-term memory engine for Agents. Another interviewer, W, and I interviewed him together for 80 minutes. Afterwards I felt this session was worth writing up as a blog post — not because the candidate did especially well or especially badly, but because it so completely exposed the problems with the mainstream "pad your résumé with AI bootcamp projects" path, while also walking through what an Agent engineer interview should test in 2026.
+>
+> This is going to be a long piece. I'll write down every question we asked, the candidate's answers at the time, our feedback, and "how I would have answered." If future mock interviews turn out to be valuable, I'll write those up too.
+
+## A note up front: why I'm writing this
+
+Lately I've been helping my mentor screen résumés for a full-stack Agent development internship and running first-round interviews, so I've interviewed quite a few candidates; I've also been booked by some followers for paid mock interviews. This was one of them. The candidate comes from a backend background and wants to pivot into Agent development; he listed two projects on his résumé. By the end, the overall verdict W and I reached was: **learning Agent development by tweaking a bootcamp / open-source project makes it very hard for a candidate to form their own thinking — there's no depth, and one question from the interviewer makes it fall apart.**
+
+This isn't a personal failing of this particular candidate. Résumés produced by bootcamps, contract gig projects, or "grab an open-source repo off GitHub and tweak it" are pretty much all in this state. So this blog post isn't here to mock one specific résumé — it's an honest attempt to discuss: **if you want to be an Agent engineer, how should you prepare your projects, how should you answer interview questions, and what do you need to think through before writing a single line of your résumé.**
+
+---
+
+## 1. The problem with the projects themselves: what real problem did you solve?
+
+The candidate's two projects:
+
+- **Project one**: an AI health assistant, with a diet-recommendation module underneath it. LangGraph orchestration, a Router + multi-Agent layered design; after intent recognition, it dispatches to a Text2SQL Agent / RAG Agent / knowledge-graph Agent, then aggregates. The retrieval layer has three hybrid pipelines including GraphRAG. A three-tier memory module. Fine-tuned on Qwen3-8B.
+- **Project two**: a long-term memory engine for Agents. Three-stage extraction (summary → entities → relations), written into ChromaDB + Neo4j; hybrid graph-vector retrieval (vector recall + BFS expansion + semantic re-ranking); memory decay based on the Ebbinghaus forgetting curve; at write time, it does semantic-similarity grading, contradiction detection, and similarity merging.
+
+It all sounds very much the part. But after listening, W asked just one question that made the entire project collapse (this is aimed at **project one** — its input is only two kinds: unstructured recipe content, or a structured nutrition table):
+
+> "If it were me, I could just solve this with Doubao. Why does this have to be built at all?"
+
+### Why this question is so lethal
+
+When hiring, what an interviewer wants to see is "you identified a real problem → picked the right technology → solved it better than the off-the-shelf option." **A project's reason to exist = a real problem × the inadequacy of off-the-shelf solutions.**
+
+I genuinely suggest finding projects from two directions:
+
+1. **Start from a real need around you, something you personally ran into** — if you can clearly explain "why I built this," the whole project's narrative stands on its own.
+2. **Deeply use an open-source Agent (e.g. Hermes), find its shortcomings, and do a transformative second-pass development** — this is harder, but the value is extremely high.
+
+Now that we have AI, **the cost of building a project from scratch has dropped to almost nothing** — there's no need to copy.
+
+The candidate's project took the opposite path: first decide to use LangGraph / multi-Agent / GraphRAG / hybrid graph-vector retrieval / fine-tuning, then find a scenario to stuff all those technologies into. "AI diet recommendation" is a scenario that Doubao, ChatGPT, and Kimi solve directly out of the box, so all the architectural complexity he built had no corresponding payoff.
+
+### How to fix it
+
+W's concrete advice was: "change the soup but not the medicine" — you can keep the tech stack, but the scenario has to change to one that **genuinely needs an Agent**. For example:
+
+- **Deep-research type** (the DeepResearch kind: multi-step retrieval, cross-source information integration, requires planning)
+- **Multimodal content creation**
+- **Complex task automation in a vertical domain** (not something QA can solve)
+
+Don't title the project on your résumé "AI Health Assistant" — that name itself is telling the interviewer "this is a scenario that doesn't need an Agent." **A scenario that genuinely needs an Agent also gives you a lot more to talk about in the interview** — architecture, decisions, the pitfalls you hit, the improvements you made; there's plenty to discuss.
+
+### Advice for every Agent job seeker
+
+Before writing up a project, ask yourself three questions:
+
+1. Can this scenario be solved by just chatting directly with ChatGPT / Doubao / Claude? If yes, change the scenario.
+2. What substantive benefit does the multi-Agent architecture I used give me over a single Agent? If you can't articulate it, switch to a single Agent.
+3. For every tech choice I made (vector DB, graph DB, Redis, fine-tuning, RAG), can I clearly explain "why this one and not something else"? If you can't, either delete it or go do the homework.
+
+---
+
+## 2. All those "why" questions we kept asking
+
+Throughout the interview, the single most common category of question W and I asked was "**why did you choose X instead of Y**." This is the Agent-role interviewer's favorite question type, because in one sentence it separates "actually used it, hit the pitfalls" from "read a blog and copied it onto a résumé."
+
+The candidate was almost completely wiped out on this category. Below I'll expand each "why" question.
+
+### 2.1 Why Milvus / ChromaDB? What's the difference between them?
+
+The candidate's answer: "Milvus is for larger data volumes, ChromaDB is for smaller data volumes. I don't really know much about the others."
+
+**Why this question matters**: the vector DB is the core storage of any RAG / Memory project, and the choice directly determines performance, cost, and operational complexity. The interviewer isn't asking this to hear you recite specs — they want to see "what technical comparisons you did for your project."
+
+**How you should answer**: at minimum you should be able to name a few dimensions of comparison —
+
+- **Deployment form**: Milvus is an industrial-grade distributed deployment; ChromaDB starts single-node and can be used purely embedded
+- **Ecosystem**: Milvus has a full SDK / monitoring / ops toolchain; ChromaDB is simple but has a thin ecosystem
+- **Alternatives**: pgvector (essentially a Postgres extension, lets you cut out a whole piece of infrastructure), Qdrant, Weaviate, Pinecone
+- **Lighter options**: sqlite-vec / sqlite-vss also support vector retrieval — for a personal project's dataset, isn't SQLite enough?
+
+A higher-scoring answer is to challenge the choice itself directly: "Honestly, for the data volume in my project, pgvector is plenty — there's no need to spin up a separate vector DB." That's the "engineering judgment" the interviewer wants to hear, rather than "I just happened to pick this technology, or the project already used it."
+
+**The actual direction to improve**: I don't need you to explain the index details of HNSW versus IVF, but I want to hear that you **did the comparison and gave it some thought** before choosing this technology. Just go have an AI walk you through a comparison of the mainstream vector DBs and roughly know it. I'll also recommend the notes section of my blog, [joyehuang.me/notes](https://joyehuang.me/archive) — there's a lot of relatively fragmentary knowledge there that I've accumulated over time, and one of them happens to be a comparison of vector databases.
+
+### 2.2 Does each Agent in your multi-Agent setup use a different model?
+
+Candidate: "No, they all use one model, Qwen."
+
+**Why this question matters**: in a multi-Agent system, **the model choice should be split by each Agent's responsibility**. A simple classification task like intent recognition uses a small / cheap model, a complex reasoning task uses a large model, and long-text summarization uses a long-context model.
+
+To put it more sharply: **if your multi-Agent is essentially a workflow orchestration with no communication between Agents, and you don't do model tiering either, then what is the point of this multi-Agent?** Conversely, if you do model tiering, you can at least name a few benefits:
+
+1. **Cost control** — this is a must-consider for any production project
+2. **Capability matching** — for multimodal scenarios you can plug in the Gemini family, for code scenarios Claude, for domestic-compliance scenarios Qwen
+3. **It shows you've tried quite a few models** — at least you roughly know what each model is good at
+
+A lot of people feel that "I used multiple models" is a mediocre answer, but I actually really endorse it — it shows you genuinely think about problems from a production perspective.
+
+**How you should answer**: give a concrete scenario, e.g. "intent recognition uses Qwen3-7B because the latency requirement is low and the task is simple; the final aggregated output uses Claude Sonnet or GPT-4 because it needs language-organization ability; background async summarization uses the cheap Qwen-Turbo because there's no real-time requirement."
+
+This connects to the "Agent cost control" topic we discussed later — I'll expand on it below.
+
+### 2.3 Is there actually any "communication" between your Agents?
+
+What I asked: "Is there any communication between your Agents? Besides the aggregation step, do they talk to each other at all?"
+
+Candidate: "There's basically no communication, it's just a workflow, orchestrated ahead of time."
+
+Me: "Then this isn't really multi-Agent."
+
+**Why this question matters**: the industry has a shared definition of "multi-Agent" — **Agents need to make autonomous decisions, call each other, and communicate with each other.** A fixed router that dispatches a task to a few independent processors and then aggregates is called a **Workflow**, not Multi-Agent. These two terms basically settled after Anthropic's [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) post.
+
+**How you should answer**: honestly admit this is a Workflow, then discuss "how I'd refactor it into a real multi-Agent system" — e.g. letting an Agent call other Agents back, raise follow-up questions, and collaborate to complete a complex task.
+
+Going further, you can reflect: "Actually my scenario doesn't need multi-Agent; a single Agent + tool calls would solve it." This kind of self-correction ability is worth far more than stubbornly insisting that what you built is multi-Agent.
+
+**Two things to remember for interviews**:
+
+1. **Don't bluff.** If you're asked about something you're not familiar with, admit it; bluffing just gets you fished to death.
+2. **Don't insist that a bootcamp project is your own work.** The interviewer knows perfectly well whether you wrote the project yourself or copied it from a bootcamp, and if you keep insisting after being seen through, it escalates from "the project lacks depth" to "an integrity problem."
+
+### 2.4 The pros and cons of single-Agent vs. multi-Agent / Router orchestration?
+
+I followed up: "If you refactored this project into a single Agent, how would you design it? And what are the respective pros and cons of a single Agent versus your current orchestration?"
+
+The candidate gave some stuff about "prompt isolation, focusing on its own task," but didn't hit the point.
+
+**How you should answer**:
+
+**Advantages of multi-Agent / Router orchestration**:
+- Context isolation — each Agent only sees the content relevant to its own task and isn't distracted by irrelevant information
+- Each subtask can have its prompt optimized separately and its model swapped separately
+- **Parallelism** — independent tasks can run concurrently
+- Good observability, you know which step went wrong — but this one **requires you to actively design a whole observability system**, otherwise when something goes wrong you're still flying blind. If your project did **replay** (replayable debugging), that's genuinely a big bonus
+
+**Disadvantages of multi-Agent / Router orchestration**:
+- Higher overall latency (every extra call is another network round trip)
+- Token consumption multiplies (context has to be passed between Agents)
+- The routing itself can be wrong (if intent recognition is wrong, everything is wrong)
+
+**Advantages of a single Agent**:
+- Simple, low latency, low cost
+- The model sees all the context itself and can make more global judgments
+- Modern large models' function calling is already strong enough that a single Agent is enough for most scenarios
+- **Boosted by Skills** — the single-Agent + Skills combo basically became the new paradigm after Claude Code (I'll expand on this in 3.5)
+
+**Disadvantages of a single Agent**:
+- The context easily explodes
+- The model tends to lose early information in long contexts
+- Cramming all responsibilities into one prompt easily turns it into a pile of spaghetti
+
+Remember one 2026 trend: **the industry as a whole is regressing from "fancy multi-Agent orchestration" back toward "a single strong Agent + good tools + good context engineering."** Claude Code, Cursor Agent, and Cline are all this paradigm.
+
+### 2.5 How did you compute the 90.6% intent-recognition accuracy?
+
+Candidate: "I built about 200 questions and compared them against the labeled answers."
+
+**Why this question matters**: every "90%+ accuracy" on a résumé will get questioned. **An Agent project with no evaluation system is just bluffing.**
+
+**How you should answer**: you need to clearly explain —
+
+1. How was the test set built? What cases does it cover? What's the distribution? **Why did you pick these cases? Do these cases reflect the ability you want to test?** — this is the easiest thing to get probed on; "I just made up 200" and "I covered 5 common intent categories + 3 boundary cases + 2 adversarial samples" are two completely different leagues
+2. What's the evaluation metric? Just accuracy? Or do you have precision / recall / F1?
+3. How is the evaluation automated? After you change a prompt, how do you regression-test?
+4. How are boundary cases handled? When it can't recognize something, how do you fall back?
+
+The candidate mentioned that "when it can't recognize something it falls back to Text2SQL" — that's a bonus point, but he didn't elaborate.
+
+**Direction to improve**: go look at the industry eval tools — LangSmith, Braintrust, Promptfoo — run one yourself, and understand what an eval platform actually solves.
+
+### 2.6 Why Redis?
+
+Candidate: "Because LangGraph node state can be stored in Redis, and Redis supports TTL for memory expiration."
+
+W's rebuttal was direct and precise, roughly:
+
+> "If it's just for TTL, you shouldn't use Redis. Redis's TTL is designed for high-concurrency online business. **User data is the most precious asset in the whole system — expiring a memory shouldn't mean deleting it, it should mean archiving it.** Redis's real use is state consistency across service nodes — caching, distributed locks, session-level state isolation."
+
+**Why this question matters**: this is a very typical case of "piling on technology without thinking." Redis is an old friend of backend developers; written on a résumé it looks professional, but using it in the wrong scenario instead exposes that you don't understand Redis's real positioning.
+
+**How you should answer**: reasonable uses of Redis in an Agent project include —
+
+- **Caching**: caching model responses, caching vector-retrieval results
+- **Distributed locks**: locking when multiple Agents concurrently write the same memory
+- **Session-level state isolation**: synchronizing session state when a user is logged in on web and app at the same time
+- **Rate limiting**: API call quota management
+- **Temporary checkpoints**: runtime state snapshots for LangGraph (the candidate got this one, but didn't emphasize the "temporary" part)
+
+The memory data itself should be stored in persistent storage — a vector DB, graph DB, or relational DB all work. **Never treat "a user's long-term memory" as cache data that can be automatically evicted.**
+
+### 2.7 PostgreSQL vs MySQL — what's the biggest difference?
+
+Candidate: "I haven't really compared them; PG is enterprise-grade, fairly powerful, and you can add pgvector to use it as a vector DB."
+
+W's expansion was very practical:
+
+> "These days you basically don't use MySQL for a new project. The moment pgvector is in, it pretty much kills Milvus; jsonb is friendlier for storing JSON; geospatial and time-series support is good; in some scenarios it can replace Elasticsearch (though for tokenizer scenarios you still have to use ES)."
+
+**Why this question matters**: this is a substantive shift in backend technology choices in 2025–2026. If your résumé says "familiar with MySQL" but you don't know Postgres's standing in new projects now, your understanding is out of date.
+
+**Direction to improve**:
+- Spin up a new project with PostgreSQL and run RAG with pgvector
+- Learn about full-stack solutions built on Postgres like Supabase, and understand why Postgres has captured the "default database of choice for small projects" niche
+
+### 2.8 Why use Neo4j instead of Redis to store graphs? And why not use Neo4j to store Agent state?
+
+This stretch was W fishing. While explaining Redis's uses, the candidate unconsciously described "graph storage" as a Redis feature, and was immediately caught.
+
+The lesson: **don't give a divergent answer in a domain you're not familiar with.** When asked about Redis, just honestly describe Redis's reasonable uses; don't, to look knowledgeable, expand into graphs, vectors, state-machine management, and other areas Redis isn't good at.
+
+A more universal rule: **every single point on your résumé is something you need to understand thoroughly, otherwise don't write it.** As an interviewer, if you wrote it, I'll ask; if you can't answer, then it's "well, yeah, not great."
+
+### 2.9 Why fine-tune Qwen3-8B, when the upstream data used Kimi K2.5?
+
+Candidate: "Kimi K2.5 was used to build the QA-pair dataset, generating Q&A pairs from different angles."
+
+W's critique:
+
+> "Kimi K2.5 is definitely stronger than Qwen3-8B on benchmarks. **Using a stronger model to generate data to fine-tune a weaker model is logically sound** (the data-distillation idea), but your scenario design here has a problem — you should write: use Claude Sonnet 4.6 + Kimi K2.6 to de-identify user privacy data and fill in multimodal training data, then do LoRA fine-tuning on the latest Qwen3 version (e.g. Qwen3.6-235B) on Alibaba's Bailian platform. Written that way, it makes sense."
+
+**Why this question matters**: the justification for fine-tuning = data quality × task fit × cost. If you can't explain why you fine-tuned, don't write fine-tuning.
+
+**How to actually write it**:
+
+> "For [specific task] in [vertical domain], used Claude Sonnet 4.6 and Kimi K2.6 to clean, de-identify, and complete multimodal data for the dataset, building a high-quality training set, and did LoRA fine-tuning on Qwen3-X on Alibaba's Bailian platform, improving [specific metric] by X% compared to directly calling a general-purpose model."
+
+W and I also threw in an offhand gripe: **Qwen3-8B is way too common in bootcamp projects — I get PTSD just seeing it.** If you want to make the interviewer's eyes light up, at least use a latest model version from 2026.
+
+---
+
+## 3. Core Agent knowledge: context engineering, memory, Skills, MCP
+
+### 3.1 Have you designed any context engineering?
+
+The candidate described some things he'd done: a 128K context window; when it reaches the 75% threshold, a sliding window kicks in to keep the last 5 turns of dialogue; after the session ends, a large model summarizes the history and writes it into long-term memory.
+
+My assessment: **writing "context management" as one line on your résumé is empty fluff** — because it's the default operation of every Agent project.
+
+**How to write it so it has substance**:
+
+Don't write "did context management," write —
+
+- How many layers of context I designed (system layer, task layer, user layer, session layer)
+- When each layer gets triggered
+- What trigger I use to decide to write to long-term memory / summarize old context / engage the sliding window
+- How I handle "noise" in the context (irrelevant messages, user slips of the tongue, contradictory information)
+- How I do prefix-caching-friendly context design (I'll cover this separately below)
+
+### 3.2 Writing to long-term memory: if a user says "I feel like spicy food today," should it be recorded or not?
+
+I asked:
+
+> "When a user says 'I like spicy food' today, how does that point get written into memory? Is it an explicit user call, or the Agent's own judgment? And it's possible he's just in a bad mood today and wants something spicy — that's a short-term preference, which is different from 'I'm someone who eats spicy food long-term.' How do you design the Agent to distinguish them?"
+
+The candidate couldn't answer, and admitted "this was done pretty crudely."
+
+**Why this question matters**: this is one of the most core design questions in a Memory system. **"What to record, what not to record, how long to keep it, how to override it" is the soul of a memory engine.** If your résumé lists a Memory project but you can't explain these questions, the whole project's credibility collapses.
+
+**How you should answer**:
+
+Memory writing needs to consider —
+
+1. **Factual vs. derived vs. preference**:
+   - Factual: "My name is Joye, I study in Melbourne." → write directly, high confidence.
+   - Derived: "I often work overtime on weekends." → no need to write; it can be derived from historical sessions.
+   - Preference: "I like spicy food." → needs to be written, but tagged with **confidence and recency**.
+
+2. **Short-term vs. long-term**:
+   - Short-term preference ("want spicy today") → write to session-level memory, decay or discard after the session ends.
+   - Long-term preference (mentioned multiple times, a stable preference) → promote to long-term memory.
+   - This promotion mechanism can be based on "number of occurrences + time span."
+
+3. **Contradiction detection**:
+   - The user has said both "I like spicy food" and "I can't eat spicy food" — how do you handle it?
+   - Timestamps + context to judge which is the current fact.
+
+4. **Write triggers**:
+   - Explicit trigger: "Please remember that I..."
+   - Implicit trigger: session end / message count reaches a threshold / a user statement of fact is detected
+   - Async trigger: a cheap model summarizes and extracts from the session in the background
+
+### 3.3 How is Memory used? Where in the system prompt is it placed?
+
+Candidate: "It should be added to the system prompt." Then he said "toward the back is better, because the model's attention mechanism is more sensitive to later content."
+
+I corrected him immediately: **that's exactly backwards — it goes at the very front, mainly for prefix caching.**
+
+**Why this question matters**: this is an engineering detail a 2026 Agent engineer must know.
+
+- **Prefix caching**: Anthropic / OpenAI / domestic model providers all support caching the prefix of a prompt; on a cache hit, the token price is much cheaper (with Anthropic, cache writes are more expensive than normal and cache reads are cheaper than normal).
+- **Design principle**: put **the least-changing content at the very front** (system prompt → long-term memory → tool descriptions → conversation history → current query). That way, most of the time only the last segment changes, and the prefix can all hit the cache.
+- **If you put memory at the end**, every memory update breaks the cache for the entire prefix, and token cost skyrockets.
+
+**Follow-up question**: how often should your memory update?
+- Update too frequently → too many prefix-cache misses → cost skyrockets
+- Update too slowly → the user feels the Agent "can't remember things" → poor experience
+- This trade-off needs to be clearly explained in your project
+
+### 3.4 How many versions has the Memory system of OpenAI / Claude / open-source Agents gone through? Pros and cons of each?
+
+W asked this, and the candidate couldn't answer.
+
+**Why this question matters**: this gauges whether you're "someone who genuinely follows this field." Someone researching Agents / Memory couldn't possibly have not seen these two companies' product iterations, or the approaches of the mainstream open-source Agents.
+
+**How you should answer**: at minimum you should be able to name —
+
+- **OpenAI's Memory evolution**: from the earliest "Saved memories" (explicit user trigger, pure list storage) → automatic memory (the model judges what to write on its own) → cross-session memory ("reference chat history").
+- **Anthropic / Claude's direction**: Claude's Memory is implemented via the Skills system and the conversation_search tool; structurally it's closer to "tool calling + explicit storage" than to automatic writing.
+- **Open-source CLI Agents' approaches**: represented by Hermes, OpenCode, OpenClaude, Aider — basically all use Markdown files as the memory carrier (memory.md / user.md), and the Agent restores context by explicitly reading them. The biggest advantage of this route is that "memory is fully readable, editable, and versionable."
+
+**Direction to improve**:
+- Actually use these companies' products for a while and feel the differences firsthand. If you don't use them, at least learn about them through blogs or explainer videos — to prove you're genuinely curious about Agents
+- Read [Claude's Skills documentation](https://docs.claude.com) and Anthropic's article on [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
+- Follow the code of open-source CLI Agents like Hermes / OpenCode / OpenClaude / Aider
+
+### 3.5 The relationship between Skills, MCP, and Function Calling?
+
+W's question; the original wording was "Skill plus MCP plus a CLI," but the candidate hadn't heard of CLI-type tools, so it focused on Skills and MCP.
+
+The candidate answered reasonably well: MCP provides data-source connections, and Skill teaches the model how to use that data to complete a specific task; the two are complementary.
+
+**How you should answer** (more complete):
+
+| | What problem it solves | Form | Example |
+|--|--|--|--|
+| **Function Calling** | Gives the model executable capability | A single function definition (schema + implementation) | `get_weather(city)` |
+| **MCP** | Standardizes the "model ↔ tool/data-source" connection protocol | An MCP server exposing a set of tools / resources | Asana MCP, GitHub MCP |
+| **Skills** | Gives the model a programmatic guide on "how to complete a class of task" | A folder (SKILL.md + resources) | docx skill, pdf skill |
+| **CLI tools** (Lark CLI / Playwright / OpenCLI) | Lets the model operate the real world via the command line | Shell commands | `lark message send ...` |
+
+**Key insights**:
+- MCP and Skill are **complementary**: MCP provides data, Skill provides methodology.
+- Skill's biggest advantage is **turning things into SOPs / processes**: encoding domain experts' best practices into a guide the model can read.
+- Skill uses **Progressive Disclosure**: the first layer only loads the skill's metadata (name + description); only after a hit does it load the full content, avoiding context explosion.
+
+### 3.6 How does an Agent "perceive" that a Skill exists?
+
+A detail question from W; the candidate answered vaguely. The concrete mechanism is —
+
+The skill's metadata (name + description) is injected into the tool list in the system prompt (usually the tool-description area). At each decision step, the model sees this lightweight directory and judges whether the current task needs a particular skill. If it does, the model actively calls a "read skill content" tool (e.g. `view SKILL.md`) to load the full skill content into context.
+
+**Why it's designed this way**: to avoid cramming all skills' full content into the context at once — a user might have dozens of skills, each several thousand words; stuffing them all in would blow up the prompt. Progressive disclosure is one of the core ideas of context engineering.
+
+### 3.7 Is there an install limit for Skills / MCP?
+
+Candidate: "There's definitely a limit. Too many skills make the tool list very large, and the model's selection precision drops."
+
+He got this one. To add to it:
+
+- Products like Claude Code have a soft limit on the number of skills (usually a few dozen), precisely because loading the metadata into the system prompt makes it bloat.
+- The drop in selection precision also exists in tool calling ("too many tools causes hallucinated calls").
+- The solution: **tiered loading** (dynamically loading the relevant subset of skills by scenario).
+
+It's worth specifically mentioning the **tool_search** mechanism in Claude Code — it essentially turns the "tool/skill list" itself into a searchable index: by default the model doesn't see the full definitions of all tools, and when it needs one, it queries by keyword via `tool_search` and loads on demand. This is a further generalization of progressive disclosure along the "tool dimension," and it's a paradigm very much worth borrowing in current Agent design.
+
+---
+
+## 4. How an Agent controls cost
+
+W's question. Candidate: "You have to consider the number of large-model calls and merge some steps together."
+
+The two of us griped on the spot: **an answer like "reduce the number of calls" is the same as "I want to spend a bit less each month" — that's an outcome, not a method.**
+
+**How you should answer** (this section is the part of the interview I personally think is most worth writing down):
+
+### 1. Prefix-caching-friendly context design
+
+As described above. Put the least-changing content at the front so the cache hits as often as possible.
+
+Concrete actions:
+- Put the system prompt, long-term memory, and tool descriptions at the front
+- Put the current query and the latest message at the end
+- Don't update memory too frequently — every update invalidates the prefix
+- Evaluate your model provider's cache billing policy: Anthropic is "explicit checkpoint + write expensive, read cheap"; OpenAI / Gemini auto-cache
+
+### 2. Tiered model usage
+
+Use a cheap small model for simple tasks (intent recognition, classification, summarization), and a large model for complex reasoning. This is why "all Agents using the same Qwen3-8B" is a big problem.
+
+### 3. Reduce the number of Agent steps
+
+An Agent's token cost grows **exponentially** — every extra step means the entire conversation history is sent as input again.
+
+Concrete actions:
+- Don't split into two steps what can be done in one
+- Tool design should be "wide-aperture" — one tool solves a class of problems; don't make a separate tool for every fine-grained task
+- Make the Plan phase as complete as possible, avoiding "think as you go"
+
+### 4. Context pruning
+
+- If an old tool-call result has already been used, delete it from the history (keep a summary)
+- For file-type content, keep only the diff
+- Use a tool to "read on demand" for large blocks of irrelevant context; don't stuff them into the prompt by default
+
+### 5. Rate-limiting failed retries
+
+Agents auto-retry on failure. If you don't limit the retry count + don't do exponential backoff, one bug can blow up your bill.
+
+---
+
+## 5. AI coding engineering practice: how do you write code and use AI?
+
+W's question: **"What AI coding techniques did you use while building these projects?"**
+
+The candidate answered: "I generally use Claude Code to help me write or read code."
+
+The answer W was hoping for:
+
+> "I'd build a doc tree (project index) for the project, write AGENTS.md / CLAUDE.md / Cursor rules so the Agent doesn't re-explore problems it's already explored. I'd put the best practices for common frameworks (PostgreSQL, FastAPI, etc.) under .claude/skills/ as references."
+
+**Why this question matters**:
+
+> "What we care about more is how you did things in between. The 'results' part on everyone's résumé is much of a muchness — everyone uses AI coding, everyone tweaks an open-source project, and the résumés all look alike. **What truly distinguishes candidates is the process.**"
+
+**This holds for every job seeker in the AI era**: when AI drives the cost of "writing code" way down, your differentiation has to show up in —
+
+- How do you use AI tools?
+- What kind of workflow have you established?
+- How do you get AI tools to keep producing high-quality output in your project?
+- How are your AGENTS.md / Skills / Memory designed?
+- **Beyond coding scenarios, how else do you use AI?** — this is a great extension question. I don't mean "asking GPT to do your homework," but rather things like: using Hermes to manage your schedule, using cronjob + Agent to push the AI world's hot topics to yourself every day, using an AI workflow to auto-edit videos, and so on. People who can show this are clearly a notch closer to the industry than those who've "only used Cursor."
+
+---
+
+## 6. The macro talk: how we view Agent development and this industry
+
+In the last stretch of the interview, W and I gave the candidate some more macro stuff. This part is valuable for everyone who wants to break into the field.
+
+### 6.1 Don't pile on technology — solve problems
+
+> "I've interviewed a lot of people, and they love to pile on technology — Redis, RAG, vector DBs, knowledge graphs, fine-tuning, all heaped together. Then for every technology written on the résumé, they can't answer 'why you used it.'"
+
+**This is the most common problem for Agent job seekers in 2026.** Bootcamps, contract gig projects, and résumé templates copied off the internet all teach you to "pile on technology to look professional." But any experienced interviewer can see through it within 5 minutes.
+
+**What a truly competitive résumé looks like**:
+
+> "The biggest problem with this résumé is there's no frontend, because when I hire, I only hire full-stack people."
+>
+> "I'd suggest you don't have many projects — just one project, which has Agent and frontend and Agent context engineering and backend high-concurrency handling; plus your thinking process, like what your AI coding best practices are, what skills you used to assist development, how you wrote the docs for the project, how you did observability, how you did the Agent's evaluation, how you proved it's good, and how the fine-tuning was done."
+
+One project done deeply and thoroughly >> five projects done superficially.
+
+### 6.2 Don't do RAG-for-the-sake-of-RAG
+
+I strongly recommend first reading Karpathy's [LLM Wiki](https://karpathy.ai/) series — he explains very clearly "why traditional RAG is gradually losing ground in the long-context era," which is one of the underlying ideas of this section.
+
+W asked a great question:
+
+> "RAG is meant to solve the knowledge-base problem. So how do the latest Agents solve problems? Does Claude Code have RAG?"
+
+The candidate then realized: **Claude Code has no RAG — it uses grep.**
+
+This observation is profound:
+
+- **The traditional RAG paradigm is "chunk and vectorize documents first, then retrieve at query time"** — that's the 2023 methodology, on the assumption that "the model's context is small, tokens are expensive, and retrieval must be precise."
+- **The 2025–2026 paradigm is Agent + tools** — a long-context model + grep / glob / file-reading tools, letting the Agent explore the codebase itself. This approach has higher precision, doesn't depend on vectorization quality, and doesn't require maintaining an index.
+- This isn't to say RAG is dead, but that **RAG isn't the only answer.** In many scenarios, letting the Agent use basic tools (grep, find, read) is actually better than reaching for RAG.
+
+Job-seeking advice: **"used RAG" on a résumé is no longer a bonus.** If you write RAG, you'd better be able to clearly explain "why RAG is more suitable for this scenario than Agent + grep."
+
+### 6.3 The project should be live — ideally let the interviewer try it
+
+> "If your project is something you built yourself but it's not live, I might not be very interested."
+>
+> "I'd suggest you deploy the project to Vercel — it takes half an hour to deploy — you should have a production-grade project that people can actually use."
+
+Why being live matters so much —
+
+- Only when it's live do you run into real problems (performance, concurrency, error handling, user behavior)
+- Only when it's live does your résumé get hard metrics like "traffic" and "user count" — **though you might not have these, and I don't insist on it**, since pulling in real users is a hard thing
+
+But what I hope for is that you **have at least a bit of deployment experience.** The ideal case is: during or before the interview, I can go try your project myself — even if it's just a demo page that doesn't require login. A "project you can actually touch" is far more credible and adds far more points than a project described purely in a résumé.
+
+### 6.4 The overseas developer ecosystem: a bonus many domestic candidates overlook
+
+I think W's section here is especially worth pulling out on its own:
+
+> "The richest people in the world are all in the US, and the highest SaaS paying rates are in the US too. So **the developer world should only be divided into China and overseas.**"
+
+The specific skill stack:
+- How to integrate Google OAuth, AWS, and Stripe payments
+- Vercel deployment, Cloudflare attack protection (not the robot Turnstile kind)
+- How to write a Vercel template, how to make an open-source project one-click deployable for others
+- How to integrate into overseas developer communities (X, Hacker News, Reddit, Indie Hackers)
+
+> "Domestic big tech is all going overseas too, and the whole pool of domestic capital is going overseas as well."
+
+If you want to be an Agent engineer and also land a good offer, **an understanding of the overseas developer ecosystem is genuinely an ability that can open up a real gap.**
+
+### 6.5 Information-gathering ability = a soft skill
+
+In the last stretch of conversation, I said:
+
+> "Now that we have AI, the value, or the significance, of the ability to write code itself is gradually decreasing. So you definitely need to develop some so-called soft skills."
+
+W added:
+
+> "Do you usually scroll Twitter? You should scroll the AI Twitter more — you'll get a lot of inspiration. The more you scroll and the more you know, the more it's a dimensionality-reduction strike — you go from being a job seeker to being someone in the AI world who's actually taking part in this carnival of building."
+
+**This is the most important sentence of the whole interview.**
+
+In a field where technology changes on a weekly basis, **your information sources determine your ceiling.** If you only read WeChat public accounts, Zhihu, and CSDN, what you see is forever translated, filtered, lagged second-hand information. When a new model, framework, or paradigm appears, you find out a week later than practitioners in Silicon Valley and three days later than the earliest people in China to know; three months later, what you see is a chewed-over "explainer article."
+
+To build first-hand information sources:
+
+- **X / Twitter**: follow Anthropic and OpenAI employees, well-known indie developers, founders of AI infra companies
+- **Hacker News**: scan the frontpage every day
+- **Official docs / changelogs**: the product pages and release notes of Anthropic, OpenAI, Vercel, Cursor
+- **GitHub**: follow projects that just launched and went viral; read the code, file issues, join the discussion
+- **Personal blogs**: of course, you're also welcome to follow my [joyehuang.me](https://joyehuang.me) hhh — I sediment the interesting things I read each day in the notes section
+
+> "You'll change — from being a job seeker to being someone in the AI world who's taking part in this carnival of building."
+
+### 6.6 On "copying open-source projects"
+
+At the end, the candidate asked: "Are there any recommended open-source projects I can pull down and work on?"
+
+My answer:
+
+> "I really don't intend to recommend any project. Now that we have AI, the cost of building a project from scratch is already very low. I'd suggest you discover the needs in your daily life around you — that way, when you tell the whole story in an interview, it'll be more sincere and more convincing. Or you can heavily use Hermes Agent like I do, and wherever you think its code is bad, go change it — so far I haven't met an interviewer who understands the Hermes Agent source better than I do, and that kind of depth is itself scarce. But copying an open-source project directly is something I personally can't really accept."
+
+The reasons:
+1. A copied project — you can't explain "why it's designed this way," so all the "why" questions crash and burn
+2. A copied project has no real motivation of your own for using it — you can't tell the use case
+3. AI coding tools have already driven the cost of "writing from scratch" down to a few hours — there's no need to copy
+
+---
+
+## 7. Communication ability: answers that don't hit the point
+
+Throughout the interview I repeatedly pointed out one problem with the candidate: **before answering, there'd be a couple of meaningless filler sentences, and it took a long time to grab the core of the question.**
+
+The candidate realized it himself too: "I really do need to work more on my verbal expression."
+
+This is actually a severely underrated job-seeking skill. With the same knowledge base, **someone who can make a point clearly in 30 seconds versus someone who needs 3 minutes of beating around the bush get completely different interview ratings.**
+
+How to improve:
+
+1. **Record and replay**: record every mock interview, listen back afterward, and you'll find you have tons of filler words like "um, like, that kind of thing"
+2. **Conclusion first, details second**: the first sentence of every answer gives the conclusion directly, then you expand
+3. **Use technical terms**: not "that thing" or "something like that," but "prefix caching," "AQS," "weak reference" — precise wording is itself a display of professionalism
+4. **If you're not clear, don't pretend to be** — this is the more core point. A lot of the time, the reason you beat around the bush and pile on filler is fundamentally that you're not sure of the answer itself and want to cover it with "saying more." But saying more just gets more wrong; better to directly admit "I'm not too familiar with this." Admitting you don't know is far better than bluffing and getting fished to death.
+
+One more thing W and I observed: **sometimes the candidate had actually reached the answer, but just didn't say the term.** He'd use an extra sentence or two to describe the concept. In that case, "the knowledge is there but the term isn't," and the interviewer instead judges it as "not familiar."
+
+---
+
+## 8. Summary: if you also want to be an Agent engineer
+
+Condensing all the lessons from this interview into a checklist:
+
+### Project layer
+- [ ] Does my project solve a problem that chatting directly with ChatGPT / Doubao / Claude **can't** solve?
+- [ ] Does my multi-Agent design give a substantive benefit over a single Agent?
+- [ ] Is my project deployed and live? Can the interviewer try it?
+- [ ] Is my project complete with Agent + frontend + backend + evaluation + observability + docs?
+
+### Tech-choice layer
+- [ ] For every technology I used (Redis / vector DB / graph DB / fine-tuning / RAG), can I clearly explain "why this one and not X / Y / Z"?
+- [ ] Do I know that PostgreSQL + pgvector can replace a standalone vector DB in many scenarios?
+- [ ] Do I know why Claude Code uses grep instead of RAG?
+- [ ] Did I use different models tiered for different tasks?
+
+### Agent-knowledge layer
+- [ ] Can I clearly explain the relationship between Function Calling / MCP / Skills / CLI tools?
+- [ ] Do I know how Skill's progressive disclosure / Claude Code's tool_search work?
+- [ ] Can I clearly explain prefix-caching-friendly context design?
+- [ ] Can I clearly explain the memory system's "factual / derived / preference" classification, plus contradiction handling and decay mechanisms?
+- [ ] Have I studied the Memory evolution of OpenAI / Claude / Hermes / OpenCode?
+
+### AI-workflow layer
+- [ ] Do I have my own AI coding workflow? How do I use AGENTS.md / Skills / Memory?
+- [ ] Beyond coding scenarios, how else do I weave AI into daily life (scheduling, information feeds, content creation)?
+- [ ] Can I write Agent evaluations?
+
+### Soft-skill layer
+- [ ] What are my first-hand information sources? Do I read X, HN, and official changelogs every day?
+- [ ] Do I understand the overseas developer ecosystem (Vercel / Stripe / Cloudflare / OAuth)?
+- [ ] When answering, can I cut to the core in 30 seconds? Do I use technical terms?
+
+---
+
+## A final note
+
+This interview lasted 1 hour and 19 minutes, and the overall feedback W and I gave the candidate was "the projects need a rewrite, the information sources need to expand, the expression needs practice." It sounds harsh, but his own reaction was "knowing the problems is better than not knowing them."
+
+I agree with that attitude.
+
+> "Knowing the problems is already much better than not knowing them; what comes next is your follow-through."
+
+All the problems discussed in this blog post are ones I'm still continuously learning and stumbling through myself. Every day I'm changing Hermes's source, reading Anthropic's official docs, and watching the latest discussions in the AI world on X — not because I'm so great, but because this is the **entry ticket** for this industry, not a bonus.
+
+If you're also preparing for an Agent-track job search, I hope this helps.
+
+---
+
+📮 **About paid mock interviews / résumé coaching**
+
+I'm currently taking paid 1-on-1 mock interviews and résumé coaching for the Agent track, with questions customized to your specific projects and target role and concrete, actionable improvement directions (this blog post is the retrospective of one real mock interview). If you're interested, you can find me on my personal website [joyehuang.me](https://joyehuang.me), or book directly through the contact info on the site.
+
+I'll keep writing up more mock-interview retrospectives going forward — feel free to follow along.
+
+*All names and sensitive information in this article have been de-identified.*

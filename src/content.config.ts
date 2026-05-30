@@ -1,4 +1,4 @@
-import { defineCollection, z } from 'astro:content'
+import { defineCollection, z, type SchemaContext } from 'astro:content'
 import { glob } from 'astro/loaders'
 
 function removeDupsAndLowerCase(array: string[]) {
@@ -8,58 +8,79 @@ function removeDupsAndLowerCase(array: string[]) {
   return Array.from(distinctItems)
 }
 
-const blog = defineCollection({
-  // Load Markdown and MDX files in the `src/content/blog/` directory.
-  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
-  // Required
-  schema: ({ image }) =>
-    z.object({
-      // Required
-      title: z.string().max(60),
-      description: z.string().max(160),
-      publishDate: z.coerce.date(),
-      // Optional
-      updatedDate: z.coerce.date().optional(),
-      heroImage: z
-        .object({
-          src: image(),
-          alt: z.string().optional(),
-          inferSize: z.boolean().optional(),
-          width: z.number().optional(),
-          height: z.number().optional(),
+// Shared schemas so the Chinese collections and their English mirrors stay in sync.
+const blogSchema = ({ image }: SchemaContext) =>
+  z.object({
+    // Required
+    title: z.string().max(60),
+    description: z.string().max(160),
+    publishDate: z.coerce.date(),
+    // Optional
+    updatedDate: z.coerce.date().optional(),
+    heroImage: z
+      .object({
+        src: image(),
+        alt: z.string().optional(),
+        inferSize: z.boolean().optional(),
+        width: z.number().optional(),
+        height: z.number().optional(),
 
-          color: z.string().optional()
-        })
-        .optional(),
-      tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
-      language: z.string().optional(),
-      draft: z.boolean().default(false),
-      comment: z.boolean().default(true)
-    })
+        color: z.string().optional()
+      })
+      .optional(),
+    tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+    language: z.string().optional(),
+    // For English mirrors: the Chinese entry's URL path after `/blog/`
+    // (e.g. `20251216---normalization/post`). Drives en routing + hreflang.
+    translationKey: z.string().optional(),
+    draft: z.boolean().default(false),
+    comment: z.boolean().default(true)
+  })
+
+const archiveSchema = z.object({
+  // Required
+  title: z.string(),
+  date: z.coerce.date(),
+  // Optional
+  description: z.string().optional(),
+  updatedDate: z.coerce.date().optional(),
+  tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+  // Type of archive entry: note, snippet, draft, idea, research, etc.
+  type: z.enum(['note', 'snippet', 'draft', 'idea', 'research', 'reference']).default('note'),
+  // Status: in-progress, incomplete, ready, archived
+  status: z.enum(['in-progress', 'incomplete', 'ready', 'archived']).default('in-progress'),
+  draft: z.boolean().default(false),
+  // For English mirrors: the Chinese entry's id (e.g. `0326-foo`). Drives en routing + hreflang.
+  language: z.string().optional(),
+  translationKey: z.string().optional(),
+  // Relationships - connect archive entries to blog posts and other archives
+  relatedBlog: z.array(z.string()).optional(),
+  relatedArchive: z.array(z.string()).optional(),
+  // External source or reference URL
+  source: z.string().url().optional()
+})
+
+// Chinese (default) blog posts: every `post.mdx` EXCEPT English mirrors `post.en.mdx`.
+const blog = defineCollection({
+  loader: glob({ base: './src/content/blog', pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}'] }),
+  schema: blogSchema
+})
+
+// English mirrors: `post.en.mdx` siblings, kept in a separate collection so they
+// never leak into the Chinese blog list / RSS / OG generation.
+const blogEn = defineCollection({
+  loader: glob({ base: './src/content/blog', pattern: '**/*.en.{md,mdx}' }),
+  schema: blogSchema
 })
 
 const archive = defineCollection({
-  // Load Markdown and MDX files in the `src/content/archive/` directory.
-  loader: glob({ base: './src/content/archive', pattern: '**/*.{md,mdx}' }),
-  schema: z.object({
-    // Required
-    title: z.string(),
-    date: z.coerce.date(),
-    // Optional
-    description: z.string().optional(),
-    updatedDate: z.coerce.date().optional(),
-    tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
-    // Type of archive entry: note, snippet, draft, idea, research, etc.
-    type: z.enum(['note', 'snippet', 'draft', 'idea', 'research', 'reference']).default('note'),
-    // Status: in-progress, incomplete, ready, archived
-    status: z.enum(['in-progress', 'incomplete', 'ready', 'archived']).default('in-progress'),
-    draft: z.boolean().default(false),
-    // Relationships - connect archive entries to blog posts and other archives
-    relatedBlog: z.array(z.string()).optional(),
-    relatedArchive: z.array(z.string()).optional(),
-    // External source or reference URL
-    source: z.string().url().optional()
-  })
+  loader: glob({ base: './src/content/archive', pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}'] }),
+  schema: archiveSchema
+})
+
+const archiveEn = defineCollection({
+  loader: glob({ base: './src/content/archive', pattern: '**/*.en.{md,mdx}' }),
+  schema: archiveSchema
 })
 
 const curated = defineCollection({
@@ -90,4 +111,4 @@ const curated = defineCollection({
     })
 })
 
-export const collections = { blog, archive, curated }
+export const collections = { blog, blogEn, archive, archiveEn, curated }
