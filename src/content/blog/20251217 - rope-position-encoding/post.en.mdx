@@ -1,0 +1,562 @@
+---
+title: 'RoPE: From Permutation Invariance to Multi-Frequency'
+description: 'A deep dive into RoPE (Rotary Position Embedding), the standard position encoding for modern LLMs: the math, the engineering, and floating-point precision.'
+publishDate: 2025-12-17 00:00:00
+tags: ['LLM', 'Transformer', 'MiniMind', 'RoPE', 'Position Encoding']
+language: en
+translationKey: '20251217---rope-position-encoding/post'
+---
+
+> This is the second post in my MiniMind learning series, a deep dive into RoPE (Rotary Position Embedding) — the standard position encoding for modern large language models. We'll go from the math to the engineering, including the floating-point precision issue that rarely gets discussed, so you can fully understand this elegant design.
+
+## About this series
+
+[MiniMind](https://github.com/jingyaogong/minimind) is a concise but complete LLM training project, covering the full pipeline from data processing and model training to inference and deployment. As I worked through it, I distilled the core technical points into my [minimind-notes](https://github.com/joyehuang/minimind-notes) repo and produced this four-part blog series, walking through the core components of the Transformer in a systematic way.
+
+The series includes:
+1. **Normalization** - why we need RMSNorm
+2. **RoPE position encoding** (this post) - how to make a model understand word order
+3. **Attention** - the core engine of the Transformer
+4. **FeedForward and the full architecture** - how the components work together
+
+---
+
+## 1. Introduction
+
+### 1.1 Starting with a bug
+
+Suppose you've implemented a simple Attention mechanism:
+
+```python
+def simple_attention(query, key, value):
+    scores = query @ key.T  # compute similarity
+    weights = softmax(scores)
+    output = weights @ value
+    return output
+
+# Test
+sentence1 = tokenize("我喜欢你")
+sentence2 = tokenize("你喜欢我")
+
+# Compute Attention
+output1 = simple_attention(Q1, K1, V1)
+output2 = simple_attention(Q2, K2, V2)
+
+# Surprisingly:
+assert torch.allclose(output1, output2)  # True!?
+```
+
+**The problem**: two sentences with completely opposite meanings produce the exact same Attention output?
+
+This is the **permutation invariance problem of Attention**.
+
+### 1.2 What this post will answer
+
+- What is Attention's "permutation invariance," and why is it a problem?
+- Why do we need position encoding?
+- How does RoPE encode position using rotation?
+- **Why do we need 32 frequencies?** (the core difficulty, involving floating-point precision)
+- How does RoPE encode both absolute and relative position information at the same time?
+
+### 1.3 Who this is for
+
+- People with a basic understanding of the Transformer
+- Anyone who wants to deeply understand position encoding
+- Researchers curious about the "engineering details"
+- Anyone about to implement their own Transformer
+
+---
+
+## 2. The problem: Attention's permutation invariance
+
+### 2.1 What is permutation invariance?
+
+**Definition**: for a set operation, the order of elements doesn't affect the result.
+
+**Mathematical statement**:
+```
+f({a, b, c}) = f({c, a, b}) = f({b, c, a})
+```
+
+**Classic examples**:
+- Sum: sum([1, 2, 3]) = sum([3, 1, 2]) = 6
+- Mean: mean([1, 2, 3]) = mean([2, 3, 1]) = 2
+
+### 2.2 Why is Attention permutation invariant?
+
+Let's look at the core computation in Attention:
+
+```python
+scores = Q @ K.T  # [seq_len, seq_len]
+weights = softmax(scores, dim=-1)
+output = weights @ V
+```
+
+**Key observation**: the result of the matrix product `Q @ K.T` depends only on the row vectors of Q and K, not on the order of the rows.
+
+**A simplified example**:
+
+Suppose we have two sentences:
+- Sentence 1: "我 喜欢 你" → Q1, K1
+- Sentence 2: "你 喜欢 我" → Q2, K2 (just a reordering)
+
+Their Attention score matrices:
+
+```
+Sentence 1: [[1.25, 1.00, 0.95],
+             [1.00, 1.25, 0.70],
+             [0.95, 0.70, 0.73]]
+
+Sentence 2: [[0.73, 0.70, 0.95],
+             [0.70, 1.25, 1.00],
+             [0.95, 1.00, 1.25]]
+```
+
+**Observation**: the two matrices contain **exactly the same values**, just in different positions (the rows and columns are reordered). After softmax, the weight distribution in each row is also just a reordering. **The model has no way to tell which word is in which position!**
+
+{/* ![Figure 1: Permutation invariance — comparing the Attention matrices of two sentences](placeholder_permutation_invariance.png) */}
+
+### 2.3 Why is this a problem?
+
+In natural language, **position information is crucial**:
+
+```
+"猫追老鼠" vs "老鼠追猫"  ← completely opposite meanings
+"我没说她偷了钱" vs "我说她没偷钱"  ← completely different semantics
+"吃饭了吗" vs "饭吃了吗"  ← different tone
+```
+
+**Conclusion**: Attention needs some mechanism to perceive position information!
+
+---
+
+## 3. Three generations of position encoding
+
+### 3.1 First generation: absolute position encoding (BERT, 2018)
+
+**Core idea**: assign a fixed vector to each position.
+
+```python
+class AbsolutePositionEmbedding(nn.Module):
+    def __init__(self, max_len, hidden_size):
+        super().__init__()
+        # learnable position embedding
+        self.position_embedding = nn.Embedding(max_len, hidden_size)
+
+    def forward(self, x):
+        batch_size, seq_len, hidden_size = x.shape
+
+        # position IDs: [0, 1, 2, ..., seq_len-1]
+        position_ids = torch.arange(seq_len, device=x.device)
+        position_ids = position_ids.unsqueeze(0).expand(batch_size, -1)
+
+        # look up the position vectors
+        pos_embed = self.position_embedding(position_ids)
+
+        # add directly
+        return x + pos_embed
+```
+
+**Pros**:
+- ✅ Simple and direct
+- ✅ Learnable (adjusts to the data)
+
+**Cons**:
+- ❌ Can't extrapolate to unseen lengths (train on 512, test on 1024 and it falls apart)
+- ❌ No explicit relative position information
+- ❌ Requires storing a lot of parameters (max_len × hidden_size)
+
+### 3.2 Second generation: relative position encoding (T5, 2019)
+
+**Core idea**: encode the relative distance between two words.
+
+```python
+# compute relative position
+relative_distance = pos_j - pos_i  # -seq_len to +seq_len
+
+# look up the bias for the relative position
+bias = relative_position_bias[relative_distance]
+
+# add to the Attention scores
+scores = (Q @ K.T) + bias
+```
+
+**Pros**:
+- ✅ Has relative position information
+- ✅ Can extrapolate to some degree
+
+**Cons**:
+- ❌ Requires an extra bias matrix (O(seq_len²) space)
+- ❌ Computationally complex
+- ❌ Tedious to implement
+
+### 3.3 Third generation: RoPE (Llama/MiniMind, 2021) ⭐️
+
+**Core idea**: encode position by rotating vectors.
+
+```python
+# apply rotation to Query and Key
+Q_rot = rotate(Q, position × θ)
+K_rot = rotate(K, position × θ)
+
+# compute Attention (relative position is included automatically!)
+scores = Q_rot @ K_rot.T
+```
+
+**Pros**:
+- ✅ Naturally includes relative position information (a mathematical property)
+- ✅ Can extrapolate to longer sequences (with YaRN)
+- ✅ Computationally efficient (O(1) extra space)
+- ✅ Clean, elegant implementation
+- ✅ **The standard for modern LLMs** (GPT-3, Llama, Mistral, MiniMind)
+
+**Comparison table**:
+
+| Feature | Absolute | Relative | RoPE |
+|------|---------|---------|------|
+| **Relative info** | ❌ | ✅ | ✅ |
+| **Extrapolatable** | ❌ | △ | ✅ |
+| **Compute efficiency** | ✅ | ❌ | ✅ |
+| **Space complexity** | O(L×D) | O(L²) | O(1) |
+| **Implementation difficulty** | Simple | Complex | Medium |
+| **Models** | BERT | T5 | GPT-3+, Llama |
+
+---
+
+## 4. RoPE core principle: rotary encoding
+
+### 4.1 The basic idea
+
+> "Encode position with a rotation angle"
+
+**Intuition**:
+```
+position 0 → rotate 0°
+position 1 → rotate θ°
+position 2 → rotate 2θ°
+position 3 → rotate 3θ°
+...
+position m → rotate m×θ°
+```
+
+Just like the hands of a clock, different moments point at different angles!
+
+{/* ![Figure 2: RoPE rotary encoding — vectors rotated for different positions](placeholder_rope_rotation.png) */}
+
+### 4.2 Mathematical derivation (simplified)
+
+**Rotating a 2D vector**:
+
+```
+rotation matrix R(θ) = [cos(θ)  -sin(θ)]
+                       [sin(θ)   cos(θ)]
+
+vector v rotated by θ degrees:
+v_rot = R(θ) @ v
+```
+
+**Rotating the word vector at position m**:
+```python
+q_m = R(m × θ) @ q  # rotate Query by m×θ degrees
+k_n = R(n × θ) @ k  # rotate Key by n×θ degrees
+```
+
+**Computing the Attention score**:
+```python
+score = q_m · k_n
+      = (R(mθ) @ q) · (R(nθ) @ k)
+      = q^T @ R(mθ)^T @ R(nθ) @ k   # transpose of the dot product
+      = q^T @ R(-mθ) @ R(nθ) @ k     # transpose of a rotation matrix = reverse rotation
+      = q^T @ R((n-m)θ) @ k          # rotation angles add up
+      = q^T @ R(Δθ) @ k              # Δ = n-m (relative distance)
+```
+
+**The magical conclusion**: the Attention score depends only on the relative distance (n-m)!
+
+### 4.3 RoPE's twofold advantage
+
+#### Advantage 1: it has absolute position information
+
+Every position has a unique rotation angle:
+- Query at position 5: rotated to 5θ
+- Query at position 8: rotated to 8θ
+- The model can know "this word is at position 5"
+
+#### Advantage 2: it has relative position information
+
+The Attention score depends only on the relative distance:
+- Position 5 looking at position 8 = `q @ rotate(k, 3θ)` (distance 3)
+- Position 0 looking at position 3 = `q @ rotate(k, 3θ)` (distance 3)
+- The two scores are the same, so the model knows "these two words are 3 positions apart"
+
+**Best of both worlds!** It has both absolute and relative position.
+
+{/* ![Figure 3: RoPE's twofold advantage — absolute and relative position](placeholder_rope_dual_advantage.png) */}
+
+---
+
+## 5. The core difficulty: why do we need multiple frequencies? ⭐⭐⭐
+
+### 5.1 Setting up the problem
+
+By this point, you might be wondering:
+
+> "If rotating 360 degrees brings you back to the start, then aren't position 0 and position 360 indistinguishable?"
+
+**That's an excellent question!**
+
+### 5.2 The intuitive fix: lower the frequency
+
+**The idea**: if it only completes one full turn every million tokens, wouldn't that cover all positions?
+
+```python
+# ultra-low frequency
+θ = 2π / 1_000_000  # one full turn every million tokens
+
+# in theory
+position_0 → 0°
+position_1 → 0.00000628°
+position_1000000 → 360° (back to the start)
+
+# can uniquely identify a million positions!
+```
+
+**Here's the catch**: why don't we actually do this?
+
+### 5.3 The real reason: floating-point precision limits ⭐⭐⭐
+
+**The key finding**: it works in theory, **but not in engineering**!
+
+When using an ultra-low frequency (one full turn every million tokens):
+- cos value at position 0: 1.0
+- cos value at position 1: 0.999999999980261
+- Difference: about `1.97e-11`
+
+**Where the problem lies**:
+- float32's precision is about `10^-7`
+{/* - the difference between adjacent positions $1.97 \times 10^{-11} \ll 10^{-7}$ */}
+
+- **The computer can't distinguish adjacent positions!**
+
+After computing in float32, the cos values for position 0 and position 1 are both 1.0 — completely indistinguishable.
+
+{/* ![Figure 4: The floating-point precision problem — single frequency vs. multiple frequencies](placeholder_float_precision.png) */}
+
+### 5.4 Mathematical analysis
+
+A Taylor expansion proves it:
+- Angle difference: θ ≈ 6.28e-6 radians
+- cos difference: Δcos ≈ θ²/2 ≈ 2e-11
+- float32 precision: about 10^-7
+
+Conclusion: `2e-11 << 10^-7`, the computer can't distinguish adjacent positions.
+
+It's like measuring millimeter-scale differences with a meter stick — the markings are too coarse to read them.
+
+### 5.5 The multi-frequency solution
+
+**Strategy**: use 32 different frequencies (MiniMind, head_dim=64), one frequency per pair of dimensions.
+
+**Frequency range**:
+
+| Frequency type | Period (tokens) | Role |
+|---------|-------------|------|
+| High (0) | 6.3 | Precisely distinguish adjacent positions (angle difference 57.3°) |
+| Medium (15) | 6,283 | Balance precision and range |
+| Low (31) | 6,283,185 | Identify distant positions |
+
+**The combined effect**:
+- Position 0 encoding: `[1.0, 1.0, 1.0, ..., 1.0]` (32 values)
+- Position 1 encoding: `[0.5403, 0.9997, 0.9999, ..., 1.0]`
+- The high-frequency components differ noticeably (0.5403 vs. 1.0), so adjacent positions can be distinguished
+- The low-frequency components cover long distances, so positions in the millions can be identified
+
+**The key point**: high frequencies see the detail, low frequencies see the big picture — together they're both precise and comprehensive!
+
+### 5.6 An analogy: the clock system
+
+It's just like a clock's hour, minute, and second hands:
+
+**Second hand (high frequency)**:
+- Completes a turn every minute, precise to the second
+- But returns to the start after an hour, so it can't distinguish on its own
+
+**Minute hand (medium frequency)**:
+- Completes a turn every hour, precise to the minute
+- Together with the second hand it can distinguish 3,600 seconds
+
+**Hour hand (low frequency)**:
+- Completes a turn every 12 hours, covering a wide range
+
+**Combine all three → you can uniquely identify any moment!** RoPE's multi-frequency mechanism works exactly the same way.
+
+{/* ![Figure 5: The clock analogy — the multi-frequency mechanism](placeholder_clock_analogy.png) */}
+
+---
+
+## 6. The full RoPE implementation
+
+The RoPE implementation breaks down into three steps:
+
+### 6.1 Precompute the frequencies and cos/sin values
+
+The core idea: precompute the cos and sin values needed for rotation, for every position and every frequency.
+
+```python
+def precompute_freqs_cis(dim, end, rope_base=1e6):
+    # 1. compute frequencies: freqs[i] = 1 / (rope_base ^ (2i / dim))
+    freqs = 1.0 / (rope_base ** (torch.arange(0, dim, 2).float() / dim))
+
+    # 2. build the angle matrix: positions × freqs
+    t = torch.arange(end)
+    freqs = torch.outer(t, freqs)  # [end, dim/2]
+
+    # 3. compute cos and sin
+    freqs_cos = torch.cos(freqs).repeat(1, 2)  # [end, dim]
+    freqs_sin = torch.sin(freqs).repeat(1, 2)
+
+    return freqs_cos, freqs_sin
+```
+
+### 6.2 Apply the rotation
+
+The core formula: `q_rotated = q * cos + rotate_half(q) * sin`
+
+```python
+def apply_rotary_pos_emb(q, k, cos, sin):
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+    return q_embed, k_embed
+
+def rotate_half(x):
+    # split the vector in half and swap: [x1, x2] → [-x2, x1]
+    x1, x2 = x.chunk(2, dim=-1)
+    return torch.cat((-x2, x1), dim=-1)
+```
+
+This is essentially the real-valued implementation of complex rotation: `(a + bi) × (cos + i·sin)`
+
+### 6.3 Using it inside Attention
+
+```python
+class Attention(nn.Module):
+    def forward(self, x, position_embeddings):
+        # 1. produce Q, K, V and split into heads
+        q, k, v = self.q_proj(x), self.k_proj(x), self.v_proj(x)
+
+        # 2. ⭐ apply RoPE (to Q, K only)
+        cos, sin = position_embeddings
+        q, k = apply_rotary_pos_emb(q, k, cos, sin)
+
+        # 3. compute Attention
+        scores = q @ k.T / sqrt(head_dim)
+        output = softmax(scores) @ v
+
+        return output
+```
+
+**Full code**: see the MiniMind source `model/model_minimind.py:108-182`
+
+---
+
+## 7. YaRN: long-context extrapolation
+
+### 7.1 The problem
+
+The model was trained with a maximum length of 2048, but at inference time you want to handle 8192 tokens — what do you do?
+
+Extrapolating directly runs into trouble:
+- **High frequencies**: short period, seen many full turns, extrapolates well ✅
+- **Low frequencies**: long period, only a small slice of angles ever seen, so "unseen angles" appear and quality drops ❌
+
+### 7.2 The YaRN solution
+
+**Core idea**: dynamically adjust the low frequencies so that "unseen angles" become "seen angles," while leaving the high frequencies unchanged.
+
+**Results**:
+- Llama 2: trained on 4k → extrapolated to 32k
+- Code Llama: trained on 16k → extrapolated to 100k
+
+This is an advanced topic; for the full details see the [YaRN paper](https://arxiv.org/abs/2309.00071).
+
+---
+
+## 8. Summary
+
+### 8.1 Recap of the key points
+
+- ✅ **The permutation invariance problem**: Attention can't tell word order apart, so it needs position encoding
+- ✅ **RoPE's advantage**: encodes position with rotation, automatically including relative position information
+- ✅ **Why multiple frequencies are necessary**: floating-point precision limits mean a single frequency can't distinguish adjacent positions
+- ✅ **The clock analogy**: high frequencies see the detail, low frequencies see the big picture, and together they cover everything perfectly
+- ✅ **Twofold information**: both absolute and relative position
+- ✅ **Rotate only Q, K**: position is used for similarity and doesn't affect the content V
+
+### 8.2 One sentence to remember
+
+> "RoPE is the perfect balance of mathematical theory and engineering practice"
+
+### 8.3 Self-test questions
+
+1. Why is Attention permutation invariant?
+2. How does RoPE include both absolute and relative position?
+3. **Why can't we just use a single ultra-low frequency?** (the core point)
+4. How does YaRN achieve length extrapolation?
+
+### 8.4 Key code locations (MiniMind)
+
+- RoPE precompute: `model/model_minimind.py:108-128`
+- RoPE application: `model/model_minimind.py:131-137`
+- Used in Attention: `model/model_minimind.py:182`
+
+---
+
+## 9. Hands-on experiments
+
+The full learning materials are open source, so you can run and verify everything yourself:
+
+```bash
+# clone the code
+git clone https://github.com/joyehuang/minimind-notes
+cd minimind-notes/learning_materials
+
+# Experiment 1: RoPE basics
+python rope_basics.py
+
+# Experiment 2: the multi-frequency mechanism
+python rope_multi_frequency.py
+
+# Experiment 3: the floating-point precision problem (core)
+python rope_why_multi_frequency.py
+```
+
+---
+
+## 10. References
+
+**Papers**:
+- [RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864) - the original RoPE paper
+- [Llama 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) - the Llama technical report
+- [YaRN: Efficient Context Window Extension of Large Language Models](https://arxiv.org/abs/2309.00071) - the YaRN paper
+
+**Code**:
+- MiniMind source: [github.com/jingyaogong/minimind](https://github.com/jingyaogong/minimind)
+- RoPE implementation: `model/model_minimind.py:108-182`
+
+**Other posts in this series**:
+- [Part 1: Normalization](/en/blog/20251216---normalization/post)
+- [Part 3: Attention](/en/blog/20251218---attention-mechanism/post)
+- [Part 4: FeedForward and the full architecture](/en/blog/20251219---feedforward-transformer-block/post)
+
+---
+
+**Author**: joye
+**Published**: 2025-12-17
+**Last updated**: 2025-12-17
+**Series**: MiniMind learning notes (2/4)
+
+If you found this helpful, feel free to:
+- ⭐ Star the original project [MiniMind](https://github.com/jingyaogong/minimind)
+- ⭐ Star my learning notes [minimind-notes](https://github.com/joyehuang/minimind-notes)
+- 💬 Leave a comment with your own takeaways
+- 🔗 Share it with others learning about LLMs

@@ -1,0 +1,176 @@
+---
+title: "Frontend Intern Interviews at Chinese Startups: A Prep Guide"
+description: "A systematic rundown of the technical topics, application data, and a complete prep checklist for frontend internship interviews at smaller Chinese companies."
+publishDate: 2025-10-23 16:00:00
+tags: ['实习', '前端', '面试', 'React']
+language: en
+translationKey: '20251023---internshipexperience/post'
+---
+
+## Background
+
+As a second-year student at the University of Melbourne, I spent late 2025 looking for a frontend internship in Shanghai (React stack) for the November–March break. After about a week of back-to-back interviews, I ended up with roughly 10 offers. Drawing on that firsthand experience, this post summarizes the main technical topics that come up in frontend internship interviews at smaller Chinese companies, along with how to prepare for them. I'll also share some practical tips for staying sharp and performing well during a stretch of high-frequency interviewing.
+
+## Application Data
+
+### The numbers
+
+- **Positions contacted**: 210 (including both cold applications and HR outreach, for the main one-week push only)
+- **Resumes exchanged**: 51
+- **Interview conversion rate**: ~15%
+- **Offers**: ~10
+- **Primary channel**: BOSS Zhipin
+
+### What the data tells me
+
+Looking at the conversion rate, resume screening for frontend internships at smaller companies is relatively lenient: about 1 in 6 conversations made it to a technical interview, and the final offer rate hit 70%. In other words, as long as you interview well, you're very likely to land an offer.
+
+## Breakdown of Technical Interview Topics
+
+Based on every technical interview I went through (smaller companies usually run a single round, with the occasional second round or lead interview), it's clear they care more about fundamentals and practical framework usage. Below I only keep the "what gets asked" points; the "how to prepare" part comes later, to avoid repetition.
+
+### React (high frequency)
+
+- Hooks: common Hooks and their use cases, `useEffect` dependencies and the closure/render pitfalls
+- Component communication and state: parent-child (props), cross-level (Context), global (lightweight state libraries, e.g. the basics of Zustand/Redux)
+- Performance optimization: controlling re-renders, `memo`/`useMemo`/`useCallback`, the gist of virtual lists
+- New features: how React 18/19 affect concurrency, forms, and server-side capabilities
+
+### JavaScript (high frequency)
+
+- ES6+: destructuring/spread, modules, the differences between arrow functions and regular functions (`this`, `arguments`, can't be used as constructors), `var` vs `let/const` (scope, hoisting, the temporal dead zone)
+- Async: Promise chains, `async/await`, error boundaries and unified handling
+- Coding questions: debounce/throttle, array deduplication, and (at the conceptual level) deep copy
+
+### TypeScript (medium frequency)
+
+- Common types, `interface` vs `type`, basic generics, frequently used utility types
+
+### Build Tools and Frameworks (medium frequency)
+
+- Next.js: why choose it, SSR/SSG scenarios, and the SEO differences
+- Build tools: how Vite and Webpack work and their performance differences
+
+### CSS Layout (high frequency)
+
+- Types of responsive layout:
+  - Media queries: breakpoint-driven; the upside is fine-grained control, the downside is the maintenance cost of breakpoints; good for B2C pages with clearly defined device breakpoints
+  - Fluid layout (percentages + max/min): shrinks naturally with the container; simple to implement, but elements can become unbalanced at extreme widths; good for information-oriented content pages
+  - Flexbox: distributes along the main axis/cross axis; strong for one-dimensional layouts, limited for two-dimensional arrangements; good at the component level and for linear arrangements
+  - CSS Grid: a two-dimensional grid; very expressive, but with a steeper learning curve; good for complex panels/dashboards
+  - Modern responsiveness (`clamp`/container queries): adapts based on container/font size; closer to a component-based approach, though you'll need to verify browser support; good for design systems and component libraries
+  - Combined strategy: mobile-first, content-driven breakpoints
+ - The classic three-column layout (Holy Grail / Twin-Wing): the underlying principles and differences, plus the trade-offs between Flex and Grid implementations
+
+### Networking and Browsers (low frequency)
+
+- HTTP status codes and how redirects work
+- Cross-origin issues (CORS/proxies) and how to debug using the DevTools Network tab
+
+### Git (low frequency)
+
+- Branching strategy, `git rebase`, `git fetch`
+
+### Other (role-specific)
+
+- Deployment: the typical frontend deployment flow and basic troubleshooting
+- AI/LLM (specialized roles): RAG, long-context quality assurance, API response structures
+- Forms: ways to inject/prefill data into a form library
+
+## Where to Focus Your Prep
+
+Based on the "what gets asked" above, here's an action checklist for "how to prepare efficiently," keeping repetition to a minimum:
+
+### Core stack (80% of your effort)
+
+- The React ecosystem:
+  - Go through the common Hooks and practice them with small demos; get a solid grasp of `useEffect` dependencies and pitfalls
+  - Get comfortable with props/Context and one lightweight state library (I'd suggest Zustand)
+  - Do a focused performance exercise: track down redundant re-renders, apply `memo`/`useMemo`/`useCallback`, and build a basic virtual list
+- CSS layout: build a responsive page once using Flex and media queries
+- JavaScript fundamentals:
+  - Shore up ES6+ (modules, destructuring/spread, `this` behavior)
+  - The async trio: Promise chains, `async/await`, error-handling patterns
+  - Three coding questions: debounce, throttle, array deduplication (optional: the approach to deep copy)
+
+### Supporting knowledge (20% of your effort)
+
+- TypeScript: basic types, `interface` vs `type`, one generics example, common utility types
+- Computer networking (just the basics is fine):
+  - The four-layer TCP/IP model; what happens from typing a URL to the page rendering
+  - Common status codes; TCP's three-way handshake / four-way teardown; TCP vs UDP; cross-origin issues (CORS/proxies)
+  - Recommended: [Xiaolin Coding - Illustrated Networking](https://xiaolincoding.com/network/) (lots of diagrams, which makes it easier to understand and remember)
+- Build tools/Git: understand the differences between Vite and Webpack; day-to-day branch management and the basics of `rebase`
+
+## Resume Tips
+
+### Choosing a tool
+
+I recommend [Reactive Resume](https://rxresu.me/):
+
+- Open source and free, with data export
+- Professional templates and clean typography
+- Supports Markdown and custom styling
+
+### Content principles
+
+**Skills section**
+
+- Group by proficiency (proficient, comfortable, familiar)
+- Only list technologies you've actually used, not ones you've merely read the docs for
+- Highlight the skills that match the role
+
+**Projects section**
+
+- Two or three representative projects is plenty; highlight the stack you know well (React / Next.js / TypeScript, etc.).
+- I'd suggest a concise structure for each description:
+   - Overview: one sentence on what it does and where it sits (e.g. "a voice-interaction platform for AI-powered mock interviews").
+   - Technical highlights: focus on the features you built yourself or the problems you solved (e.g. "implemented the login/registration logic and database integration," "built a reusable form component").
+   - What you learned: things like "got the hang of the SSR rendering flow" or "understood how Zustand's state management works."
+   - Real over flashy: don't force performance metrics; focus on which key technologies you mastered and which problems you solved.
+- Ship it if you can: even deploying to Vercel / Netlify demonstrates completeness and hands-on ability.
+- Stack consistency: the frameworks and libraries mentioned in your projects should line up with the skills section — keep everything consistent.
+
+**The key principle**
+
+> Every technology and project detail on your resume needs to be something you can explain in depth. Interviewers ask questions based on your resume, and listing things you're not familiar with is an easy way to get exposed.
+
+## Interview Strategy
+
+### Technical interviews
+
+1. **Fundamentals first**: smaller companies weigh fundamentals over projects — solid JavaScript and React basics matter more than a complicated project
+2. **Structured delivery**: when answering, lead with the conclusion, then fill in the details
+3. **Be honest**: for things you don't know, "I'm not deeply familiar with this, but my understanding is..." beats winging it
+4. **Make the most of the Q&A**: never waste the chance to ask questions — you can ask about the specifics of the internship, the team and the product, or where you could improve based on the interview
+
+### Communication tips
+
+1. Stay active on BOSS Zhipin and reply to messages promptly
+2. When cold-applying, briefly explain why you're a good fit
+3. Send a thank-you note after the interview to express your interest
+
+### Review and practice
+
+- Interview enough that nerves fade: pack your interviews into a short window so you get into the groove quickly
+- Record and review (for your own use only): replay the questions and your answers, mark each as "good / okay / needs work," and patch the gaps accordingly
+- Turn it into a checklist: organize the frequent questions and common mistakes into flashcards and practice them with spaced repetition
+- Ship your projects if you can: put the live URLs on your resume and personal homepage — HR and interviewers will actually visit them, and it's a clear plus
+
+## Wrapping Up
+
+The technical bar for frontend internships at smaller Chinese companies is fairly clear: **solid JavaScript fundamentals + comfortable React usage + reasonable resume packaging**. Compared to the big players, smaller companies care more about "can you get up to speed and do the work" than about algorithms and system design.
+
+In terms of return on effort, I'd suggest spending 80% of your time on React and JavaScript fundamentals (the classic interview canon) and 20% on resume polishing and project prep.
+
+I hope this rundown helps anyone out there looking for an internship.
+
+---
+
+**References**:
+
+- [React Official Docs](https://react.dev/)
+- [MDN Web Docs](https://developer.mozilla.org/)
+- [Reactive Resume](https://rxresu.me/)
+- [The Modern JavaScript Tutorial](https://zh.javascript.info/)
+- [Xiaolin Coding - Networking section](https://xiaolincoding.com/network/)

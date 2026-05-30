@@ -1,0 +1,31 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content'
+
+import PostLayout from '@/layouts/BlogPost.astro'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blogEn'))
+    .filter((post) => (import.meta.env.PROD ? !post.data.draft : true) && post.data.translationKey)
+    .sort((a, b) => +new Date(b.data.publishDate) - +new Date(a.data.publishDate))
+  return posts.map((post) => ({
+    // Mirror the Chinese URL via the explicit translationKey
+    // (e.g. `20251216---normalization/post`) → /en/blog/<key>.
+    params: { id: post.data.translationKey! },
+    props: { post, posts }
+  }))
+}
+
+type Props = {
+  post: CollectionEntry<'blogEn'>
+  posts: CollectionEntry<'blogEn'>[]
+}
+
+const { post, posts } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(post)
+---
+
+<PostLayout {post} {posts} {headings} {remarkPluginFrontmatter} back='/en/blog' recommend={false}>
+  <Content />
+</PostLayout>

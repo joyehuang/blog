@@ -3,7 +3,8 @@
 
 import type { SiteMeta } from 'astro-pure/types'
 import config from '@/site-config'
-import { getLangFromUrl, hasEnAlternate, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+import { hasEnVersion } from '@/i18n/translations'
 
 type Props = SiteMeta
 
@@ -17,7 +18,7 @@ const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url)
 // that exist in both languages (never fabricate an /en URL for zh-only content).
 const lang = getLangFromUrl(Astro.url)
 const barePath = stripLangPrefix(Astro.url.pathname)
-const hasAlt = hasEnAlternate(barePath)
+const hasAlt = await hasEnVersion(barePath)
 const ogLocale = lang === 'en' ? 'en_US' : 'zh_CN'
 const ogLocaleAlternate = hasAlt ? (lang === 'en' ? 'zh_CN' : 'en_US') : null
 const hreflangAlternates = hasAlt
