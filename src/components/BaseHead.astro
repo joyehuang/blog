@@ -3,6 +3,7 @@
 
 import type { SiteMeta } from 'astro-pure/types'
 import config from '@/site-config'
+import { getLangFromUrl, hasEnAlternate, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
 
 type Props = SiteMeta
 
@@ -11,6 +12,21 @@ const { articleDate, description, ogImage, title } = Astro.props
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url).href
+
+// Bilingual SEO: per-language og:locale, and hreflang alternates only for pages
+// that exist in both languages (never fabricate an /en URL for zh-only content).
+const lang = getLangFromUrl(Astro.url)
+const barePath = stripLangPrefix(Astro.url.pathname)
+const hasAlt = hasEnAlternate(barePath)
+const ogLocale = lang === 'en' ? 'en_US' : 'zh_CN'
+const ogLocaleAlternate = hasAlt ? (lang === 'en' ? 'zh_CN' : 'en_US') : null
+const hreflangAlternates = hasAlt
+  ? [
+      { hreflang: 'zh-CN', href: new URL(barePath, Astro.site).href },
+      { hreflang: 'en', href: new URL(withLangPrefix(barePath, 'en'), Astro.site).href },
+      { hreflang: 'x-default', href: new URL(barePath, Astro.site).href }
+    ]
+  : []
 ---
 
 <meta charset='utf-8' />
@@ -38,6 +54,13 @@ const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url)
 {/* Canonical URL */}
 <link rel='canonical' href={canonicalURL} />
 
+{/* hreflang alternates — only for pages that exist in both languages */}
+{
+  hreflangAlternates.map((alt) => (
+    <link rel='alternate' hreflang={alt.hreflang} href={alt.href} />
+  ))
+}
+
 {/* Primary Meta Tags */}
 <meta content={siteTitle} name='title' />
 <meta content={description} name='description' />
@@ -52,7 +75,8 @@ const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url)
 <meta content={description} property='og:description' />
 <meta content={canonicalURL} property='og:url' />
 <meta content={config.title} property='og:site_name' />
-<meta content={config.locale.attrs} property='og:locale' />
+<meta content={ogLocale} property='og:locale' />
+{ogLocaleAlternate && <meta content={ogLocaleAlternate} property='og:locale:alternate' />}
 <meta content={socialImageURL} property='og:image' />
 <meta content='1200' property='og:image:width' />
 <meta content='630' property='og:image:height' />
