@@ -5,14 +5,16 @@ import { sortCuratedEntries } from '@/lib/curated'
 import avatar from 'src/assets/avatar.png'
 
 import { Quote } from 'astro-pure/advanced'
-import { Button, Icon, Label } from 'astro-pure/user'
+import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import CuratedItem from '@/components/curated/CuratedItem.astro'
+import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
+import JoJo from '@/components/mascot/JoJo'
+import PostPreviewEn from '@/components/PostPreviewEn.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
-import TranslationNotice from '@/components/TranslationNotice.astro'
 import config from '@/site-config'
 
 export const prerender = true
@@ -30,6 +32,66 @@ const ai = [
   'Prompt Engineering'
 ]
 const tools = ['Cursor', 'Git', 'Docker', 'Bun', 'Figma', 'ESLint/Prettier']
+
+const MAX_POSTS = 5
+const allPostsByDate = (await getCollection('blogEn'))
+  .filter((p) => (import.meta.env.PROD ? !p.data.draft : true))
+  .sort(
+    (a, b) =>
+      +new Date(b.data.updatedDate ?? b.data.publishDate) -
+      +new Date(a.data.updatedDate ?? a.data.publishDate)
+  )
+  .slice(0, MAX_POSTS)
+
+const openSourceRepos = [
+  {
+    name: 'Learn-Open-Harness',
+    description:
+      'A from-scratch interactive OpenHarness tutorial — Agent Loop, Tools, Memory, Multi-Agent',
+    fallbackStars: 297
+  },
+  {
+    name: 'minimind-notes',
+    description:
+      'Building an LLM from scratch — the principles behind Transformer, Pretraining, and SFT, with side-by-side experiments',
+    fallbackStars: 93
+  }
+]
+
+async function fetchStars(repo: string, fallback: number) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/joyehuang/${repo}`, {
+      headers: { Accept: 'application/vnd.github+json' }
+    })
+    if (!res.ok) return fallback
+    const data = (await res.json()) as { stargazers_count?: number }
+    return data.stargazers_count ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
+const openSource = await Promise.all(
+  openSourceRepos.map(async (r) => ({
+    ...r,
+    stars: await fetchStars(r.name, r.fallbackStars)
+  }))
+)
+
+const MAX_NOTES = 4
+const archiveTypeLabels: Record<string, string> = {
+  note: 'Note',
+  snippet: 'Snippet',
+  draft: 'Draft',
+  idea: 'Idea',
+  research: 'Research',
+  reference: 'Reference'
+}
+const latestNotes = (await getCollection('archiveEn'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, MAX_NOTES)
+
 const MAX_CURATED = 2
 const latestCurated = sortCuratedEntries(
   (await getCollection('curated')).filter((entry) => !entry.data.draft)
@@ -38,8 +100,6 @@ const latestCurated = sortCuratedEntries(
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <main class='flex w-full flex-col items-center'>
-    <TranslationNotice lang='en' />
-
     <section
       class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'
       id='content-header'
@@ -99,13 +159,69 @@ const latestCurated = sortCuratedEntries(
         <Button title='More about me' class='w-fit self-end' href='/en/about' style='ahead' />
       </Section>
 
-      <Section title='Skills'>
-        <SkillLayout title='Languages' skills={languages} />
-        <SkillLayout title='Frontend' skills={frontend} />
-        <SkillLayout title='Backend' skills={backend} />
-        <SkillLayout title='AI & Agent' skills={ai} />
-        <SkillLayout title='Tools' skills={tools} />
-      </Section>
+      {
+        allPostsByDate.length > 0 && (
+          <Section title='Blog'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {allPostsByDate.map((p) => (
+                <PostPreviewEn post={p} />
+              ))}
+            </ul>
+            <Button title='More blogs' class='w-fit self-end' href='/en/blog' style='ahead' />
+          </Section>
+        )
+      }
+
+      {
+        latestNotes.length > 0 && (
+          <Section title='Notes'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {latestNotes.map((note) => (
+                <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
+                  <a
+                    class='group/link w-full flex flex-col sm:flex-row transition-all hover:text-primary'
+                    href={`/en/archive/${note.data.translationKey}`}
+                    data-astro-prefetch
+                  >
+                    <span class='min-w-[95px] py-1 text-xs text-muted-foreground'>
+                      {archiveTypeLabels[note.data.type] || note.data.type}
+                    </span>
+                    <div class='z-10 flex-grow'>
+                      <div class='flex justify-between'>
+                        <div>{note.data.title}</div>
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          width='16'
+                          height='16'
+                          viewBox='0 0 24 24'
+                          fill='none'
+                          stroke-width='2.5'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          class='my-1 stroke-muted-foreground group-hover/link:stroke-primary'
+                        >
+                          <line
+                            x1='5'
+                            y1='12'
+                            x2='19'
+                            y2='12'
+                            class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1 group-hover/link:scale-x-100'
+                          />
+                          <polyline
+                            points='12 5 19 12 12 19'
+                            class='translate-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1'
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <Button title='More notes' class='w-fit self-end' href='/en/archive' style='ahead' />
+          </Section>
+        )
+      }
 
       {
         latestCurated.length > 0 && (
@@ -120,8 +236,69 @@ const latestCurated = sortCuratedEntries(
         )
       }
 
+      <Section title='Experience'>
+        <LinkCard
+          heading='Tezign (Shanghai)'
+          subheading='Full-Stack Intern, AIGC R&D'
+          href='https://atypica.ai/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>Building atypica.ai — a multi-agent system for commercial research</li>
+          </ul>
+        </LinkCard>
+        <LinkCard
+          heading='fAIshion.ai'
+          subheading='AI Full-Stack Engineer (Remote)'
+          href='https://www.faishion.ai/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>Full-stack development and model integration for an AI virtual try-on and outfit-matching platform</li>
+          </ul>
+        </LinkCard>
+        <LinkCard heading='AIXCut' subheading='AI Full-Stack Engineer' href='https://aixcut.cn/'>
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>Designing and shipping an AI video-editing agent</li>
+          </ul>
+        </LinkCard>
+      </Section>
+      <Section title='Open Source'>
+        {
+          openSource.map((repo) => (
+            <LinkCard
+              heading={repo.name}
+              subheading={repo.description}
+              date={`⭐ ${repo.stars}`}
+              href={`https://github.com/joyehuang/${repo.name}`}
+            />
+          ))
+        }
+      </Section>
+      <Section title='Education'>
+        <Card
+          as='a'
+          heading='University of Melbourne'
+          subheading='Bachelor of Science — Computing & Software Systems'
+          date='Feb 2024 - Jun 2027'
+        />
+      </Section>
+
+      <Section title='Skills'>
+        <SkillLayout title='Languages' skills={languages} />
+        <SkillLayout title='Frontend' skills={frontend} />
+        <SkillLayout title='Backend' skills={backend} />
+        <SkillLayout title='AI & Agent' skills={ai} />
+        <SkillLayout title='Tools' skills={tools} />
+      </Section>
+
       <SiteStats lang='en' />
     </div>
     <Quote class='mt-12' />
   </main>
+
+  {/* JoJo mascot — floating companion bottom-right (hidden on mobile) */}
+  <div class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
+    <div class='pointer-events-auto'>
+      <JoJo client:load size='md' quipPool='idle' />
+    </div>
+  </div>
 </PageLayout>
