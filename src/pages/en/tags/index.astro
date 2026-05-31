@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content'
+
+import { Button } from 'astro-pure/user'
+import { cn } from 'astro-pure/utils'
+import PageLayout from '@/layouts/BaseLayout.astro'
+
+export const prerender = true
+
+const allPosts = (await getCollection('blogEn')).filter((p) =>
+  import.meta.env.PROD ? !p.data.draft : true
+)
+const counts = new Map<string, number>()
+for (const p of allPosts) for (const t of p.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1)
+const allTags = [...counts.entries()].sort((a, b) => b[1] - a[1])
+
+const meta = {
+  description: "A list of all the topics I've written about in my posts",
+  title: 'All Tags'
+}
+---
+
+<PageLayout {meta}>
+  <Button title='Back' href='/en/blog' style='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-6 text-3xl font-medium'>Tags</h1>
+    </div>
+
+    <div id='content' class='animate'>
+      {
+        allTags.length > 0 ? (
+          <ul class='flex flex-wrap gap-4'>
+            {allTags.map(([tag, val]) => (
+              <li>
+                <Button
+                  href={`/en/tags/${tag}`}
+                  style='pill'
+                  class={cn(
+                    'items-start gap-x-1',
+                    val > 2 ? 'rounded-xl px-3 py-1 text-xl' : val > 1 && 'text-lg'
+                  )}
+                >
+                  {tag}
+                  <span class={val > 2 ? 'text-base' : 'text-xs'}>{val}</span>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Any tag yet.</p>
+        )
+      }
+    </div>
+  </main>
+</PageLayout>

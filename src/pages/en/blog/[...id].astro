@@ -26,6 +26,6 @@ const { post, posts } = Astro.props
 const { Content, headings, remarkPluginFrontmatter } = await render(post)
 ---
 
-<PostLayout {post} {posts} {headings} {remarkPluginFrontmatter} back='/en/blog' recommend={false}>
+<PostLayout {post} {posts} {headings} {remarkPluginFrontmatter} back='/en/blog' recommend={false} enHero>
   <Content />
 </PostLayout>

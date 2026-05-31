@@ -1,0 +1,159 @@
+---
+import { Image } from 'astro:assets'
+import { render, type CollectionEntry } from 'astro:content'
+
+import { Button, FormattedDate, Icon } from 'astro-pure/user'
+
+// English mirror of astro-pure's PostPreview: identical markup/styles, but links
+// to /en/blog/<translationKey> instead of the hardcoded /blog/<id>.
+interface Props {
+  post: CollectionEntry<'blogEn'>
+  detailed?: boolean
+  class?: string
+}
+
+const { post, detailed = false, class: className = '' } = Astro.props
+const { data } = post
+const href = `/en/blog/${data.translationKey}`
+const { remarkPluginFrontmatter } = await render(post)
+const postDate = data.updatedDate ?? data.publishDate
+
+const liClass = [
+  'post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted',
+  detailed && 'max-sm:px-4 sm:py-5',
+  className
+]
+  .filter(Boolean)
+  .join(' ')
+
+const linkClass = [
+  'group/link w-full flex flex-col transition-all hover:text-primary',
+  !detailed && 'sm:flex-row',
+  detailed && data.heroImage && 'max-md:pt-24'
+]
+  .filter(Boolean)
+  .join(' ')
+
+const heroStyle =
+  detailed && data.heroImage?.color
+    ? `--preview-highlight:color-mix(in srgb,${data.heroImage.color} 40%,hsl(var(--foreground)/var(--un-text-opacity,1)));--preview-highlight-bg:hsl(from ${data.heroImage.color} h s l/20%)`
+    : undefined
+---
+
+<li class={liClass} style={heroStyle}>
+  <a class={linkClass} href={href} data-astro-prefetch>
+    {
+      detailed && data.heroImage && (
+        <Image
+          alt={data.heroImage.alt || data.title}
+          class='cover-image absolute end-0 top-0 z-0 h-2/3 w-full rounded-2xl object-cover opacity-50 transition-opacity duration-300 group-hover/card:opacity-70 md:h-full md:w-3/5'
+          loading='eager'
+          {...data.heroImage}
+        />
+      )
+    }
+
+    <FormattedDate class='min-w-[95px] py-1 text-xs' date={postDate} />
+
+    <div class='z-10 flex-grow'>
+      <div class='flex justify-between'>
+        <div class={detailed ? 'font-medium' : ''}>
+          {data.title}
+        </div>
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='16'
+          height='16'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke-width='2.5'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          class='preview-redirect my-1 stroke-muted-foreground group-hover/link:stroke-primary'
+          ><line
+            x1='5'
+            y1='12'
+            x2='19'
+            y2='12'
+            class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1 group-hover/link:scale-x-100'
+          ></line><polyline
+            points='12 5 19 12 12 19'
+            class='translate-x-0 transition-all duration-300 ease-in-out group-hover/link:translate-x-1'
+          ></polyline></svg
+        >
+      </div>
+      {
+        detailed && (
+          <>
+            <p
+              class={[
+                'line-clamp-2 pt-1 text-sm text-muted-foreground sm:line-clamp-3',
+                data.heroImage && 'sm:me-24'
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              {data.description}
+            </p>
+            <div class='flex items-center gap-2 py-1.5 text-sm italic leading-4 text-muted-foreground sm:py-3'>
+              <span class='flex items-center gap-1'>
+                <Icon name='time' class='size-4' />
+                {remarkPluginFrontmatter.minutesRead}
+              </span>
+            </div>
+          </>
+        )
+      }
+    </div>
+  </a>
+  {
+    detailed && data.tags && (
+      <ul class='tag-list mt-1 flex flex-wrap gap-2'>
+        {data.tags.map((tag: string) => (
+          <li>
+            <Button title={tag} href={`/en/tags/${tag}`} style='pill' />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</li>
+
+<style>
+  .post-preview {
+    --preview-highlight-final: var(
+      --preview-highlight,
+      hsl(var(--primary) / var(--un-text-opacity, 1))
+    );
+  }
+  .post-preview:hover {
+    &,
+    & .tag-list a {
+      background-color: var(
+        --preview-highlight-bg,
+        hsl(var(--muted) / var(--un-bg-opacity, 1))
+      ) !important;
+    }
+    & > a,
+    & .tag-list a:hover {
+      color: var(--preview-highlight-final) !important;
+    }
+    & > a .preview-redirect {
+      stroke: var(--preview-highlight-final) !important;
+    }
+  }
+  .cover-image {
+    mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+    -webkit-mask-image: -webkit-linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 1) 100%
+    );
+  }
+  @media (max-width: 768px) {
+    .cover-image {
+      mask-image: linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+      -webkit-mask-image: -webkit-linear-gradient(to top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%);
+    }
+  }
+</style>

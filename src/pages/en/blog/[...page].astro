@@ -1,33 +1,38 @@
 ---
 import type { GetStaticPaths, Page } from 'astro'
-import type { CollectionEntry } from 'astro:content'
+import { getCollection, type CollectionEntry } from 'astro:content'
 
 import { Paginator } from 'astro-pure/components/pages'
-import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
-import { Button } from 'astro-pure/user'
+import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import PostPreviewEn from '@/components/PostPreviewEn.astro'
 import config from '@/site-config'
 
 export const prerender = true
 
-// Mirror the Chinese post URL via the explicit translationKey.
-const enHref = (key?: string) => `/en/blog/${key}`
-
 export const getStaticPaths = (async ({ paginate }) => {
-  const collections = sortMDByDate(await getBlogCollection('blogEn'))
+  const collections = (await getCollection('blogEn'))
+    .filter((p) => (import.meta.env.PROD ? !p.data.draft : true))
+    .sort(
+      (a, b) =>
+        +new Date(b.data.updatedDate ?? b.data.publishDate) -
+        +new Date(a.data.updatedDate ?? a.data.publishDate)
+    )
+  const uniqueTags = [...new Set(collections.flatMap((p) => p.data.tags))]
   const collectionsCount = collections.length
   return paginate(collections, {
     pageSize: config.content.blogPageSize,
-    props: { collectionsCount }
+    props: { uniqueTags, collectionsCount }
   })
 }) satisfies GetStaticPaths
 
 interface Props {
   page: Page<CollectionEntry<'blogEn'>>
+  uniqueTags: string[]
   collectionsCount: number
 }
 
-const { page, collectionsCount } = Astro.props
+const { page, uniqueTags, collectionsCount } = Astro.props
 
 const meta = {
   description: 'English posts — agents, LLM internals, and engineering notes.',
@@ -35,8 +40,8 @@ const meta = {
 }
 
 const paginationProps = {
-  ...(page.url.prev && { prevUrl: { text: '← Previous Posts', url: page.url.prev } }),
-  ...(page.url.next && { nextUrl: { text: 'Next Posts →', url: page.url.next } })
+  ...(page.url.prev && { prevUrl: { text: `← Previous Posts`, url: page.url.prev } }),
+  ...(page.url.next && { nextUrl: { text: `Next Posts →`, url: page.url.next } })
 }
 ---
 
@@ -50,53 +55,42 @@ const paginationProps = {
       page.data.length === 0 ? (
         <p>No posts yet.</p>
       ) : (
-        <section aria-label='Blog posts list' class='animate' id='content'>
-          <div class='mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row'>
-            <span class='text-muted-foreground'>
-              Page {page.currentPage} - Showing {page.data.length} of {collectionsCount} posts
-            </span>
-          </div>
-          <ul class='flex flex-col gap-y-4 text-start'>
-            {page.data.map((post) => (
-              <li>
-                <a
-                  href={enHref(post.data.translationKey)}
-                  class='group block rounded-xl border border-border bg-card px-5 py-5 transition hover:border-foreground/20 hover:shadow-sm'
-                  data-astro-prefetch
-                >
-                  <h2 class='text-lg font-medium leading-tight group-hover:text-foreground'>
-                    {post.data.title}
-                  </h2>
-                  {post.data.description && (
-                    <p class='mt-1.5 text-sm leading-6 text-muted-foreground'>
-                      {post.data.description}
-                    </p>
-                  )}
-                  <div class='mt-2 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground'>
-                    <time datetime={post.data.publishDate.toISOString()}>
-                      {post.data.publishDate.toLocaleDateString('en', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                    </time>
-                    {post.data.tags.length > 0 && (
-                      <>
-                        <span>·</span>
-                        <div class='flex flex-wrap gap-1.5'>
-                          {post.data.tags.map((tag: string) => (
-                            <span class='rounded-md bg-muted px-2 py-0.5'>{tag}</span>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
+        <div class='grid gap-y-16 sm:grid-cols-[3fr_1fr] sm:gap-x-8'>
+          <section aria-label='Blog posts list' class='animate' id='content'>
+            <div class='mb-3 flex flex-col justify-between text-sm sm:mb-5 sm:flex-row'>
+              <span class='text-muted-foreground'>
+                Page {page.currentPage} - Showing {page.data.length} of {collectionsCount} posts
+              </span>
+            </div>
+            <ul class='flex flex-col gap-y-4 text-start'>
+              {page.data.map((post) => (
+                <PostPreviewEn {post} detailed />
+              ))}
+            </ul>
+            <Paginator {...paginationProps} />
+          </section>
+
+          {!!uniqueTags.length && (
+            <aside class='animate' id='sidebar'>
+              <h2 class='mb-4 flex items-center text-lg font-semibold'>
+                <Icon name='tag-2' class='me-2' />
+                Tags
+              </h2>
+              <ul class='text-bgColor flex flex-wrap gap-2'>
+                {uniqueTags.map((tag) => (
+                  <li>
+                    <Button title={tag} href={`/en/tags/${tag}`} style='pill' />
+                  </li>
+                ))}
+              </ul>
+              <span class='mt-4 block sm:text-end'>
+                <a aria-label='View all blog categories' href='/en/tags' data-astro-prefetch>
+                  View all →
                 </a>
-              </li>
-            ))}
-          </ul>
-          <Paginator {...paginationProps} />
-        </section>
+              </span>
+            </aside>
+          )}
+        </div>
       )
     }
   </main>
