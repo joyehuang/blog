@@ -110,7 +110,7 @@ This distinction is useful because it directly shapes your later model selection
 
 ### 5. Chunking is still the foundation of retrieval quality
 
-A lot of people pour all their attention into the models, but in practice, when you actually build a system, chunking often sets the ceiling earlier.
+A lot of people pour all their attention into the models, but in practice, when you actually build a system, chunking is often what sets the ceiling, well before the model does.
 
 Common problems include:
 
@@ -194,7 +194,7 @@ Once the foundational retrieval layer is reasonably solid, the next step is when
 
 - **Agentic RAG**: the system itself decides whether to search a few more rounds, rephrase the query, or call tools
 - **Corrective RAG**: it first judges whether the current retrieval results are good enough, and corrects the flow if they aren't
-- **Graph RAG**: organize knowledge into an entity-relationship graph, using the graph structure to aid retrieval and reasoning
+- **Graph RAG**: knowledge is organized into an entity-relationship graph, using the graph structure to aid retrieval and reasoning
 
 These directions decide the ceiling for RAG's leap from "looking things up" to "retrieval-driven reasoning" — but they're not something to dive headfirst into before the foundational retrieval is solid.
 

@@ -229,7 +229,7 @@ I find this framing especially vivid:
 - Letting agents write all the code constantly produces pattern drift and "AI sludge"
 - If you don't deal with it, the codebase slowly accumulates entropy
 
-At first they spent 20% of every Friday cleaning up by hand, which obviously doesn't scale. So they systematized this too:
+At first they spent 20% of their time, every Friday, cleaning up by hand, which obviously doesn't scale. So they systematized this too:
 
 - Run background Codex jobs on a schedule
 - Scan for deviations
@@ -246,7 +246,7 @@ This line of thinking is worth remembering:
 
 My core read on this article is:
 
-### It's not a "AI makes coding faster" promo piece
+### It's not an "AI makes coding faster" promo piece
 What it's really about is:
 
 - What an agent-first repo should look like

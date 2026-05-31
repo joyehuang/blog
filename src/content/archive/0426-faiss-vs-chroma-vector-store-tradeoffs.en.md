@@ -127,11 +127,11 @@ This comparison matters because the real problem many teams face isn't "Faiss or
 
 If you want to do one complete selection comparison, here's how the 6 mainstream options differ on the key dimensions:
 
-**Faiss**: low-level index library (not a full DB), BSD license. Used embedded in your code; you have to wrap persistence yourself. Suited to millions through tens of billions and beyond (extreme GPU acceleration). Default indexes support HNSW and all IVF variants. Performance: fastest raw speed; extremely high QPS at hundred-million scale on GPU. Metadata filtering needs an external implementation. Persistence: you manage the index manually. Ease of use: steep. Best for: research, custom hundred-million-scale search.
+**Faiss**: low-level index library (not a full DB), BSD license. Used embedded in your code; you have to wrap persistence yourself. Suited to millions through billion-scale and beyond (extreme GPU acceleration). Default indexes support HNSW and all IVF variants. Performance: fastest raw speed; extremely high QPS on GPU (hundred-million-level). Metadata filtering needs an external implementation. Persistence: you manage the index manually. Ease of use: steep. Best for: research, custom hundred-million-scale search.
 
-**Chroma**: lightweight embedded vector database, Apache 2.0. Supports embedded mode or server mode. Suited to small-to-medium scale (<10M vectors). Default index HNSW (SPANN in the cloud). 4x faster after the 2025 Rust rewrite, but not production-peak. Native SQL-like metadata filtering. Built-in DuckDB + Parquet persistence. Highest ease of use. Best for: RAG prototypes, local development.
+**Chroma**: lightweight embedded vector database, Apache 2.0. Supports embedded mode or server mode. Suited to small-to-medium scale (<10M vectors). Default index HNSW (SPANN in the cloud). 4x faster after the 2025 Rust rewrite, but still not built for peak production demands. Native SQL-like metadata filtering. Built-in DuckDB + Parquet persistence. Highest ease of use. Best for: RAG prototypes, local development.
 
-**Milvus**: distributed, full vector database, Apache 2.0. Self-hosted / Zilliz Cloud deployment. Suited to hundred-million through tens of billions and beyond. Supports HNSW and the full IVF family. Low latency (<30ms p95), stable at hundred-million scale. Powerful metadata filtering (dynamic schema). Built-in + distributed persistence. Ease of use: full-featured but heavier to operate. Best for: production-grade large-scale AI.
+**Milvus**: distributed, full vector database, Apache 2.0. Self-hosted / Zilliz Cloud deployment. Suited to hundred-million through billion-scale and beyond. Supports HNSW and the full IVF family. Low latency (<30ms p95), stable at hundred-million scale. Powerful metadata filtering (dynamic schema). Built-in + distributed persistence. Ease of use: full-featured but heavier to operate. Best for: production-grade large-scale AI.
 
 **pgvector**: PostgreSQL extension, PostgreSQL license. Just install it inside Postgres. Suited to medium scale (<100M vectors). Supports HNSW + IVFFlat (partial DiskANN). 471 QPS@50M (99% recall, with the pgvectorscale extension). Strongest metadata filtering (fully fused with SQL). Native Postgres persistence. Highest ease of use (zero cost if you already have Postgres). Best for: teams already on Postgres.
 
@@ -225,7 +225,7 @@ Pros and cons: highest Recall (98%+), extremely fast queries, friendly to real-t
 Who uses it: Qdrant (Rust, heavily optimized HNSW + on-disk); Weaviate (default); Chroma (default HNSW, with SPANN being its cloud variant); Milvus (optional); pgvector (HNSW); Faiss (also supports it).
 
 #### Other advanced techniques (general)
-- **Quantization**: PQ (product quantization), SQ (scalar quantization), Binary Quantization — compress float32 vectors down to int8/int4/bit, exploding memory/speed gains with a slight Recall drop
+- **Quantization**: PQ (product quantization), SQ (scalar quantization), Binary Quantization — compress float32 vectors down to int8/int4/bit, for huge memory and speed wins with a slight Recall drop
 - **DiskANN / SPANN**: disk-friendly versions of HNSW (Chroma cloud, pgvector extension), solving the memory bottleneck
 - **Hybrid indexing**: many databases support "vector + scalar filter," coarse-filtering first and then doing a refined search
 
