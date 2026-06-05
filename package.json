@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "astro dev",
     "dev:check": "astro check --watch & astro dev",
-    "build": "astro-pure check && astro check && astro build",
+    "build": "astro build",
+    "build:checked": "bun run check && bun run build",
     "preview": "astro preview",
     "sync": "astro sync",
-    "check": "astro check",
+    "check": "astro-pure check && astro check",
     "astro": "astro",
     "pure": "astro-pure",
     "new": "astro-pure new",
