@@ -5,6 +5,24 @@
       "desc": "Friends I exchange blog links with",
       "link_list": [
         {
+          "name": "Cooing's Blog",
+          "intro": "Cooing 维护的像素复古 Astro 个人站模板，用于长文、笔记、日志和项目整理。",
+          "link": "https://blog.cooingcode.space",
+          "avatar": "https://blog.cooingcode.space/favicon.png",
+          "since": "2026-06-06",
+          "met": "互换友链",
+          "note": "像素复古风的 Astro 个人站，适合沉淀长文、笔记、日志和项目。"
+        },
+        {
+          "name": "Joshua Chen Personal Blog",
+          "intro": "AI Agent & Full-Stack Developer",
+          "link": "https://blog.joshua2008.top",
+          "avatar": "https://blog.joshua2008.top/favicon/apple-touch-icon.png",
+          "since": "2026-06-06",
+          "met": "互换友链",
+          "note": "天津理工大学在读，正在学习 LLM 和 Agent 开发，也在做全栈工程实践。"
+        },
+        {
           "name": "Arden's blog",
           "intro": "A beginner in the AI era",
           "link": "https://ardenj.pages.dev/",
