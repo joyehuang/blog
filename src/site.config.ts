@@ -51,6 +51,7 @@ export const theme: ThemeUserConfig = {
       { title: 'Notes', link: '/archive' },
       { title: 'Curated', link: '/curated' },
       { title: 'Projects', link: '/projects' },
+      { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' },
       { title: 'Contact', link: '/contact' }
     ]

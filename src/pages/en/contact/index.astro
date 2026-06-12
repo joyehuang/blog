@@ -3,29 +3,14 @@ import PageLayout from '@/layouts/CommonPage.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
 import wechat from '@/assets/wechat-contact.jpg'
 import qqGroup from '@/assets/qq-group-contact.jpg'
-import links from 'public/links.json'
-import config from 'virtual:config'
-
-import { Collapse, Timeline } from 'astro-pure/user'
-import Comment from '@/components/comment/Comment.astro'
-import FriendList from '@/components/links/FriendList.astro'
-import FriendConstellation from '@/components/links/FriendConstellation.astro'
 
 const headings = [
   { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
-  { depth: 2, slug: 'friend-links', text: 'Friend Links' },
-  { depth: 2, slug: 'apply-links', text: 'Apply Links' },
   { depth: 2, slug: 'before-you-add', text: 'Before you add me' }
 ]
-
-const { friends } = links
-const linksConf = config.integ.links
-
-const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`).join('\n')
-const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied all info to clipboard'}}))`
 ---
 
-<PageLayout title='Contact / Links' {headings} info='/en/contact'>
+<PageLayout title='Contact' {headings} info='/en/contact'>
   <p>
     Happy to chat — tech, job hunting, blog collaborations, or just hanging out.
     I'm slow to reply, but I do reply.
@@ -51,52 +36,6 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     ]}
   />
 
-  <h2 id='friend-links'>Friend Links</h2>
-  <p>Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it is.</p>
-  <FriendConstellation list={friends[0]} meLabel='joyehuang.me' />
-  <Collapse title='Links with Bad Status'>
-    <FriendList list={friends[1]} />
-  </Collapse>
-  <Collapse title='Link History Book'>
-    <Timeline events={linksConf.logbook} />
-  </Collapse>
-
-  <h2 id='apply-links'>Apply Links</h2>
-  <p>
-    Site info (click a row to copy, or
-    <button
-      type='button'
-      class='cursor-pointer underline underline-offset-4'
-      onclick={copyAllScript}
-    >
-      copy all
-    </button>):
-  </p>
-  <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
-    {
-      linksConf.applyTip.map(({ name, val }) => {
-        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
-        return (
-          <>
-            <span class='text-end'>{name}:</span>
-            <samp class='cursor-pointer' onclick={script}>
-              {val}
-            </samp>
-          </>
-        )
-      })
-    }
-  </blockquote>
-
-  <p>
-    To apply for a friend link, just <strong>drop your info in the comments below</strong> using the fields above. The comment section doubles as a tiny hangout — feel free to visit each other's sites and make friends. A few notes:
-  </p>
-  <ul>
-    <li>You've added this site to your own friend links.</li>
-    <li>Make sure your site is alive.</li>
-    <li>Blog content complies with local laws.</li>
-  </ul>
-
   <h2 id='before-you-add'>Before you add me</h2>
   <ul>
     <li>
@@ -109,5 +48,4 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
       <strong>The QQ group is for tech and life chat</strong>. No ads, spam, or off-platform recruiting — violators will be removed.
     </li>
   </ul>
-  <Comment slot='bottom' />
 </PageLayout>
