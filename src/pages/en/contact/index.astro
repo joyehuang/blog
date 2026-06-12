@@ -13,9 +13,9 @@ import FriendConstellation from '@/components/links/FriendConstellation.astro'
 
 const headings = [
   { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
-  { depth: 2, slug: 'before-you-add', text: 'Before you add me' },
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
-  { depth: 2, slug: 'apply-links', text: 'Apply Links' }
+  { depth: 2, slug: 'apply-links', text: 'Apply Links' },
+  { depth: 2, slug: 'before-you-add', text: 'Before you add me' }
 ]
 
 const { friends } = links
@@ -25,7 +25,7 @@ const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`
 const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied all info to clipboard'}}))`
 ---
 
-<PageLayout title='Contact' {headings} info='/en/contact'>
+<PageLayout title='Contact / Links' {headings} info='/en/contact'>
   <p>
     Happy to chat — tech, job hunting, blog collaborations, or just hanging out.
     I'm slow to reply, but I do reply.
@@ -50,19 +50,6 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
       }
     ]}
   />
-
-  <h2 id='before-you-add'>Before you add me</h2>
-  <ul>
-    <li>
-      <strong>Tell me why you're reaching out</strong>. One sentence is enough — e.g. "want to chat about agent development" or "blog collab". Friend requests with no note will likely be ignored.
-    </li>
-    <li>
-      <strong>Business / promotion / recruiting</strong>: please share the context and what kind of collaboration you have in mind upfront, instead of opening with "hi".
-    </li>
-    <li>
-      <strong>The QQ group is for tech and life chat</strong>. No ads, spam, or off-platform recruiting — violators will be removed.
-    </li>
-  </ul>
 
   <h2 id='friend-links'>Friend Links</h2>
   <p>Friends are stars; I'm at the center, and each line is a connection. Hover a star to see who it is.</p>
@@ -108,6 +95,19 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     <li>You've added this site to your own friend links.</li>
     <li>Make sure your site is alive.</li>
     <li>Blog content complies with local laws.</li>
+  </ul>
+
+  <h2 id='before-you-add'>Before you add me</h2>
+  <ul>
+    <li>
+      <strong>Tell me why you're reaching out</strong>. One sentence is enough — e.g. "want to chat about agent development" or "blog collab". Friend requests with no note will likely be ignored.
+    </li>
+    <li>
+      <strong>Business / promotion / recruiting</strong>: please share the context and what kind of collaboration you have in mind upfront, instead of opening with "hi".
+    </li>
+    <li>
+      <strong>The QQ group is for tech and life chat</strong>. No ads, spam, or off-platform recruiting — violators will be removed.
+    </li>
   </ul>
   <Comment slot='bottom' />
 </PageLayout>

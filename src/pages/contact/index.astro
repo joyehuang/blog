@@ -13,9 +13,9 @@ import FriendConstellation from '@/components/links/FriendConstellation.astro'
 
 const headings = [
   { depth: 2, slug: 'how-to-reach', text: 'How to reach me' },
-  { depth: 2, slug: 'before-you-add', text: 'Before you add me' },
   { depth: 2, slug: 'friend-links', text: 'Friend Links' },
-  { depth: 2, slug: 'apply-links', text: 'Apply Links' }
+  { depth: 2, slug: 'apply-links', text: 'Apply Links' },
+  { depth: 2, slug: 'before-you-add', text: 'Before you add me' }
 ]
 
 const { friends } = links
@@ -25,7 +25,7 @@ const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`
 const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'已复制全部信息到剪贴板'}}))`
 ---
 
-<PageLayout title='Contact' {headings} info='/contact'>
+<PageLayout title='Contact / Links' {headings} info='/contact'>
   <p>
     欢迎来聊。技术、求职、博客协作、找朋友闲聊都可以。
     我会比较慢回，但都会回。
@@ -52,19 +52,6 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
       }
     ]}
   />
-
-  <h2 id='before-you-add'>加之前请看一下</h2>
-  <ul>
-    <li>
-      <strong>请简单说明来意</strong>。一句话就行，比如「想聊 Agent 开发」「博客求合作」。没有备注的好友请求我大概率不会通过。
-    </li>
-    <li>
-      <strong>商务 / 推广 / 招聘需求</strong>请直接说明背景和合作形式，避免「在吗」式开场。
-    </li>
-    <li>
-      <strong>QQ 群以技术与生活交流为主</strong>，禁止广告、刷屏、外链拉人。违反会被移出。
-    </li>
-  </ul>
 
   <h2 id='friend-links'>Friend Links</h2>
   <p>朋友是天上的星，你在中央——每条线是一段连接。把鼠标移到星上看 ta 是谁。</p>
@@ -110,6 +97,19 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     <li>在你的友链上添加了本站；</li>
     <li>请确保你的站点活着；</li>
     <li>博客内容不违反国家法律。</li>
+  </ul>
+
+  <h2 id='before-you-add'>加之前请看一下</h2>
+  <ul>
+    <li>
+      <strong>请简单说明来意</strong>。一句话就行，比如「想聊 Agent 开发」「博客求合作」。没有备注的好友请求我大概率不会通过。
+    </li>
+    <li>
+      <strong>商务 / 推广 / 招聘需求</strong>请直接说明背景和合作形式，避免「在吗」式开场。
+    </li>
+    <li>
+      <strong>QQ 群以技术与生活交流为主</strong>，禁止广告、刷屏、外链拉人。违反会被移出。
+    </li>
   </ul>
   <Comment slot='bottom' />
 </PageLayout>
