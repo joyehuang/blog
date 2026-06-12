@@ -13,10 +13,10 @@ const isLocalDev = import.meta.env.DEV
             id='local-search-input'
             class='local-search-input'
             type='search'
-            placeholder='Search posts, notes, and curated resources...'
+            placeholder='Search posts and notes...'
             autocomplete='off'
             spellcheck='false'
-            aria-label='Search posts, notes, and curated resources'
+            aria-label='Search posts and notes'
           />
           <div id='local-search-status' class='local-search-status' aria-live='polite'></div>
           <ol id='local-search-results' class='local-search-results'></ol>
@@ -30,7 +30,7 @@ const isLocalDev = import.meta.env.DEV
 
 <script>
   type LocalSearchResult = {
-    collection: 'blog' | 'archive' | 'curated'
+    collection: 'blog' | 'archive'
     title: string
     description?: string
     url: string
@@ -138,9 +138,9 @@ const isLocalDev = import.meta.env.DEV
 
     const meta = document.createElement('div')
     meta.className = 'local-search-meta'
-    const collectionLabel =
-      item.collection === 'blog' ? 'Blog' : item.collection === 'curated' ? 'Curated' : 'Notes'
-    meta.textContent = [collectionLabel, item.date].filter(Boolean).join(' · ')
+    meta.textContent = [item.collection === 'blog' ? 'Blog' : 'Notes', item.date]
+      .filter(Boolean)
+      .join(' · ')
 
     const excerpt = document.createElement('p')
     excerpt.className = 'local-search-excerpt'

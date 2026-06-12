@@ -1,13 +1,11 @@
 ---
 import { Image } from 'astro:assets'
 import { getCollection } from 'astro:content'
-import { sortCuratedEntries } from '@/lib/curated'
 import avatar from 'src/assets/avatar.png'
 
 import { Quote } from 'astro-pure/advanced'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import CuratedItem from '@/components/curated/CuratedItem.astro'
 import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
@@ -91,11 +89,6 @@ const latestNotes = (await getCollection('archiveEn'))
   .filter((e) => !e.data.draft)
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, MAX_NOTES)
-
-const MAX_CURATED = 2
-const latestCurated = sortCuratedEntries(
-  (await getCollection('curated')).filter((entry) => !entry.data.draft)
-).slice(0, MAX_CURATED)
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
@@ -218,19 +211,6 @@ const latestCurated = sortCuratedEntries(
               ))}
             </ul>
             <Button title='More notes' class='w-fit self-end' href='/en/archive' style='ahead' />
-          </Section>
-        )
-      }
-
-      {
-        latestCurated.length > 0 && (
-          <Section title='Curated'>
-            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
-              {latestCurated.map((item) => (
-                <CuratedItem item={item} lang='en' variant='compact' />
-              ))}
-            </ul>
-            <Button title='More curated' class='w-fit self-end' href='/en/curated' style='ahead' />
           </Section>
         )
       }
