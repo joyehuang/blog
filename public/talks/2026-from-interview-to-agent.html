@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从实习面试到 Agent 开发 · Joye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B10; --bg-soft:#101119; --panel:#14151F;
+    --text:#FAFAFA; --dim:#BCBCC2; --faint:#74768A;
+    --border:#2C2D39; --border-soft:rgba(180,235,253,.10);
+    --cyan:#B4EBFD; --cyan-soft:rgba(180,235,253,.12); --cyan-dim:rgba(180,235,253,.55);
+    --teal:#517E94; --teal-2:#6FA3B8;
+    --sans:"Geist","Noto Sans SC",-apple-system,BlinkMacSystemFont,sans-serif;
+    --cjk:"Noto Sans SC","Geist",sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SFMono-Regular",monospace;
+    --mono-cjk:"Geist Mono","Noto Sans SC",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{background:var(--bg); color:var(--text); font-family:var(--cjk); overflow:hidden; -webkit-font-smoothing:antialiased;}
+
+  /* ambient background */
+  #bg{position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(110vmax 70vmax at 78% -18%, rgba(180,235,253,.06), transparent 55%),
+      radial-gradient(90vmax 60vmax at 0% 115%, rgba(81,126,148,.07), transparent 52%),
+      var(--bg);
+  }
+  #bg::before{content:""; position:absolute; inset:0;
+    background-image:repeating-radial-gradient(circle at 92% 90%, transparent 0 48px, var(--border-soft) 48px 49px);
+    -webkit-mask:radial-gradient(circle at 92% 90%, #000, transparent 72%);
+            mask:radial-gradient(circle at 92% 90%, #000, transparent 72%);
+    opacity:.38;
+  }
+  #bg::after{content:""; position:absolute; inset:0; opacity:.028;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* deck / slides */
+  #deck{position:relative; z-index:1; height:100vh; width:100vw;}
+  .slide{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    padding:clamp(26px,5vmin,76px); opacity:0; visibility:hidden;
+    transition:opacity .55s ease, visibility .55s; overflow-y:auto;}
+  .slide.active{opacity:1; visibility:visible;}
+  .inner{width:100%; max-width:1180px;}
+  .narrow{max-width:1000px;}
+  .center{text-align:center; display:flex; flex-direction:column; align-items:center;}
+  .ralign{text-align:right;}
+  .ralign .lead{margin-left:auto;}
+  .ralign .eyebrow{justify-content:flex-end;}
+
+  /* reveal */
+  .up{opacity:0; transform:translateY(24px);}
+  .slide.active .up{animation:rise .82s cubic-bezier(.2,.75,.25,1) forwards; animation-delay:calc(var(--i,0)*140ms);}
+  @keyframes rise{to{opacity:1; transform:none;}}
+
+  /* type */
+  .eyebrow{font-family:var(--mono); font-size:clamp(11px,1.5vmin,15px); font-weight:500; letter-spacing:.02em;
+    color:var(--cyan); margin-bottom:clamp(16px,2.8vmin,32px); display:inline-flex; align-items:center;}
+  h1{font-family:var(--sans); font-weight:700; line-height:1.05; letter-spacing:-.02em;}
+  .h-cover{font-size:clamp(40px,8.2vmin,104px); font-weight:800; letter-spacing:-.03em;}
+  .h-sec{font-family:var(--sans); font-weight:800; font-size:clamp(34px,6.6vmin,82px); line-height:1.02; letter-spacing:-.03em;}
+  .h-slide{font-family:var(--sans); font-weight:700; font-size:clamp(26px,4.6vmin,52px); line-height:1.14; letter-spacing:-.02em;}
+  .lead{color:var(--dim); font-size:clamp(16px,2.25vmin,25px); line-height:1.62; font-weight:400; max-width:62ch;}
+  .center .lead{margin-left:auto; margin-right:auto;}
+  .lead b,.lead strong{color:var(--text); font-weight:600;}
+  .cy{color:var(--cyan);}
+  .cursor{display:inline-block; width:.55em; height:1.05em; background:var(--cyan); margin-left:.12em; transform:translateY(.12em); animation:blink 1.1s steps(2,start) infinite;}
+  @keyframes blink{0%,50%{opacity:1;} 50.01%,100%{opacity:0;}}
+  @keyframes spin2{from{transform:translate(-50%,-50%) rotate(0);} to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+  /* underlined inline link */
+  .ulink{color:var(--cyan-dim); text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(180,235,253,.42); transition:.15s; cursor:pointer; font-style:normal;}
+  .ulink:hover{color:var(--cyan); text-decoration-color:var(--cyan);}
+
+  /* source chips */
+  .sources{margin-top:clamp(18px,2.6vmin,30px); display:flex; flex-wrap:wrap; gap:9px; align-items:center;}
+  .center .sources{justify-content:center;}
+  .ralign .sources{justify-content:flex-end;}
+  .src-tag{font-family:var(--mono); font-size:clamp(10px,1.3vmin,12px); color:var(--faint); letter-spacing:.05em; text-transform:uppercase; margin-right:2px;}
+  .chip{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:clamp(10px,1.35vmin,13px); color:var(--cyan-dim);
+    border:1px solid var(--border); border-radius:999px; padding:5px 12px; text-decoration:none; transition:.18s; background:rgba(180,235,253,.03); cursor:pointer;}
+  .chip:hover{border-color:var(--cyan); color:var(--cyan); background:var(--cyan-soft); transform:translateY(-1px);}
+  .chip::after{content:"↗"; font-size:.82em; opacity:.6;}
+
+  /* cover */
+  #s1 .inner{display:grid; grid-template-columns:1.08fr .92fr; gap:clamp(24px,4vw,56px); align-items:center;}
+  .cover-sub{margin-top:clamp(14px,2.2vmin,24px); font-size:clamp(16px,2.5vmin,28px); color:var(--dim); line-height:1.5;}
+  .cover-line{margin-top:clamp(18px,2.8vmin,30px); font-family:var(--mono); font-size:clamp(13px,1.85vmin,18px); color:var(--teal-2); line-height:1.5;}
+  .cover-foot{margin-top:clamp(22px,3.6vmin,40px); font-family:var(--mono); font-size:clamp(12px,1.5vmin,15px); color:var(--faint); letter-spacing:.02em;}
+  .cover-foot span{color:var(--cyan);}
+
+  /* terminal window */
+  .term{width:100%; max-width:460px; justify-self:center; border:1px solid var(--border); border-radius:13px;
+    background:rgba(18,19,26,.8); overflow:hidden;
+    box-shadow:0 34px 90px rgba(0,0,0,.62), 0 0 56px rgba(180,235,253,.08), inset 0 1px 0 rgba(255,255,255,.045);}
+  .slide.active .term{animation:termIn .85s cubic-bezier(.2,.8,.2,1) backwards; animation-delay:.2s;}
+  @keyframes termIn{from{opacity:0; transform:translateY(26px) scale(.955);}}
+  .term-bar{display:flex; align-items:center; gap:7px; padding:13px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.025);}
+  .term-bar i{width:11px; height:11px; border-radius:50%; display:block;}
+  .term-bar .t1{background:var(--faint);} .term-bar .t2{background:var(--teal);} .term-bar .t3{background:var(--cyan);}
+  .term-bar .ttl{margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--faint);}
+  .term-body{padding:clamp(20px,3vmin,30px); font-family:var(--mono-cjk); font-size:clamp(12px,1.75vmin,16px); line-height:2.15; min-height:clamp(150px,22vh,205px);}
+  .term-body .ln{opacity:0;}
+  .slide.active .term-body .ln{animation:lnIn .45s ease forwards;}
+  .slide.active .term-body .ln:nth-child(1){animation-delay:.6s;}
+  .slide.active .term-body .ln:nth-child(2){animation-delay:1.05s;}
+  .slide.active .term-body .ln:nth-child(3){animation-delay:1.5s;}
+  .slide.active .term-body .ln:nth-child(4){animation-delay:1.95s;}
+  @keyframes lnIn{from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:none;}}
+  .term-body .pr{color:var(--cyan);} .term-body .o{color:var(--dim);} .term-body .m{color:var(--faint);}
+
+  /* whoami / avatar */
+  #s2 .inner{display:grid; grid-template-columns:1.25fr .75fr; gap:clamp(24px,4vw,56px); align-items:center;}
+  .role-line{font-family:var(--mono); font-size:clamp(13px,1.9vmin,20px); color:var(--cyan); margin-top:clamp(10px,1.6vmin,16px); letter-spacing:.01em;}
+  .avatar-wrap{position:relative; justify-self:center; width:clamp(150px,22vw,250px); aspect-ratio:1;}
+  .avatar-wrap .ring-bg{position:absolute; inset:-9%; border-radius:50%; border:1px solid var(--border-soft);}
+  .avatar{width:100%; height:100%; border-radius:50%; object-fit:cover; border:1px solid var(--border);
+    box-shadow:0 0 0 6px rgba(180,235,253,.05), 0 22px 55px rgba(0,0,0,.45); background:var(--panel);}
+  .slide.active .avatar-wrap{animation:rise .85s cubic-bezier(.2,.75,.25,1) backwards; animation-delay:.25s;}
+  .mini-note{margin-top:clamp(20px,3vmin,34px); color:var(--faint); font-size:clamp(13px,1.7vmin,18px); font-style:italic;}
+
+  /* agenda */
+  .agenda{margin-top:clamp(24px,3.6vmin,42px); display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.4vmin,24px);}
+  .ag{display:grid; grid-template-columns:auto 1fr; gap:clamp(13px,1.6vw,20px); align-items:baseline;}
+  .ag .k{font-family:var(--mono); font-weight:700; color:var(--cyan); font-size:clamp(15px,2.2vmin,26px); opacity:.85;}
+  .ag .v{font-size:clamp(15px,2.15vmin,24px); color:var(--text); line-height:1.3;}
+
+  /* section divider */
+  .sec-prompt{font-family:var(--mono); font-size:clamp(13px,1.9vmin,20px); color:var(--faint); margin-bottom:clamp(16px,2.4vmin,28px);}
+  .sec-prompt b{color:var(--cyan); font-weight:700;}
+  .sec-num{font-family:var(--sans); font-weight:800; font-size:clamp(90px,26vmin,290px); line-height:.8; letter-spacing:-.04em;
+    color:transparent; -webkit-text-stroke:2px var(--cyan); opacity:.85;}
+  .sec-wrap{display:flex; align-items:center; gap:clamp(20px,4vw,56px);}
+  .sec-meta{flex:1;}
+  .sec-sub{color:var(--dim); font-size:clamp(15px,2.3vmin,26px); margin-top:clamp(12px,1.8vmin,22px); line-height:1.5;}
+
+  /* interactive timeline */
+  .tl{margin-top:clamp(16px,2.4vmin,28px); display:flex; flex-direction:column; gap:clamp(6px,1vmin,10px); position:relative; padding-left:26px;}
+  .tl::before{content:""; position:absolute; left:5px; top:14px; bottom:14px; width:2px; background:linear-gradient(180deg,var(--faint),var(--cyan));}
+  .tlrow{display:grid; grid-template-columns:5.6em 1fr auto; gap:clamp(12px,2.4vw,32px); align-items:center;
+    padding:clamp(8px,1.3vmin,13px) clamp(10px,1.5vw,16px); border-radius:10px; position:relative; border:1px solid transparent; transition:.18s;}
+  .tlrow:hover{border-color:var(--border); background:rgba(180,235,253,.025);}
+  .tl-dot{position:absolute; left:-26px; top:calc(50% - 6px); width:12px; height:12px; border-radius:50%; background:var(--bg); border:2px solid var(--faint);}
+  .tlrow:last-child .tl-dot{border-color:var(--cyan); background:var(--cyan); box-shadow:0 0 14px 2px var(--cyan-soft);}
+  .tl-when{font-family:var(--mono); font-size:clamp(11px,1.45vmin,15px); color:var(--faint); white-space:nowrap;}
+  .tlrow:last-child .tl-when{color:var(--cyan);}
+  .tl-term{font-family:var(--mono-cjk); font-weight:700; font-size:clamp(14px,2.1vmin,24px); color:var(--text); letter-spacing:-.01em;}
+  .tlrow:last-child .tl-term{color:var(--cyan);}
+  .tl-by{color:var(--dim); font-size:clamp(12px,1.55vmin,17px); margin-top:.18em; line-height:1.35;}
+  .tl-by em{color:var(--teal-2); font-style:normal;}
+  .tl-src{display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end;}
+  .tl-cap{margin-top:clamp(16px,2.4vmin,26px); color:var(--text); font-size:clamp(14px,2vmin,22px); line-height:1.5; padding-left:26px;}
+  .tl-cap small{display:block; color:var(--faint); font-size:clamp(12px,1.5vmin,15px); margin-top:.5em; line-height:1.5;}
+
+  /* rings */
+  .ringgrid{display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,4vw,56px); align-items:center; margin-top:clamp(14px,2.2vmin,24px);}
+  .ringstage{position:relative; aspect-ratio:1; width:100%; max-width:min(44vh,420px); justify-self:center;}
+  .ringstage .rg{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; border:1.5px solid;}
+  .rg.r1{width:30%; height:30%; border-color:var(--faint);}
+  .rg.r2{width:52%; height:52%; border-color:var(--teal);}
+  .rg.r3{width:75%; height:75%; border-color:var(--teal-2);}
+  .rg.r4{width:98%; height:98%; border-color:var(--cyan); box-shadow:0 0 24px var(--cyan-soft);}
+  .ringstage .core{position:absolute; top:50%; left:50%; width:13%; height:13%; transform:translate(-50%,-50%);
+    border-radius:50%; background:var(--cyan); box-shadow:0 0 30px 7px var(--cyan-soft); display:flex; align-items:center; justify-content:center;}
+  .core small{font-family:var(--mono-cjk); font-size:clamp(8px,1vmin,11px); color:#06222c; font-weight:700;}
+  .orb{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%;}
+  .orb i{position:absolute; top:-5px; left:50%; margin-left:-5px; width:10px; height:10px; border-radius:50%; display:block;}
+  .orb.o1{width:30%; height:30%; animation:spin2 9s linear infinite;}
+  .orb.o2{width:52%; height:52%; animation:spin2 14s linear infinite reverse;}
+  .orb.o3{width:75%; height:75%; animation:spin2 19s linear infinite;}
+  .orb.o4{width:98%; height:98%; animation:spin2 26s linear infinite reverse;}
+  .orb.o1 i{background:var(--faint); width:7px; height:7px; margin-left:-3.5px; top:-3.5px;}
+  .orb.o2 i{background:var(--teal); box-shadow:0 0 8px var(--teal);}
+  .orb.o3 i{background:var(--teal-2); box-shadow:0 0 10px var(--teal-2);}
+  .orb.o4 i{background:var(--cyan); box-shadow:0 0 16px 3px var(--cyan);}
+  .orb i{opacity:0;}
+  .slide.active .orb i{animation:dotin .5s ease forwards;}
+  .slide.active .orb.o4 i{animation-delay:1.7s;} .slide.active .orb.o3 i{animation-delay:1.85s;}
+  .slide.active .orb.o2 i{animation-delay:2s;} .slide.active .orb.o1 i{animation-delay:2.15s;}
+  .slide.active .rg{animation:ringgrow .85s cubic-bezier(.2,.8,.2,1) backwards;}
+  .rg.r4{animation-delay:.15s!important;} .rg.r3{animation-delay:.37s!important;}
+  .rg.r2{animation-delay:.59s!important;} .rg.r1{animation-delay:.81s!important;}
+  @keyframes ringgrow{from{opacity:0; transform:translate(-50%,-50%) scale(.55);} to{opacity:1;}}
+  .legend{display:flex; flex-direction:column; gap:clamp(11px,1.9vmin,19px);}
+  .lg{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:baseline;}
+  .lg .sw{width:13px; height:13px; border-radius:50%; border:2px solid; align-self:center;}
+  .lg.l1 .sw{border-color:var(--faint);} .lg.l2 .sw{border-color:var(--teal);}
+  .lg.l3 .sw{border-color:var(--teal-2);} .lg.l4 .sw{border-color:var(--cyan); background:var(--cyan-soft);}
+  .lg .t{font-family:var(--mono); font-weight:700; font-size:clamp(14px,2vmin,22px);}
+  .lg.l4 .t{color:var(--cyan);}
+  .lg .d{color:var(--dim); font-size:clamp(12px,1.6vmin,17px); margin-top:.15em; line-height:1.4;}
+  .ring-cap{margin-top:clamp(16px,2.4vmin,28px); text-align:center; color:var(--dim); font-size:clamp(15px,2.1vmin,23px); line-height:1.5;}
+  .ring-cap b{color:var(--text);}
+
+  /* proof: bar chart */
+  #s7 .inner{display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(24px,4vw,56px); align-items:center;}
+  .barwrap{display:flex; align-items:flex-end; justify-content:center; gap:clamp(30px,6vw,66px);
+    height:clamp(200px,30vh,300px); padding-top:clamp(26px,4vmin,42px);}
+  .bar{position:relative; width:clamp(74px,12vw,118px); height:100%; display:flex; align-items:flex-end;}
+  .bar .col{position:relative; width:100%; height:0; border-radius:9px 9px 0 0; transition:height 1.15s cubic-bezier(.2,.8,.2,1) .3s;}
+  .bar.before .col{background:linear-gradient(180deg,var(--faint),rgba(116,118,138,.22));}
+  .bar.after .col{background:linear-gradient(180deg,var(--cyan),var(--teal)); box-shadow:0 0 36px var(--cyan-soft);}
+  .slide.active .bar.before .col{height:62%;}
+  .slide.active .bar.after .col{height:78%;}
+  .bar .val{position:absolute; left:-14%; right:-14%; top:-1.7em; text-align:center; font-family:var(--sans); font-weight:800; font-size:clamp(22px,3.2vmin,38px); color:var(--dim); white-space:nowrap;}
+  .bar.after .val{color:var(--cyan);}
+  .bar-axis{display:flex; justify-content:center; gap:clamp(30px,6vw,66px); margin-top:14px;}
+  .bar-axis span{width:clamp(74px,12vw,118px); text-align:center; font-family:var(--mono-cjk); font-size:clamp(11px,1.4vmin,14px); color:var(--faint); line-height:1.35;}
+  .delta{font-family:var(--mono-cjk); font-weight:700; color:var(--cyan); font-size:clamp(13px,1.7vmin,18px); text-align:center; margin-top:clamp(12px,1.8vmin,20px);}
+
+  /* nesting diagram */
+  #s8 .inner{display:grid; grid-template-columns:1.2fr .8fr; gap:clamp(24px,4vw,56px); align-items:center;}
+  .nest{position:relative; width:100%; max-width:clamp(250px,30vw,350px); height:clamp(240px,34vh,340px); justify-self:center;}
+  .nbox{position:absolute; border:1.5px solid; border-radius:13px; padding:9px 14px; font-family:var(--mono); font-weight:700; font-size:clamp(11px,1.5vmin,16px); display:flex; align-items:flex-start;}
+  .nbox.n4{left:0; right:0; top:0; bottom:0; border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 28px var(--cyan-soft);}
+  .nbox.n3{left:8%; right:8%; top:22%; bottom:7%; border-color:var(--teal-2); color:var(--teal-2);}
+  .nbox.n2{left:16%; right:16%; top:44%; bottom:14%; border-color:var(--teal); color:var(--teal);}
+  .nbox.n1{left:24%; right:24%; top:63%; bottom:21%; border-color:var(--faint); color:var(--faint);}
+
+  /* backlog stack (s10) */
+  #s10 .inner{display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(24px,4vw,52px); align-items:center;}
+  .stack{position:relative; width:100%; max-width:370px; justify-self:center; padding-bottom:26px;}
+  .scard{border:1px solid var(--border); border-radius:11px; padding:13px 17px; font-family:var(--mono-cjk); font-size:clamp(12px,1.6vmin,15px);
+    background:rgba(18,19,26,.78); display:flex; justify-content:space-between; align-items:center; margin-top:-7px;
+    box-shadow:0 7px 20px rgba(0,0,0,.34); color:var(--faint); position:relative;}
+  .scard:first-child{margin-top:0;}
+  .scard .q{color:var(--teal-2); font-weight:700; font-family:var(--mono);}
+  .scard.s1{color:var(--dim); z-index:5; opacity:1;}
+  .scard.s2{z-index:4; opacity:.82;}
+  .scard.s3{z-index:3; opacity:.64;}
+  .scard.s4{z-index:2; opacity:.5;}
+  .scard.s5{z-index:1; opacity:.38;}
+  .slide.active .stack .scard{animation:cardin .5s ease backwards;}
+  .slide.active .stack .scard:nth-child(1){animation-delay:.3s;}
+  .slide.active .stack .scard:nth-child(2){animation-delay:.45s;}
+  .slide.active .stack .scard:nth-child(3){animation-delay:.6s;}
+  .slide.active .stack .scard:nth-child(4){animation-delay:.75s;}
+  .slide.active .stack .scard:nth-child(5){animation-delay:.9s;}
+  .slide.active .stack-badge{animation:cardin .5s ease backwards; animation-delay:1.05s;}
+  .stack-badge{position:absolute; right:6px; bottom:0; font-family:var(--mono-cjk); font-size:11px; color:var(--faint); border:1px dashed var(--border); border-radius:999px; padding:3px 11px; background:var(--bg);}
+
+  /* chat-digest card (s11) */
+  #s11 .inner{display:grid; grid-template-columns:.95fr 1.05fr; gap:clamp(24px,4vw,52px); align-items:center;}
+  .chatcard{width:100%; max-width:430px; justify-self:center; border:1px solid var(--border); border-radius:13px; overflow:hidden;
+    background:rgba(18,19,26,.8); box-shadow:0 28px 70px rgba(0,0,0,.5), 0 0 40px rgba(180,235,253,.06);}
+  .winbar{display:flex; align-items:center; gap:7px; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.025);}
+  .winbar i{width:11px; height:11px; border-radius:50%; display:block;}
+  .winbar .ttl{margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--faint);}
+  .chat-body{padding:clamp(16px,2.4vmin,22px); display:flex; flex-direction:column; gap:12px;}
+  .msg{font-size:clamp(13px,1.7vmin,16px); line-height:1.5; padding:10px 14px; border-radius:13px; max-width:90%;}
+  .msg .who{display:block; font-family:var(--mono); font-size:11px; color:var(--faint); margin-bottom:3px;}
+  .msg.you{align-self:flex-end; background:rgba(255,255,255,.045); border:1px solid var(--border); color:var(--dim); border-bottom-right-radius:4px;}
+  .msg.bot{align-self:flex-start; background:var(--cyan-soft); border:1px solid rgba(180,235,253,.25); color:var(--text); border-bottom-left-radius:4px;}
+
+  /* signal/noise sorter (s12) */
+  .sorter{display:flex; align-items:center; justify-content:center; gap:clamp(12px,2.6vw,30px); margin-top:clamp(22px,3.4vmin,40px); flex-wrap:wrap;}
+  .sin{font-family:var(--mono-cjk); font-weight:700; font-size:clamp(14px,2vmin,20px); color:var(--text); border:1.5px solid var(--cyan); border-radius:13px; padding:14px 22px; background:var(--cyan-soft); box-shadow:0 0 26px var(--cyan-soft);}
+  .sarrow{color:var(--faint); font-size:clamp(20px,3vmin,28px); line-height:1;}
+  .sbranch{display:flex; flex-direction:column; gap:10px;}
+  .sbr{font-family:var(--mono-cjk); font-size:clamp(12px,1.6vmin,16px); border:1px solid var(--border); border-radius:999px; padding:9px 18px; color:var(--dim);}
+  .sbr.good{border-color:var(--cyan); color:var(--cyan); background:var(--cyan-soft);}
+  .sbr.mid{color:var(--dim);}
+  .sbr.bad{color:var(--faint); opacity:.65;}
+
+  /* JD card (s14) */
+  #s14 .inner{display:grid; grid-template-columns:1.08fr .92fr; gap:clamp(24px,4vw,52px); align-items:center;}
+  .jdcard{width:100%; max-width:440px; justify-self:center; border:1px solid var(--border); border-radius:13px; background:rgba(18,19,26,.72); overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,.45);}
+  .jd-head{font-family:var(--mono-cjk); font-size:clamp(12px,1.6vmin,15px); color:var(--faint); padding:13px 18px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.025);}
+  .jd-body{padding:clamp(16px,2.4vmin,22px); display:flex; flex-direction:column; gap:12px;}
+  .jd-row{font-size:clamp(13px,1.7vmin,17px); color:var(--dim); line-height:1.45;}
+  .kw{color:var(--cyan); font-family:var(--mono-cjk); font-weight:600; background:rgba(180,235,253,.1); border-radius:5px; padding:1px 7px; white-space:nowrap;}
+  .jdcard .kw{color:var(--faint); background:transparent;}
+  .slide.active .jdcard .kw{animation:kwlight .45s ease forwards;}
+  .jd-note{font-family:var(--mono-cjk); font-size:clamp(10px,1.35vmin,13px); color:var(--cyan-dim); padding:0 18px 16px;}
+
+  /* two-path visual (s15) */
+  .paths{display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2.4vw,28px); margin-top:clamp(22px,3.4vmin,40px);}
+  .path{border:1px solid var(--border); border-radius:13px; padding:clamp(16px,2.4vmin,24px); display:flex; flex-direction:column;}
+  .path.bad{opacity:.78;}
+  .path.good{border-color:var(--cyan); background:var(--cyan-soft); box-shadow:0 0 28px var(--cyan-soft);}
+  .phead{font-family:var(--mono-cjk); font-weight:700; font-size:clamp(14px,1.95vmin,21px); display:flex; align-items:center; gap:11px; margin-bottom:clamp(11px,1.8vmin,18px);}
+  .path.bad .phead{color:#E5746B;} .path.good .phead{color:#5FBF86;}
+  .mark{width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; flex:none; border:none;}
+  .path.bad .mark{background:#E5746B; color:#2a0d0b; box-shadow:0 0 16px rgba(229,116,107,.4);}
+  .path.good .mark{background:#5FBF86; color:#08190f; box-shadow:0 0 16px rgba(95,191,134,.4);}
+  .flow{display:flex; flex-direction:column; gap:6px;}
+  .pstep{font-size:clamp(13px,1.7vmin,18px); color:var(--dim); line-height:1.32;}
+  .path.good .pstep{color:var(--text);}
+  .parr{color:var(--faint); font-size:13px; line-height:1;}
+
+  /* OpenClaw radial hub (s17) */
+  .hub{width:100%; max-width:660px; margin:clamp(16px,2.6vmin,28px) auto 0;}
+  .hub svg{width:100%; height:auto; display:block; overflow:visible;}
+  .hub .orbit{fill:none; stroke:#2C2D39; stroke-width:1.3; stroke-dasharray:3 9; opacity:.7;}
+  .slide.active .hub .orbit{animation:dash 44s linear infinite;}
+  @keyframes dash{to{stroke-dashoffset:-300;}}
+  .hub .spoke{stroke:#2C2D39; stroke-width:1.4;}
+  .hub .chan{fill:rgba(255,255,255,.02); stroke:#2C2D39; stroke-width:1.2;}
+  .hub .chan-t{fill:#BCBCC2; font-family:var(--mono-cjk); font-size:15px; font-weight:500;}
+  .hub .hubbox{fill:rgba(180,235,253,.12); stroke:#B4EBFD; stroke-width:1.6; filter:drop-shadow(0 0 14px rgba(180,235,253,.35));}
+  .hub .hub-t1{fill:#B4EBFD; font-family:var(--mono-cjk); font-weight:700; font-size:18px;}
+  .hub .hub-t2{fill:#74768A; font-family:var(--mono-cjk); font-size:11.5px;}
+  .hub .cap-pill{fill:rgba(180,235,253,.07); stroke:rgba(180,235,253,.22); stroke-width:1;}
+  .hub .cap-t{fill:#6FA3B8; font-family:var(--mono-cjk); font-size:12px; font-weight:600;}
+  .hub .hub-cap{fill:#6FA3B8; font-family:var(--mono-cjk); font-size:12.5px; font-weight:600;}
+
+  /* publish loop (s21) — see .loop rules below */
+
+  /* start line (s22) */
+  .startline{margin-top:clamp(20px,3vmin,32px); border:1px solid var(--border); border-radius:13px; padding:clamp(15px,2.4vmin,22px) clamp(18px,2.6vmin,28px); background:rgba(18,19,26,.5);}
+  .sl-label{font-family:var(--mono-cjk); font-size:clamp(11px,1.45vmin,14px); color:var(--faint); margin-bottom:14px;}
+  .sl-label b{color:var(--cyan); font-weight:600;}
+  .sl-track{position:relative; padding-left:20px; border-left:2px dashed var(--cyan);}
+  .sl-runner{display:flex; align-items:center; gap:11px; font-family:var(--mono-cjk); font-size:clamp(13px,1.7vmin,17px); color:var(--dim); padding:7px 0;}
+  .sl-runner .dot{width:11px; height:11px; border-radius:50%; background:var(--faint); flex:none;}
+  .sl-runner .dot.hot{background:var(--cyan); box-shadow:0 0 12px var(--cyan);}
+  .sl-runner.r2{color:var(--cyan);}
+
+  /* content vs context (s19) */
+  .cc{display:flex; flex-direction:column; gap:clamp(11px,1.8vmin,18px); margin-top:clamp(20px,3vmin,34px);}
+  .ccrow{border:1px solid var(--border); border-radius:11px; padding:clamp(14px,2vmin,20px) clamp(16px,2.4vmin,24px); display:grid; grid-template-columns:auto 1fr; gap:clamp(14px,2vw,24px); align-items:center;}
+  .ccrow.dim{opacity:.5;}
+  .ccrow.hot{border-color:var(--cyan); background:var(--cyan-soft); box-shadow:0 0 26px var(--cyan-soft);}
+  .ccrow .tag{font-family:var(--mono); font-weight:700; font-size:clamp(13px,1.8vmin,20px); letter-spacing:.02em;}
+  .ccrow.dim .tag{color:var(--faint);} .ccrow.hot .tag{color:var(--cyan);}
+  .ccrow .desc{font-size:clamp(14px,1.95vmin,21px); color:var(--text); line-height:1.4;}
+  .ccrow.dim .desc{color:var(--dim);}
+
+  /* quote */
+  .quote{font-family:var(--sans); font-weight:600; font-size:clamp(20px,3.2vmin,38px); line-height:1.34; letter-spacing:-.01em;
+    border-left:2px solid var(--cyan); padding-left:clamp(18px,2.6vmin,30px); margin-top:clamp(18px,2.8vmin,32px); color:var(--text);}
+  .quote .src{display:block; font-family:var(--mono-cjk); font-weight:400; font-size:clamp(11px,1.5vmin,15px); color:var(--faint); margin-top:.8em;}
+
+  /* code card (s23) */
+  #s23 .inner{display:grid; grid-template-columns:1.04fr .96fr; gap:clamp(24px,4vw,56px); align-items:center;}
+  .codecard{width:100%; max-width:540px; justify-self:center; border:1px solid var(--border); border-radius:13px; overflow:hidden; background:rgba(18,19,26,.82);
+    box-shadow:0 30px 80px rgba(0,0,0,.55), 0 0 46px rgba(180,235,253,.07), inset 0 1px 0 rgba(255,255,255,.045);}
+  .codecard .cbar{display:flex; align-items:center; gap:7px; padding:12px 16px; border-bottom:1px solid var(--border); background:rgba(255,255,255,.025);}
+  .codecard .cbar i{width:11px; height:11px; border-radius:50%; display:block;}
+  .codecard .cbar .ttl{margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--faint);}
+  .codecard pre{padding:clamp(18px,2.6vmin,26px); font-family:var(--mono-cjk); font-size:clamp(12px,1.65vmin,15px); line-height:1.85; color:var(--dim); overflow-x:auto; margin:0; white-space:pre;}
+  .codecard .k{color:var(--cyan);} .codecard .s{color:var(--teal-2);} .codecard .c{color:var(--faint);}
+
+  /* numbered list */
+  .nlist{margin-top:clamp(20px,3.2vmin,36px); display:flex; flex-direction:column; gap:clamp(13px,2.1vmin,22px);}
+  .ni{display:grid; grid-template-columns:auto 1fr; gap:clamp(15px,2.4vw,26px); align-items:baseline;}
+  .ni .num{font-family:var(--mono); font-weight:700; font-size:clamp(18px,2.6vmin,30px); color:var(--cyan); line-height:1;}
+  .ni .txt{font-size:clamp(16px,2.2vmin,25px); line-height:1.42; color:var(--text);}
+  .ni .txt small{display:block; color:var(--dim); font-size:clamp(13px,1.7vmin,18px); margin-top:.25em; line-height:1.4;}
+  .foot-line{margin-top:clamp(18px,2.8vmin,32px); color:var(--dim); font-size:clamp(14px,1.95vmin,21px); line-height:1.5;}
+  .foot-line b{color:var(--cyan); font-weight:600;}
+
+  /* four cards */
+  .tetra{display:grid; grid-template-columns:1fr 1fr; gap:clamp(11px,1.7vmin,18px); margin-top:clamp(18px,2.6vmin,30px);}
+  .tcard{border:1px solid var(--border); border-radius:10px; padding:clamp(13px,1.9vmin,20px); background:rgba(255,255,255,.015);}
+  .tcard.hot{border-color:var(--cyan); background:var(--cyan-soft); box-shadow:0 0 24px var(--cyan-soft);}
+  .tcard .tt{font-family:var(--mono-cjk); font-weight:700; font-size:clamp(14px,1.95vmin,21px); color:var(--text);}
+  .tcard.hot .tt{color:var(--cyan);}
+  .tcard .dd{color:var(--dim); font-size:clamp(12px,1.55vmin,16px); margin-top:.3em; line-height:1.35;}
+
+  /* closing */
+  .close-big{font-family:var(--sans); font-weight:700; font-size:clamp(24px,4.2vmin,52px); line-height:1.22; margin-top:clamp(22px,3.4vmin,38px); letter-spacing:-.02em;}
+  .close-foot{margin-top:clamp(22px,3.4vmin,40px); font-family:var(--mono-cjk); font-size:clamp(12px,1.6vmin,16px); color:var(--faint); letter-spacing:.04em;}
+  .close-foot span{color:var(--cyan);}
+
+  /* filter pipeline (s16) */
+  .pipe{display:flex; align-items:stretch; justify-content:center; gap:clamp(10px,2vw,22px); margin-top:clamp(22px,3.4vmin,40px); flex-wrap:wrap;}
+  .pipe-box{border:1px solid var(--border); border-radius:13px; padding:clamp(14px,2vmin,20px) clamp(16px,2.2vmin,22px); display:flex; flex-direction:column; justify-content:center; min-width:clamp(150px,21vw,210px); background:rgba(255,255,255,.015);}
+  .pipe-box.hot{border-color:var(--cyan); background:var(--cyan-soft); box-shadow:0 0 26px var(--cyan-soft);}
+  .pipe-h{font-family:var(--mono-cjk); font-size:clamp(11px,1.45vmin,14px); color:var(--faint); margin-bottom:8px;}
+  .pipe-box.hot .pipe-h{color:var(--cyan);}
+  .pipe-item{font-size:clamp(13px,1.7vmin,17px); color:var(--dim); line-height:1.5;}
+  .pipe-box.hot .pipe-item{color:var(--text);}
+  .pipe-arrow{align-self:center; color:var(--faint); font-size:clamp(20px,3vmin,28px); line-height:1;}
+
+  /* action cards (s24) */
+  .acts{display:grid; grid-template-columns:1fr 1fr; gap:clamp(12px,2vmin,20px); margin-top:clamp(20px,3vmin,34px);}
+  .actcard{border:1px solid var(--border); border-radius:13px; padding:clamp(16px,2.4vmin,24px); background:rgba(255,255,255,.015);}
+  .actcard.hot{border-color:var(--cyan); background:var(--cyan-soft); box-shadow:0 0 24px var(--cyan-soft);}
+  .act-n{font-family:var(--mono); font-weight:700; font-size:clamp(16px,2.2vmin,26px); color:var(--cyan); margin-bottom:.4em;}
+  .act-t{font-family:var(--sans); font-weight:700; font-size:clamp(17px,2.4vmin,26px); color:var(--text); line-height:1.2;}
+  .act-d{color:var(--dim); font-size:clamp(13px,1.7vmin,18px); margin-top:.5em; line-height:1.4;}
+
+  /* s11 right cards + chat thinking/streaming */
+  .s11-right{text-align:right;}
+  .s11-right .eyebrow{justify-content:flex-end;}
+  .rcard{text-align:left; max-width:48ch; margin-left:auto; margin-top:clamp(12px,1.8vmin,18px);
+    border:1px solid var(--border); border-radius:12px; padding:clamp(13px,1.9vmin,18px) clamp(15px,2.1vmin,20px);
+    background:rgba(255,255,255,.018); color:var(--dim); font-size:clamp(14px,1.95vmin,20px); line-height:1.55;}
+  .rcard:first-of-type{margin-top:clamp(18px,2.6vmin,28px);}
+  .rcard b{color:var(--text); font-weight:600;}
+  .msg{transition:opacity .4s ease;}
+  .msg.you.hidden,.msg.bot.hidden{opacity:0;}
+  .msg.thinking{display:none; align-items:center;}
+  .msg.thinking.show{display:flex;}
+  .dots{display:inline-flex; gap:5px; align-items:center;}
+  .dots i{width:7px; height:7px; border-radius:50%; background:var(--cyan-dim); display:block; animation:bounce 1.1s ease-in-out infinite;}
+  .dots i:nth-child(2){animation-delay:.18s;} .dots i:nth-child(3){animation-delay:.36s;}
+  @keyframes bounce{0%,80%,100%{opacity:.3; transform:translateY(0);} 40%{opacity:1; transform:translateY(-4px);}}
+  .tcur{display:inline-block; width:.5em; height:1.05em; background:var(--cyan); margin-left:1px; transform:translateY(.14em); animation:blink 1.1s steps(2,start) infinite;}
+  .tcur.done{display:none;}
+
+  /* publish loop (s21) */
+  .loop{width:100%; max-width:470px; margin:clamp(16px,2.6vmin,28px) auto 0;}
+  .loop svg{width:100%; height:auto; display:block; overflow:visible;}
+  .loop .guide{fill:none; stroke:rgba(180,235,253,.16); stroke-width:1.3; stroke-dasharray:3 8;}
+  .loop .arc{fill:none; stroke:#517E94; stroke-width:1.9;}
+  .loop .arc.back{stroke:#B4EBFD; stroke-width:2;}
+  .loop .lnode{fill:rgba(255,255,255,.02); stroke:#2C2D39; stroke-width:1.3;}
+  .loop .lnode.hot{fill:rgba(180,235,253,.12); stroke:#B4EBFD; stroke-width:1.7; filter:drop-shadow(0 0 12px rgba(180,235,253,.3));}
+  .loop .lt{fill:#BCBCC2; font-family:var(--mono-cjk); font-size:15px; font-weight:600;}
+  .loop .lt.hot{fill:#B4EBFD;}
+  .loop .ctr{fill:#74768A; font-family:var(--mono-cjk); font-size:13px; font-weight:600;}
+  .loop .blab{fill:#6FA3B8; font-family:var(--mono-cjk); font-size:12px;}
+
+  @keyframes cardin{from{opacity:0; transform:translateY(-12px);}}
+  @keyframes dotin{to{opacity:1;}}
+  @keyframes kwlight{to{color:var(--cyan); background:rgba(180,235,253,.1);}}
+
+  /* chrome */
+  #progress{position:fixed; left:0; top:0; height:2px; background:var(--cyan); width:0; z-index:30; transition:width .45s ease; box-shadow:0 0 10px var(--cyan-soft);}
+  #chrome{position:fixed; right:clamp(18px,3vmin,40px); bottom:clamp(16px,2.6vmin,34px); z-index:30; display:flex; align-items:center; gap:14px;}
+  .counter{font-family:var(--mono); font-size:clamp(11px,1.5vmin,14px); color:var(--faint); letter-spacing:.06em;}
+  .counter b{color:var(--cyan);}
+  .navbtn{width:clamp(36px,5vmin,46px); height:clamp(36px,5vmin,46px); border-radius:50%; border:1px solid var(--border);
+    background:rgba(255,255,255,.02); color:var(--text); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:.2s; line-height:1;}
+  .navbtn:hover{border-color:var(--cyan); color:var(--cyan); background:var(--cyan-soft);}
+  .navbtn:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+  .navbtn:disabled{opacity:.3; cursor:default;}
+  #fs{font-size:15px;}
+  #hint{position:fixed; left:clamp(18px,3vmin,40px); bottom:clamp(16px,2.6vmin,34px); z-index:30;
+    font-family:var(--mono-cjk); font-size:clamp(10px,1.4vmin,13px); color:var(--faint); letter-spacing:.04em; transition:opacity .6s ease; opacity:.7;}
+  #hint.gone{opacity:0;}
+
+  @media (max-width:860px){
+    #s1 .inner, #s2 .inner, #s7 .inner, #s8 .inner, #s10 .inner, #s11 .inner, #s14 .inner, #s23 .inner{grid-template-columns:1fr;}
+    .term, .avatar-wrap, .codecard, .chatcard{order:-1;}
+    .stack, .jdcard{margin-top:clamp(8px,2vmin,18px);}
+    .agenda{grid-template-columns:1fr;}
+    .sec-wrap{flex-direction:column; align-items:flex-start; gap:8px;}
+    .sec-num{font-size:30vmin;}
+    .ringgrid{grid-template-columns:1fr;}
+    .ringstage{max-width:min(58vw,300px);}
+    .tlrow{grid-template-columns:1fr; gap:6px;}
+    .tl-src{justify-content:flex-start;}
+    .tl-dot{top:18px;}
+    .tetra{grid-template-columns:1fr;}
+    .sorter, .pipe{flex-direction:column;}
+    .acts{grid-template-columns:1fr;}
+    .sarrow, .pipe-arrow{transform:rotate(90deg);}
+    .ralign{text-align:left;} .ralign .lead{margin-left:0;} .ralign .eyebrow{justify-content:flex-start;} .ralign .sources{justify-content:flex-start;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .up{opacity:1; transform:none;}
+    .slide.active .up,.slide.active .term,.slide.active .avatar-wrap,.slide.active .term-body .ln{animation:none; opacity:1; transform:none;}
+    .slide.active .rg{animation:none; opacity:1;}
+    .orb,.cursor,.hub .orbit{animation:none;} .cursor{opacity:1;}
+    .orb i{opacity:1; animation:none;}
+    .slide.active .stack .scard, .slide.active .stack-badge{animation:none;}
+    .slide.active .jdcard .kw{animation:none; color:var(--cyan); background:rgba(180,235,253,.1);}
+    .bar .col{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="progress"></div>
+
+<div id="deck">
+
+  <!-- 1 · COVER -->
+  <section class="slide active" id="s1">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">// 技术分享 · 2026 年 6 月 13 日</div>
+        <h1 class="h-cover up" style="--i:1">从实习面试<br>到 <span class="cy">Agent</span> 开发</h1>
+        <div class="cover-sub up" style="--i:2">聊聊 AI 行业,这一年到底在发生什么</div>
+        <div class="cover-line up" style="--i:3">&gt; 这一年,新名词冒出来的速度,比模型更新还快。</div>
+        <div class="cover-foot up" style="--i:4">分享人 <span>Joye</span> &nbsp;·&nbsp; joyehuang.me &nbsp;·&nbsp; AI Agent &amp; Full-Stack Dev</div>
+      </div>
+      <div class="term">
+        <div class="term-bar"><i class="t1"></i><i class="t2"></i><i class="t3"></i><span class="ttl">joye@2026: ~/talk</span></div>
+        <div class="term-body">
+          <div class="ln"><span class="pr">joye@2026</span> <span class="m">~/talk</span> $ ./start</div>
+          <div class="ln o">&gt; 一年,新名词换了五拨</div>
+          <div class="ln o">&gt; 与其追新闻,不如看懂底层</div>
+          <div class="ln"><span class="o">&gt; 今天,只讲那个不变的</span><span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · WHOAMI -->
+  <section class="slide" id="s2">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">&gt; whoami</div>
+        <h1 class="h-slide up" style="--i:1">我是 Joye</h1>
+        <div class="role-line up" style="--i:2">AI Agent &amp; Full-Stack Developer</div>
+        <p class="lead up" style="--i:3; margin-top:clamp(18px,2.6vmin,30px)">这一年我主要在干两件事:面了 100+ 个 AI 岗、攒了 30+ offer;以及白天在 Tezign、fAIshion、AixCut 搭 agent 和 AI 全栈,晚上捣鼓自己的常驻个人 agent。</p>
+        <div class="mini-note up" style="--i:4">面试和开发两头都在踩坑 —— 所以今天讲的全是一手的,不是二手转述。</div>
+      </div>
+      <div class="avatar-wrap">
+        <div class="ring-bg"></div>
+        <img class="avatar" src="https://www.joyehuang.me/_astro/avatar.DkFdhJyn_ZvTwz6.webp" alt="Joye">
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · AGENDA -->
+  <section class="slide" id="s3">
+    <div class="inner narrow">
+      <div class="eyebrow up" style="--i:0">&gt; 今天聊什么</div>
+      <h1 class="h-slide up" style="--i:1">这一年最强的体感:<br><span class="cy">名词,刷新得太快了</span></h1>
+      <p class="lead up" style="--i:2; margin-top:clamp(18px,2.6vmin,30px)">不管找实习还是做 agent,焦虑都一样 —— 要学的像 DDL 一样越堆越高。今天把它拆成四个维度来看:</p>
+      <div class="agenda">
+        <div class="ag up" style="--i:3"><span class="k">01</span><span class="v">这些名词到底在讲什么<br><span style="color:var(--faint);font-size:.82em">Prompt → Loop</span></span></div>
+        <div class="ag up" style="--i:4"><span class="k">02</span><span class="v">我怎么不被它们淹没</span></div>
+        <div class="ag up" style="--i:5"><span class="k">03</span><span class="v">怎么有目的地学、上哪找信息</span></div>
+        <div class="ag up" style="--i:6"><span class="k">04</span><span class="v">真正的护城河:<br>主动性,不是知识</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · DIVIDER 01 -->
+  <section class="slide" id="s4">
+    <div class="inner">
+      <div class="sec-prompt up" style="--i:0">~/talk $ open <b>01</b></div>
+      <div class="sec-wrap">
+        <div class="sec-num up" style="--i:1">01</div>
+        <div class="sec-meta">
+          <h1 class="h-sec up" style="--i:2">AI 名词这一年</h1>
+          <div class="sec-sub up" style="--i:3">从 Prompt Engineering,到这周的 Loop Engineering。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · TIMELINE (interactive) -->
+  <section class="slide" id="s5">
+    <div class="inner">
+      <div class="eyebrow up" style="--i:0">&gt; 名词迭代</div>
+      <h1 class="h-slide up" style="--i:1">四年,五拨说法 —— <span class="cy">而且越换越快</span></h1>
+      <div class="tl">
+        <div class="tlrow up" style="--i:2">
+          <span class="tl-dot"></span><span class="tl-when">'22 – '23</span>
+          <div><div class="tl-term">Prompt Engineering</div><div class="tl-by">把一句话写好 · <em>随 GPT-3 / ChatGPT 普及</em></div></div>
+          <div class="tl-src"><a class="chip" href="https://www.promptingguide.ai/" target="_blank" rel="noopener">Prompt Guide</a></div>
+        </div>
+        <div class="tlrow up" style="--i:3">
+          <span class="tl-dot"></span><span class="tl-when">'25.6</span>
+          <div><div class="tl-term">Context Engineering</div><div class="tl-by">管好模型"看到的一切" · <em>Tobi Lütke 提出 · Karpathy 推火</em></div></div>
+          <div class="tl-src"><a class="chip" href="https://x.com/karpathy/status/1937902205765607626" target="_blank" rel="noopener">Karpathy</a></div>
+        </div>
+        <div class="tlrow up" style="--i:4">
+          <span class="tl-dot"></span><span class="tl-when">'25</span>
+          <div><div class="tl-term">开源 Agent 浪潮</div><div class="tl-by">框架遍地开花 · <em>LangChain · Goose 等</em></div></div>
+          <div class="tl-src"><a class="chip" href="https://github.com/langchain-ai/deepagents" target="_blank" rel="noopener">deepagents</a></div>
+        </div>
+        <div class="tlrow up" style="--i:5">
+          <span class="tl-dot"></span><span class="tl-when">'26 初</span>
+          <div><div class="tl-term">Harness Engineering · 驾驭工程</div><div class="tl-by">给模型套上"脚手架" · <em>OpenAI Codex × Anthropic</em></div></div>
+          <div class="tl-src"><a class="chip" href="https://openai.com/index/introducing-codex/" target="_blank" rel="noopener">Codex</a><a class="chip" href="https://www.anthropic.com/engineering/harness-design-long-running-apps" target="_blank" rel="noopener">Anthropic</a></div>
+        </div>
+        <div class="tlrow up" style="--i:6">
+          <span class="tl-dot"></span><span class="tl-when">这周 · '26.6</span>
+          <div><div class="tl-term">Loop Engineering</div><div class="tl-by">别再手动 prompt,去设计"循环" · <em>Steinberger 引爆 · Osmani 命名</em></div></div>
+          <div class="tl-src"><a class="chip" href="https://x.com/addyosmani/status/2064127981161959567" target="_blank" rel="noopener">原推</a><a class="chip" href="https://x.com/steipete" target="_blank" rel="noopener">Steinberger</a></div>
+        </div>
+      </div>
+      <div class="tl-cap up" style="--i:7">前两拨用了三四年;后三拨,全挤在这一年里。<small>连<a class="ulink" href="https://news.qq.com/rain/a/20260603A07TIY00" target="_blank" rel="noopener">腾讯两周前那份 3 万字报告</a>,都还停在「驾驭工程」—— Loop 是这周才冒出来的。</small></div>
+    </div>
+  </section>
+
+  <!-- 6 · SIGNATURE RINGS -->
+  <section class="slide" id="s6">
+    <div class="inner">
+      <div class="eyebrow up" style="--i:0">&gt; 看出规律了吗</div>
+      <h1 class="h-slide up" style="--i:1">工程的"对象",一直在<span class="cy">向外扩</span></h1>
+      <div class="ringgrid">
+        <div class="ringstage up" style="--i:2">
+          <div class="rg r4"></div><div class="rg r3"></div><div class="rg r2"></div><div class="rg r1"></div>
+          <div class="orb o4"><i></i></div><div class="orb o3"><i></i></div><div class="orb o2"><i></i></div><div class="orb o1"><i></i></div>
+          <div class="core"><small>模型</small></div>
+        </div>
+        <div class="legend">
+          <div class="lg l1 up" style="--i:3"><span class="sw"></span><div><div class="t">Prompt</div><div class="d">怎么问</div></div></div>
+          <div class="lg l2 up" style="--i:4"><span class="sw"></span><div><div class="t">Context</div><div class="d">模型看到什么</div></div></div>
+          <div class="lg l3 up" style="--i:5"><span class="sw"></span><div><div class="t">Harness</div><div class="d">模型在什么环境里干活:工具 · 记忆 · 校验</div></div></div>
+          <div class="lg l4 up" style="--i:6"><span class="sw"></span><div><div class="t">Loop</div><div class="d">怎么驱动它:何时行动 · 停止 · 重试</div></div></div>
+        </div>
+      </div>
+      <div class="ring-cap up" style="--i:7">模型基本没变,变的是你下手的"那一圈" —— <b>词 → 上下文 → 环境 → 机制。</b></div>
+    </div>
+  </section>
+
+  <!-- 7 · PROOF (bar chart) -->
+  <section class="slide" id="s7">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">&gt; 这不只是炒作</div>
+        <h1 class="h-slide up" style="--i:1">同一个模型不换,<br>只改外面那圈</h1>
+        <p class="lead up" style="--i:2; margin-top:clamp(18px,2.6vmin,30px)">LangChain 的 coding agent,模型(gpt-5.2-codex)一行没动,只重做 harness,在 Terminal-Bench 2.0 上从 Top 30 开外冲进 <b>Top 5</b>。约等于白嫖了一整代模型的进步。</p>
+        <div class="quote up" style="--i:3">「Agent = 模型 + Harness。<br>模型之外的一切,都是 harness。」<span class="src">— LangChain · Vivek Trivedy</span></div>
+        <div class="sources up" style="--i:4"><span class="src-tag">来源</span><a class="chip" href="https://blog.langchain.com/improving-deep-agents-with-harness-engineering/" target="_blank" rel="noopener">LangChain Blog</a><a class="chip" href="https://www.tbench.ai/leaderboard/terminal-bench/2.0" target="_blank" rel="noopener">原榜单 Terminal-Bench</a></div>
+      </div>
+      <div>
+        <div class="barwrap up" style="--i:3">
+          <div class="bar before"><div class="col"><span class="val">52.8%</span></div></div>
+          <div class="bar after"><div class="col"><span class="val">66.5%</span></div></div>
+        </div>
+        <div class="bar-axis up" style="--i:4"><span>改之前<br>Top 30 开外</span><span>只改 harness<br>冲进 Top 5</span></div>
+        <div class="delta up" style="--i:4">+13.7 分 · 模型完全没变</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · ESSENCE (nesting) -->
+  <section class="slide" id="s8">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">&gt; 名词的本质</div>
+        <h1 class="h-slide up" style="--i:1">换的是名字,做的是<br>同一件事:<span class="cy">Agent Engineering</span></h1>
+        <p class="lead up" style="--i:2; margin-top:clamp(20px,3vmin,34px)">让一个 agent 更稳、让体验比直接用 ChatGPT / Claude 更好 —— 这件事一直没变。</p>
+        <p class="lead up" style="--i:3; margin-top:1em">而且上一层从没消失,只是变成了下一层的一个零件。<b>Prompt 没死,它成了 Loop 里的一个组件。</b></p>
+      </div>
+      <div class="nest up" style="--i:2">
+        <div class="nbox n4">Loop</div>
+        <div class="nbox n3">Harness</div>
+        <div class="nbox n2">Context</div>
+        <div class="nbox n1">Prompt</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · DIVIDER 02 -->
+  <section class="slide" id="s9">
+    <div class="inner">
+      <div class="sec-prompt up" style="--i:0">~/talk $ open <b>02</b></div>
+      <div class="sec-wrap">
+        <div class="sec-num up" style="--i:1">02</div>
+        <div class="sec-meta">
+          <h1 class="h-sec up" style="--i:2">为什么我不焦虑</h1>
+          <div class="sec-sub up" style="--i:3">焦虑的根源是"未知";解药是"搞清楚它是什么"。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · WHERE ANXIETY COMES FROM (backlog stack) -->
+  <section class="slide" id="s10">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">&gt; 焦虑从哪来</div>
+        <h1 class="h-slide up" style="--i:1">不是名词太多,<br>是你"<span class="cy">囤着却不看</span>"</h1>
+        <p class="lead up" style="--i:2; margin-top:clamp(20px,3vmin,34px)">新名词像 DDL 一样越堆越高,但大多数人只是把它们囤着,从不花时间真正搞懂。</p>
+        <p class="lead up" style="--i:3; margin-top:1em">于是堆起来的,<b>不是知识,是未知。</b> 焦虑就是这么来的。</p>
+      </div>
+      <div class="stack">
+        <div class="scard s5">RAG <span class="q">?</span></div>
+        <div class="scard s4">MCP <span class="q">?</span></div>
+        <div class="scard s3">Context Engineering <span class="q">?</span></div>
+        <div class="scard s2">Harness <span class="q">?</span></div>
+        <div class="scard s1">Loop Engineering <span class="q">?</span></div>
+        <div class="stack-badge">未读 · 还在涨</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · HAND IT TO PERSONAL AGENT (chat card + right text) -->
+  <section class="slide" id="s11">
+    <div class="inner">
+      <div class="chatcard up" style="--i:2">
+        <div class="winbar"><i class="t1" style="background:var(--faint)"></i><i class="t2" style="background:var(--teal)"></i><i class="t3" style="background:var(--cyan)"></i><span class="ttl">my-agent</span></div>
+        <div class="chat-body" id="chatBody">
+          <div class="msg you"><span class="who">你</span>这 "Loop Engineering" 是啥?</div>
+          <div class="msg thinking"><span class="who">agent</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="msg bot" data-text="一句话:别再手动敲 prompt,写个循环让 agent 自己找事做、自己跑。要我展开吗?"><span class="who">agent</span><span class="botxt"></span><span class="tcur"></span></div>
+        </div>
+      </div>
+      <div class="s11-right">
+        <div class="eyebrow up" style="--i:0">&gt; 我的做法</div>
+        <h1 class="h-slide up" style="--i:1">看到新东西,<br>先丢给<span class="cy">我的个人 Agent</span></h1>
+        <div class="rcard up" style="--i:2">碰到一个没见过的名词、一条推、一篇博客,先扔给自己的个人 Agent,让它帮我过一遍、讲清楚这是什么。</div>
+        <div class="rcard up" style="--i:3">就算当下没空细读,<b>光看它的解读,我也大概知道这东西是个啥了</b> —— 这就够了。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · KNOW WHAT IT IS (sorter) -->
+  <section class="slide" id="s12">
+    <div class="inner narrow center">
+      <div class="eyebrow up" style="--i:0">&gt; 关键</div>
+      <h1 class="h-slide up" style="--i:1">知道它是什么,未知就<span class="cy">不再吓人</span></h1>
+      <p class="lead up" style="--i:2; margin-top:clamp(18px,2.6vmin,28px)">诀窍是:别问"它是什么",问"它跟我已经在做的有什么不同"。搞懂之后,新名词自然就归了位 ——</p>
+      <div class="sorter up" style="--i:3">
+        <div class="sin">新名词 ?</div>
+        <div class="sarrow">→</div>
+        <div class="sbranch">
+          <div class="sbr good">真东西,值得追</div>
+          <div class="sbr mid">其实我早就在做</div>
+          <div class="sbr bad">纯炒作 · 跳过</div>
+        </div>
+      </div>
+      <p class="lead up" style="--i:4; margin-top:clamp(18px,2.6vmin,28px)">分得清这三类,你就不会被每个新词牵着走了。</p>
+    </div>
+  </section>
+
+  <!-- 13 · DIVIDER 03 -->
+  <section class="slide" id="s13">
+    <div class="inner">
+      <div class="sec-prompt up" style="--i:0">~/talk $ open <b>03</b></div>
+      <div class="sec-wrap">
+        <div class="sec-num up" style="--i:1">03</div>
+        <div class="sec-meta">
+          <h1 class="h-sec up" style="--i:2">怎么学 &amp; 上哪找</h1>
+          <div class="sec-sub up" style="--i:3">学得有目的,信息找对源头。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · START WITH JD (JD card) -->
+  <section class="slide" id="s14">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">&gt; 先看 JD</div>
+        <h1 class="h-slide up" style="--i:1">学新东西,第一步<br>不是学,是<span class="cy">扒 JD</span></h1>
+        <p class="lead up" style="--i:2; margin-top:clamp(20px,3vmin,34px)">我学东西挺功利的 —— 奔着就业、也奔着把东西做出来。上手一个新方向,我先扒一堆 JD,看这行在用哪些术语。<b>知道了术语,你搜东西、跟 AI 聊,才问得准。</b></p>
+        <div class="foot-line up" style="--i:3">顺带一句:第一手信号在 <b>X 和官博</b>(OpenAI / Anthropic),公众号大多是二手。</div>
+      </div>
+      <div class="jdcard up" style="--i:2">
+        <div class="jd-head">JD · AI / Agent Engineer</div>
+        <div class="jd-body">
+          <div class="jd-row">熟悉 <span class="kw" style="animation-delay:.9s">Agentic RL</span> / <span class="kw" style="animation-delay:1.05s">RLHF</span></div>
+          <div class="jd-row">用过 <span class="kw" style="animation-delay:1.2s">LangGraph</span>、<span class="kw" style="animation-delay:1.35s">Claude Agent SDK</span></div>
+          <div class="jd-row">熟悉 <span class="kw" style="animation-delay:1.5s">Vercel AI SDK</span> / <span class="kw" style="animation-delay:1.65s">Sandbox</span></div>
+          <div class="jd-row">做过 agent <span class="kw" style="animation-delay:1.8s">eval</span> 与 <span class="kw" style="animation-delay:1.95s">harness</span> 调优</div>
+        </div>
+        <div class="jd-note">↑ 高亮的,就是你要先搞懂的术语</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 · DON'T LET AI TEACH FROM ZERO (two-path) -->
+  <section class="slide" id="s15">
+    <div class="inner narrow">
+      <div class="eyebrow up" style="--i:0">&gt; 一个常见的坑</div>
+      <h1 class="h-slide up" style="--i:1">别让 AI <span class="cy">从零</span>教你一个新领域</h1>
+      <p class="lead up" style="--i:2; margin-top:clamp(16px,2.4vmin,28px)">坑在于:你没基础,AI 给的你判断不了对错;它还会顺着你。反过来做,才学得对。</p>
+      <div class="paths">
+        <div class="path bad up" style="--i:3">
+          <div class="phead"><span class="mark">✕</span>从零让 AI 教</div>
+          <div class="flow">
+            <span class="pstep">让 AI 直接给一份"学习路线"</span>
+            <span class="parr">↓</span>
+            <span class="pstep">你没基础,判断不了对错</span>
+            <span class="parr">↓</span>
+            <span class="pstep">它还顺着你 → 越学越歪</span>
+          </div>
+        </div>
+        <div class="path good up" style="--i:4">
+          <div class="phead"><span class="mark">✓</span>先抓一手</div>
+          <div class="flow">
+            <span class="pstep">扒 JD / 让它荐几篇好博客</span>
+            <span class="parr">↓</span>
+            <span class="pstep">自己读原文,建立"唯一真相"</span>
+            <span class="parr">↓</span>
+            <span class="pstep">卡住了,再带具体问题问它</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · LET YOUR AGENT DO LEGWORK -->
+  <section class="slide" id="s16">
+    <div class="inner narrow center">
+      <div class="eyebrow up" style="--i:0">&gt; 让 agent 替你跑腿</div>
+      <h1 class="h-slide up" style="--i:1">体力活,交给 agent</h1>
+      <p class="lead up" style="--i:2; margin-top:clamp(16px,2.4vmin,28px)">与其每天刷信息,不如让自己的 agent 当过滤器 —— 你只接收筛过的那部分。</p>
+      <div class="pipe up" style="--i:3">
+        <div class="pipe-box">
+          <div class="pipe-h">每天的信息洪流</div>
+          <div class="pipe-item">RSS · 论文 · 推 · 公众号</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box hot">
+          <div class="pipe-h">你的 Agent 替你跑腿</div>
+          <div class="pipe-item">自动抓取 · 过滤噪音 · 看代码库</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">
+          <div class="pipe-h">到你手上的</div>
+          <div class="pipe-item">少量 · 干净 · 值得读</div>
+        </div>
+      </div>
+      <div class="foot-line up" style="--i:4">小技巧:判断一篇论文值不值得追,<b>先看它有没有开源代码库</b> —— 简单粗暴,但很好用。</div>
+    </div>
+  </section>
+
+  <!-- 17 · OPENCLAW RADIAL HUB -->
+  <section class="slide" id="s17">
+    <div class="inner narrow center">
+      <div class="eyebrow up" style="--i:0">&gt; 真正实用的那种</div>
+      <h1 class="h-slide up" style="--i:1">一个常驻 Agent,<span class="cy">把你所有 App 变成遥控器</span></h1>
+      <div class="hub up" style="--i:2">
+        <svg viewBox="0 0 620 400" role="img" aria-label="OpenClaw 轮辐式架构:中心是常驻网关,周围是各种 App 入口">
+          <ellipse class="orbit" cx="310" cy="200" rx="240" ry="150"/>
+          <line class="spoke" x1="310" y1="200" x2="430" y2="70"/>
+          <line class="spoke" x1="310" y1="200" x2="550" y2="200"/>
+          <line class="spoke" x1="310" y1="200" x2="430" y2="330"/>
+          <line class="spoke" x1="310" y1="200" x2="190" y2="330"/>
+          <line class="spoke" x1="310" y1="200" x2="70" y2="200"/>
+          <line class="spoke" x1="310" y1="200" x2="190" y2="70"/>
+          <g><rect class="chan" x="382" y="53" width="96" height="34" rx="9"/><text class="chan-t" x="430" y="75" text-anchor="middle">Telegram</text></g>
+          <g><rect class="chan" x="502" y="183" width="96" height="34" rx="9"/><text class="chan-t" x="550" y="205" text-anchor="middle">Slack</text></g>
+          <g><rect class="chan" x="382" y="313" width="96" height="34" rx="9"/><text class="chan-t" x="430" y="335" text-anchor="middle">Discord</text></g>
+          <g><rect class="chan" x="142" y="313" width="96" height="34" rx="9"/><text class="chan-t" x="190" y="335" text-anchor="middle">iMessage</text></g>
+          <g><rect class="chan" x="22" y="183" width="96" height="34" rx="9"/><text class="chan-t" x="70" y="205" text-anchor="middle">Signal</text></g>
+          <g><rect class="chan" x="142" y="53" width="96" height="34" rx="9"/><text class="chan-t" x="190" y="75" text-anchor="middle">WhatsApp</text></g>
+          <rect class="hubbox" x="214" y="152" width="192" height="96" rx="18"/>
+          <text class="hub-t1" x="310" y="187" text-anchor="middle">个人 Agent</text>
+          <text class="hub-t2" x="310" y="208" text-anchor="middle">Gateway · 常驻本地</text>
+          <text class="hub-cap" x="310" y="231" text-anchor="middle">记忆 · 技能 · 心跳</text>
+        </svg>
+      </div>
+      <p class="lead up" style="--i:3; margin-top:clamp(14px,2.2vmin,24px)">这就是 OpenClaw 的架构:一个跑在你机器上的常驻"网关",把你已经在用的 App 变成指挥它的入口;它有<b>持久记忆</b>、上百个<b>技能</b>,还带"<b>心跳</b>"会自己定时醒来帮你跟进邮件和日程。</p>
+    </div>
+  </section>
+
+  <!-- 18 · DIVIDER 04 -->
+  <section class="slide" id="s18">
+    <div class="inner">
+      <div class="sec-prompt up" style="--i:0">~/talk $ open <b>04</b></div>
+      <div class="sec-wrap">
+        <div class="sec-num up" style="--i:1">04</div>
+        <div class="sec-meta">
+          <h1 class="h-sec up" style="--i:2">主动性才是护城河</h1>
+          <div class="sec-sub up" style="--i:3">知识被打成白菜,人的价值在别处。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 · CONTENT VS CONTEXT -->
+  <section class="slide" id="s19">
+    <div class="inner narrow">
+      <div class="eyebrow up" style="--i:0">&gt; 知识不值钱了</div>
+      <h1 class="h-slide up" style="--i:1">知识是白菜,<span class="cy">判断和品味</span>才是护城河</h1>
+      <div class="cc">
+        <div class="ccrow dim up" style="--i:2"><div class="tag">CONTENT</div><div class="desc">fact-based 的知识 · AI 能批量生产 · 越来越像白菜</div></div>
+        <div class="ccrow hot up" style="--i:3"><div class="tag">CONTEXT</div><div class="desc">你的判断 · 你的品味 · 你走过的路 —— AI 替不掉的那部分</div></div>
+      </div>
+      <p class="lead up" style="--i:4; margin-top:clamp(18px,2.6vmin,30px)">腾讯报告说得直接:AI 替代的是"你被雇佣的理由";Dan Koe 说得更狠 —— 我们要做的是 <b>context creator,不是 content creator。</b></p>
+      <div class="sources up" style="--i:5"><span class="src-tag">延伸</span><a class="chip" href="https://letters.thedankoe.com/p/the-most-important-skill-to-learn" target="_blank" rel="noopener">Dan Koe</a><a class="chip" href="https://news.qq.com/rain/a/20260603A07TIY00" target="_blank" rel="noopener">腾讯研究院</a></div>
+    </div>
+  </section>
+
+  <!-- 20 · AGENCY / SUPER-INDIVIDUAL -->
+  <section class="slide" id="s20">
+    <div class="inner">
+      <div class="eyebrow up" style="--i:0">&gt; 这时代最稀缺的</div>
+      <h1 class="h-slide up" style="--i:1">赢的人,不一定最懂技术<br>但一定<span class="cy">最主动</span></h1>
+      <div class="tetra">
+        <div class="tcard up" style="--i:2"><div class="tt">AI First</div><div class="dd">AI 是工作的默认起点</div></div>
+        <div class="tcard up" style="--i:3"><div class="tt">能力跃迁</div><div class="dd">量级提升 + 跨域闭环</div></div>
+        <div class="tcard hot up" style="--i:4"><div class="tt">主动探索 ←</div><div class="dd">主动找 AI 的能力极限</div></div>
+        <div class="tcard up" style="--i:5"><div class="tt">影响力溢出</div><div class="dd">让团队一起变快</div></div>
+      </div>
+      <div class="foot-line up" style="--i:6">腾讯把"超级个体"拆成这四点 —— 我实习的特赞,创始人范凌就说:<b>用 AI 最好的不是研发,是 PM 和设计师。</b></div>
+      <div class="sources up" style="--i:7"><span class="src-tag">来源</span><a class="chip" href="https://news.qq.com/rain/a/20260603A07TIY00" target="_blank" rel="noopener">腾讯研究院《超级个体时代》</a></div>
+    </div>
+  </section>
+
+  <!-- 21 · FORCE OUTPUT (publish loop) -->
+  <section class="slide" id="s21">
+    <div class="inner narrow center">
+      <div class="eyebrow up" style="--i:0">&gt; 强制输出</div>
+      <h1 class="h-slide up" style="--i:1">把学习痕迹公开,<span class="cy">变成一个循环</span></h1>
+      <p class="lead up" style="--i:2; margin-top:clamp(16px,2.4vmin,26px)">别只输出知识,输出你的判断、踩坑、路径(也就是 <b>context</b>)。关键是它是个 loop —— 公开之后,要么收到反馈、要么直接开始下一个,又回到起点:</p>
+      <div class="loop up" style="--i:3">
+        <svg viewBox="0 0 480 340" role="img" aria-label="公开学习痕迹的循环:做个小东西 → 碰真实问题 → 沉淀成文 → 公开出来 → 再做下一个">
+          <defs>
+            <marker id="ah" markerWidth="10" markerHeight="10" refX="6.5" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3 L0,6 Z" fill="#517E94"/></marker>
+            <marker id="ahc" markerWidth="10" markerHeight="10" refX="6.5" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3 L0,6 Z" fill="#B4EBFD"/></marker>
+          </defs>
+          <circle class="guide" cx="240" cy="165" r="125"/>
+          <path class="arc" d="M278.6,46.1 A125,125 0 0 1 357.5,122.2" marker-end="url(#ah)"/>
+          <path class="arc" d="M357.5,207.8 A125,125 0 0 1 282.8,282.5" marker-end="url(#ah)"/>
+          <path class="arc" d="M197.2,282.5 A125,125 0 0 1 122.5,207.8" marker-end="url(#ah)"/>
+          <path class="arc back" d="M122.5,122.2 A125,125 0 0 1 197.2,47.5" marker-end="url(#ahc)"/>
+          <text class="ctr" x="240" y="170" text-anchor="middle">↻ 越转越快</text>
+          <text class="blab" x="128" y="96" text-anchor="middle">再做下一个</text>
+          <g><rect class="lnode" x="178" y="19" width="124" height="42" rx="21"/><text class="lt" x="240" y="45" text-anchor="middle">做个小东西</text></g>
+          <g><rect class="lnode" x="303" y="144" width="124" height="42" rx="21"/><text class="lt" x="365" y="170" text-anchor="middle">碰真实问题</text></g>
+          <g><rect class="lnode" x="178" y="269" width="124" height="42" rx="21"/><text class="lt" x="240" y="295" text-anchor="middle">沉淀成文</text></g>
+          <g><rect class="lnode hot" x="53" y="144" width="124" height="42" rx="21"/><text class="lt hot" x="115" y="170" text-anchor="middle">公开出来</text></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 22 · OVERTAKE (start line) -->
+  <section class="slide" id="s22">
+    <div class="inner narrow">
+      <div class="eyebrow up" style="--i:0">&gt; 为什么这是好事</div>
+      <h1 class="h-slide up" style="--i:1">迭代越快,<span class="cy">起跑线越平</span></h1>
+      <p class="lead up" style="--i:2; margin-top:clamp(18px,2.6vmin,28px)">没人有"10 年 Loop Engineering 经验"。最资深的人和你,这周读的是同一条推。</p>
+      <div class="startline up" style="--i:3">
+        <div class="sl-label">新赛道 · <b>Loop Engineering(这周才有)</b></div>
+        <div class="sl-track">
+          <div class="sl-runner r1"><span class="dot"></span>资深工程师 · 10 年经验</div>
+          <div class="sl-runner r2"><span class="dot hot"></span>你 · 应届 / 在读</div>
+        </div>
+      </div>
+      <div class="close-big up" style="--i:4">资历会过期,<span class="cy">好奇会复利</span> —— 弯道超车,就这么来的。</div>
+      <div class="sources up" style="--i:5"><span class="src-tag">来源</span><a class="chip" href="https://news.qq.com/rain/a/20260603A07TIY00" target="_blank" rel="noopener">腾讯研究院</a></div>
+    </div>
+  </section>
+
+  <!-- 23 · VERCEL / EVAL = ENTRY POINT (code card) -->
+  <section class="slide" id="s23">
+    <div class="inner">
+      <div>
+        <div class="eyebrow up" style="--i:0">&gt; 弯道超车,具体怎么切</div>
+        <h1 class="h-slide up" style="--i:1">太新了,所以"测评"<br>几乎是<span class="cy">空白</span></h1>
+        <p class="lead up" style="--i:2; margin-top:clamp(18px,2.6vmin,30px)">Vercel 这周(6/12)的 AI SDK,让你像换模型一样换 harness —— Claude Code / Codex / Pi,一个 API,各跑各的沙箱。<b>harness 已经被官方做成了标准化的工程层。</b></p>
+        <p class="lead up" style="--i:3; margin-top:1em">但正因为太新,几乎没人系统测评过。现在就开始做测评 —— 哪怕只是给自己的项目建一套 —— 就是最实在的切入点。</p>
+        <div class="sources up" style="--i:4"><span class="src-tag">来源</span><a class="chip" href="https://vercel.com/changelog/program-agent-harnesses-with-ai-sdk" target="_blank" rel="noopener">Vercel Changelog</a></div>
+      </div>
+      <div class="codecard up" style="--i:3">
+        <div class="cbar"><i style="background:var(--faint)"></i><i style="background:var(--teal)"></i><i style="background:var(--cyan)"></i><span class="ttl">vercel · ai@canary</span></div>
+<pre><span class="k">const</span> agent = <span class="k">new</span> HarnessAgent({
+  harness: <span class="s">claudeCode</span>,   <span class="c">// 也可换 codex / pi</span>
+  sandbox: createVercelSandbox(),
+});</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 24 · CLOSING -->
+  <section class="slide" id="s24">
+    <div class="inner narrow">
+      <div class="eyebrow up" style="--i:0">&gt; 最后</div>
+      <h1 class="h-slide up" style="--i:1">把焦虑,换成两个动作</h1>
+      <div class="acts up" style="--i:2">
+        <div class="actcard">
+          <div class="act-n">01</div>
+          <div class="act-t">造一个真东西</div>
+          <div class="act-d">哪怕只是个很小的 agent,先让它碰到真实问题</div>
+        </div>
+        <div class="actcard hot">
+          <div class="act-n">02</div>
+          <div class="act-t">公开你的学习痕迹</div>
+          <div class="act-d">blog · 小红书 · GitHub —— 输出 context,不只是 content</div>
+        </div>
+      </div>
+      <div class="close-big up" style="--i:4">名词一直在变 —— 你只需要一个,<br>能一直跑下去的<span class="cy">系统</span>。<span class="cursor"></span></div>
+      <div class="close-foot up" style="--i:5">谢谢 · Q&amp;A &nbsp;|&nbsp; <span>Joye</span> · joyehuang.me</div>
+    </div>
+  </section>
+
+</div>
+
+<div id="chrome">
+  <span class="counter"><b id="cur">01</b> / <span id="total">24</span></span>
+  <button class="navbtn" id="prev" aria-label="上一页">&#8592;</button>
+  <button class="navbtn" id="next" aria-label="下一页">&#8594;</button>
+  <button class="navbtn" id="fs" aria-label="全屏" title="全屏 (F)">⛶</button>
+</div>
+<div id="hint">← → 翻页 &nbsp;·&nbsp; F / ⛶ 全屏</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+  const cur = document.getElementById('cur');
+  const prog = document.getElementById('progress');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const fsBtn = document.getElementById('fs');
+  const hint = document.getElementById('hint');
+  document.getElementById('total').textContent = String(total);
+  const pad = n => String(n).padStart(2,'0');
+
+  function show(n){
+    n = Math.max(0, Math.min(total-1, n));
+    slides[idx].classList.remove('active');
+    idx = n;
+    void slides[idx].offsetWidth;
+    slides[idx].classList.add('active');
+    cur.textContent = pad(idx+1);
+    prog.style.width = (idx/(total-1)*100) + '%';
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total-1;
+    slides[idx].scrollTop = 0;
+    clearChat();
+    if(slides[idx].id === 's11') animateChat(slides[idx]);
+  }
+
+  let chatTimers = [];
+  function clearChat(){ chatTimers.forEach(clearTimeout); chatTimers = []; }
+  function animateChat(slide){
+    const body = slide.querySelector('#chatBody'); if(!body) return;
+    const you = body.querySelector('.msg.you');
+    const think = body.querySelector('.msg.thinking');
+    const bot = body.querySelector('.msg.bot');
+    const botxt = body.querySelector('.botxt');
+    const cur2 = body.querySelector('.tcur');
+    const full = bot.getAttribute('data-text') || '';
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    you.classList.add('hidden'); think.classList.remove('show'); bot.classList.add('hidden');
+    botxt.textContent = ''; cur2.classList.remove('done');
+    if(reduce){ you.classList.remove('hidden'); bot.classList.remove('hidden'); botxt.textContent = full; cur2.classList.add('done'); return; }
+    chatTimers.push(setTimeout(()=> you.classList.remove('hidden'), 350));
+    chatTimers.push(setTimeout(()=> think.classList.add('show'), 1000));
+    chatTimers.push(setTimeout(()=>{
+      think.classList.remove('show');
+      bot.classList.remove('hidden');
+      let i = 0;
+      const type = ()=>{
+        botxt.textContent = full.slice(0, i);
+        if(i < full.length){ i++; chatTimers.push(setTimeout(type, 45)); }
+        else { cur2.classList.add('done'); }
+      };
+      type();
+    }, 2200));
+  }
+  const nextSlide = () => { if(idx < total-1) show(idx+1); };
+  const prevSlide = () => { if(idx > 0) show(idx-1); };
+  function toggleFs(){
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  nextBtn.addEventListener('click', nextSlide);
+  prevBtn.addEventListener('click', prevSlide);
+  fsBtn.addEventListener('click', toggleFs);
+  document.addEventListener('keydown', e => {
+    if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); nextSlide(); }
+    else if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prevSlide(); }
+    else if(e.key==='Home') show(0);
+    else if(e.key==='End') show(total-1);
+    else if(e.key==='f' || e.key==='F'){ toggleFs(); }
+  });
+  let tx=0, ty=0;
+  document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
+  document.addEventListener('touchend', e=>{
+    const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)){ dx<0 ? nextSlide() : prevSlide(); }
+  }, {passive:true});
+  setTimeout(()=>hint.classList.add('gone'), 4600);
+  show(0);
+</script>
+</body>
+</html>
