@@ -27,27 +27,12 @@ const takeawayHtml = (title: string, desc?: string) =>
 <main class='talks'>
   {/* ---------- hero ---------- */}
   <section class='tk-hero'>
-    <div class='tk-term'>
-      <div class='tk-term-bar'>
-        <i class='d1'></i><i class='d2'></i><i class='d3'></i>
-        <span class='tk-term-title'>joye@2026: ~/talks</span>
-      </div>
-      <div class='tk-term-body'>
-        <span class='tk-ln'><span class='pr'>joye@2026</span><span class='m'>:~$</span> 这是什么</span>
-        <span class='tk-ln tk-out'>我每周固定办一场线上交流会，聊技术、求职，</span>
-        <span class='tk-ln tk-out'>和这一年 AI 行业到底在发生什么。</span>
-
-        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~$</span> 怎么参加</span>
-        <span class='tk-ln tk-out'>欢迎来玩 —— 扫码进群，每周一起线上聊。</span>
-
-        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~$</span> 这一页是什么</span>
-        <span class='tk-ln tk-out'>每期交流会的记录：原话、聊的话题、要点和配图。</span>
-
-        <span class='tk-ln tk-sp'
-          ><span class='pr'>joye@2026</span><span class='m'>:~$</span> <span class='tk-cursor'></span></span
-        >
-      </div>
-    </div>
+    <p class='tk-kicker'>分享会 · Talks</p>
+    <h2 class='tk-intro-title'>每周一次的线上交流会</h2>
+    <p class='tk-intro-desc'>
+      我每周固定办一场线上交流会，聊技术、求职，和这一年 AI 行业到底在发生什么。
+      欢迎扫码进群，每周一起线上聊 —— 这一页记录每期聊到的内容。
+    </p>
 
     <div class='tk-hero-foot'>
       <div class='tk-stats'>
@@ -248,76 +233,27 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-hero {
     margin-bottom: 2.4rem;
   }
-  .tk-term {
-    border: 1px solid var(--tk-border);
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--tk-panel-2);
-    box-shadow: 0 24px 60px hsl(var(--background) / 0.5);
+  .tk-kicker {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--tk-accent);
+    margin: 0 0 0.5rem;
   }
-  .tk-term-bar {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 11px 15px;
-    border-bottom: 1px solid var(--tk-border);
-    background: hsl(var(--muted) / 0.4);
+  .tk-intro-title {
+    font-size: clamp(1.6rem, 4vw, 2.3rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--tk-text);
+    margin: 0 0 0.7rem;
   }
-  .tk-term-bar i {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    display: block;
-  }
-  .tk-term-bar .d1 {
-    background: #e0556b;
-  }
-  .tk-term-bar .d2 {
-    background: #e0a94b;
-  }
-  .tk-term-bar .d3 {
-    background: #5bc98a;
-  }
-  .tk-term-title {
-    margin-left: 9px;
-    font-family: var(--tk-mono);
-    font-size: 12.5px;
-    color: var(--tk-faint);
-  }
-  .tk-term-body {
-    padding: clamp(18px, 3.2vmin, 28px) clamp(18px, 3.4vmin, 30px);
-    font-family: var(--tk-mono);
-    font-size: clamp(12.5px, 1.6vmin, 14.5px);
-    line-height: 1.95;
-  }
-  .tk-ln {
-    display: block;
-  }
-  .tk-sp {
-    margin-top: 0.7em;
-  }
-  .tk-out {
+  .tk-intro-desc {
+    max-width: 42rem;
+    font-size: 1rem;
+    line-height: 1.7;
     color: var(--tk-dim);
-    padding-left: 1.2em;
-  }
-  .tk-cursor {
-    display: inline-block;
-    width: 0.5em;
-    height: 1.02em;
-    background: var(--tk-accent);
-    margin-left: 0.05em;
-    transform: translateY(0.18em);
-    animation: tk-blink 1.05s steps(2, start) infinite;
-  }
-  @keyframes tk-blink {
-    0%,
-    50% {
-      opacity: 1;
-    }
-    50.01%,
-    100% {
-      opacity: 0;
-    }
+    margin: 0;
   }
 
   /* ---------- hero foot: stats + join ---------- */
@@ -454,13 +390,22 @@ const takeawayHtml = (title: string, desc?: string) =>
     border-radius: 14px 14px 0 0;
     padding: 1.1rem 1.2rem 1rem;
     cursor: pointer;
-    transition: background 0.16s;
+    transition:
+      background 0.16s,
+      border-color 0.16s;
   }
   .tk-entry[data-open='false'] .tk-head {
     border-radius: 14px;
   }
   .tk-head:hover {
     background: hsl(var(--muted) / 0.45);
+    border-color: var(--tk-accent-dim);
+  }
+  .tk-head:hover .tk-title {
+    color: var(--tk-accent);
+  }
+  .tk-head:hover .tk-chevron {
+    color: var(--tk-accent);
   }
   .tk-head-main {
     flex: 1;
@@ -498,6 +443,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     line-height: 1.2;
     color: var(--tk-text);
     letter-spacing: -0.01em;
+    transition: color 0.16s;
   }
   .tk-subtitle {
     display: block;
@@ -525,7 +471,9 @@ const takeawayHtml = (title: string, desc?: string) =>
     flex-shrink: 0;
     margin-left: 0.8rem;
     color: var(--tk-faint);
-    transition: transform 0.28s ease;
+    transition:
+      transform 0.28s ease,
+      color 0.16s;
   }
   .tk-entry[data-open='true'] .tk-chevron {
     transform: rotate(180deg);
@@ -586,6 +534,13 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-quote {
     border-left: 2px solid var(--tk-accent-dim);
     padding: 0.1rem 0 0.1rem 0.9rem;
+    transition:
+      border-color 0.16s,
+      padding-left 0.16s;
+  }
+  .tk-quote:hover {
+    border-left-color: var(--tk-accent);
+    padding-left: 1.15rem;
   }
   .tk-quote-t {
     font-size: 1.02rem;
@@ -623,6 +578,15 @@ const takeawayHtml = (title: string, desc?: string) =>
     border: 1px solid var(--tk-border-soft);
     border-radius: 7px;
     padding: 4px 10px;
+    transition:
+      color 0.16s,
+      border-color 0.16s,
+      background 0.16s;
+  }
+  .tk-tag:hover {
+    color: var(--tk-accent);
+    border-color: var(--tk-accent-dim);
+    background: var(--tk-accent-soft);
   }
 
   /* takeaways */
@@ -672,11 +636,24 @@ const takeawayHtml = (title: string, desc?: string) =>
     border-radius: 12px;
     overflow: hidden;
     background: hsl(var(--muted) / 0.3);
+    transition:
+      border-color 0.18s,
+      box-shadow 0.18s,
+      transform 0.18s;
+  }
+  .tk-diagram:hover {
+    border-color: var(--tk-accent-dim);
+    box-shadow: 0 10px 30px hsl(var(--background) / 0.55);
+    transform: translateY(-2px);
   }
   .tk-diagram img {
     display: block;
     width: 100%;
     height: auto;
+    transition: transform 0.25s ease;
+  }
+  .tk-diagram:hover img {
+    transform: scale(1.025);
   }
   .tk-diagram figcaption {
     font-size: 12px;
@@ -708,6 +685,7 @@ const takeawayHtml = (title: string, desc?: string) =>
       box-shadow 0.15s;
   }
   .tk-cta:hover {
+    color: hsl(var(--primary-foreground));
     transform: translateY(-1px);
     box-shadow: 0 8px 22px var(--tk-accent-soft);
   }
