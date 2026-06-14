@@ -1,0 +1,896 @@
+---
+import {
+  collectTopics,
+  formatTalkDate,
+  talkHash,
+  talkVersion,
+  talkWeekday,
+  type TalkEntry
+} from '@/lib/talks'
+
+interface Props {
+  /** Published talks, newest first. */
+  talks: TalkEntry[]
+}
+
+const { talks } = Astro.props
+
+const topics = collectTopics(talks)
+const totalQuotes = talks.reduce((n, t) => n + t.data.quotes.length, 0)
+const sinceDate = talks.length ? talks[talks.length - 1].data.date : undefined
+const sinceLabel = sinceDate
+  ? `${sinceDate.getFullYear()}.${String(sinceDate.getMonth() + 1).padStart(2, '0')}`
+  : '—'
+const latestEpisode = talks.length ? Math.max(...talks.map((t) => t.data.episode)) : 0
+const nextVersion = talkVersion(latestEpisode + 1)
+---
+
+<main class='talks'>
+  {/* ---------- hero terminal ---------- */}
+  <section class='tk-hero'>
+    <div class='tk-term'>
+      <div class='tk-term-bar'>
+        <i class='d1'></i><i class='d2'></i><i class='d3'></i>
+        <span class='tk-term-title'>joye@2026: ~/talks</span>
+      </div>
+      <div class='tk-term-body'>
+        <span class='tk-ln'><span class='pr'>joye@2026</span><span class='m'>:~$</span> ls talks/</span>
+        <span class='tk-ln'><span class='m'>drwxr-xr-x</span> <span class='cy'>分享会/</span> <span class='m'
+            >·</span
+          > 群里每周一次的线上交流会 <span class='m'>·</span> 公开沉淀</span>
+        <span class='tk-ln'><span class='pr'>joye@2026</span><span class='m'>:~$</span> cat README.md</span>
+        <span class='tk-ln tk-readme'>聊技术、求职和 AI 行业。轮流分享，公开沉淀。</span>
+        <span class='tk-ln tk-readme'>每周一期，倒序排列 —— 这是一个人每周思考的 <span class='cy'>git log</span>。</span>
+        <span class='tk-ln'
+          ><span class='pr'>joye@2026</span><span class='m'>:~$</span> git log --oneline --series<span
+            class='tk-cursor'></span
+          ></span
+        >
+      </div>
+    </div>
+
+    {/* ---------- stats strip ---------- */}
+    <div class='tk-stats'>
+      <span><b>{String(talks.length).padStart(2, '0')}</b> 期已沉淀</span>
+      <span><b>每周</b> 一次</span>
+      <span>自 <b>{sinceLabel}</b></span>
+      <span>累计 <b>{totalQuotes}</b> 句金句</span>
+    </div>
+  </section>
+
+  {/* ---------- filter bar ---------- */}
+  <div class='tk-filterbar'>
+    <span class='tk-filter-label'>筛选</span>
+    <div class='tk-chips' role='group' aria-label='按主题筛选'>
+      <button type='button' class='tk-chip is-active' data-topic='__all__' aria-pressed='true'
+        >全部 <span class='tk-chip-n'>{talks.length}</span></button
+      >
+      {
+        topics.map((t) => {
+          const n = talks.filter((talk) => talk.data.topics.includes(t)).length
+          return (
+            <button type='button' class='tk-chip' data-topic={t} aria-pressed='false'>
+              {t} <span class='tk-chip-n'>{n}</span>
+            </button>
+          )
+        })
+      }
+    </div>
+    <span class='tk-count' data-talks-count>显示 <b>{talks.length}</b> / {talks.length} 期</span>
+  </div>
+
+  {/* ---------- changelog feed ---------- */}
+  <div class='tk-feed-head'>
+    <span>CHANGELOG · ~/TALKS</span>
+    <span class='tk-line'></span>
+    <em>REVERSE-CHRONOLOGICAL</em>
+  </div>
+
+  <div class='tk-feed' data-talks-feed>
+    {
+      talks.map((talk, i) => {
+        const d = talk.data
+        const ver = talkVersion(d.episode)
+        const dateStr = formatTalkDate(d.date)
+        const weekday = talkWeekday(d.date)
+        const hash = talkHash(talk.id)
+        const open = i === 0
+        return (
+          <article
+            class='tk-entry'
+            data-talks-entry
+            data-topics={JSON.stringify(d.topics)}
+            data-open={open ? 'true' : 'false'}
+          >
+            <div class='tk-rail' aria-hidden='true'>
+              <span class='tk-ver'>{ver}</span>
+              <span class='tk-rail-date'>
+                {d.date.getFullYear()}
+                <br />.{dateStr.slice(5)}
+              </span>
+            </div>
+
+            <button type='button' class='tk-head' aria-expanded={open ? 'true' : 'false'}>
+              <span class='tk-node' aria-hidden='true' />
+              <span class='tk-head-main'>
+                {open && (
+                  <span class='tk-badge'>
+                    <span class='tk-badge-dot' /> LATEST RELEASE
+                  </span>
+                )}
+                <span class='tk-commit'>
+                  commit {hash} · {ver} · {dateStr}（{weekday}）· author: joye
+                </span>
+                <span class='tk-title'>{d.title}</span>
+                {d.subtitle && <span class='tk-subtitle'>{d.subtitle}</span>}
+                <span class='tk-meta'>
+                  {d.durationMinutes && <span>◷ {d.durationMinutes} 分钟</span>}
+                  {d.attendees && <span>◇ {d.attendees}</span>}
+                  {d.slideCount && <span>▤ {d.slideCount} 页幻灯片</span>}
+                </span>
+              </span>
+              <span class='tk-chevron' aria-hidden='true'>
+                <svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor'>
+                  <path d='M6 9l6 6 6-6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' />
+                </svg>
+              </span>
+            </button>
+
+            <div class='tk-body'>
+              <div class='tk-body-inner'>
+                {d.quotes.length > 0 && (
+                  <section class='tk-sec'>
+                    <h3 class='tk-sec-h'>
+                      ## 金句 <span>/ GOLDEN QUOTES — {d.quotes.length}</span>
+                    </h3>
+                    <ul class='tk-quotes'>
+                      {d.quotes.map((q) => (
+                        <li class='tk-quote'>
+                          <p class='tk-quote-t'>
+                            <span class='tk-quote-pr'>&gt;</span> {q.text}
+                          </p>
+                          {q.gloss && <p class='tk-quote-g'>{q.gloss}</p>}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {d.topics.length > 0 && (
+                  <section class='tk-sec'>
+                    <h3 class='tk-sec-h'>
+                      ## 主题 <span>/ TOPICS — {d.topics.length}</span>
+                    </h3>
+                    <div class='tk-tags'>
+                      {d.topics.map((t) => (
+                        <span class='tk-tag'>#{t}</span>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {d.takeaways.length > 0 && (
+                  <section class='tk-sec'>
+                    <h3 class='tk-sec-h'>
+                      ## 要点 <span>/ TAKEAWAYS — {d.takeaways.length}</span>
+                    </h3>
+                    <ul class='tk-takeaways'>
+                      {d.takeaways.map((tk) => (
+                        <li class='tk-takeaway'>
+                          <span class='tk-check' aria-hidden='true'>
+                            [✓]
+                          </span>
+                          <span>
+                            <b>{tk.title}</b>
+                            {tk.desc && <>：{tk.desc}</>}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {d.diagrams.length > 0 && (
+                  <section class='tk-sec'>
+                    <h3 class='tk-sec-h'>
+                      ## 图解 <span>/ DIAGRAMS — {d.diagrams.length}</span>
+                    </h3>
+                    <div class='tk-diagrams'>
+                      {d.diagrams.map((dg) => (
+                        <figure class='tk-diagram'>
+                          <img src={dg.src} alt={dg.caption ?? d.title} loading='lazy' />
+                          {dg.caption && <figcaption>{dg.caption}</figcaption>}
+                        </figure>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                <div class='tk-cta-row'>
+                  {d.deckUrl && (
+                    <a class='tk-cta' href={d.deckUrl} target='_blank' rel='noopener'>
+                      $ open ./deck →
+                    </a>
+                  )}
+                  {d.slideCount && <span class='tk-cta-note'>{d.slideCount} 页 · 暗色终端风幻灯片 · 方向键翻页</span>}
+                </div>
+
+                <p class='tk-brand'>分享人 Joye · joyehuang.me · AI Agent &amp; Full-Stack Dev</p>
+              </div>
+            </div>
+          </article>
+        )
+      })
+    }
+
+    {/* upcoming teaser — conveys the weekly cadence */}
+    <article class='tk-entry tk-upcoming' data-talks-upcoming>
+      <div class='tk-rail' aria-hidden='true'>
+        <span class='tk-ver'>{nextVersion}</span>
+        <span class='tk-rail-date'>待定</span>
+      </div>
+      <div class='tk-upcoming-row'>
+        <span class='tk-node tk-node-ghost' aria-hidden='true'></span>
+        <span class='tk-upcoming-tag'>待定 / WIP</span>
+        <span class='tk-upcoming-title'>第 {String(latestEpisode + 1).padStart(2, '0')} 期 · 主题征集中</span>
+        <span class='tk-upcoming-desc'>下周同一时间，轮到下一位群友分享 —— 想聊什么？群里见。</span>
+      </div>
+    </article>
+  </div>
+
+  <p class='tk-foot'>$ git log<span class='m'> 已到达系列起点</span> <span class='tk-cursor'></span></p>
+</main>
+
+<style>
+  .talks {
+    --tk-text: hsl(var(--foreground));
+    --tk-dim: hsl(var(--muted-foreground));
+    --tk-faint: hsl(var(--muted-foreground) / 0.6);
+    --tk-border: hsl(var(--border));
+    --tk-border-soft: hsl(var(--border) / 0.55);
+    --tk-panel: hsl(var(--muted) / 0.32);
+    --tk-panel-2: hsl(var(--muted) / 0.6);
+    --tk-accent: hsl(var(--primary));
+    --tk-accent-soft: hsl(var(--primary) / 0.12);
+    --tk-accent-dim: hsl(var(--primary) / 0.55);
+    --tk-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    display: block;
+    margin-top: 1.5rem;
+  }
+  .talks .m {
+    color: var(--tk-faint);
+  }
+  .talks .cy {
+    color: var(--tk-accent);
+  }
+  .talks .pr {
+    color: var(--tk-accent);
+    font-weight: 500;
+  }
+
+  /* ---------- hero terminal ---------- */
+  .tk-hero {
+    margin-bottom: 2.4rem;
+  }
+  .tk-term {
+    border: 1px solid var(--tk-border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--tk-panel-2);
+    box-shadow: 0 24px 60px hsl(var(--background) / 0.5);
+  }
+  .tk-term-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 15px;
+    border-bottom: 1px solid var(--tk-border);
+    background: hsl(var(--muted) / 0.4);
+  }
+  .tk-term-bar i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: block;
+  }
+  .tk-term-bar .d1 {
+    background: #e0556b;
+  }
+  .tk-term-bar .d2 {
+    background: #e0a94b;
+  }
+  .tk-term-bar .d3 {
+    background: #5bc98a;
+  }
+  .tk-term-title {
+    margin-left: 9px;
+    font-family: var(--tk-mono);
+    font-size: 12.5px;
+    color: var(--tk-faint);
+  }
+  .tk-term-body {
+    padding: clamp(18px, 3.2vmin, 28px) clamp(18px, 3.4vmin, 30px);
+    font-family: var(--tk-mono);
+    font-size: clamp(12.5px, 1.6vmin, 14.5px);
+    line-height: 2;
+  }
+  .tk-ln {
+    display: block;
+  }
+  .tk-readme {
+    color: var(--tk-dim);
+    padding-left: 1.1em;
+  }
+  .tk-cursor {
+    display: inline-block;
+    width: 0.5em;
+    height: 1.02em;
+    background: var(--tk-accent);
+    margin-left: 0.18em;
+    transform: translateY(0.18em);
+    animation: tk-blink 1.05s steps(2, start) infinite;
+  }
+  @keyframes tk-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    50.01%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* ---------- stats strip ---------- */
+  .tk-stats {
+    margin-top: 1.1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2.2rem;
+    font-family: var(--tk-mono);
+    font-size: 12.5px;
+    color: var(--tk-faint);
+  }
+  .tk-stats b {
+    color: var(--tk-accent);
+    font-weight: 600;
+  }
+
+  /* ---------- filter bar ---------- */
+  .tk-filterbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.9rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--tk-border-soft);
+    border-bottom: 1px solid var(--tk-border-soft);
+  }
+  .tk-filter-label {
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-faint);
+    letter-spacing: 0.04em;
+  }
+  .tk-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    flex: 1;
+  }
+  .tk-chip {
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-dim);
+    background: transparent;
+    border: 1px solid var(--tk-border);
+    border-radius: 999px;
+    padding: 5px 11px;
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      background 0.15s,
+      border-color 0.15s;
+    white-space: nowrap;
+  }
+  .tk-chip:hover {
+    color: var(--tk-text);
+    background: hsl(var(--muted) / 0.5);
+  }
+  .tk-chip.is-active {
+    color: var(--tk-accent);
+    background: var(--tk-accent-soft);
+    border-color: var(--tk-accent-dim);
+  }
+  .tk-chip-n {
+    opacity: 0.55;
+    font-size: 11px;
+  }
+  .tk-count {
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-faint);
+    margin-left: auto;
+  }
+  .tk-count b {
+    color: var(--tk-text);
+  }
+
+  /* ---------- feed head ---------- */
+  .tk-feed-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 2.2rem 0 1.4rem;
+    font-family: var(--tk-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.07em;
+    color: var(--tk-faint);
+  }
+  .tk-feed-head .tk-line {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(
+      to right,
+      var(--tk-border) 0 6px,
+      transparent 6px 11px
+    );
+  }
+  .tk-feed-head em {
+    font-style: normal;
+    color: var(--tk-accent-dim);
+  }
+
+  /* ---------- feed / timeline ---------- */
+  .tk-feed {
+    position: relative;
+    padding-left: clamp(58px, 8vw, 104px);
+  }
+  .tk-feed::before {
+    content: '';
+    position: absolute;
+    left: clamp(18px, 3vw, 34px);
+    top: 6px;
+    bottom: 14px;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      var(--tk-accent-dim),
+      var(--tk-border) 55%,
+      transparent
+    );
+    opacity: 0.6;
+  }
+  .tk-entry {
+    position: relative;
+    margin-bottom: 1.6rem;
+  }
+  .tk-rail {
+    position: absolute;
+    left: calc(-1 * clamp(58px, 8vw, 104px));
+    top: 4px;
+    width: clamp(58px, 8vw, 104px);
+    padding-right: 16px;
+    text-align: right;
+    font-family: var(--tk-mono);
+    user-select: none;
+  }
+  .tk-ver {
+    display: block;
+    color: var(--tk-accent);
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .tk-rail-date {
+    display: block;
+    color: var(--tk-faint);
+    font-size: 10.5px;
+    margin-top: 3px;
+    line-height: 1.35;
+  }
+  .tk-node {
+    position: absolute;
+    left: calc(-1 * clamp(58px, 8vw, 104px) + clamp(18px, 3vw, 34px) - 4px);
+    top: 7px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--tk-accent);
+    box-shadow: 0 0 0 4px hsl(var(--background)), 0 0 12px var(--tk-accent-dim);
+  }
+  /* node sits relative to the head button; align using the button as anchor */
+  .tk-head {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    text-align: left;
+    background: var(--tk-panel);
+    border: 1px solid var(--tk-border);
+    border-radius: 14px 14px 0 0;
+    padding: 1.1rem 1.2rem 1rem;
+    cursor: pointer;
+    transition: background 0.16s;
+  }
+  .tk-entry[data-open='false'] .tk-head {
+    border-radius: 14px;
+  }
+  .tk-head:hover {
+    background: hsl(var(--muted) / 0.45);
+  }
+  .tk-head .tk-node {
+    left: calc(-1 * (clamp(58px, 8vw, 104px) - clamp(18px, 3vw, 34px)) - 5px);
+  }
+  .tk-head-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .tk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--tk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--tk-accent);
+    background: var(--tk-accent-soft);
+    border: 1px solid var(--tk-accent-dim);
+    border-radius: 999px;
+    padding: 3px 9px;
+    margin-bottom: 0.7rem;
+  }
+  .tk-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tk-accent);
+    box-shadow: 0 0 8px var(--tk-accent);
+  }
+  .tk-commit {
+    display: block;
+    font-family: var(--tk-mono);
+    font-size: 11.5px;
+    color: var(--tk-faint);
+    margin-bottom: 0.5rem;
+    word-break: break-word;
+  }
+  .tk-title {
+    display: block;
+    font-size: clamp(1.4rem, 3.2vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--tk-text);
+    letter-spacing: -0.01em;
+  }
+  .tk-subtitle {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.98rem;
+    color: var(--tk-dim);
+  }
+  .tk-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin-top: 0.8rem;
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-faint);
+  }
+  .tk-chevron {
+    flex-shrink: 0;
+    margin-left: 0.8rem;
+    color: var(--tk-faint);
+    transition: transform 0.28s ease;
+  }
+  .tk-entry[data-open='true'] .tk-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* accordion body — animated via grid-template-rows */
+  .tk-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.34s ease;
+    border: 1px solid var(--tk-border);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+  }
+  .tk-entry[data-open='false'] .tk-body {
+    border-color: transparent;
+  }
+  .tk-entry[data-open='true'] .tk-body {
+    grid-template-rows: 1fr;
+  }
+  .tk-body-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+  .tk-entry[data-open='true'] .tk-body-inner {
+    padding: 0.4rem 1.2rem 1.4rem;
+  }
+
+  .tk-sec {
+    margin-top: 1.5rem;
+  }
+  .tk-sec-h {
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-dim);
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.02em;
+  }
+  .tk-sec-h span {
+    color: var(--tk-faint);
+  }
+
+  /* quotes */
+  .tk-quotes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .tk-quote {
+    border-left: 2px solid var(--tk-accent-dim);
+    padding: 0.1rem 0 0.1rem 0.9rem;
+  }
+  .tk-quote-t {
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--tk-text);
+    margin: 0;
+  }
+  .tk-quote-pr {
+    color: var(--tk-accent);
+    font-family: var(--tk-mono);
+    margin-right: 0.3rem;
+  }
+  .tk-quote-g {
+    margin: 0.35rem 0 0;
+    font-size: 0.86rem;
+    color: var(--tk-faint);
+  }
+
+  /* tags */
+  .tk-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .tk-tag {
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-dim);
+    background: hsl(var(--muted) / 0.45);
+    border: 1px solid var(--tk-border-soft);
+    border-radius: 7px;
+    padding: 4px 9px;
+  }
+
+  /* takeaways */
+  .tk-takeaways {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .tk-takeaway {
+    display: flex;
+    gap: 0.6rem;
+    font-size: 0.94rem;
+    line-height: 1.6;
+    color: var(--tk-dim);
+  }
+  .tk-takeaway b {
+    color: var(--tk-text);
+    font-weight: 600;
+  }
+  .tk-check {
+    flex-shrink: 0;
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-accent);
+    margin-top: 0.15rem;
+  }
+
+  /* diagrams */
+  .tk-diagrams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.9rem;
+  }
+  .tk-diagram {
+    margin: 0;
+    border: 1px solid var(--tk-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: hsl(var(--muted) / 0.3);
+  }
+  .tk-diagram img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .tk-diagram figcaption {
+    font-family: var(--tk-mono);
+    font-size: 11px;
+    color: var(--tk-faint);
+    padding: 0.6rem 0.8rem;
+    border-top: 1px solid var(--tk-border-soft);
+  }
+
+  /* cta */
+  .tk-cta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem 1rem;
+    margin-top: 1.6rem;
+  }
+  .tk-cta {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--tk-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: hsl(var(--primary-foreground));
+    background: var(--tk-accent);
+    border-radius: 9px;
+    padding: 9px 16px;
+    text-decoration: none;
+    transition:
+      transform 0.15s,
+      box-shadow 0.15s;
+  }
+  .tk-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px var(--tk-accent-soft);
+  }
+  .tk-cta-note {
+    font-family: var(--tk-mono);
+    font-size: 11.5px;
+    color: var(--tk-faint);
+  }
+  .tk-brand {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--tk-border-soft);
+    font-family: var(--tk-mono);
+    font-size: 11.5px;
+    color: var(--tk-faint);
+  }
+
+  /* upcoming */
+  .tk-upcoming {
+    margin-top: 0.4rem;
+  }
+  .tk-upcoming-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.9rem;
+    padding: 0.9rem 1.2rem;
+    border: 1px dashed var(--tk-border);
+    border-radius: 12px;
+    background: hsl(var(--muted) / 0.18);
+  }
+  .tk-node-ghost {
+    position: absolute;
+    left: calc(-1 * (clamp(58px, 8vw, 104px) - clamp(18px, 3vw, 34px)) - 5px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--tk-faint);
+    box-shadow: 0 0 0 4px hsl(var(--background));
+  }
+  .tk-upcoming-tag {
+    font-family: var(--tk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--tk-faint);
+    border: 1px solid var(--tk-border);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  .tk-upcoming-title {
+    font-weight: 600;
+    color: var(--tk-dim);
+  }
+  .tk-upcoming-desc {
+    font-size: 0.86rem;
+    color: var(--tk-faint);
+  }
+
+  .tk-entry[hidden] {
+    display: none;
+  }
+
+  /* foot */
+  .tk-foot {
+    margin-top: 1.4rem;
+    padding-left: clamp(58px, 8vw, 104px);
+    font-family: var(--tk-mono);
+    font-size: 12px;
+    color: var(--tk-faint);
+  }
+
+  @media (max-width: 640px) {
+    .tk-feed {
+      padding-left: 0;
+    }
+    .tk-feed::before,
+    .tk-rail,
+    .tk-node,
+    .tk-node-ghost {
+      display: none;
+    }
+    .tk-foot {
+      padding-left: 0;
+    }
+    .tk-count {
+      margin-left: 0;
+    }
+  }
+</style>
+
+<script>
+  function initTalks() {
+    const root = document.querySelector<HTMLElement>('.talks')
+    if (!root || root.dataset.tkInit === '1') return
+    root.dataset.tkInit = '1'
+
+    // ----- accordion -----
+    root.querySelectorAll<HTMLButtonElement>('.tk-head').forEach((head) => {
+      head.addEventListener('click', () => {
+        const entry = head.closest<HTMLElement>('.tk-entry')
+        if (!entry) return
+        const open = entry.dataset.open === 'true'
+        entry.dataset.open = open ? 'false' : 'true'
+        head.setAttribute('aria-expanded', open ? 'false' : 'true')
+      })
+    })
+
+    // ----- tag filter -----
+    const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('.tk-chip'))
+    const entries = Array.from(root.querySelectorAll<HTMLElement>('[data-talks-entry]'))
+    const upcoming = root.querySelector<HTMLElement>('[data-talks-upcoming]')
+    const countEl = root.querySelector<HTMLElement>('[data-talks-count]')
+    const total = entries.length
+
+    function apply(topic: string) {
+      let visible = 0
+      entries.forEach((entry) => {
+        let topics: string[] = []
+        try {
+          topics = JSON.parse(entry.dataset.topics || '[]')
+        } catch {
+          topics = []
+        }
+        const show = topic === '__all__' || topics.includes(topic)
+        entry.hidden = !show
+        if (show) visible++
+      })
+      if (upcoming) upcoming.hidden = topic !== '__all__'
+      if (countEl) countEl.innerHTML = `显示 <b>${visible}</b> / ${total} 期`
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((c) => {
+          c.classList.toggle('is-active', c === chip)
+          c.setAttribute('aria-pressed', c === chip ? 'true' : 'false')
+        })
+        apply(chip.dataset.topic || '__all__')
+      })
+    })
+  }
+
+  initTalks()
+  document.addEventListener('astro:after-swap', initTalks)
+</script>

@@ -11,8 +11,10 @@ import config from '@/site-config'
 export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  // getBlogCollection()/sortMDByDate are typed as the union of all collections;
+  // at runtime this only holds `blog` entries, so narrow to keep `.data.tags` typed.
   const allPosts = await getBlogCollection()
-  const allPostsByDate = sortMDByDate(allPosts)
+  const allPostsByDate = sortMDByDate(allPosts) as CollectionEntry<'blog'>[]
   const uniqueTags = getUniqueTags(allPostsByDate)
 
   return uniqueTags.flatMap((tag) => {
