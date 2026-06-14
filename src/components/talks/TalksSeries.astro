@@ -25,7 +25,7 @@ const takeawayHtml = (title: string, desc?: string) =>
 ---
 
 <main class='talks'>
-  {/* ---------- hero terminal ---------- */}
+  {/* ---------- hero ---------- */}
   <section class='tk-hero'>
     <div class='tk-term'>
       <div class='tk-term-bar'>
@@ -33,47 +33,35 @@ const takeawayHtml = (title: string, desc?: string) =>
         <span class='tk-term-title'>joye@2026: ~/talks</span>
       </div>
       <div class='tk-term-body'>
-        <span class='tk-ln'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> whoami</span>
-        <span class='tk-ln tk-out'>joye —— 边找实习边做 agent，把过程公开记录下来。</span>
+        <span class='tk-ln'><span class='pr'>joye@2026</span><span class='m'>:~$</span> 这是什么</span>
+        <span class='tk-ln tk-out'>我每周固定办一场线上交流会，聊技术、求职，</span>
+        <span class='tk-ln tk-out'>和这一年 AI 行业到底在发生什么。</span>
 
-        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> cat 关于这个系列.md</span>
-        <span class='tk-ln tk-out'>分享会 · 群里每周一次的线上交流会。</span>
-        <span class='tk-ln tk-out'>聊技术、求职，和这一年 AI 行业到底在发生什么。</span>
-        <span class='tk-ln tk-out'>轮流分享，公开沉淀 —— 把焦虑，换成两个动作。</span>
+        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~$</span> 怎么参加</span>
+        <span class='tk-ln tk-out'>欢迎来玩 —— 扫码进群，每周一起线上聊。</span>
 
-        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> 列出每一期</span>
-        {
-          talks.map((talk) => (
-            <span class='tk-ln tk-out tk-ls'>
-              <span class='cy'>{talkEpisodeLabel(talk.data.episode)}</span>
-              <span class='tk-ls-t'>{talk.data.title}</span>
-              <span class='m'>{formatTalkDateCN(talk.data.date)}</span>
-            </span>
-          ))
-        }
-        <span class='tk-ln tk-out tk-ls'>
-          <span class='m'>下一期</span>
-          <span class='tk-ls-t tk-ls-soon'>待定 · 主题征集中</span>
-          <span class='m'>敬请期待</span>
-        </span>
+        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~$</span> 这一页是什么</span>
+        <span class='tk-ln tk-out'>每期交流会的记录：原话、聊的话题、要点和配图。</span>
 
         <span class='tk-ln tk-sp'
-          ><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> <span class='tk-cursor'></span></span
+          ><span class='pr'>joye@2026</span><span class='m'>:~$</span> <span class='tk-cursor'></span></span
         >
       </div>
     </div>
 
-    {/* ---------- stats strip ---------- */}
-    <div class='tk-stats'>
-      <span>已分享 <b>{talks.length}</b> 期</span>
-      <span><b>每周</b> 一次</span>
-      <span>自 <b>{sinceLabel}</b></span>
+    <div class='tk-hero-foot'>
+      <div class='tk-stats'>
+        <span>已记录 <b>{talks.length}</b> 期</span>
+        <span><b>每周</b> 一次</span>
+        <span>自 <b>{sinceLabel}</b></span>
+      </div>
+      <a class='tk-join' href='/contact'>想来参加？扫码进群 →</a>
     </div>
   </section>
 
   {/* ---------- session feed ---------- */}
   <div class='tk-feed-head'>
-    <span>往期分享</span>
+    <span>会议记录</span>
     <span class='tk-line'></span>
     <em>最新在前</em>
   </div>
@@ -124,7 +112,7 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.quotes.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>记下来的话</span>
+                      <span class='tk-sec-zh'>现场原话</span>
                       <span class='tk-sec-cnt'>{d.quotes.length} 句</span>
                     </h3>
                     <ul class='tk-quotes'>
@@ -141,8 +129,8 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.topics.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>聊了什么</span>
-                      <span class='tk-sec-cnt'>{d.topics.length} 个话题</span>
+                      <span class='tk-sec-zh'>本期话题</span>
+                      <span class='tk-sec-cnt'>{d.topics.length} 个</span>
                     </h3>
                     <div class='tk-tags'>
                       {d.topics.map((t) => (
@@ -155,7 +143,7 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.takeaways.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>几点收获</span>
+                      <span class='tk-sec-zh'>要点</span>
                       <span class='tk-sec-cnt'>{d.takeaways.length} 点</span>
                     </h3>
                     <ul class='tk-takeaways'>
@@ -174,7 +162,7 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.diagrams.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>几张图</span>
+                      <span class='tk-sec-zh'>图解</span>
                       <span class='tk-sec-cnt'>{d.diagrams.length} 张</span>
                     </h3>
                     <div class='tk-diagrams'>
@@ -312,21 +300,6 @@ const takeawayHtml = (title: string, desc?: string) =>
     color: var(--tk-dim);
     padding-left: 1.2em;
   }
-  .tk-ls {
-    display: grid;
-    grid-template-columns: 4.6em minmax(0, 1fr) auto;
-    gap: 0 0.9em;
-    align-items: baseline;
-  }
-  .tk-ls-t {
-    color: var(--tk-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .tk-ls-soon {
-    color: var(--tk-faint);
-  }
   .tk-cursor {
     display: inline-block;
     width: 0.5em;
@@ -347,18 +320,35 @@ const takeawayHtml = (title: string, desc?: string) =>
     }
   }
 
-  /* ---------- stats strip ---------- */
-  .tk-stats {
+  /* ---------- hero foot: stats + join ---------- */
+  .tk-hero-foot {
     margin-top: 1.1rem;
     display: flex;
+    align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 0.5rem 2.2rem;
+    gap: 0.6rem 1.5rem;
+  }
+  .tk-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.8rem;
     font-size: 13px;
     color: var(--tk-faint);
   }
   .tk-stats b {
     color: var(--tk-accent);
     font-weight: 600;
+  }
+  .tk-join {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tk-accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .tk-join:hover {
+    text-decoration: underline;
   }
 
   /* ---------- feed head ---------- */
@@ -813,12 +803,6 @@ const takeawayHtml = (title: string, desc?: string) =>
     }
     .tk-upcoming-main {
       flex-basis: 100%;
-    }
-    .tk-ls {
-      grid-template-columns: 4em minmax(0, 1fr);
-    }
-    .tk-ls .m:last-child {
-      display: none;
     }
   }
 </style>
