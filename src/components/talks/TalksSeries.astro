@@ -1,9 +1,8 @@
 ---
 import {
-  formatTalkDate,
+  formatTalkDateCN,
   renderInlineMd,
-  talkHash,
-  talkVersion,
+  talkEpisodeLabel,
   talkWeekday,
   type TalkEntry
 } from '@/lib/talks'
@@ -15,13 +14,11 @@ interface Props {
 
 const { talks } = Astro.props
 
-const totalQuotes = talks.reduce((n, t) => n + t.data.quotes.length, 0)
 const sinceDate = talks.length ? talks[talks.length - 1].data.date : undefined
 const sinceLabel = sinceDate
-  ? `${sinceDate.getFullYear()}.${String(sinceDate.getMonth() + 1).padStart(2, '0')}`
+  ? `${sinceDate.getUTCFullYear()} 年 ${sinceDate.getUTCMonth() + 1} 月`
   : '—'
 const latestEpisode = talks.length ? Math.max(...talks.map((t) => t.data.episode)) : 0
-const nextVersion = talkVersion(latestEpisode + 1)
 
 const takeawayHtml = (title: string, desc?: string) =>
   `<strong>${renderInlineMd(title)}</strong>` + (desc ? '：' + renderInlineMd(desc) : '')
@@ -39,68 +36,61 @@ const takeawayHtml = (title: string, desc?: string) =>
         <span class='tk-ln'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> whoami</span>
         <span class='tk-ln tk-out'>joye —— 边找实习边做 agent，把过程公开记录下来。</span>
 
-        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> cat README.md</span>
-        <span class='tk-ln tk-out'><span class='cy'>#</span> 分享会 · 群里每周一次的线上交流会</span>
+        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> cat 关于这个系列.md</span>
+        <span class='tk-ln tk-out'>分享会 · 群里每周一次的线上交流会。</span>
         <span class='tk-ln tk-out'>聊技术、求职，和这一年 AI 行业到底在发生什么。</span>
         <span class='tk-ln tk-out'>轮流分享，公开沉淀 —— 把焦虑，换成两个动作。</span>
 
-        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> ls -1 --sort=date</span>
+        <span class='tk-ln tk-sp'><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> 列出每一期</span>
         {
           talks.map((talk) => (
             <span class='tk-ln tk-out tk-ls'>
-              <span class='cy'>{talkVersion(talk.data.episode)}</span>
+              <span class='cy'>{talkEpisodeLabel(talk.data.episode)}</span>
               <span class='tk-ls-t'>{talk.data.title}</span>
-              <span class='m'>{formatTalkDate(talk.data.date)}</span>
+              <span class='m'>{formatTalkDateCN(talk.data.date)}</span>
             </span>
           ))
         }
         <span class='tk-ln tk-out tk-ls'>
-          <span class='m'>{nextVersion}</span>
+          <span class='m'>下一期</span>
           <span class='tk-ls-t tk-ls-soon'>待定 · 主题征集中</span>
-          <span class='m'>coming</span>
+          <span class='m'>敬请期待</span>
         </span>
 
         <span class='tk-ln tk-sp'
-          ><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> git log --oneline --series<span
-            class='tk-cursor'></span
-          ></span
+          ><span class='pr'>joye@2026</span><span class='m'>:~/talks$</span> <span class='tk-cursor'></span></span
         >
       </div>
     </div>
 
     {/* ---------- stats strip ---------- */}
     <div class='tk-stats'>
-      <span><b>{String(talks.length).padStart(2, '0')}</b> 期已沉淀</span>
+      <span>已分享 <b>{talks.length}</b> 期</span>
       <span><b>每周</b> 一次</span>
       <span>自 <b>{sinceLabel}</b></span>
-      <span>累计 <b>{totalQuotes}</b> 句金句</span>
     </div>
   </section>
 
-  {/* ---------- changelog feed ---------- */}
+  {/* ---------- session feed ---------- */}
   <div class='tk-feed-head'>
-    <span>CHANGELOG · ~/TALKS</span>
+    <span>往期分享</span>
     <span class='tk-line'></span>
-    <em>REVERSE-CHRONOLOGICAL</em>
+    <em>最新在前</em>
   </div>
 
   <div class='tk-feed'>
     {
       talks.map((talk, i) => {
         const d = talk.data
-        const ver = talkVersion(d.episode)
-        const dateStr = formatTalkDate(d.date)
+        const epLabel = talkEpisodeLabel(d.episode)
+        const dateCN = formatTalkDateCN(d.date)
         const weekday = talkWeekday(d.date)
-        const hash = talkHash(talk.id)
         const open = i === 0
         return (
           <article class='tk-entry' data-open={open ? 'true' : 'false'}>
             <div class='tk-rail' aria-hidden='true'>
-              <span class='tk-ver'>{ver}</span>
-              <span class='tk-rail-date'>
-                {d.date.getFullYear()}
-                <br />.{dateStr.slice(5)}
-              </span>
+              <span class='tk-ep'>{epLabel}</span>
+              <span class='tk-rail-date'>{dateCN}</span>
             </div>
 
             <button type='button' class='tk-head' aria-expanded={open ? 'true' : 'false'}>
@@ -108,18 +98,18 @@ const takeawayHtml = (title: string, desc?: string) =>
               <span class='tk-head-main'>
                 {open && (
                   <span class='tk-badge'>
-                    <span class='tk-badge-dot' /> LATEST RELEASE
+                    <span class='tk-badge-dot' /> 最新一期
                   </span>
                 )}
-                <span class='tk-commit'>
-                  commit {hash} · {ver} · {dateStr}（{weekday}）· author: joye
+                <span class='tk-eyebrow'>
+                  {epLabel} · {dateCN} · {weekday}
                 </span>
                 <span class='tk-title'>{d.title}</span>
                 {d.subtitle && <span class='tk-subtitle'>{d.subtitle}</span>}
                 <span class='tk-meta'>
-                  {d.durationMinutes && <span>◷ {d.durationMinutes} 分钟</span>}
-                  {d.attendees && <span>◇ {d.attendees}</span>}
-                  {d.slideCount && <span>▤ {d.slideCount} 页幻灯片</span>}
+                  {d.durationMinutes && <span>约 {d.durationMinutes} 分钟</span>}
+                  {d.attendees && <span>{d.attendees}</span>}
+                  {d.slideCount && <span>{d.slideCount} 页幻灯片</span>}
                 </span>
               </span>
               <span class='tk-chevron' aria-hidden='true'>
@@ -134,16 +124,13 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.quotes.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>金句</span>
-                      <span class='tk-sec-en'>GOLDEN QUOTES · {d.quotes.length}</span>
+                      <span class='tk-sec-zh'>记下来的话</span>
+                      <span class='tk-sec-cnt'>{d.quotes.length} 句</span>
                     </h3>
                     <ul class='tk-quotes'>
                       {d.quotes.map((q) => (
                         <li class='tk-quote'>
-                          <p class='tk-quote-t'>
-                            <span class='tk-quote-pr'>&gt;</span>{' '}
-                            <Fragment set:html={renderInlineMd(q.text)} />
-                          </p>
+                          <p class='tk-quote-t' set:html={renderInlineMd(q.text)} />
                           {q.gloss && <p class='tk-quote-g' set:html={renderInlineMd(q.gloss)} />}
                         </li>
                       ))}
@@ -154,8 +141,8 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.topics.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>主题</span>
-                      <span class='tk-sec-en'>TOPICS · {d.topics.length}</span>
+                      <span class='tk-sec-zh'>聊了什么</span>
+                      <span class='tk-sec-cnt'>{d.topics.length} 个话题</span>
                     </h3>
                     <div class='tk-tags'>
                       {d.topics.map((t) => (
@@ -168,14 +155,14 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.takeaways.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>要点</span>
-                      <span class='tk-sec-en'>TAKEAWAYS · {d.takeaways.length}</span>
+                      <span class='tk-sec-zh'>几点收获</span>
+                      <span class='tk-sec-cnt'>{d.takeaways.length} 点</span>
                     </h3>
                     <ul class='tk-takeaways'>
                       {d.takeaways.map((tk) => (
                         <li class='tk-takeaway'>
                           <span class='tk-check' aria-hidden='true'>
-                            [✓]
+                            ✓
                           </span>
                           <span set:html={takeawayHtml(tk.title, tk.desc)} />
                         </li>
@@ -187,8 +174,8 @@ const takeawayHtml = (title: string, desc?: string) =>
                 {d.diagrams.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>图解</span>
-                      <span class='tk-sec-en'>DIAGRAMS · {d.diagrams.length}</span>
+                      <span class='tk-sec-zh'>几张图</span>
+                      <span class='tk-sec-cnt'>{d.diagrams.length} 张</span>
                     </h3>
                     <div class='tk-diagrams'>
                       {d.diagrams.map((dg) => (
@@ -204,10 +191,10 @@ const takeawayHtml = (title: string, desc?: string) =>
                 <div class='tk-cta-row'>
                   {d.deckUrl && (
                     <a class='tk-cta' href={d.deckUrl} target='_blank' rel='noopener'>
-                      $ open ./deck →
+                      打开这期幻灯片 →
                     </a>
                   )}
-                  {d.slideCount && <span class='tk-cta-note'>{d.slideCount} 页 · 暗色终端风幻灯片 · 方向键翻页</span>}
+                  {d.slideCount && <span class='tk-cta-note'>共 {d.slideCount} 页 · 方向键翻页</span>}
                 </div>
 
                 <p class='tk-brand'>分享人 Joye · joyehuang.me · AI Agent &amp; Full-Stack Dev</p>
@@ -218,22 +205,25 @@ const takeawayHtml = (title: string, desc?: string) =>
       })
     }
 
-    {/* upcoming teaser — conveys the weekly cadence */}
+    {/* next session — guide people to join the group via Contact */}
     <article class='tk-entry tk-upcoming'>
       <div class='tk-rail' aria-hidden='true'>
-        <span class='tk-ver tk-ver-ghost'>{nextVersion}</span>
+        <span class='tk-ep tk-ep-ghost'>下一期</span>
         <span class='tk-rail-date'>待定</span>
       </div>
-      <div class='tk-upcoming-row'>
+      <a class='tk-upcoming-row' href='/contact'>
         <span class='tk-node tk-node-ghost' aria-hidden='true'></span>
-        <span class='tk-upcoming-tag'>待定 / WIP</span>
-        <span class='tk-upcoming-title'>第 {String(latestEpisode + 1).padStart(2, '0')} 期 · 主题征集中</span>
-        <span class='tk-upcoming-desc'>下周同一时间，轮到下一位群友分享 —— 想聊什么？群里见。</span>
-      </div>
+        <span class='tk-upcoming-tag'>下一期 · 待定</span>
+        <span class='tk-upcoming-main'>
+          <span class='tk-upcoming-title'>第 {latestEpisode + 1} 期 · 主题征集中</span>
+          <span class='tk-upcoming-desc'>每周同一时间，轮到下一位群友分享。想听、想讲都欢迎——</span>
+        </span>
+        <span class='tk-upcoming-cta'>扫码进群参与 →</span>
+      </a>
     </article>
   </div>
 
-  <p class='tk-foot'>$ git log<span class='m'> 已到达系列起点</span> <span class='tk-cursor'></span></p>
+  <p class='tk-foot'>每周更新一期 · 往前翻就是第一期</p>
 </main>
 
 <style>
@@ -250,7 +240,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     --tk-accent-dim: hsl(var(--primary) / 0.55);
     --tk-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     /* timeline geometry — shared by feed line, rail labels and nodes */
-    --rail-w: clamp(72px, 9vw, 104px);
+    --rail-w: clamp(78px, 9vw, 108px);
     --rail-line: 24px; /* horizontal offset of the vertical line from the content edge */
     display: block;
     margin-top: 1.5rem;
@@ -324,7 +314,7 @@ const takeawayHtml = (title: string, desc?: string) =>
   }
   .tk-ls {
     display: grid;
-    grid-template-columns: 3em minmax(0, 1fr) auto;
+    grid-template-columns: 4.6em minmax(0, 1fr) auto;
     gap: 0 0.9em;
     align-items: baseline;
   }
@@ -342,7 +332,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     width: 0.5em;
     height: 1.02em;
     background: var(--tk-accent);
-    margin-left: 0.18em;
+    margin-left: 0.05em;
     transform: translateY(0.18em);
     animation: tk-blink 1.05s steps(2, start) infinite;
   }
@@ -363,8 +353,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 2.2rem;
-    font-family: var(--tk-mono);
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--tk-faint);
   }
   .tk-stats b {
@@ -378,10 +367,12 @@ const takeawayHtml = (title: string, desc?: string) =>
     align-items: center;
     gap: 0.9rem;
     margin: 2.2rem 0 1.4rem;
-    font-family: var(--tk-mono);
-    font-size: 11.5px;
-    letter-spacing: 0.07em;
+    font-size: 13px;
     color: var(--tk-faint);
+  }
+  .tk-feed-head > span:first-child {
+    font-weight: 600;
+    color: var(--tk-dim);
   }
   .tk-feed-head .tk-line {
     flex: 1;
@@ -394,7 +385,7 @@ const takeawayHtml = (title: string, desc?: string) =>
   }
   .tk-feed-head em {
     font-style: normal;
-    color: var(--tk-accent-dim);
+    color: var(--tk-faint);
   }
 
   /* ---------- feed / timeline ---------- */
@@ -428,24 +419,25 @@ const takeawayHtml = (title: string, desc?: string) =>
     top: 1.5rem;
     width: calc(var(--rail-w) - var(--rail-line) - 14px);
     text-align: right;
-    font-family: var(--tk-mono);
     user-select: none;
   }
-  .tk-ver {
+  .tk-ep {
     display: block;
     color: var(--tk-accent);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
+    white-space: nowrap;
   }
-  .tk-ver-ghost {
+  .tk-ep-ghost {
     color: var(--tk-faint);
   }
   .tk-rail-date {
     display: block;
+    font-family: var(--tk-mono);
     color: var(--tk-faint);
-    font-size: 10.5px;
-    margin-top: 3px;
-    line-height: 1.35;
+    font-size: 10px;
+    margin-top: 4px;
+    line-height: 1.4;
   }
 
   /* node sits on the line, anchored to its positioned parent (head / upcoming row) */
@@ -488,14 +480,12 @@ const takeawayHtml = (title: string, desc?: string) =>
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--tk-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.08em;
+    font-size: 11px;
     color: var(--tk-accent);
     background: var(--tk-accent-soft);
     border: 1px solid var(--tk-accent-dim);
     border-radius: 999px;
-    padding: 3px 9px;
+    padding: 3px 10px;
     margin-bottom: 0.7rem;
   }
   .tk-badge-dot {
@@ -505,13 +495,11 @@ const takeawayHtml = (title: string, desc?: string) =>
     background: var(--tk-accent);
     box-shadow: 0 0 8px var(--tk-accent);
   }
-  .tk-commit {
+  .tk-eyebrow {
     display: block;
-    font-family: var(--tk-mono);
-    font-size: 11.5px;
+    font-size: 12.5px;
     color: var(--tk-faint);
     margin-bottom: 0.5rem;
-    word-break: break-word;
   }
   .tk-title {
     display: block;
@@ -530,11 +518,18 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem 1.2rem;
+    gap: 0.4rem 1.4rem;
     margin-top: 0.8rem;
-    font-family: var(--tk-mono);
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--tk-faint);
+  }
+  .tk-meta > span {
+    position: relative;
+  }
+  .tk-meta > span:not(:first-child)::before {
+    content: '·';
+    position: absolute;
+    left: -0.75rem;
   }
   .tk-chevron {
     flex-shrink: 0;
@@ -575,7 +570,7 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-sec-h {
     display: flex;
     align-items: baseline;
-    gap: 0.6rem;
+    gap: 0.55rem;
     margin-bottom: 0.9rem;
   }
   .tk-sec-zh {
@@ -584,10 +579,8 @@ const takeawayHtml = (title: string, desc?: string) =>
     color: var(--tk-text);
     letter-spacing: 0.01em;
   }
-  .tk-sec-en {
-    font-family: var(--tk-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.08em;
+  .tk-sec-cnt {
+    font-size: 12px;
     color: var(--tk-faint);
   }
 
@@ -621,11 +614,6 @@ const takeawayHtml = (title: string, desc?: string) =>
     border-radius: 5px;
     background: hsl(var(--muted) / 0.6);
   }
-  .tk-quote-pr {
-    color: var(--tk-accent);
-    font-family: var(--tk-mono);
-    margin-right: 0.3rem;
-  }
   .tk-quote-g {
     margin: 0.35rem 0 0;
     font-size: 0.86rem;
@@ -639,13 +627,12 @@ const takeawayHtml = (title: string, desc?: string) =>
     gap: 0.45rem;
   }
   .tk-tag {
-    font-family: var(--tk-mono);
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--tk-dim);
     background: hsl(var(--muted) / 0.45);
     border: 1px solid var(--tk-border-soft);
     border-radius: 7px;
-    padding: 4px 9px;
+    padding: 4px 10px;
   }
 
   /* takeaways */
@@ -678,10 +665,9 @@ const takeawayHtml = (title: string, desc?: string) =>
   }
   .tk-check {
     flex-shrink: 0;
-    font-family: var(--tk-mono);
-    font-size: 12px;
     color: var(--tk-accent);
-    margin-top: 0.15rem;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
   }
 
   /* diagrams */
@@ -703,8 +689,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     height: auto;
   }
   .tk-diagram figcaption {
-    font-family: var(--tk-mono);
-    font-size: 11px;
+    font-size: 12px;
     color: var(--tk-faint);
     padding: 0.6rem 0.8rem;
     border-top: 1px solid var(--tk-border-soft);
@@ -721,8 +706,7 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-cta {
     display: inline-flex;
     align-items: center;
-    font-family: var(--tk-mono);
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 500;
     color: hsl(var(--primary-foreground));
     background: var(--tk-accent);
@@ -738,8 +722,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     box-shadow: 0 8px 22px var(--tk-accent-soft);
   }
   .tk-cta-note {
-    font-family: var(--tk-mono);
-    font-size: 11.5px;
+    font-size: 12px;
     color: var(--tk-faint);
   }
   .tk-brand {
@@ -751,7 +734,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     color: var(--tk-faint);
   }
 
-  /* upcoming */
+  /* next session (guides to Contact) */
   .tk-upcoming {
     margin-top: 0.4rem;
   }
@@ -761,10 +744,19 @@ const takeawayHtml = (title: string, desc?: string) =>
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem 0.9rem;
-    padding: 0.9rem 1.2rem;
+    padding: 1rem 1.2rem;
     border: 1px dashed var(--tk-border);
     border-radius: 12px;
     background: hsl(var(--muted) / 0.18);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      background 0.16s,
+      border-color 0.16s;
+  }
+  .tk-upcoming-row:hover {
+    background: hsl(var(--muted) / 0.4);
+    border-color: var(--tk-accent-dim);
   }
   .tk-node-ghost {
     top: 50%;
@@ -773,13 +765,16 @@ const takeawayHtml = (title: string, desc?: string) =>
     box-shadow: 0 0 0 4px hsl(var(--background));
   }
   .tk-upcoming-tag {
-    font-family: var(--tk-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.06em;
+    font-size: 11px;
     color: var(--tk-faint);
     border: 1px solid var(--tk-border);
     border-radius: 999px;
-    padding: 2px 8px;
+    padding: 2px 9px;
+    white-space: nowrap;
+  }
+  .tk-upcoming-main {
+    flex: 1;
+    min-width: 12rem;
   }
   .tk-upcoming-title {
     font-weight: 600;
@@ -789,13 +784,18 @@ const takeawayHtml = (title: string, desc?: string) =>
     font-size: 0.86rem;
     color: var(--tk-faint);
   }
+  .tk-upcoming-cta {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tk-accent);
+    white-space: nowrap;
+  }
 
   /* foot */
   .tk-foot {
     margin-top: 1.4rem;
     padding-left: var(--rail-w);
-    font-family: var(--tk-mono);
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--tk-faint);
   }
 
@@ -811,8 +811,11 @@ const takeawayHtml = (title: string, desc?: string) =>
     .tk-foot {
       padding-left: 0;
     }
+    .tk-upcoming-main {
+      flex-basis: 100%;
+    }
     .tk-ls {
-      grid-template-columns: 2.6em minmax(0, 1fr);
+      grid-template-columns: 4em minmax(0, 1fr);
     }
     .tk-ls .m:last-child {
       display: none;

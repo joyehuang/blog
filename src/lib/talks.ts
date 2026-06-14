@@ -26,6 +26,16 @@ export function talkWeekday(date: Date) {
   return WEEKDAYS[date.getUTCDay()]
 }
 
+/** Episode number → Chinese label, e.g. 1 → "第 1 期". */
+export function talkEpisodeLabel(episode: number) {
+  return `第 ${episode} 期`
+}
+
+/** 2026-06-13 → "2026年6月13日" (UTC-based to avoid timezone drift). */
+export function formatTalkDateCN(date: Date) {
+  return `${date.getUTCFullYear()}年${date.getUTCMonth() + 1}月${date.getUTCDate()}日`
+}
+
 /** Deterministic 6-char hex "commit" hash from the entry id — no randomness. */
 export function talkHash(id: string) {
   let h = 0x811c9dc5
