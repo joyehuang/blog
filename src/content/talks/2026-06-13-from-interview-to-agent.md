@@ -17,7 +17,7 @@ topics:
 quotes:
   - text: 「焦虑带来的是未知，而非其他。」
     gloss: 别被未知的新名词吓倒，先看懂本质。
-  - text: 「学知识性内容意义不大，因为我们卷不过 AI。要做的是 context creation，而不是 content。」
+  - text: 「学知识性内容意义不大，因为我们卷不过 AI。要做的是 **context creation**，而不是 **content**。」
     gloss: 把精力放在创造上下文，而不是和模型比记忆。
   - text: 「先做个小东西，遇到真实的问题，沉淀成文章、Skills 或笔记，公开出来，形成成长闭环。」
     gloss: 用做项目倒逼输出，让学习公开、可循环。

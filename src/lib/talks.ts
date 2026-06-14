@@ -36,17 +36,28 @@ export function talkHash(id: string) {
   return (h >>> 0).toString(16).padStart(8, '0').slice(0, 6)
 }
 
-/** Unique topics across the given talks, preserving first-seen order. */
-export function collectTopics(entries: TalkEntry[]) {
-  const seen = new Set<string>()
-  const out: string[] = []
-  for (const e of entries) {
-    for (const t of e.data.topics) {
-      if (!seen.has(t)) {
-        seen.add(t)
-        out.push(t)
-      }
-    }
-  }
-  return out
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
+ * Minimal inline-Markdown → HTML for talk quotes/takeaways. Content is trusted
+ * (authored by hand in frontmatter). Supports **bold**, *italic*, `code`,
+ * and [text](url) for http(s) or root-relative links.
+ */
+export function renderInlineMd(src: string) {
+  let s = escapeHtml(src)
+  s = s.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\)/g,
+    '<a href="$2" target="_blank" rel="noopener">$1</a>'
+  )
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>')
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+  return s
 }
