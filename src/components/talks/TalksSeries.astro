@@ -28,19 +28,14 @@ const takeawayHtml = (title: string, desc?: string) =>
   {/* ---------- hero ---------- */}
   <section class='tk-hero'>
     <p class='tk-kicker'>分享会 · Talks</p>
-    <h2 class='tk-intro-title'>每周一次的线上交流会</h2>
-    <p class='tk-intro-desc'>
-      我每周固定办一场线上交流会，聊技术、求职，和这一年 AI 行业到底在发生什么。
-      欢迎扫码进群，每周一起线上聊 —— 这一页记录每期聊到的内容。
-    </p>
-
+    <h2 class='tk-intro-title'>保持同频</h2>
     <div class='tk-hero-foot'>
       <div class='tk-stats'>
         <span>已记录 <b>{talks.length}</b> 期</span>
         <span><b>每周</b> 一次</span>
         <span>自 <b>{sinceLabel}</b></span>
       </div>
-      <a class='tk-join' href='/contact'>想来参加？扫码进群 →</a>
+      <a class='tk-join' href='/contact'>想来参加？→</a>
     </div>
   </section>
 
@@ -94,32 +89,6 @@ const takeawayHtml = (title: string, desc?: string) =>
 
             <div class='tk-body'>
               <div class='tk-body-inner'>
-                {d.video && (
-                  <section class='tk-sec'>
-                    <h3 class='tk-sec-h'>
-                      <span class='tk-sec-zh'>录屏回放</span>
-                      <span class='tk-sec-cnt'>B 站精剪</span>
-                    </h3>
-                    <div class='tk-video'>
-                      <iframe
-                        src={`https://player.bilibili.com/player.html?bvid=${d.video.bvid}&autoplay=0&danmaku=0&high_quality=1`}
-                        title={`${d.title} · 录屏回放`}
-                        loading='lazy'
-                        allow='fullscreen'
-                        allowfullscreen
-                      />
-                    </div>
-                    <a
-                      class='tk-video-link'
-                      href={d.video.url ?? `https://www.bilibili.com/video/${d.video.bvid}`}
-                      target='_blank'
-                      rel='noopener'
-                    >
-                      在 B 站观看完整版 →
-                    </a>
-                  </section>
-                )}
-
                 {d.quotes.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
@@ -188,8 +157,18 @@ const takeawayHtml = (title: string, desc?: string) =>
                 )}
 
                 <div class='tk-cta-row'>
+                  {d.video && (
+                    <a
+                      class='tk-cta'
+                      href={d.video.url ?? `https://www.bilibili.com/video/${d.video.bvid}`}
+                      target='_blank'
+                      rel='noopener'
+                    >
+                      看录屏回放 →
+                    </a>
+                  )}
                   {d.deckUrl && (
-                    <a class='tk-cta' href={d.deckUrl} target='_blank' rel='noopener'>
+                    <a class='tk-cta tk-cta-ghost' href={d.deckUrl} target='_blank' rel='noopener'>
                       打开这期幻灯片 →
                     </a>
                   )}
@@ -217,7 +196,7 @@ const takeawayHtml = (title: string, desc?: string) =>
           <span class='tk-upcoming-title'>第 {latestEpisode + 1} 期 · 主题征集中</span>
           <span class='tk-upcoming-desc'>每周同一时间，轮到下一位群友分享。想听、想讲都欢迎——</span>
         </span>
-        <span class='tk-upcoming-cta'>扫码进群参与 →</span>
+        <span class='tk-upcoming-cta'>想来参加？→</span>
       </a>
     </article>
   </div>
@@ -688,33 +667,6 @@ const takeawayHtml = (title: string, desc?: string) =>
     border-top: 1px solid var(--tk-border-soft);
   }
 
-  /* video replay (bilibili embed) */
-  .tk-video {
-    position: relative;
-    aspect-ratio: 16 / 9;
-    border: 1px solid var(--tk-border);
-    border-radius: 12px;
-    overflow: hidden;
-    background: #000;
-  }
-  .tk-video iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-  .tk-video-link {
-    display: inline-block;
-    margin-top: 0.7rem;
-    font-size: 13px;
-    color: var(--tk-accent);
-    text-decoration: none;
-  }
-  .tk-video-link:hover {
-    text-decoration: underline;
-  }
-
   /* cta */
   .tk-cta-row {
     display: flex;
@@ -741,6 +693,17 @@ const takeawayHtml = (title: string, desc?: string) =>
     color: hsl(var(--primary-foreground));
     transform: translateY(-1px);
     box-shadow: 0 8px 22px var(--tk-accent-soft);
+  }
+  .tk-cta-ghost {
+    color: var(--tk-text);
+    background: transparent;
+    border: 1px solid var(--tk-border);
+  }
+  .tk-cta-ghost:hover {
+    color: var(--tk-accent);
+    border-color: var(--tk-accent-dim);
+    background: hsl(var(--muted) / 0.4);
+    box-shadow: none;
   }
   .tk-cta-note {
     font-size: 12px;
