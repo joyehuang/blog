@@ -124,6 +124,12 @@ const talksSchema = z.object({
   attendees: z.string().optional(),
   deckUrl: z.string().optional(),
   slideCount: z.number().optional(),
+  video: z
+    .object({
+      bvid: z.string(),
+      url: z.string().url().optional()
+    })
+    .optional(),
   // Structured content (topics keep their display casing, so no lowercase transform)
   topics: z.array(z.string()).default([]),
   quotes: z.array(z.object({ text: z.string(), gloss: z.string().optional() })).default([]),

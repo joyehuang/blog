@@ -7,6 +7,9 @@ durationMinutes: 45
 attendees: joye + 约 17 位群友
 deckUrl: /talks/2026-from-interview-to-agent.html
 slideCount: 24
+video:
+  bvid: BV1sQJN6rE1D
+  url: https://www.bilibili.com/video/BV1sQJN6rE1D
 topics:
   - AI 名词迭代
   - 应对焦虑

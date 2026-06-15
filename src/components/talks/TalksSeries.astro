@@ -94,6 +94,32 @@ const takeawayHtml = (title: string, desc?: string) =>
 
             <div class='tk-body'>
               <div class='tk-body-inner'>
+                {d.video && (
+                  <section class='tk-sec'>
+                    <h3 class='tk-sec-h'>
+                      <span class='tk-sec-zh'>录屏回放</span>
+                      <span class='tk-sec-cnt'>B 站精剪</span>
+                    </h3>
+                    <div class='tk-video'>
+                      <iframe
+                        src={`https://player.bilibili.com/player.html?bvid=${d.video.bvid}&autoplay=0&danmaku=0&high_quality=1`}
+                        title={`${d.title} · 录屏回放`}
+                        loading='lazy'
+                        allow='fullscreen'
+                        allowfullscreen
+                      />
+                    </div>
+                    <a
+                      class='tk-video-link'
+                      href={d.video.url ?? `https://www.bilibili.com/video/${d.video.bvid}`}
+                      target='_blank'
+                      rel='noopener'
+                    >
+                      在 B 站观看完整版 →
+                    </a>
+                  </section>
+                )}
+
                 {d.quotes.length > 0 && (
                   <section class='tk-sec'>
                     <h3 class='tk-sec-h'>
@@ -660,6 +686,33 @@ const takeawayHtml = (title: string, desc?: string) =>
     color: var(--tk-faint);
     padding: 0.6rem 0.8rem;
     border-top: 1px solid var(--tk-border-soft);
+  }
+
+  /* video replay (bilibili embed) */
+  .tk-video {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--tk-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+  }
+  .tk-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .tk-video-link {
+    display: inline-block;
+    margin-top: 0.7rem;
+    font-size: 13px;
+    color: var(--tk-accent);
+    text-decoration: none;
+  }
+  .tk-video-link:hover {
+    text-decoration: underline;
   }
 
   /* cta */
