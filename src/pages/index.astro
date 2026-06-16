@@ -15,6 +15,7 @@ import SkillLayout from '@/components/home/SkillLayout.astro'
 import JoJo from '@/components/mascot/JoJo'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
+import { formatTalkDateCN, sortTalks } from '@/lib/talks'
 
 export const prerender = true
 
@@ -82,6 +83,11 @@ const allNotes = (await getCollection('archive')).filter((e) => !e.data.draft)
 const latestNotes = allNotes
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, MAX_NOTES)
+
+const talks = sortTalks(
+  (await getCollection('talks')).filter((t) => !t.data.draft && t.data.status === 'published')
+)
+const latestTalk = talks[0]
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
@@ -204,6 +210,23 @@ const latestNotes = allNotes
               ))}
             </ul>
             <Button title='More notes' class='w-fit self-end' href='/archive' style='ahead' />
+          </Section>
+        )
+      }
+
+      {
+        latestTalk && (
+          <Section title='Talks'>
+            <p class='text-muted-foreground'>
+              群里每周一次的线上交流会，轮流分享技术、求职和 AI 行业 —— 每期的内容与幻灯片都公开沉淀在这里。
+            </p>
+            <LinkCard
+              heading={latestTalk.data.title}
+              subheading={latestTalk.data.subtitle ?? ''}
+              date={`最新一期 · ${formatTalkDateCN(latestTalk.data.date)}`}
+              href='/talks'
+            />
+            <Button title='全部分享' class='w-fit self-end' href='/talks' style='ahead' />
           </Section>
         )
       }

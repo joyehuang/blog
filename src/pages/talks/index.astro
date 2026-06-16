@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content'
+
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import TalksSeries from '@/components/talks/TalksSeries.astro'
+import { sortTalks } from '@/lib/talks'
+
+export const prerender = true
+
+const talks = sortTalks(
+  (await getCollection('talks')).filter((t) => !t.data.draft && t.data.status === 'published')
+)
+---
+
+<PageLayout
+  meta={{
+    title: '分享会 · Talks',
+    description: '群里每周一次的线上交流会，聊技术、求职和 AI 行业。轮流分享，公开沉淀。'
+  }}
+  highlightColor='#6FA3B8'
+>
+  <Button title='Back' href='/' style='back' />
+  <h1 class='sr-only'>分享会 / Talks</h1>
+  <TalksSeries talks={talks} />
+</PageLayout>
