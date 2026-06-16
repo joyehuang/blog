@@ -28,7 +28,10 @@ const takeawayHtml = (title: string, desc?: string) =>
   {/* ---------- hero ---------- */}
   <section class='tk-hero'>
     <p class='tk-kicker'>分享会 · Talks</p>
-    <h2 class='tk-intro-title'>保持同频</h2>
+    <h2 class='tk-intro-title'>好好聊聊</h2>
+    <p class='tk-intro-sub'>
+      每周一次的线上交流会，从一篇论文到一个行业趋势 —— 技术、求职、行业，什么都能聊。
+    </p>
     <div class='tk-hero-foot'>
       <div class='tk-stats'>
         <span>已记录 <b>{talks.length}</b> 期</span>
@@ -253,10 +256,10 @@ const takeawayHtml = (title: string, desc?: string) =>
     color: var(--tk-text);
     margin: 0 0 0.7rem;
   }
-  .tk-intro-desc {
-    max-width: 42rem;
-    font-size: 1rem;
-    line-height: 1.7;
+  .tk-intro-sub {
+    max-width: 40rem;
+    font-size: 1.05rem;
+    line-height: 1.65;
     color: var(--tk-dim);
     margin: 0;
   }
