@@ -6,8 +6,8 @@ import ToolSection from '@/components/about/ToolSection.astro'
 
 const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
-  { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
+  { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
@@ -40,6 +40,48 @@ const headings = [
       <strong>开源贡献 Open Source</strong> - 致力于成为一名活跃的开源贡献者，通过代码和社区交流不断学习和成长。
     </li>
   </ul>
+
+  {/* social-networks */}
+  <h2 id='social-networks'>Social Networks</h2>
+  <p>
+    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
+    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne.
+  </p>
+  <Substats
+    stats={[
+      {
+        platform: 'GitHub',
+        icon: 'github',
+        link: 'https://github.com/joyehuang',
+        text: 'followers',
+        api: 'github/joyehuang'
+      },
+      {
+        platform: 'Bilibili',
+        icon: 'bilibili',
+        color: '#e71f19',
+        link: 'https://space.bilibili.com/3546914882587480?spm_id_from=333.1007.0.0',
+        text: 'followers',
+        api: 'bilibili/3546914882587480'
+      },
+      {
+        platform: '小红书',
+        icon: '/src/assets/icons/xiaohongshu.png',
+        color: '#fe2c55',
+        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
+        text: 'followers',
+        count: 1823
+      },
+      {
+        platform: 'X (Twitter)',
+        icon: 'x',
+        color: '#000000',
+        link: 'https://x.com/deshiou0604',
+        text: 'followers',
+        count: 75
+      }
+    ]}
+  />
 
   {/* tools */}
   <h2 id='tools'>Tools</h2>
@@ -315,48 +357,6 @@ const headings = [
         description: 'Linux Distribution',
         href: 'https://ubuntu.com/',
         icon: import('@/assets/tools/ubuntu.svg?raw')
-      }
-    ]}
-  />
-
-  {/* social-networks */}
-  <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne.
-  </p>
-  <Substats
-    stats={[
-      {
-        platform: 'GitHub',
-        icon: 'github',
-        link: 'https://github.com/joyehuang',
-        text: 'followers',
-        api: 'github/joyehuang'
-      },
-      {
-        platform: 'Bilibili',
-        icon: 'bilibili',
-        color: '#e71f19',
-        link: 'https://space.bilibili.com/406318693',
-        text: 'followers',
-        api: 'bilibili/406318693'
-      },
-      {
-        platform: '小红书',
-        icon: '/src/assets/icons/xiaohongshu.png',
-        color: '#fe2c55',
-        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
-        text: 'followers',
-        count: 1823
-      },
-      {
-        platform: 'X (Twitter)',
-        icon: 'x',
-        color: '#000000',
-        link: 'https://x.com/deshiou0604',
-        text: 'followers',
-        count: 75
       }
     ]}
   />

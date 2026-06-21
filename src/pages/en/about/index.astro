@@ -6,8 +6,8 @@ import ToolSection from '@/components/about/ToolSection.astro'
 
 const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
-  { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
+  { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
@@ -47,6 +47,48 @@ const headings = [
       learning and growing through code and community.
     </li>
   </ul>
+
+  {/* social-networks */}
+  <h2 id='social-networks'>Social Networks</h2>
+  <p>
+    Find me around the web — I'm most active on GitHub and X, and I occasionally post on Bilibili
+    and Xiaohongshu.
+  </p>
+  <Substats
+    stats={[
+      {
+        platform: 'GitHub',
+        icon: 'github',
+        link: 'https://github.com/joyehuang',
+        text: 'followers',
+        api: 'github/joyehuang'
+      },
+      {
+        platform: 'Bilibili',
+        icon: 'bilibili',
+        color: '#e71f19',
+        link: 'https://space.bilibili.com/3546914882587480?spm_id_from=333.1007.0.0',
+        text: 'followers',
+        api: 'bilibili/3546914882587480'
+      },
+      {
+        platform: 'Xiaohongshu',
+        icon: '/src/assets/icons/xiaohongshu.png',
+        color: '#fe2c55',
+        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
+        text: 'followers',
+        count: 1823
+      },
+      {
+        platform: 'X (Twitter)',
+        icon: 'x',
+        color: '#000000',
+        link: 'https://x.com/deshiou0604',
+        text: 'followers',
+        count: 75
+      }
+    ]}
+  />
 
   {/* tools */}
   <h2 id='tools'>Tools</h2>
@@ -233,48 +275,6 @@ const headings = [
         description: 'Linux Distribution',
         href: 'https://ubuntu.com/',
         icon: import('@/assets/tools/ubuntu.svg?raw')
-      }
-    ]}
-  />
-
-  {/* social-networks */}
-  <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    Find me around the web — I'm most active on GitHub and X, and I occasionally post on Bilibili
-    and Xiaohongshu.
-  </p>
-  <Substats
-    stats={[
-      {
-        platform: 'GitHub',
-        icon: 'github',
-        link: 'https://github.com/joyehuang',
-        text: 'followers',
-        api: 'github/joyehuang'
-      },
-      {
-        platform: 'Bilibili',
-        icon: 'bilibili',
-        color: '#e71f19',
-        link: 'https://space.bilibili.com/406318693',
-        text: 'followers',
-        api: 'bilibili/406318693'
-      },
-      {
-        platform: 'Xiaohongshu',
-        icon: '/src/assets/icons/xiaohongshu.png',
-        color: '#fe2c55',
-        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
-        text: 'followers',
-        count: 1823
-      },
-      {
-        platform: 'X (Twitter)',
-        icon: 'x',
-        color: '#000000',
-        link: 'https://x.com/deshiou0604',
-        text: 'followers',
-        count: 75
       }
     ]}
   />
