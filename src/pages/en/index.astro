@@ -142,11 +142,12 @@ const latestNotes = (await getCollection('archiveEn'))
       <Section title='About'>
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
-          Undergraduate at the University of Melbourne. Currently building atypica (a multi-agent
-          system for commercial research) at Tezign, and working on AI full-stack features and a
-          video-editing agent at fAIshion.ai and Goshu Tech. I care about how LLMs actually work
-          under the hood, and about shipping products that run in the real world. Build fast, learn
-          faster — off the clock: piano, cello, photography.
+          Undergraduate at the University of Melbourne. Currently working on Playyy.ai at Adastra
+          Labs (Shimo Docs), building atypica (a multi-agent system for commercial research) at
+          Tezign, and working on AI full-stack features and a video-editing agent at fAIshion.ai and
+          Goshu Tech. I care about how LLMs actually work under the hood, and about shipping products
+          that run in the real world. Build fast, learn faster — off the clock: piano, cello,
+          photography.
         </p>
         <Button title='More about me' class='w-fit self-end' href='/en/about' style='ahead' />
       </Section>
@@ -217,12 +218,26 @@ const latestNotes = (await getCollection('archiveEn'))
 
       <Section title='Experience'>
         <LinkCard
+          heading='Adastra Labs (Shimo Docs)'
+          subheading='AI Full-Stack Engineer'
+          href='https://playyy.ai/'
+        >
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>Building Playyy.ai — an AI image generation and brand design platform</li>
+          </ul>
+        </LinkCard>
+        <LinkCard
           heading='Tezign (Shanghai)'
           subheading='Full-Stack Intern, AIGC R&D'
           href='https://atypica.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>Building atypica.ai — a multi-agent system for commercial research</li>
+          </ul>
+        </LinkCard>
+        <LinkCard heading='AIXCut' subheading='AI Full-Stack Engineer' href='https://aixcut.cn/'>
+          <ul class='ms-4 list-disc text-muted-foreground'>
+            <li>Designing and shipping an AI video-editing agent</li>
           </ul>
         </LinkCard>
         <LinkCard
@@ -232,11 +247,6 @@ const latestNotes = (await getCollection('archiveEn'))
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>Full-stack development and model integration for an AI virtual try-on and outfit-matching platform</li>
-          </ul>
-        </LinkCard>
-        <LinkCard heading='AIXCut' subheading='AI Full-Stack Engineer' href='https://aixcut.cn/'>
-          <ul class='ms-4 list-disc text-muted-foreground'>
-            <li>Designing and shipping an AI video-editing agent</li>
           </ul>
         </LinkCard>
       </Section>
