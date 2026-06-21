@@ -3,11 +3,13 @@ import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
+import pencilIcon from '@/assets/tools/pencil.png'
+import hermesIcon from '@/assets/tools/hermes.png'
 
 const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
-  { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
+  { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
@@ -48,6 +50,48 @@ const headings = [
     </li>
   </ul>
 
+  {/* social-networks */}
+  <h2 id='social-networks'>Social Networks</h2>
+  <p>
+    Find me around the web — I'm most active on GitHub and X, and I occasionally post on Bilibili
+    and Xiaohongshu.
+  </p>
+  <Substats
+    stats={[
+      {
+        platform: 'GitHub',
+        icon: 'github',
+        link: 'https://github.com/joyehuang',
+        text: 'followers',
+        api: 'github/joyehuang'
+      },
+      {
+        platform: 'Bilibili',
+        icon: 'bilibili',
+        color: '#e71f19',
+        link: 'https://space.bilibili.com/3546914882587480?spm_id_from=333.1007.0.0',
+        text: 'followers',
+        api: 'bilibili/3546914882587480'
+      },
+      {
+        platform: 'Xiaohongshu',
+        icon: '/src/assets/icons/xiaohongshu.png',
+        color: '#fe2c55',
+        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
+        text: 'followers',
+        count: 2311
+      },
+      {
+        platform: 'X (Twitter)',
+        icon: 'x',
+        color: '#000000',
+        link: 'https://x.com/deshiou0604',
+        text: 'followers',
+        count: 75
+      }
+    ]}
+  />
+
   {/* tools */}
   <h2 id='tools'>Tools</h2>
   <p>Here are the tools and technologies I use daily:</p>
@@ -68,10 +112,22 @@ const headings = [
         icon: import('@/assets/tools/claude.svg?raw')
       },
       {
-        name: 'GitHub Copilot',
-        description: 'AI Code Completion',
-        href: 'https://github.com/features/copilot',
-        icon: import('@/assets/tools/github.svg?raw')
+        name: 'Codex',
+        description: 'Agentic Coding CLI',
+        href: 'https://openai.com/codex/',
+        icon: import('@/assets/tools/openai.svg?raw')
+      },
+      {
+        name: 'OpenClaw',
+        description: 'Personal AI Assistant',
+        href: 'https://openclaw.ai',
+        icon: import('@/assets/tools/openclaw.svg?raw')
+      },
+      {
+        name: 'Hermes',
+        description: 'Self-Improving AI Agent',
+        href: 'https://hermes-agent.nousresearch.com',
+        icon: hermesIcon
       },
       {
         name: 'v0 by Vercel',
@@ -106,7 +162,8 @@ const headings = [
       {
         name: 'Pencil',
         description: 'AI-Native Design Editor',
-        href: 'https://www.pencil.dev/'
+        href: 'https://www.pencil.dev/',
+        icon: pencilIcon
       }
     ]}
   />
@@ -115,28 +172,22 @@ const headings = [
     title='Development'
     tools={[
       {
-        name: 'Cursor',
-        description: 'AI-Powered IDE',
-        href: 'https://cursor.sh/',
-        icon: import('@/assets/tools/cursor.svg?raw')
+        name: 'Zed',
+        description: 'High-Performance Editor',
+        href: 'https://zed.dev/',
+        icon: import('@/assets/tools/zed.svg?raw')
       },
       {
-        name: 'VS Code',
-        description: 'Code Editor',
-        href: 'https://code.visualstudio.com/',
-        icon: import('@/assets/tools/vscode.svg?raw')
+        name: 'Ghostty',
+        description: 'GPU-Accelerated Terminal',
+        href: 'https://ghostty.org/',
+        icon: import('@/assets/tools/ghostty.svg?raw')
       },
       {
         name: 'Git',
         description: 'Version Control',
         href: 'https://git-scm.com/',
         icon: import('@/assets/tools/git.svg?raw')
-      },
-      {
-        name: 'Postman',
-        description: 'API Testing',
-        href: 'https://www.postman.com/',
-        icon: import('@/assets/tools/postman.svg?raw')
       }
     ]}
   />
@@ -197,6 +248,12 @@ const headings = [
         description: 'Backend as a Service',
         href: 'https://supabase.com/',
         icon: import('@/assets/tools/supabase.svg?raw')
+      },
+      {
+        name: 'Cloudflare',
+        description: 'Edge Network & CDN',
+        href: 'https://www.cloudflare.com/',
+        icon: import('@/assets/tools/cloudflare.svg?raw')
       }
     ]}
   />
@@ -215,6 +272,12 @@ const headings = [
         description: 'Package Manager',
         href: 'https://www.npmjs.com/',
         icon: import('@/assets/tools/npm.svg?raw')
+      },
+      {
+        name: 'pnpm',
+        description: 'Fast Package Manager',
+        href: 'https://pnpm.io/',
+        icon: import('@/assets/tools/pnpm.svg?raw')
       }
     ]}
   />
@@ -222,6 +285,12 @@ const headings = [
     class='mb-5'
     title='Environment'
     tools={[
+      {
+        name: 'macOS',
+        description: 'MacBook Pro M5 Pro',
+        href: 'https://www.apple.com/macos/',
+        icon: import('@/assets/tools/apple.svg?raw')
+      },
       {
         name: 'macOS',
         description: 'Mac Mini M4',
@@ -233,48 +302,6 @@ const headings = [
         description: 'Linux Distribution',
         href: 'https://ubuntu.com/',
         icon: import('@/assets/tools/ubuntu.svg?raw')
-      }
-    ]}
-  />
-
-  {/* social-networks */}
-  <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    Find me around the web — I'm most active on GitHub and X, and I occasionally post on Bilibili
-    and Xiaohongshu.
-  </p>
-  <Substats
-    stats={[
-      {
-        platform: 'GitHub',
-        icon: 'github',
-        link: 'https://github.com/joyehuang',
-        text: 'followers',
-        api: 'github/joyehuang'
-      },
-      {
-        platform: 'Bilibili',
-        icon: 'bilibili',
-        color: '#e71f19',
-        link: 'https://space.bilibili.com/406318693',
-        text: 'followers',
-        api: 'bilibili/406318693'
-      },
-      {
-        platform: 'Xiaohongshu',
-        icon: '/src/assets/icons/xiaohongshu.png',
-        color: '#fe2c55',
-        link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
-        text: 'followers',
-        count: 1823
-      },
-      {
-        platform: 'X (Twitter)',
-        icon: 'x',
-        color: '#000000',
-        link: 'https://x.com/deshiou0604',
-        text: 'followers',
-        count: 75
       }
     ]}
   />
