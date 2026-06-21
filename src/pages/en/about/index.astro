@@ -3,6 +3,8 @@ import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
+import pencilIcon from '@/assets/tools/pencil.png'
+import hermesIcon from '@/assets/tools/hermes.png'
 
 const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
@@ -125,7 +127,7 @@ const headings = [
         name: 'Hermes',
         description: 'Self-Improving AI Agent',
         href: 'https://hermes-agent.nousresearch.com',
-        icon: import('@/assets/tools/hermes.svg?raw')
+        icon: hermesIcon
       },
       {
         name: 'v0 by Vercel',
@@ -161,7 +163,7 @@ const headings = [
         name: 'Pencil',
         description: 'AI-Native Design Editor',
         href: 'https://www.pencil.dev/',
-        icon: import('@/assets/tools/pencil.svg?raw')
+        icon: pencilIcon
       }
     ]}
   />
