@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content'
 
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import Comment from '@/components/comment/Comment.astro'
 import TalksSeries from '@/components/talks/TalksSeries.astro'
 import { sortTalks } from '@/lib/talks'
 
@@ -23,4 +24,5 @@ const talks = sortTalks(
   <Button title='Back' href='/' style='back' />
   <h1 class='sr-only'>分享会 / Talks</h1>
   <TalksSeries talks={talks} />
+  <Comment class='mt-10' path='/talks' />
 </PageLayout>

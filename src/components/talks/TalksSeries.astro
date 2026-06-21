@@ -37,6 +37,10 @@ const takeawayHtml = (title: string, desc?: string) =>
         <span>已记录 <b>{talks.length}</b> 期</span>
         <span><b>每周</b> 一次</span>
         <span>自 <b>{sinceLabel}</b></span>
+        <span>浏览 <b class='waline-pageview-count' data-path='/talks'></b> 次</span>
+        <a class='tk-stat-link' href='#waline'>
+          <b class='waline-comment-count' data-path='/talks'></b> 条留言
+        </a>
       </div>
       <a class='tk-join' href='/contact'>想来参加？→</a>
     </div>
@@ -283,6 +287,13 @@ const takeawayHtml = (title: string, desc?: string) =>
   .tk-stats b {
     color: var(--tk-accent);
     font-weight: 600;
+  }
+  .tk-stat-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .tk-stat-link:hover {
+    color: var(--tk-accent);
   }
   .tk-join {
     font-size: 13px;
