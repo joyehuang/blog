@@ -16,7 +16,7 @@
  * 3. The client logic (src/scripts/intro.ts) drives the typewriter,
  *    log cascade, coalesce, and reveal via plain DOM + CSS transitions.
  */
-import { JOYE_LOG } from '@/data/joye-log'
+import { JOYE_LOG_GROUPS } from '@/data/joye-log'
 import './intro.css'
 
 const isDev = import.meta.env.DEV
@@ -151,25 +151,39 @@ function renderTokenized(text: string): string {
 
     <div id='intro-log-list'>
       {
-        JOYE_LOG.map((entry) => (
-          <div class='intro-log-line' data-type={entry.type}>
-            <span class='intro-log-stamp'>
-              {entry.stamp.split('').map((ch, i) => (
-                <span class='stamp-char' style={`--i:${i}`}>
-                  {ch === ' ' ? '\u00A0' : ch}
+        JOYE_LOG_GROUPS.map((group) => (
+          <div class='intro-log-group' data-type={group.type} data-morph-label={group.label}>
+            <div class='intro-log-group-header'>
+              <span class='intro-log-group-bracket'>[</span>
+              <span class='intro-log-group-label'>{group.label}</span>
+              <span class='intro-log-group-bracket'>]</span>
+              <span class='intro-log-group-count'>{group.entries.length}</span>
+            </div>
+            {group.entries.map((entry) => (
+              <div
+                class='intro-log-line'
+                data-type={entry.type}
+                data-weight={entry.weight ?? 1}
+              >
+                <span class='intro-log-stamp'>
+                  {entry.stamp.split('').map((ch, i) => (
+                    <span class='stamp-char' style={`--i:${i}`}>
+                      {ch === ' ' ? '\u00A0' : ch}
+                    </span>
+                  ))}
                 </span>
-              ))}
-            </span>
-            <span class='intro-log-sep' aria-hidden='true'>
-              ┄┄┄
-            </span>
-            <span class='intro-log-title' set:html={renderTokenized(entry.title)} />
-            {entry.meta && (
-              <span
-                class='intro-log-meta'
-                set:html={renderTokenized(entry.meta)}
-              />
-            )}
+                <span class='intro-log-sep' aria-hidden='true'>
+                  ┄┄┄
+                </span>
+                <span class='intro-log-title' set:html={renderTokenized(entry.title)} />
+                {entry.tag && (
+                  <span
+                    class='intro-log-meta'
+                    set:html={renderTokenized(entry.tag)}
+                  />
+                )}
+              </div>
+            ))}
           </div>
         ))
       }

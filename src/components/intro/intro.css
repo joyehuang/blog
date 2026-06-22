@@ -148,7 +148,90 @@ html.intro-skip #intro-overlay {
 #intro-log-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 18px;
+}
+
+.intro-log-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.intro-log-group::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 28px;
+  bottom: 4px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    hsl(195, 35%, 40% / 0.5),
+    hsl(195, 25% 30% / 0.1)
+  );
+}
+
+.intro-log-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: hsl(200, 35%, 92%);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.intro-log-group.intro-group-visible .intro-log-group-header {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.intro-log-group-bracket {
+  color: hsl(195, 60%, 55%);
+  font-weight: 400;
+  text-shadow: 0 0 8px hsl(195, 60% 55% / 0.4);
+}
+
+.intro-log-group-label {
+  background: linear-gradient(
+    90deg,
+    hsl(200, 50%, 85%),
+    hsl(195, 40%, 70%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.intro-log-group-count {
+  font-size: 11px;
+  font-weight: 400;
+  color: hsl(200, 14%, 45%);
+  letter-spacing: 0.5px;
+}
+
+/* Type-based accent on the group's left rule. */
+.intro-log-group[data-type='repo']::before {
+  background: linear-gradient(
+    to bottom,
+    hsl(170, 40% 45% / 0.5),
+    hsl(170, 30% 30% / 0.1)
+  );
+}
+.intro-log-group[data-type='work']::before {
+  background: linear-gradient(
+    to bottom,
+    hsl(220, 30% 55% / 0.5),
+    hsl(220, 20% 30% / 0.1)
+  );
 }
 
 .intro-log-line {
@@ -161,7 +244,6 @@ html.intro-skip #intro-overlay {
   opacity: 0;
   transform: translateY(8px);
   white-space: nowrap;
-  /* Line reveal — fast + soft, characters carry the detailed motion. */
   transition:
     opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
@@ -170,6 +252,44 @@ html.intro-skip #intro-overlay {
 .intro-log-line.intro-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Weight drives the visual hierarchy — recent / marquee work is brighter
+   and slightly larger, early work is dimmer and smaller. */
+.intro-log-line[data-weight='2'] {
+  --line-alpha: 1;
+  font-size: 14.5px;
+}
+.intro-log-line[data-weight='2'] .intro-log-title {
+  color: hsl(200, 32%, 92%);
+}
+.intro-log-line[data-weight='2'] .intro-log-stamp {
+  color: hsl(200, 22%, 62%);
+}
+
+.intro-log-line[data-weight='1'] {
+  --line-alpha: 0.78;
+  font-size: 13px;
+}
+.intro-log-line[data-weight='1'] .intro-log-title {
+  color: hsl(200, 22%, 78%);
+}
+.intro-log-line[data-weight='1'] .intro-log-stamp {
+  color: hsl(200, 14%, 45%);
+}
+
+.intro-log-line[data-weight='0'] {
+  --line-alpha: 0.5;
+  font-size: 12px;
+}
+.intro-log-line[data-weight='0'] .intro-log-title {
+  color: hsl(200, 16%, 58%);
+}
+.intro-log-line[data-weight='0'] .intro-log-stamp {
+  color: hsl(200, 12%, 36%);
+}
+.intro-log-line[data-weight='0'] .intro-log-meta {
+  opacity: 0.7;
 }
 
 /* Scan light — a thin vertical beam that sweeps left → right when the
@@ -266,9 +386,8 @@ html.intro-skip #intro-overlay {
 }
 
 /* === Subtle emphasis on the most recent (Agent era) lines === */
-.intro-log-line[data-emphasis='1'] .intro-log-title {
-  color: hsl(200, 32%, 92%);
-}
+/* (Now handled by data-weight — keeping the selector empty as a no-op
+   so the SSR markup stays forward-compatible if we re-add this hook.) */
 
 .intro-log-stamp {
   color: hsl(200, 14%, 42%);
