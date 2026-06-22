@@ -35,10 +35,10 @@ html.intro-skip #intro-overlay {
   z-index: 9999;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 45%, rgba(82, 125, 148, 0.18) 0%, rgba(5, 10, 16, 0) 60%),
-    radial-gradient(circle at center, #0c1a25 0%, #050a10 100%);
+    radial-gradient(ellipse at 50% 50%, rgba(40, 60, 80, 0.16) 0%, rgba(0, 0, 0, 0) 55%),
+    radial-gradient(circle at center, #0a0f15 0%, #050709 100%);
   opacity: 1;
-  transition: opacity 0.6s ease-out;
+  transition: opacity 0.4s ease-out;
 }
 
 #intro-overlay.intro-hidden {
@@ -57,35 +57,25 @@ html.intro-skip #intro-overlay {
   display: block;
 }
 
-/* Tiny progress hint in case the cold-start of three.js takes a moment. */
-#intro-overlay::after {
+/* Subtle scanline pattern over the overlay — reinforces terminal DNA. */
+#intro-overlay::before {
   content: '';
   position: absolute;
-  left: 50%;
-  bottom: 14%;
-  width: 36px;
-  height: 2px;
-  margin-left: -18px;
-  background: linear-gradient(90deg, transparent, rgba(82, 125, 148, 0.7), transparent);
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.018) 0px,
+    rgba(255, 255, 255, 0.018) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+#intro-overlay.intro-hidden::before {
   opacity: 0;
-  animation: intro-pulse 1.6s ease-in-out infinite;
-  animation-delay: 0.6s;
-}
-
-@keyframes intro-pulse {
-  0%,
-  100% {
-    opacity: 0;
-    transform: scaleX(0.4);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scaleX(1);
-  }
-}
-
-html.intro-hidden #intro-overlay::after {
-  animation: none;
+  transition: opacity 0.3s;
 }
 
 /* Respect reduced-motion: never show the overlay. */
@@ -93,4 +83,40 @@ html.intro-hidden #intro-overlay::after {
   #intro-overlay {
     display: none !important;
   }
+}
+
+/* ===== Replay button (dev only) ===== */
+#intro-replay {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10000;
+  width: 36px;
+  height: 36px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--card) / 0.85);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+#intro-replay:hover {
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.5);
+  transform: rotate(-45deg);
+}
+#intro-replay svg {
+  width: 16px;
+  height: 16px;
+}
+html.intro-active #intro-replay {
+  display: none !important;
 }

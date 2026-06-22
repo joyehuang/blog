@@ -1,6 +1,6 @@
 ---
 /**
- * IntroOverlay — cinematic 3D particle entry animation.
+ * IntroOverlay — cinematic ASCII-particle entry animation.
  *
  * Strategy:
  * 1. SSR renders a dark overlay shell (#intro-overlay) + canvas immediately.
@@ -8,10 +8,16 @@
  *    - skip if sessionStorage says we've played this session
  *    - skip if prefers-reduced-motion
  *    - otherwise lock the page (`intro-active` class)
- * 3. The heavy three.js logic is lazy-loaded via a module script so it never
- *    blocks first paint of the document.
+ * 3. The heavy logic is lazy-loaded via a module script so it never blocks
+ *    first paint of the document.
+ * 4. The avatar PNG import URL is passed as a data attribute so the client
+ *    can sample its silhouette without an extra fetch round-trip.
+ * 5. A dev-only replay button lets you re-watch the animation locally.
  */
+import avatar from 'src/assets/avatar.png'
 import './intro.css'
+
+const isDev = import.meta.env.DEV
 ---
 
 {
@@ -40,10 +46,36 @@ import './intro.css'
   })()
 </script>
 
-<div id='intro-overlay' aria-hidden='true'>
+<div id='intro-overlay' aria-hidden='true' data-avatar={avatar.src}>
   <canvas id='intro-canvas'></canvas>
 </div>
+
+{
+  isDev && (
+    <button id='intro-replay' type='button' aria-label='Replay intro' title='Replay intro'>
+      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+        <path d='M3 12a9 9 0 1 0 3-6.7' />
+        <path d='M3 4v5h5' />
+      </svg>
+    </button>
+  )
+}
 
 <script>
   import '@/scripts/intro.ts'
 </script>
+
+{
+  isDev && (
+    <script is:inline>
+      ;(function () {
+        var btn = document.getElementById('intro-replay')
+        if (!btn) return
+        btn.addEventListener('click', function () {
+          try { sessionStorage.removeItem('intro-played') } catch (e) {}
+          location.reload()
+        })
+      })()
+    </script>
+  )
+}
