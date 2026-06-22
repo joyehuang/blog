@@ -1,3 +1,7 @@
+import { copyFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import type { AstroIntegration } from 'astro'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
@@ -37,10 +41,20 @@ const shouldIncludeInSitemap = (page: string) => {
   return !excludedSitemapPathPatterns.some((pattern) => pattern.test(pathname))
 }
 
+const exposeSingleSitemap = (): AstroIntegration => ({
+  name: 'expose-single-sitemap',
+  hooks: {
+    'astro:build:done': async ({ dir }) => {
+      const outputDir = fileURLToPath(dir)
+      await copyFile(join(outputDir, 'sitemap-0.xml'), join(outputDir, 'sitemap.xml'))
+    }
+  }
+})
+
 // https://astro.build/config
 export default defineConfig({
   // Top-Level Options
-  site: 'https://joyehuang.me',
+  site: 'https://www.joyehuang.me',
   // base: '/docs',
   trailingSlash: 'never',
 
@@ -73,6 +87,7 @@ export default defineConfig({
         }
       }
     }),
+    exposeSingleSitemap(),
     // astro-pure will automatically add sitemap, mdx & unocss
     AstroPureIntegration(config),
     react()

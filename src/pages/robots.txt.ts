@@ -9,7 +9,7 @@ const robotsTxt = [
   'Disallow: /api/',
   'Disallow: /pagefind/',
   '',
-  `Sitemap: ${new URL('/sitemap-index.xml', site).href}`
+  `Sitemap: ${new URL('/sitemap.xml', site).href}`
 ].join('\n')
 
 export const GET: APIRoute = () =>
