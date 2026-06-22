@@ -1,29 +1,22 @@
 /**
- * Intro Cinematic — ASCII-particle entry animation (Canvas 2D).
+ * Intro Cinematic — "Embedding Space Dive"
  *
- * Runs only when the early inline script in IntroOverlay.astro set
- * `intro-active` on <html>.
+ * A 3D journey through a concept-space (Agent / LLM / Code / RAG clusters)
+ * connected by attention lines, culminating in the tokens converging into
+ * the author's avatar silhouette.
  *
- * Timeline (≈ 9s):
- *   Phase 1  ENTER     0.0 ~ 1.5s   chars fly in from off-screen
- *   Phase 2  CHAOS     1.5 ~ 4.0s   chars drift, randomize (data-stream feel)
- *   Phase 3  ASSEMBLE  4.0 ~ 6.5s   chars lerp to avatar silhouette targets
- *   Phase 4  HOLD      6.5 ~ 7.5s   avatar complete, micro-flicker
- *   Phase 5  REVEAL    7.5 ~ 9.0s   chars burst outward, overlay dissolves,
- *                                    hero zooms from scale(.94)+blur(8px)
+ * Phases (~11s total):
+ *   1  BOOT         0   ~ 1.5s   "initializing joye@mind..." terminal line
+ *   2  DIVE         1.5 ~ 5.0s   camera dives into the cluster cloud,
+ *                                 tokens light up, attention pulses flow
+ *   3  CONVERGE     5.0 ~ 8.0s   tokens fall toward the global center,
+ *                                 clusters dissolve
+ *   4  MATERIALIZE  8.0 ~ 9.5s   tokens lerp onto the avatar silhouette
+ *   5  REVEAL       9.5 ~ 11s    overlay dissolves, hero zooms in
  */
 
 import gsap from 'gsap'
-
-// Trace checkpoints into localStorage so we can diagnose failures across reloads.
-// Only writes in dev to avoid leaking storage in production.
-const trace = import.meta.env.DEV
-  ? (msg: string) => {
-      try {
-        localStorage.setItem('intro-trace', `[${new Date().toISOString()}] ${msg}`)
-      } catch {}
-    }
-  : (_msg: string) => {}
+import * as THREE from 'three'
 
 const SKIP =
   document.documentElement.classList.contains('intro-skip') ||
@@ -31,10 +24,12 @@ const SKIP =
 
 if (!SKIP) {
   void runIntro().catch((err) => {
-    const msg = err instanceof Error ? err.stack || err.message : String(err)
     if (import.meta.env.DEV) {
       try {
-        localStorage.setItem('intro-last-error', `[${new Date().toISOString()}] ${msg}`)
+        localStorage.setItem(
+          'intro-last-error',
+          `[${new Date().toISOString()}] ${err instanceof Error ? err.stack || err.message : String(err)}`
+        )
       } catch {}
     }
     console.warn('[intro] aborted:', err)
@@ -42,381 +37,556 @@ if (!SKIP) {
   })
 }
 
-type Phase = 'enter' | 'chaos' | 'assemble' | 'hold' | 'reveal'
-
-type Particle = {
-  // current screen position
-  x: number
-  y: number
-  // start position (for enter animation)
-  sx: number
-  sy: number
-  // drift seed (for chaos phase)
-  dx: number
-  dy: number
-  // target position (avatar silhouette point), centered around canvas midpoint
-  tx: number
-  ty: number
-  // burst velocity (for reveal phase)
-  bx: number
-  by: number
-  // current character + how long until next switch
-  char: string
-  switchIn: number
-  // per-particle alpha
-  alpha: number
-  // per-particle size factor (0.7..1.3)
-  size: number
-  // whether this particle is on the avatar silhouette
-  hasTarget: boolean
+// === Concept clusters — each represents a domain of the author's work ===
+type Cluster = {
+  name: string
+  center: [number, number, number]
+  color: THREE.Color
+  /** Number of tokens in this cluster (rest are ambient). */
+  tokenCount: number
 }
 
-// Character palette — strictly monochrome, terminal-native.
-const CHARS = {
-  // solid blocks for the silhouette outline (high density)
-  dense: ['█', '▓', '▒', '░'],
-  // light glyphs for fill / scatter
-  light: ['*', '·', ':', '.', ' '],
-  // "decoding" glyphs for chaos + reveal (tech feel)
-  decode: ['0', '1', '/', '>', '<', '#', '_', '-', '+']
-} as const
+const PRIMARY = new THREE.Color('#7BB8D4') // lightened primary blue (good on dark)
+const ACCENT_AGENT = new THREE.Color('#9CCADD')
+const ACCENT_LLM = new THREE.Color('#B8D4E2')
+const ACCENT_CODE = new THREE.Color('#8FB3C7')
+const ACCENT_RAG = new THREE.Color('#6E96B0')
 
-const PRIMARY_HUE = 200
-const PRIMARY_SAT = 29
+const CLUSTERS: Cluster[] = [
+  {
+    name: 'Agent',
+    center: [-9, 3, -2],
+    color: ACCENT_AGENT,
+    tokenCount: 22
+  },
+  {
+    name: 'LLM',
+    center: [7, 4, -4],
+    color: ACCENT_LLM,
+    tokenCount: 22
+  },
+  {
+    name: 'Code',
+    center: [-5, -5, 4],
+    color: ACCENT_CODE,
+    tokenCount: 22
+  },
+  {
+    name: 'RAG',
+    center: [8, -3, 2],
+    color: ACCENT_RAG,
+    tokenCount: 22
+  }
+]
+
+const AMBIENT_COUNT = 220 // free-floating points scattered across the scene
 
 async function runIntro() {
   const overlay = document.getElementById('intro-overlay')
   const canvas = document.getElementById('intro-canvas') as HTMLCanvasElement | null
-  trace(`runIntro: overlay=${!!overlay}, canvas=${!!canvas}`)
   if (!overlay || !canvas) {
     revealImmediately()
     return
   }
 
-  trace('runIntro started')
-
-  const targetPoints = await loadSilhouettePoints(overlay.dataset.avatar || '')
-  trace(`loaded: ${targetPoints.length} target points`)
-
-  const ctx = canvas.getContext('2d', { alpha: true })
-  if (!ctx) {
-    revealImmediately()
-    return
-  }
-
+  // === Renderer ===
   const isMobile = window.matchMedia('(max-width: 768px)').matches
-  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: !isMobile
+  })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
 
-  // Resize canvas to viewport
   const resize = () => {
-    canvas.width = Math.floor(window.innerWidth * dpr)
-    canvas.height = Math.floor(window.innerHeight * dpr)
-    canvas.style.width = window.innerWidth + 'px'
-    canvas.style.height = window.innerHeight + 'px'
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    renderer.setSize(window.innerWidth, window.innerHeight, false)
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
   }
+
+  // === Scene + Camera ===
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(
+    62,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
+  )
+  // far away initially — dive begins from here
+  camera.position.set(0, 1.5, 26)
+  camera.lookAt(0, 0, 0)
   resize()
   window.addEventListener('resize', resize)
 
-  const W = () => window.innerWidth
-  const H = () => window.innerHeight
-
-  // === Particle init ===
-  // Each silhouette target maps to one "anchor" particle; extra ambient
-  // particles fill out the chaos phase.
-  const TARGET_COUNT = targetPoints.length
-  const AMBIENT_COUNT = isMobile ? 220 : 480
-  const TOTAL = TARGET_COUNT + AMBIENT_COUNT
-
-  // === Anchor the silhouette to where the real hero avatar lives on the page,
-  // so when the overlay dissolves the assembled char-avatar sits exactly on
-  // top of the real <img>. Falls back to viewport center if the element
-  // can't be found (defensive — should always exist on the landing page).
+  // === Resolve avatar silhouette target points ===
+  const targetPoints = await loadSilhouettePoints(overlay.dataset.avatar || '')
   const realAvatar =
-    document.querySelector('#content-header img') ||
-    document.querySelector('main img[alt="profile"]') as HTMLImageElement | null
+    (document.querySelector('#content-header img') as HTMLImageElement | null) ??
+    (document.querySelector('main img[alt="profile"]') as HTMLImageElement | null)
   const avatarRect = realAvatar?.getBoundingClientRect()
-  // hero is scaled to 0.94 during intro; the unscaled rect center is what we want
-  const cx = avatarRect ? avatarRect.left + avatarRect.width / 2 : W() / 2
-  const cy = avatarRect ? avatarRect.top + avatarRect.height / 2 : H() / 2
 
-  // Scale the avatar sample points so the assembled silhouette matches the
-  // real avatar's rendered size. Sample grid is 220x220; the real avatar is
-  // ~112px in hero, but the avatar PNG is square-cropped so the head occupies
-  // most of it. We size the silhouette to ~1.6x the visible avatar so the
-  // char-cloud extends a bit past the edges (more dramatic reveal).
-  const targetRenderSize = avatarRect
-    ? Math.max(avatarRect.width, avatarRect.height) * 1.6
-    : Math.min(W(), H()) * 0.38
-  const scaleFactor = targetRenderSize / 220
+  // Map silhouette sample coords ([-110, 110]) into NDC, then into the 3D
+  // plane at z=0 such that the assembled silhouette lands exactly over the
+  // real hero <img> when the camera is at its reveal position.
+  const revealCamZ = 11
+  const revealFov = camera.fov
+  const revealHalfH = Math.tan((revealFov * Math.PI) / 360) * revealCamZ
+  const revealHalfW = revealHalfH * camera.aspect
+  // Map viewport pixel → world unit at z=0 from reveal camera.
+  const pxToNdcX = (pxX: number) => (pxX / window.innerWidth) * 2 - 1
+  const pxToNdcY = (pxY: number) =>
+    -((pxY / window.innerHeight) * 2 - 1) // flip Y (WebGL Y up)
+  const avatarCenterNdcX = avatarRect
+    ? pxToNdcX(avatarRect.left + avatarRect.width / 2)
+    : 0
+  const avatarCenterNdcY = avatarRect
+    ? pxToNdcY(avatarRect.top + avatarRect.height / 2)
+    : 0
+  const avatarCenterWorldX = avatarCenterNdcX * revealHalfW
+  const avatarCenterWorldY = avatarCenterNdcY * revealHalfH
+  // Fixed silhouette size in world units — independent of how much of the
+  // 220x220 sample grid the avatar actually fills. The particle avatar is
+  // intentionally larger than the real <img> (collapses/hands off on reveal).
+  // At z=0 viewed from z=11 with fov=62, the viewport is ~20 world units wide,
+  // so 6.5 gives a silhouette that fills ~33% of the viewport width.
+  const silhouetteWorldSize = Math.min(revealHalfW, revealHalfH) * 1.3
+  const scaleFactor = silhouetteWorldSize / 220
 
-  const particles: Particle[] = []
-  for (let i = 0; i < TOTAL; i++) {
-    const isAmbient = i >= TARGET_COUNT
-    const target = isAmbient ? null : targetPoints[i]
-    // Off-screen start: random direction, 1.2x viewport out
-    const angle = Math.random() * Math.PI * 2
-    const radius = Math.max(W(), H()) * (0.7 + Math.random() * 0.5)
-    const sx = cx + Math.cos(angle) * radius
-    const sy = cy + Math.sin(angle) * radius
+  // === Build per-token data ===
+  type TokenData = {
+    // initial cluster-relative position (used during DIVE)
+    home: THREE.Vector3
+    // target on the avatar silhouette (used during MATERIALIZE)
+    target: THREE.Vector3
+    hasTarget: boolean
+    clusterIdx: number
+    // phase weights (0..1) used by shader to fade in / converge
+    fadeIn: number
+    converge: number
+    materialize: number
+  }
 
-    // For ambient particles, the "target" is a random point inside viewport
-    // so chaos phase has them scattered across the screen.
-    const tx = target
-      ? cx + target.x * scaleFactor
-      : Math.random() * W()
-    const ty = target
-      ? cy + target.y * scaleFactor
-      : Math.random() * H()
+  const tokenData: TokenData[] = []
 
-    particles.push({
-      x: sx,
-      y: sy,
-      sx,
-      sy,
-      dx: (Math.random() - 0.5) * 0.5,
-      dy: (Math.random() - 0.5) * 0.5,
-      tx,
-      ty,
-      bx: 0,
-      by: 0,
-      char: pickChar('decode'),
-      switchIn: Math.floor(Math.random() * 400),
-      alpha: 0,
-      size: 0.75 + Math.random() * 0.55,
-      hasTarget: !!target
+  // Cluster tokens
+  CLUSTERS.forEach((cluster, ci) => {
+    for (let i = 0; i < cluster.tokenCount; i++) {
+      // distribute within a sphere of radius 2.6 around cluster center
+      const r = 0.4 + Math.random() * 2.2
+      const theta = Math.random() * Math.PI * 2
+      const phi = Math.acos(2 * Math.random() - 1)
+      const home = new THREE.Vector3(
+        cluster.center[0] + r * Math.sin(phi) * Math.cos(theta),
+        cluster.center[1] + r * Math.sin(phi) * Math.sin(theta),
+        cluster.center[2] + r * Math.cos(phi) * 0.7
+      )
+      tokenData.push({
+        home: home,
+        target: new THREE.Vector3(),
+        hasTarget: false,
+        clusterIdx: ci,
+        fadeIn: 0,
+        converge: 0,
+        materialize: 0
+      })
+    }
+  })
+  // Ambient tokens scattered across the whole scene
+  for (let i = 0; i < AMBIENT_COUNT; i++) {
+    const home = new THREE.Vector3(
+      (Math.random() - 0.5) * 30,
+      (Math.random() - 0.5) * 18,
+      (Math.random() - 0.5) * 14 - 2
+    )
+    tokenData.push({
+      home,
+      target: new THREE.Vector3(),
+      hasTarget: false,
+      clusterIdx: -1,
+      fadeIn: 0,
+      converge: 0,
+      materialize: 0
     })
   }
 
-  // === Render loop ===
-  let raf = 0
-  let frameCount = 0
-  let lastTickAt = 0
+  // Assign avatar silhouette targets to the first N tokens (cluster ones
+  // preferred so the silhouette feels meaningful, not random).
+  // Spread targets across all clusters proportionally so each contributes.
+  const targetAssignmentOrder: number[] = []
+  // round-robin across clusters
+  const perCluster = Math.min(
+    Math.ceil(targetPoints.length / CLUSTERS.length),
+    CLUSTERS[0].tokenCount
+  )
+  for (let i = 0; i < perCluster; i++) {
+    CLUSTERS.forEach((_c, ci) => {
+      const tokenIdx = ci * CLUSTERS[0].tokenCount + i
+      if (tokenIdx < tokenData.length) targetAssignmentOrder.push(tokenIdx)
+    })
+  }
+  targetPoints.forEach((pt, i) => {
+    const tokenIdx = targetAssignmentOrder[i] ?? i
+    const t = tokenData[tokenIdx]
+    if (!t) return
+    t.hasTarget = true
+    t.target.set(
+      avatarCenterWorldX + pt.x * scaleFactor,
+      avatarCenterWorldY + pt.y * scaleFactor,
+      0
+    )
+  })
+
+  // === Token points — BufferGeometry + Points with custom shader ===
+  // Each token is one vertex; the vertex shader computes its position from
+  // home/converge/materialize states, and the fragment shader paints a soft
+  // glowing dot (much more reliable than InstancedMesh + InstancedBufferAttribute).
+  const TOKEN_COUNT = tokenData.length
+  const tokenPositions = new Float32Array(TOKEN_COUNT * 3) // placeholder — shader ignores via position
+  const tokenHomes = new Float32Array(TOKEN_COUNT * 3)
+  const tokenTargets = new Float32Array(TOKEN_COUNT * 3)
+  const tokenColors = new Float32Array(TOKEN_COUNT * 3)
+  const tokenFadeIns = new Float32Array(TOKEN_COUNT)
+  const tokenConverges = new Float32Array(TOKEN_COUNT)
+  const tokenMaterializes = new Float32Array(TOKEN_COUNT)
+
+  for (let i = 0; i < TOKEN_COUNT; i++) {
+    const t = tokenData[i]
+    // position attribute is required by THREE.Points but the vertex shader
+    // overrides gl_Position from custom attributes, so we just use home.
+    tokenPositions[i * 3] = t.home.x
+    tokenPositions[i * 3 + 1] = t.home.y
+    tokenPositions[i * 3 + 2] = t.home.z
+    tokenHomes[i * 3] = t.home.x
+    tokenHomes[i * 3 + 1] = t.home.y
+    tokenHomes[i * 3 + 2] = t.home.z
+    tokenTargets[i * 3] = t.target.x
+    tokenTargets[i * 3 + 1] = t.target.y
+    tokenTargets[i * 3 + 2] = t.target.z
+    const col = t.clusterIdx >= 0 ? CLUSTERS[t.clusterIdx].color : PRIMARY
+    tokenColors[i * 3] = col.r
+    tokenColors[i * 3 + 1] = col.g
+    tokenColors[i * 3 + 2] = col.b
+    tokenFadeIns[i] = 0
+    tokenConverges[i] = 0
+    tokenMaterializes[i] = 0
+  }
+
+  const tokenGeo = new THREE.BufferGeometry()
+  tokenGeo.setAttribute('position', new THREE.BufferAttribute(tokenPositions, 3))
+  tokenGeo.setAttribute('aHome', new THREE.BufferAttribute(tokenHomes, 3))
+  tokenGeo.setAttribute('aTarget', new THREE.BufferAttribute(tokenTargets, 3))
+  tokenGeo.setAttribute('aColor', new THREE.BufferAttribute(tokenColors, 3))
+  tokenGeo.setAttribute('aFadeIn', new THREE.BufferAttribute(tokenFadeIns, 1))
+  tokenGeo.setAttribute('aConverge', new THREE.BufferAttribute(tokenConverges, 1))
+  tokenGeo.setAttribute('aMaterialize', new THREE.BufferAttribute(tokenMaterializes, 1))
+
+  const tokenMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    uniforms: {
+      uTime: { value: 0 },
+      uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 2) },
+      uDiveCamZ: { value: 26 },
+      uRevealCamZ: { value: revealCamZ }
+    },
+    vertexShader: /* glsl */ `
+      attribute vec3 aHome;
+      attribute vec3 aTarget;
+      attribute vec3 aColor;
+      attribute float aFadeIn;
+      attribute float aConverge;
+      attribute float aMaterialize;
+      uniform float uTime;
+      uniform float uPixelRatio;
+      varying vec3 vColor;
+      varying float vGlow;
+
+      void main() {
+        // 3 states: home -> converge center -> avatar target.
+        vec3 convergePos = vec3(0.0) + 0.5 * normalize(aHome);
+        vec3 afterConverge = mix(aHome, convergePos, aConverge);
+        vec3 finalPos = mix(afterConverge, aTarget, aMaterialize);
+
+        // gentle breathing
+        finalPos += 0.05 * vec3(
+          sin(uTime * 0.6 + finalPos.y * 0.7),
+          cos(uTime * 0.5 + finalPos.x * 0.6),
+          sin(uTime * 0.4 + finalPos.z * 0.5)
+        );
+
+        vec4 mvPosition = modelViewMatrix * vec4(finalPos, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+
+        // size attenuates with distance — bigger when closer.
+        float size = 5.5 + 4.0 * aFadeIn;
+        gl_PointSize = size * uPixelRatio * (24.0 / max(1.0, -mvPosition.z));
+        vColor = aColor;
+        vGlow = clamp(aFadeIn, 0.0, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      varying vec3 vColor;
+      varying float vGlow;
+      void main() {
+        vec2 uv = gl_PointCoord - vec2(0.5);
+        float d = length(uv);
+        if (d > 0.5) discard;
+        // soft round dot with a hot core
+        float core = smoothstep(0.5, 0.0, d);
+        float glow = smoothstep(0.5, 0.15, d);
+        float intensity = core * core + glow * 0.4;
+        gl_FragColor = vec4(vColor * (1.4 + vGlow * 0.7), intensity * vGlow);
+      }
+    `
+  })
+
+  const tokenMesh = new THREE.Points(tokenGeo, tokenMat)
+  scene.add(tokenMesh)
+
+  // Keep references to the per-vertex attributes so we can drive them via GSAP.
+  const fadeInAttr = tokenGeo.getAttribute('aFadeIn') as THREE.BufferAttribute
+  const convergeAttr = tokenGeo.getAttribute('aConverge') as THREE.BufferAttribute
+  const materializeAttr = tokenGeo.getAttribute('aMaterialize') as THREE.BufferAttribute
+
+  // === Attention lines (intra-cluster + a few cross-cluster) ===
+  const linePositions: number[] = []
+  const lineColors: number[] = []
+  const lineProgress: number[] = [] // for pulse: progress along the line 0..1 of "head" of pulse
+  const lineLen = (a: THREE.Vector3, b: THREE.Vector3) => a.distanceTo(b)
+  type Line = { a: number; b: number; pulseOffset: number }
+  const lines: Line[] = []
+
+  // Intra-cluster: each token connects to its 2 nearest cluster-mates.
+  CLUSTERS.forEach((_cluster, ci) => {
+    const clusterTokenIndices: number[] = []
+    tokenData.forEach((t, i) => {
+      if (t.clusterIdx === ci) clusterTokenIndices.push(i)
+    })
+    clusterTokenIndices.forEach((i) => {
+      const ti = tokenData[i].home
+      const distances = clusterTokenIndices
+        .filter((j) => j !== i)
+        .map((j) => ({ j, d: lineLen(ti, tokenData[j].home) }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, 2)
+      distances.forEach(({ j }) => {
+        if (i < j) {
+          lines.push({ a: i, b: j, pulseOffset: Math.random() })
+        }
+      })
+    })
+  })
+  // Cross-cluster: 2 lines between consecutive cluster centers (via their nearest tokens).
+  for (let ci = 0; ci < CLUSTERS.length; ci++) {
+    const cj = (ci + 1) % CLUSTERS.length
+    const ai = tokenData.findIndex((t) => t.clusterIdx === ci)
+    const bi = tokenData.findIndex((t) => t.clusterIdx === cj)
+    if (ai >= 0 && bi >= 0) {
+      lines.push({ a: ai, b: bi, pulseOffset: Math.random() })
+      // one more cross link
+      const ai2 =
+        tokenData.findIndex((t, idx) => t.clusterIdx === ci && idx > ai) ?? ai
+      if (ai2 >= 0) lines.push({ a: ai2, b: bi, pulseOffset: Math.random() })
+    }
+  }
+
+  // Each line is 2 vertices; we'll update positions every frame because
+  // token positions are computed in shader (CPU can't easily read them).
+  // Trick: we re-evaluate the line endpoints on the CPU side using the
+  // same home/converge/target logic as the shader.
+  lines.forEach(() => {
+    linePositions.push(0, 0, 0, 0, 0, 0)
+    lineColors.push(0, 0, 0, 0, 0, 0)
+    lineProgress.push(0)
+  })
+  const lineGeo = new THREE.BufferGeometry()
+  lineGeo.setAttribute(
+    'position',
+    new THREE.BufferAttribute(new Float32Array(linePositions), 3)
+  )
+  lineGeo.setAttribute(
+    'color',
+    new THREE.BufferAttribute(new Float32Array(lineColors), 3)
+  )
+  const lineMat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.45,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  })
+  const lineSegments = new THREE.LineSegments(lineGeo, lineMat)
+  scene.add(lineSegments)
+
+  // State shared between render loop and GSAP.
+  const state = {
+    fadeInGlobal: 0, // 0..1 drives token fade-in
+    convergeGlobal: 0, // 0..1 drives home -> center
+    materializeGlobal: 0, // 0..1 drives center -> avatar target
+    pulse: 0, // time accumulator for line pulse
+    linesActive: 0 // 0..1 drives line opacity
+  }
+
+  // Helper to evaluate a token's position based on the current state.
+  // Mirrors the vertex-shader math so we can place line endpoints consistently.
+  function evalTokenPos(idx: number, out: THREE.Vector3) {
+    const t = tokenData[idx]
+    const convergePos = new THREE.Vector3(0, 0, 0).add(t.home.clone().normalize().multiplyScalar(0.4))
+    const afterConverge = t.home.clone().lerp(convergePos, state.convergeGlobal)
+    const finalPos = afterConverge.lerp(t.target, state.materializeGlobal)
+    out.copy(finalPos)
+  }
+
+  // === Mouse parallax ===
   let mouseX = 0
   let mouseY = 0
-  const camX = { value: 0 }
-  const camY = { value: 0 }
-  const zoom = { value: 1 }
-
+  let camOffsetX = 0
+  let camOffsetY = 0
   const onPointerMove = (e: PointerEvent) => {
-    mouseX = (e.clientX / W()) * 2 - 1
-    mouseY = -((e.clientY / H()) * 2 - 1)
+    mouseX = (e.clientX / window.innerWidth) * 2 - 1
+    mouseY = -((e.clientY / window.innerHeight) * 2 - 1)
   }
   if (!isMobile) {
     window.addEventListener('pointermove', onPointerMove, { passive: true })
   }
 
-  // Current phase, advanced by the GSAP timeline.
-  let phase: Phase = 'enter'
-  // Progress of the assemble phase (0..1), drives lerp factor.
-  let assembleProgress = 0
-  // Progress of reveal burst (0..1).
-  let revealProgress = 0
+  // === Boot text overlay (Phase 1) ===
+  const bootEl = document.createElement('div')
+  bootEl.className = 'intro-boot-text'
+  bootEl.innerHTML = `<span class="intro-boot-prompt">&gt;</span> <span class="intro-boot-cmd">initializing</span> <span class="intro-boot-arg">joye@mind</span><span class="intro-boot-cursor">▌</span>`
+  overlay.appendChild(bootEl)
 
-  const tick = () => {
+  // === Render loop ===
+  let raf = 0
+  const tick = (time: number) => {
     raf = requestAnimationFrame(tick)
-    frameCount++
-    lastTickAt = performance.now()
+    const t = time * 0.001
+    tokenMat.uniforms.uTime.value = t
 
     // smooth camera parallax
-    camX.value += (mouseX * 16 - camX.value) * 0.05
-    camY.value += (mouseY * 10 - camY.value) * 0.05
+    camOffsetX += (mouseX * 0.6 - camOffsetX) * 0.05
+    camOffsetY += (mouseY * 0.4 - camOffsetY) * 0.05
+    // (parallax applied as small offset on top of GSAP-controlled camera)
 
-    ctx.clearRect(0, 0, W(), H())
-
-    // soft global alpha for the whole particle field — fades in/out per phase
-    let globalAlpha = 1
-    if (phase === 'enter') globalAlpha = Math.min(1, frameCount / 60)
-    else if (phase === 'reveal') globalAlpha = 1 - revealProgress
-
-    ctx.save()
-    ctx.translate(W() / 2 + camX.value, H() / 2 + camY.value)
-    ctx.scale(zoom.value, zoom.value)
-    ctx.translate(-W() / 2, -H() / 2)
-
-    const fontSize = isMobile ? 12 : 14
-    ctx.font = `${fontSize}px "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i]
-
-      // === Per-phase position update ===
-      if (phase === 'enter') {
-        // gsap is animating p.x / p.y directly via the timeline
-      } else if (phase === 'chaos') {
-        // drift
-        p.x += p.dx + Math.sin((frameCount + i * 7) * 0.02) * 0.35
-        p.y += p.dy + Math.cos((frameCount + i * 11) * 0.018) * 0.35
-        // bounce softly inside viewport
-        if (p.x < 0 || p.x > W()) p.dx *= -1
-        if (p.y < 0 || p.y > H()) p.dy *= -1
-      } else if (phase === 'assemble') {
-        // lerp toward target — easeout via assembleProgress
-        // stagger by index so the avatar forms organically
-        const stagger = Math.max(0, Math.min(1, (assembleProgress * 1.6) - (i / particles.length) * 0.5))
-        const e = easeInOutCubic(stagger)
-        // chaotic home position during assemble
-        const hx = p.tx + Math.sin((frameCount + i) * 0.04) * 6 * (1 - e)
-        const hy = p.ty + Math.cos((frameCount + i) * 0.035) * 6 * (1 - e)
-        p.x += (hx - p.x) * 0.12
-        p.y += (hy - p.y) * 0.12
-      } else if (phase === 'hold') {
-        // tiny breathing
-        p.x += (p.tx - p.x) * 0.2
-        p.y += (p.ty - p.y) * 0.2
-      } else if (phase === 'reveal') {
-        // burst outward
-        p.x += p.bx * (1 + revealProgress * 1.6)
-        p.y += p.by * (1 + revealProgress * 1.6)
-      }
-
-      // === Character switching (decode flicker) ===
-      p.switchIn -= 16
-      if (p.switchIn <= 0) {
-        if (phase === 'enter' || phase === 'chaos' || phase === 'reveal') {
-          p.char = pickChar('decode')
-          p.switchIn = 80 + Math.floor(Math.random() * 280)
-        } else if (phase === 'assemble') {
-          // shift from decode → dense as we approach the target
-          const density = assembleProgress
-          p.char = Math.random() < density
-            ? pickChar('dense')
-            : pickChar(Math.random() < 0.4 ? 'decode' : 'light')
-          p.switchIn = 120 + Math.floor(Math.random() * 240)
-        } else if (phase === 'hold') {
-          // rare flicker: mostly locked dense, occasional decode
-          p.char = Math.random() < 0.85
-            ? pickChar('dense')
-            : pickChar('decode')
-          p.switchIn = 220 + Math.floor(Math.random() * 480)
-        }
-      }
-
-      // === Render ===
-      const a = p.alpha * globalAlpha
-      if (a <= 0.01) continue
-      // Per-particle brightness — outline gets full white, fill stays primary.
-      const isOutline = phase !== 'enter' && phase !== 'reveal' && p.hasTarget && assembleProgress > 0.6
-      const lightness = isOutline ? 88 : 62
-      ctx.fillStyle = `hsla(${PRIMARY_HUE}, ${PRIMARY_SAT}%, ${lightness}%, ${a})`
-      ctx.fillText(p.char, p.x, p.y)
+    // Update token attributes
+    for (let i = 0; i < TOKEN_COUNT; i++) {
+      ;(fadeInAttr.array as Float32Array)[i] = state.fadeInGlobal
     }
+    fadeInAttr.needsUpdate = true
+    for (let i = 0; i < TOKEN_COUNT; i++) {
+      ;(convergeAttr.array as Float32Array)[i] = state.convergeGlobal
+      ;(materializeAttr.array as Float32Array)[i] = td_hasTarget(tokenData[i])
+        ? state.materializeGlobal
+        : 0
+    }
+    convergeAttr.needsUpdate = true
+    materializeAttr.needsUpdate = true
 
-    ctx.restore()
+    // Update line endpoints + colors
+    const linePosAttr = lineGeo.getAttribute('position') as THREE.BufferAttribute
+    const lineColAttr = lineGeo.getAttribute('color') as THREE.BufferAttribute
+    const tmpA = new THREE.Vector3()
+    const tmpB = new THREE.Vector3()
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i]
+      evalTokenPos(ln.a, tmpA)
+      evalTokenPos(ln.b, tmpB)
+      linePosAttr.array[i * 6] = tmpA.x
+      linePosAttr.array[i * 6 + 1] = tmpA.y
+      linePosAttr.array[i * 6 + 2] = tmpA.z
+      linePosAttr.array[i * 6 + 3] = tmpB.x
+      linePosAttr.array[i * 6 + 4] = tmpB.y
+      linePosAttr.array[i * 6 + 5] = tmpB.z
+
+      const brightness = 0.4 + 0.6 * state.linesActive
+      // simple flicker — both endpoints get same color for now
+      const flicker = 0.7 + 0.3 * Math.sin(t * 2 + i)
+      const ca = tokenData[ln.a].clusterIdx >= 0
+        ? CLUSTERS[tokenData[ln.a].clusterIdx].color
+        : PRIMARY
+      const cb = tokenData[ln.b].clusterIdx >= 0
+        ? CLUSTERS[tokenData[ln.b].clusterIdx].color
+        : PRIMARY
+      lineColAttr.array[i * 6] = ca.r * brightness * flicker
+      lineColAttr.array[i * 6 + 1] = ca.g * brightness * flicker
+      lineColAttr.array[i * 6 + 2] = ca.b * brightness * flicker
+      lineColAttr.array[i * 6 + 3] = cb.r * brightness * flicker
+      lineColAttr.array[i * 6 + 4] = cb.g * brightness * flicker
+      lineColAttr.array[i * 6 + 5] = cb.b * brightness * flicker
+    }
+    linePosAttr.needsUpdate = true
+    lineColAttr.needsUpdate = true
+
+    renderer.render(scene, camera)
   }
   raf = requestAnimationFrame(tick)
 
-  // Debug surface — dev only.
-  if (import.meta.env.DEV) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(window as any).__intro = {
-      get state() {
-        return {
-          phase,
-          frameCount,
-          assembleProgress: assembleProgress.toFixed(3),
-          revealProgress: revealProgress.toFixed(3),
-          lastTickAgoMs: Math.round(performance.now() - lastTickAt),
-          particleCount: particles.length,
-          targetCount: TARGET_COUNT
-        }
-      },
-      setPhase: (p: Phase) => {
-        phase = p
-      }
-    }
+  function td_hasTarget(t: TokenData) {
+    return t.hasTarget
   }
 
-  // === GSAP timeline ===
+  // === GSAP Timeline ===
   const tl = gsap.timeline({
     onComplete: cleanup,
-    onUpdate: () => {
-      // debug log
-    }
+    onUpdate: () => {}
   })
 
-  // Phase 1: ENTER — particles fly from off-screen to a scattered position.
-  // Tiny stagger so they trickle in (≈ 0.5s) without stretching the phase.
-  tl.to(particles, {
-    x: (_i: number, p: Particle) => p.tx + (Math.random() - 0.5) * W() * 0.8,
-    y: (_i: number, p: Particle) => p.ty + (Math.random() - 0.5) * H() * 0.8,
-    alpha: 1,
-    duration: 1.3,
-    ease: 'power3.out',
-    stagger: { each: 0.0002, from: 'random' }
-  })
-  tl.add(() => {
-    phase = 'chaos'
-    // remember chaos home positions
-    for (const p of particles) {
-      p.dx = (Math.random() - 0.5) * 0.7
-      p.dy = (Math.random() - 0.5) * 0.7
-    }
-  })
-
-  // Phase 2: CHAOS — let it breathe for ~2s
-  tl.to({}, { duration: 2.0 })
-
-  // Phase 3: ASSEMBLE — drive assembleProgress 0 → 1, then settle.
-  tl.add(() => {
-    phase = 'assemble'
-  })
-  tl.to(
-    { v: 0 },
-    {
-      v: 1,
-      duration: 2.5,
-      ease: 'power2.inOut',
-      onUpdate: function () {
-        assembleProgress = this.targets()[0].v
-      }
-    }
+  // Phase 1: BOOT — boot text fades in and out.
+  tl.fromTo(
+    bootEl,
+    { opacity: 0, y: 8 },
+    { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
   )
-  // gentle zoom-in during the last 30% of assemble
-  tl.to(zoom, { value: 1.08, duration: 1.0, ease: 'power2.out' }, '-=1.0')
+  tl.to({}, { duration: 0.6 })
+  tl.to(bootEl, { opacity: 0, y: -8, duration: 0.4, ease: 'power2.in' })
 
-  // Phase 4: HOLD — let the avatar breathe for 1s
-  tl.add(() => {
-    phase = 'hold'
-  })
-  tl.to({}, { duration: 1.0 })
-
-  // Phase 5: REVEAL — chars burst, overlay dissolves, hero zooms in.
-  tl.add(() => {
-    phase = 'reveal'
-    // assign burst velocities (radial from canvas center, scaled by distance)
-    for (const p of particles) {
-      const dx = p.x - cx
-      const dy = p.y - cy
-      const len = Math.hypot(dx, dy) || 1
-      const speed = 1.5 + Math.random() * 3.5
-      p.bx = (dx / len) * speed
-      p.by = (dy / len) * speed
-    }
-  })
+  // Phase 2: DIVE — camera swoops into the cluster cloud.
+  // First appear tokens (fade in), then attention lines.
+  tl.to(state, { fadeInGlobal: 1, duration: 1.4, ease: 'power2.out' }, '<+0.1')
+  tl.to(state, { linesActive: 1, duration: 0.8, ease: 'power2.out' }, '<+0.6')
   tl.to(
-    { v: 0 },
+    camera.position,
     {
-      v: 1,
-      duration: 1.2,
-      ease: 'power2.in',
-      onUpdate: function () {
-        revealProgress = this.targets()[0].v
+      x: 0,
+      y: 0,
+      z: revealCamZ,
+      duration: 3.3,
+      ease: 'power3.inOut',
+      onUpdate: () => {
+        // Keep the camera looking at the scene origin so the avatar silhouette
+        // (positioned at avatarCenterWorldX/Y) ends up at the same screen
+        // location as the real hero <img>.
+        camera.lookAt(0, 0, 0)
       }
-    }
+    },
+    '<'
   )
 
-  // overlay dissolves during the last 0.6s of reveal
+  // Phase 3: CONVERGE — tokens fall toward the global center.
+  tl.to(state, {
+    convergeGlobal: 1,
+    duration: 2.5,
+    ease: 'power2.inOut'
+  })
+  tl.to(state, { linesActive: 0.35, duration: 1.5, ease: 'power2.out' }, '<')
+
+  // Phase 4: MATERIALIZE — tokens lerp onto avatar silhouette targets.
+  tl.to(state, {
+    materializeGlobal: 1,
+    duration: 1.4,
+    ease: 'power3.inOut'
+  })
+  tl.to(state, { linesActive: 0, duration: 0.6, ease: 'power2.out' }, '<')
+
+  // Phase 5: REVEAL — overlay dissolves, hero zooms in.
   tl.to(overlay, {
     opacity: 0,
     duration: 0.6,
     ease: 'power2.inOut',
     onComplete: () => overlay.classList.add('intro-hidden')
-  }, '-=0.6')
+  }, '+=0.2')
 
-  // unlock page so GSAP can drive hero transitions
   tl.add(() => {
     document.documentElement.classList.remove('intro-active')
     document.documentElement.classList.add('intro-hidden')
@@ -429,14 +599,13 @@ async function runIntro() {
     duration: 1.0,
     ease: 'power3.out'
   }, '<+0.02')
-
   tl.to('#content', {
     scale: 1,
     opacity: 1,
     filter: 'blur(0px)',
     duration: 1.0,
     ease: 'power3.out'
-  }, '<+0.1')
+  }, '<+0.08')
 
   // === Cleanup ===
   let cleaned = false
@@ -447,13 +616,17 @@ async function runIntro() {
     cancelAnimationFrame(raf)
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('resize', resize)
+    if (bootEl.parentNode) bootEl.parentNode.removeChild(bootEl)
+    renderer.dispose()
+    tokenGeo.dispose()
+    tokenMat.dispose()
+    lineGeo.dispose()
+    lineMat.dispose()
     if (overlay) overlay.classList.add('intro-done')
     document.documentElement.classList.remove('intro-active')
     document.documentElement.classList.remove('intro-hidden')
     gsap.set(['#content-header', '#content'], { clearProps: 'all' })
 
-    // Notify the JoJo tour (and any other listeners) that the intro is done.
-    // Set the flag first so listeners attaching after the event still see it.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(window as any).__introDone = true
     window.dispatchEvent(new CustomEvent('intro:complete'))
@@ -462,25 +635,21 @@ async function runIntro() {
   const fallback = setTimeout(() => {
     console.warn('[intro] hard timeout, forcing reveal')
     cleanup()
-  }, 12000)
+  }, 16000)
+
+  // Dev hook.
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).__intro = {
+      state,
+      camera,
+      scene,
+      tl
+    }
+  }
 }
 
-/** Pick a random character from one of the palette buckets. */
-function pickChar(kind: 'dense' | 'light' | 'decode'): string {
-  const set = CHARS[kind]
-  return set[Math.floor(Math.random() * set.length)]
-}
-
-/** Cubic ease-in-out, for manual lerp curves. */
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-}
-
-/**
- * Load the avatar PNG, draw it onto a small hidden canvas, and sample
- * the alpha channel to extract silhouette points. Returns an array of
- * { x, y } in the [-110, 110] range (i.e. centered around 0,0).
- */
+/** Load avatar PNG and sample alpha-channel silhouette points (in [-110, 110]). */
 async function loadSilhouettePoints(src: string): Promise<{ x: number; y: number }[]> {
   if (!src) return []
   const img = new Image()
@@ -498,9 +667,6 @@ async function loadSilhouettePoints(src: string): Promise<{ x: number; y: number
   c.height = SIZE
   const cx = c.getContext('2d', { willReadFrequently: true })
   if (!cx) return []
-
-  // Fill black background, then draw the avatar on top. We sample on alpha
-  // since the source PNG has transparency around the head.
   cx.drawImage(img, 0, 0, SIZE, SIZE)
   const data = cx.getImageData(0, 0, SIZE, SIZE).data
 
@@ -510,7 +676,6 @@ async function loadSilhouettePoints(src: string): Promise<{ x: number; y: number
     for (let x = 0; x < SIZE; x += STEP) {
       const i = (y * SIZE + x) * 4
       const alpha = data[i + 3]
-      // also require some brightness so we don't sample fully-transparent edges
       const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3
       if (alpha > 100 && brightness > 60) {
         points.push({ x: x - SIZE / 2, y: y - SIZE / 2 })
@@ -520,7 +685,6 @@ async function loadSilhouettePoints(src: string): Promise<{ x: number; y: number
   return points
 }
 
-/** Safety net — if anything fails to boot, just reveal the page. */
 function revealImmediately() {
   const overlay = document.getElementById('intro-overlay')
   const doc = document.documentElement
@@ -528,4 +692,8 @@ function revealImmediately() {
   doc.classList.remove('intro-hidden')
   doc.classList.add('intro-skip')
   if (overlay) overlay.classList.add('intro-done')
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(window as any).__introDone = true
+  window.dispatchEvent(new CustomEvent('intro:complete'))
 }
