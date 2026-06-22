@@ -32,15 +32,12 @@ const {
   enHero = false
 } = Astro.props
 
-const {
-  description,
-  publishDate,
-  title,
-  updatedDate
-} = data
+const { description, publishDate, title, updatedDate } = data
 
-// English mirrors (id ends in `.en`) reuse the Chinese post's OG image.
-const socialImage = `/og/blog/${id.replace(/\.en$/, '')}.png`
+const socialImage =
+  enHero && data.translationKey
+    ? `/og/blog/en/${data.translationKey}.png`
+    : `/og/blog/${id.replace(/\.en$/, '')}.png`
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
 ---
