@@ -1,28 +1,29 @@
 ---
-import { Footer } from 'astro-pure/components/basic'
-import type { SiteMeta } from 'astro-pure/types'
+import { getLangFromUrl } from '@/i18n/ui'
 import Analytics from '@vercel/analytics/astro'
 import SpeedInsights from '@vercel/speed-insights/astro'
+
+import { Footer } from 'astro-pure/components/basic'
+import type { SiteMeta } from 'astro-pure/types'
 import BaseHead from '@/components/BaseHead.astro'
+import ViewCounter from '@/components/comment/ViewCounter.astro'
 import Header from '@/components/Header.astro'
-import ThemeProvider from '@/components/ThemeProvider.astro'
 import DevModeHost from '@/components/terminal/DevModeHost'
 import { buildSiteFs } from '@/components/terminal/fs/server'
-import ViewCounter from '@/components/comment/ViewCounter.astro'
+import ThemeProvider from '@/components/ThemeProvider.astro'
 import config from '@/site-config'
-import { getLangFromUrl } from '@/i18n/ui'
 
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseLayout /> component.
 import '@/assets/styles/app.css'
 
 interface Props {
-  meta: SiteMeta
+  meta: SiteMeta & { noindex?: boolean }
   highlightColor?: string
 }
 
 const {
-  meta: { articleDate, description = config.description, ogImage, title },
+  meta: { articleDate, description = config.description, noindex, ogImage, title },
   highlightColor,
   ...props
 } = Astro.props
@@ -36,7 +37,7 @@ const fs = await buildSiteFs()
 
 <html lang={htmlLang}>
   <head>
-    <BaseHead {articleDate} {description} {ogImage} {title} />
+    <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
     <ThemeProvider />
   </head>
 

@@ -1,18 +1,22 @@
 ---
 // import { ClientRouter } from 'astro:transitions'
 
+import { hasEnVersion } from '@/i18n/translations'
+import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+
 import type { SiteMeta } from 'astro-pure/types'
 import config from '@/site-config'
-import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
-import { hasEnVersion } from '@/i18n/translations'
 
-type Props = SiteMeta
+type Props = SiteMeta & {
+  noindex?: boolean
+}
 
-const { articleDate, description, ogImage, title } = Astro.props
+const { articleDate, description, noindex = false, ogImage, title } = Astro.props
 
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 const socialImageURL = new URL(ogImage ? ogImage : '/og/default.png', Astro.url).href
+const socialImageAlt = `${title} social preview`
 
 // Bilingual SEO: per-language og:locale, and hreflang alternates only for pages
 // that exist in both languages (never fabricate an /en URL for zh-only content).
@@ -56,19 +60,17 @@ const hreflangAlternates = hasAlt
 <link rel='canonical' href={canonicalURL} />
 
 {/* hreflang alternates — only for pages that exist in both languages */}
-{
-  hreflangAlternates.map((alt) => (
-    <link rel='alternate' hreflang={alt.hreflang} href={alt.href} />
-  ))
-}
+{hreflangAlternates.map((alt) => <link rel='alternate' hreflang={alt.hreflang} href={alt.href} />)}
 
 {/* Primary Meta Tags */}
 <meta content={siteTitle} name='title' />
 <meta content={description} name='description' />
 <meta content={config.author} name='author' />
+<meta content={noindex ? 'noindex, follow' : 'index, follow'} name='robots' />
 
 {/* Theme Color */}
-<meta content='' name='theme-color' />
+<meta content='hsl(210 33% 99%)' media='(prefers-color-scheme: light)' name='theme-color' />
+<meta content='hsl(240 20.54% 5.2%)' media='(prefers-color-scheme: dark)' name='theme-color' />
 
 {/* Open Graph / Facebook */}
 <meta content={articleDate ? 'article' : 'website'} property='og:type' />
@@ -79,6 +81,7 @@ const hreflangAlternates = hasAlt
 <meta content={ogLocale} property='og:locale' />
 {ogLocaleAlternate && <meta content={ogLocaleAlternate} property='og:locale:alternate' />}
 <meta content={socialImageURL} property='og:image' />
+<meta content={socialImageAlt} property='og:image:alt' />
 <meta content='1200' property='og:image:width' />
 <meta content='630' property='og:image:height' />
 {
@@ -96,9 +99,10 @@ const hreflangAlternates = hasAlt
 <meta content={title} property='twitter:title' />
 <meta content={description} property='twitter:description' />
 <meta content={socialImageURL} property='twitter:image' />
+<meta content={socialImageAlt} property='twitter:image:alt' />
 
 {/* Sitemap */}
-<link href='/sitemap-index.xml' rel='sitemap' />
+<link href='/sitemap-index.xml' rel='sitemap' type='application/xml' />
 
 {/* RSS auto-discovery */}
 <link
