@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>mascot lab · joye.sh</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #121821;
+    --border: #1f2733;
+    --fg: #e6edf3;
+    --muted: #7d8590;
+    --primary: #8ec4db;
+    --accent: #f0b86c;
+    --ok: #7ee2b8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 56px 32px 120px; }
+  header h1 { font-size: 28px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin: 0 0 40px; font-size: 14px; max-width: 540px; line-height: 1.5; }
+  header code { font-family: 'JetBrains Mono', monospace; background: var(--panel); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px 20px;
+    display: flex; flex-direction: column;
+    min-height: 320px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+    cursor: pointer;
+  }
+  .card:hover { border-color: #2f3a4a; transform: translateY(-2px); }
+  .card.picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .card-idx {
+    position: absolute; top: 14px; right: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--muted);
+  }
+  .stage {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 180px;
+    position: relative;
+  }
+  .meta {
+    border-top: 1px dashed var(--border);
+    padding-top: 14px;
+    margin-top: 16px;
+  }
+  .meta-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .meta-desc {
+    font-size: 12.5px; color: var(--muted); line-height: 1.5;
+  }
+  .pick-hint {
+    display: inline-block; margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--accent); opacity: 0; transition: opacity .2s;
+  }
+  .card.picked .pick-hint { opacity: 1; }
+
+  /* ---------- shared mascot styles ---------- */
+
+  /* soft breathing */
+  @keyframes breathe {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+  }
+  .breathe { animation: breathe 3.2s ease-in-out infinite; }
+
+  /* ---------- #1 cube-bot: classic rounded cube ---------- */
+  .cube1 {
+    width: 110px; height: 110px;
+    background: linear-gradient(145deg, #a8d5ea, #6fa9c4);
+    border-radius: 22px;
+    position: relative;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.25),
+      inset 0 -3px 0 rgba(0,0,0,0.15),
+      0 20px 40px -20px rgba(142,196,219,0.4);
+  }
+  .cube1::before, .cube1::after {
+    content: '';
+    position: absolute;
+    width: 12px; height: 16px;
+    background: #0d1117;
+    border-radius: 4px;
+    top: 40px;
+  }
+  .cube1::before { left: 28px; }
+  .cube1::after { right: 28px; }
+  .cube1 .mouth {
+    position: absolute;
+    left: 50%; transform: translateX(-50%);
+    bottom: 26px;
+    width: 22px; height: 6px;
+    background: #0d1117;
+    border-radius: 0 0 8px 8px;
+  }
+  .cube1 .blush-l, .cube1 .blush-r {
+    position: absolute; top: 60px;
+    width: 10px; height: 5px;
+    background: rgba(240, 120, 120, 0.35);
+    border-radius: 50%;
+  }
+  .cube1 .blush-l { left: 18px; }
+  .cube1 .blush-r { right: 18px; }
+
+  /* ---------- #2 pixel-block: chunky 8-bit voxel ---------- */
+  .cube2 {
+    width: 120px; height: 120px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 1px;
+    image-rendering: pixelated;
+  }
+  .cube2 span {
+    background: var(--primary);
+    opacity: 0.9;
+  }
+  .cube2 .dark { background: #4a7c92; opacity: 1; }
+  .cube2 .shade { background: #5d91a8; opacity: 1; }
+  .cube2 .eye { background: #0d1117; border-radius: 1px; }
+  .cube2 .mouth { background: #0d1117; }
+
+  /* ---------- #3 wireframe cube: line-drawn agent ---------- */
+  .cube3 {
+    width: 140px; height: 140px;
+    position: relative;
+  }
+  .cube3 svg { width: 100%; height: 100%; display: block; }
+  .cube3 .stroke { stroke: var(--primary); stroke-width: 2; fill: none; stroke-linejoin: round; }
+  .cube3 .fill { fill: rgba(142,196,219,0.08); }
+  .cube3 .eye-g { fill: var(--primary); }
+
+  /* ---------- #4 CRT agent: scanline cube with antennae ---------- */
+  .cube4 {
+    width: 120px; height: 120px;
+    background: #1a2330;
+    border: 2px solid var(--primary);
+    border-radius: 14px;
+    position: relative;
+    box-shadow:
+      inset 0 0 24px rgba(142,196,219,0.25),
+      0 0 20px rgba(142,196,219,0.15);
+    overflow: hidden;
+  }
+  .cube4::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 3px,
+      rgba(142,196,219,0.06) 3px 4px
+    );
+    pointer-events: none;
+  }
+  .cube4 .ant-l, .cube4 .ant-r {
+    position: absolute; top: -18px;
+    width: 2px; height: 16px;
+    background: var(--primary);
+  }
+  .cube4 .ant-l { left: 28px; }
+  .cube4 .ant-r { right: 28px; }
+  .cube4 .ant-l::after, .cube4 .ant-r::after {
+    content: '';
+    position: absolute;
+    top: -6px; left: -3px;
+    width: 8px; height: 8px;
+    background: var(--ok);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--ok);
+    animation: blink-led 2s ease-in-out infinite;
+  }
+  @keyframes blink-led {
+    0%, 90%, 100% { opacity: 1; }
+    95% { opacity: 0.3; }
+  }
+  .cube4 .screen-text {
+    position: absolute; left: 0; right: 0; top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--primary);
+    letter-spacing: 2px;
+    font-weight: 600;
+  }
+
+  /* ---------- #5 ascii cube: pure text mascot ---------- */
+  .cube5 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px; line-height: 1.1;
+    color: var(--primary);
+    white-space: pre;
+    letter-spacing: 1px;
+  }
+  .cube5 .eye { display: inline-block; width: 1ch; }
+
+  /* ---------- #6 soft-gradient blob cube ---------- */
+  .cube6 {
+    width: 120px; height: 120px;
+    border-radius: 30px;
+    background: radial-gradient(ellipse at 30% 25%, #d4f0ff 0%, #8ec4db 45%, #5d91a8 100%);
+    position: relative;
+    box-shadow:
+      inset 0 -8px 20px rgba(0,0,0,0.2),
+      inset 0 4px 8px rgba(255,255,255,0.4),
+      0 16px 40px -10px rgba(142,196,219,0.3);
+  }
+  .cube6 .eyes {
+    position: absolute;
+    top: 44px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 18px;
+  }
+  .cube6 .eye {
+    width: 14px; height: 14px;
+    background: #0d1117;
+    border-radius: 50%;
+    position: relative;
+  }
+  .cube6 .eye::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 4px;
+    width: 4px; height: 4px;
+    background: #fff;
+    border-radius: 50%;
+  }
+  .cube6 .smile {
+    position: absolute;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    width: 20px; height: 10px;
+    border: 2px solid #0d1117;
+    border-top: none;
+    border-radius: 0 0 20px 20px;
+  }
+
+  /* speech bubble common */
+  .bubble {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: #1a2330;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--fg);
+    max-width: 140px;
+    line-height: 1.3;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity .3s, transform .3s;
+    pointer-events: none;
+  }
+  .bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; left: 20px;
+    width: 8px; height: 8px;
+    background: #1a2330;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+  }
+  .card:hover .bubble { opacity: 1; transform: translateY(0); }
+
+  /* footer */
+  .footer {
+    margin-top: 40px;
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .footer b { color: var(--fg); }
+  .footer code { font-family: 'JetBrains Mono', monospace; color: var(--accent); background: #0d1117; padding: 1px 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>mascot lab</h1>
+    <p>六个会呼吸的方块体方向。每只都有自己的性格 —— hover 卡片能听它说一句。点选你喜欢的方向，告诉我哪个，我再做动画精调 + 集成到主站。</p>
+  </header>
+
+  <div class="grid" id="grid">
+
+    <!-- #1 -->
+    <div class="card" data-idx="01" onclick="pick(this)">
+      <div class="card-idx">01</div>
+      <div class="stage">
+        <div class="bubble">hey, building something?</div>
+        <div class="cube1 breathe mascot" data-eyes="cube1">
+          <span class="blush-l"></span>
+          <span class="blush-r"></span>
+          <span class="mouth"></span>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="meta-name">soft-cube</div>
+        <div class="meta-desc">圆角 + 腮红 + 简单眼睛。友好、近人,像 Duolingo 但更克制。</div>
+        <div class="pick-hint">✓ selected</div>
+      </div>
+    </div>
+
+    <!-- #2 -->
+    <div class="card" data-idx="02" onclick="pick(this)">
+      <div class="card-idx">02</div>
+      <div class="stage">
+        <div class="bubble">compiling thoughts...</div>
+        <div class="cube2 breathe mascot" id="pixel-cube" data-eyes="cube2"></div>
+      </div>
+      <div class="meta">
+        <div class="meta-name">voxel-pixel</div>
+        <div class="meta-desc">6×6 像素方块,每一格可独立亮灭。能做"思考"脉冲、打招呼等更丰富的动画。</div>
+        <div class="pick-hint">✓ selected</div>
+      </div>
+    </div>
+
+    <!-- #3 -->
+    <div class="card" data-idx="03" onclick="pick(this)">
+      <div class="card-idx">03</div>
+      <div class="stage">
+        <div class="bubble">hmm let me think.</div>
+        <div class="cube3 breathe mascot" data-eyes="cube3">
+          <svg viewBox="0 0 140 140">
+            <!-- isometric cube wireframe -->
+            <path class="fill" d="M70 20 L120 45 L120 95 L70 120 L20 95 L20 45 Z"/>
+            <path class="stroke" d="M70 20 L120 45 L120 95 L70 120 L20 95 L20 45 Z"/>
+            <path class="stroke" d="M70 20 L70 70 M20 45 L70 70 M120 45 L70 70"/>
+            <!-- eyes on front face -->
+            <circle class="eye-g" cx="50" cy="78" r="3.5"/>
+            <circle class="eye-g" cx="90" cy="78" r="3.5"/>
+            <!-- small smile -->
+            <path class="stroke" d="M58 92 Q70 98 82 92" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="meta-name">wire-iso</div>
+        <div class="meta-desc">等距透视线框立方体。技术感、代理感强,像 CAD 里跑出来的小生灵。</div>
+        <div class="pick-hint">✓ selected</div>
+      </div>
+    </div>
+
+    <!-- #4 -->
+    <div class="card" data-idx="04" onclick="pick(this)">
+      <div class="card-idx">04</div>
+      <div class="stage">
+        <div class="bubble">agent online</div>
+        <div class="cube4 breathe mascot" data-eyes="cube4">
+          <div class="ant-l"></div>
+          <div class="ant-r"></div>
+          <div class="screen-text" id="crt-text">◕ ◡ ◕</div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="meta-name">crt-agent</div>
+        <div class="meta-desc">CRT 屏幕 + 天线 + 心跳指示灯。脸是屏幕内容,可以随时切换成符号/小动画。</div>
+        <div class="pick-hint">✓ selected</div>
+      </div>
+    </div>
+
+    <!-- #5 -->
+    <div class="card" data-idx="05" onclick="pick(this)">
+      <div class="card-idx">05</div>
+      <div class="stage">
+        <div class="bubble">$ echo hi</div>
+        <pre class="cube5 breathe mascot" id="ascii-mascot" data-eyes="cube5">┌──────┐
+│ <span class="eye" id="ae1">●</span>  <span class="eye" id="ae2">●</span> │
+│   ᴗ  │
+└──────┘
+  │  │
+  ┴  ┴</pre>
+      </div>
+      <div class="meta">
+        <div class="meta-name">ascii-pet</div>
+        <div class="meta-desc">纯 ASCII。跟终端同构,在 neofetch 左侧完全和谐。眼睛/嘴能按字符动。</div>
+        <div class="pick-hint">✓ selected</div>
+      </div>
+    </div>
+
+    <!-- #6 -->
+    <div class="card" data-idx="06" onclick="pick(this)">
+      <div class="card-idx">06</div>
+      <div class="stage">
+        <div class="bubble">(◕‿◕)</div>
+        <div class="cube6 breathe mascot" data-eyes="cube6">
+          <div class="eyes">
+            <div class="eye"></div>
+            <div class="eye"></div>
+          </div>
+          <div class="smile"></div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="meta-name">blob-cube</div>
+        <div class="meta-desc">渐变 + 高光,更柔软接近 3D。像 Apple memoji 那种果冻体的方块版。</div>
+        <div class="pick-hint">✓ selected</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <b>下一步</b> &nbsp; 告诉我你倾向哪个编号(或几个混搭方向)。然后我会:
+    <br>· 把动画精调(呼吸节奏、眨眼时机、说话口型、眼球追踪光标)
+    <br>· 设计它在 <code>human mode</code> 的位置(角落徘徊/偶尔冒泡)
+    <br>· 让它在 <code>dev mode</code> 也在 ,替代现在 neofetch 左侧的 ASCII
+    <br>· 给它一个名字
+  </div>
+</div>
+
+<script>
+  // ============ Build #2 pixel-cube face ============
+  // 6x6 grid: we'll place eyes at (1,2),(1,3) and (4,2),(4,3) — wait, col-major.
+  // row 0: ░░░░░░
+  // row 1: ░░░░░░
+  // row 2: ░██░░██░  <- eyes
+  // row 3: ░░░░░░
+  // row 4: ░░██░█░  <- mouth
+  // row 5: ░░░░░░
+  (function () {
+    const el = document.getElementById('pixel-cube');
+    const grid = [
+      'ssssss',
+      'sdddddss',  // will slice
+    ];
+    // simpler: construct 36 cells
+    const cells = [
+      // r0
+      '.','.','.','.','.','.',
+      // r1
+      '.','s','s','s','s','.',
+      // r2 - eyes
+      '.','e','.','.','e','.',
+      // r3
+      '.','s','s','s','s','.',
+      // r4 - mouth
+      '.','.','m','m','.','.',
+      // r5
+      '.','.','.','.','.','.',
+    ];
+    for (const c of cells) {
+      const span = document.createElement('span');
+      if (c === '.') span.style.background = 'transparent';
+      else if (c === 's') span.className = 'shade';
+      else if (c === 'e') span.className = 'eye';
+      else if (c === 'm') span.className = 'mouth';
+      el.appendChild(span);
+    }
+  })();
+
+  // ============ CRT face cycling ============
+  (function () {
+    const el = document.getElementById('crt-text');
+    const faces = ['◕ ◡ ◕', '◔ ◡ ◔', '◕ ◡ ◕', '◕ ◡ ◕', '- ◡ -', '◕ ◡ ◕'];
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % faces.length;
+      el.textContent = faces[i];
+    }, 2200);
+  })();
+
+  // ============ ASCII mascot blinks ============
+  (function () {
+    const e1 = document.getElementById('ae1');
+    const e2 = document.getElementById('ae2');
+    function blink() {
+      e1.textContent = '_';
+      e2.textContent = '_';
+      setTimeout(() => { e1.textContent = '●'; e2.textContent = '●'; }, 140);
+    }
+    setInterval(blink, 3800);
+  })();
+
+  // ============ Pick highlight ============
+  function pick(card) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('picked'));
+    card.classList.add('picked');
+  }
+</script>
+</body>
+</html>
