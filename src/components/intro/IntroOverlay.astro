@@ -1,30 +1,24 @@
 ---
 /**
- * IntroOverlay — cinematic ASCII-particle entry animation.
+ * IntroOverlay — "joye.log" cinematic entry animation.
  *
  * Strategy:
- * 1. SSR renders a dark overlay shell (#intro-overlay) + canvas immediately.
+ * 1. SSR renders a dark overlay shell with:
+ *    - a boot line (`> cat joye.log`) for the typewriter
+ *    - all log lines from src/data/joye-log.ts already in the DOM
+ *      (hidden via CSS, revealed staggered by the client script)
  * 2. An inline script in <head> runs ASAP to decide whether to play:
  *    - skip if sessionStorage says we've played this session
  *    - skip if prefers-reduced-motion
- *    - otherwise lock the page (`intro-active` class)
- * 3. The heavy logic is lazy-loaded via a module script so it never blocks
- *    first paint of the document.
- * 4. The avatar PNG import URL is passed as a data attribute so the client
- *    can sample its silhouette without an extra fetch round-trip.
- * 5. A dev-only replay button lets you re-watch the animation locally.
+ *    - otherwise lock the page (`intro-active` class) + scroll to top
+ * 3. The client logic (src/scripts/intro.ts) drives the typewriter,
+ *    log cascade, coalesce, and reveal via plain DOM + CSS transitions.
  */
-import avatar from 'src/assets/avatar.png'
+import { JOYE_LOG } from '@/data/joye-log'
 import './intro.css'
 
 const isDev = import.meta.env.DEV
 ---
-
-{
-  /* Inline script — runs synchronously during <head> parse, before body exists.
-     Sets a class on <html> so CSS can hide the overlay immediately if needed,
-     without waiting for any JS bundle. */
-}
 
 <script is:inline>
   ;(function () {
@@ -36,10 +30,6 @@ const isDev = import.meta.env.DEV
         doc.classList.add('intro-skip')
       } else {
         doc.classList.add('intro-active')
-        // Lock scroll restoration so reload doesn't dump the visitor back at
-        // wherever they were last (e.g. mid-page from a previous tour test).
-        // Without this, the hero <img> ends up off-screen and every position
-        // calc downstream is wrong.
         if ('scrollRestoration' in history) {
           history.scrollRestoration = 'manual'
         }
@@ -54,9 +44,40 @@ const isDev = import.meta.env.DEV
   })()
 </script>
 
-<div id='intro-overlay' aria-hidden='true' data-avatar={avatar.src}>
-  <canvas id='intro-canvas'></canvas>
+<div id='intro-overlay' aria-hidden='true'>
+  <div id='intro-log'>
+    <div class='intro-boot'>
+      <span class='intro-boot-prompt'>&gt;</span>
+      <span class='intro-boot-text' data-typewriter='cat joye.log'></span><span
+        class='intro-boot-cursor'
+        aria-hidden='true'
+      ></span>
+    </div>
+
+    <div id='intro-log-list'>
+      {
+        JOYE_LOG.map((entry) => (
+          <div class='intro-log-line' data-type={entry.type}>
+            <span class='intro-log-stamp'>{entry.stamp}</span>
+            <span class='intro-log-sep' aria-hidden='true'>
+              ┄┄┄
+            </span>
+            <span class='intro-log-title'>{entry.title}</span>
+            {entry.meta && <span class='intro-log-meta'>{entry.meta}</span>}
+          </div>
+        ))
+      }
+    </div>
+
+    <div class='intro-log-footer intro-hidden-init'>
+      <span class='intro-log-footer-text'>18 entries · 12 posts · 2 repos · 4 roles</span>
+    </div>
+  </div>
 </div>
+
+<script>
+  import '@/scripts/intro.ts'
+</script>
 
 {
   isDev && (
@@ -69,10 +90,6 @@ const isDev = import.meta.env.DEV
   )
 }
 
-<script>
-  import '@/scripts/intro.ts'
-</script>
-
 {
   isDev && (
     <script is:inline>
@@ -84,8 +101,6 @@ const isDev = import.meta.env.DEV
             sessionStorage.removeItem('intro-played')
             sessionStorage.removeItem('tour-played')
           } catch (e) {}
-          // Prevent the browser from restoring the previous scroll position
-          // after reload — the intro should always start from the top.
           if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual'
           }

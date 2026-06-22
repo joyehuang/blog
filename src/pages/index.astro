@@ -17,7 +17,7 @@ import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
 import { formatTalkDateCN, sortTalks } from '@/lib/talks'
 import IntroOverlay from '@/components/intro/IntroOverlay.astro'
-import JoJoTour from '@/components/intro/JoJoTour.astro'
+// import JoJoTour from '@/components/intro/JoJoTour.astro'
 
 export const prerender = true
 
@@ -94,7 +94,6 @@ const latestTalk = talks[0]
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
   <IntroOverlay />
-  <JoJoTour />
   <main class='flex w-full flex-col items-center'>
     <section
       class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'

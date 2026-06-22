@@ -1,4 +1,4 @@
-/* ===== Intro Cinematic Overlay ===== */
+/* ===== joye.log — Cinematic Entry ===== */
 
 /* Lock the page while the intro is playing. */
 html.intro-active {
@@ -6,42 +6,47 @@ html.intro-active {
   height: 100vh;
 }
 
-/* Suppress the default `.animate` fade-in-up so it doesn't run behind the overlay.
-   GSAP takes over the hero zoom-in once the overlay starts dissolving. */
+/* Suppress the default `.animate` fade-in-up so it doesn't run behind the
+   overlay. GSAP / CSS transitions take over the hero zoom-in on reveal. */
 html.intro-active .animate {
   animation: none !important;
 }
 
-/* Hero starts in a zoomed-in / blurred state; GSAP animates it back to neutral.
-   ID selector (1,1,1) outranks the .animate rule (0,2,1) so opacity:0 wins. */
+/* Hero starts hidden in a zoomed/blur state; revealed on outro. */
 html.intro-active #content-header,
 html.intro-active #content {
   opacity: 0;
-  transform: scale(0.94);
+  transform: scale(0.96);
   filter: blur(8px);
   transition: none;
   will-change: transform, opacity, filter;
 }
 
-/* If the visitor already saw the intro this session, skip entirely. */
+/* Skip-state visitors see no overlay at all. */
 html.intro-skip #intro-overlay {
   display: none !important;
 }
 
-/* Full-screen cinematic overlay. Background is mostly opaque so the
-   cinematic reads clean, but a hair of translucency lets the hero
-   silhouette bleed through once tokens get close to their target
-   positions — making the handoff feel continuous. */
+/* === Overlay shell — soft dark, not pitch black === */
 #intro-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
+  /* Layered radial gradients give the overlay depth without being a flat
+     black slab. ~96% opacity overall so the hero's silhouette can bleed
+     through subtly during the final coalesce → reveal handoff. */
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(50, 75, 95, 0.22) 0%, rgba(5, 8, 12, 0) 60%),
-    radial-gradient(circle at center, rgba(10, 15, 21, 0.94) 0%, rgba(5, 7, 9, 0.98) 100%);
+    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(56, 92, 120, 0.18) 0%, rgba(8, 14, 22, 0) 60%),
+    radial-gradient(circle at 30% 20%, rgba(40, 60, 80, 0.08) 0%, rgba(0, 0, 0, 0) 50%),
+    radial-gradient(circle at center, rgb(10, 15, 21) 0%, rgb(5, 8, 11) 100%);
   opacity: 1;
-  transition: opacity 0.4s ease-out;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  color: hsl(200, 22%, 78%);
 }
 
 #intro-overlay.intro-hidden {
@@ -52,68 +57,15 @@ html.intro-skip #intro-overlay {
   display: none;
 }
 
-#intro-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* === Boot text (Phase 1 terminal line) === */
-.intro-boot-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 17px;
-  letter-spacing: 0.5px;
-  color: hsl(195, 45%, 78%);
-  text-shadow:
-    0 0 12px rgba(123, 184, 212, 0.5),
-    0 0 28px rgba(123, 184, 212, 0.25);
-  white-space: nowrap;
-  z-index: 1;
-  pointer-events: none;
-}
-.intro-boot-prompt {
-  color: hsl(195, 60%, 65%);
-  margin-right: 6px;
-}
-.intro-boot-cmd {
-  color: hsl(195, 35%, 88%);
-}
-.intro-boot-arg {
-  color: hsl(180, 50%, 70%);
-  margin-left: 6px;
-}
-.intro-boot-cursor {
-  display: inline-block;
-  margin-left: 4px;
-  color: hsl(195, 60%, 65%);
-  animation: intro-boot-blink 0.9s steps(2) infinite;
-}
-@keyframes intro-boot-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  50.01%,
-  100% {
-    opacity: 0;
-  }
-}
-
-/* Subtle scanline pattern over the overlay — reinforces terminal DNA. */
+/* Subtle scanline pattern — barely visible, reinforces terminal DNA. */
 #intro-overlay::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(255, 255, 255, 0.018) 0px,
-    rgba(255, 255, 255, 0.018) 1px,
+    rgba(255, 255, 255, 0.012) 0px,
+    rgba(255, 255, 255, 0.012) 1px,
     transparent 1px,
     transparent 3px
   );
@@ -126,10 +78,203 @@ html.intro-skip #intro-overlay {
   transition: opacity 0.3s;
 }
 
-/* Respect reduced-motion: never show the overlay. */
+/* === Log container — narrow column, generous breathing room === */
+#intro-log {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  padding: 0 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  font-size: 13.5px;
+  line-height: 1.55;
+  font-feature-settings: 'tnum' 1, 'calt' 0;
+  letter-spacing: 0.1px;
+  transform-origin: 50% 40%;
+  transition:
+    transform 1.4s cubic-bezier(0.55, 0, 0.2, 1),
+    filter 1.4s cubic-bezier(0.55, 0, 0.2, 1),
+    opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#intro-log.coalescing {
+  transform: scale(0.32) translateY(-12vh);
+  filter: blur(18px);
+  opacity: 0;
+}
+
+/* === Boot line (typewriter) === */
+.intro-boot {
+  color: hsl(195, 60%, 68%);
+  margin-bottom: 22px;
+  font-size: 14.5px;
+  letter-spacing: 0.3px;
+  text-shadow:
+    0 0 12px rgba(123, 184, 212, 0.35),
+    0 0 28px rgba(123, 184, 212, 0.15);
+  white-space: nowrap;
+}
+
+.intro-boot-prompt {
+  color: hsl(155, 55%, 58%);
+  margin-right: 8px;
+  font-weight: 600;
+}
+
+.intro-boot-text {
+  color: hsl(195, 25%, 90%);
+}
+
+.intro-boot-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  vertical-align: text-bottom;
+  margin-left: 3px;
+  background: hsl(195, 60%, 65%);
+  box-shadow: 0 0 8px rgba(123, 184, 212, 0.6);
+  animation: intro-cursor-blink 1s steps(2) infinite;
+}
+
+@keyframes intro-cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* === Log lines === */
+#intro-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.intro-log-line {
+  display: grid;
+  grid-template-columns: 92px 24px 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(10px);
+  filter: blur(4px);
+  /* The reveal transition — long enough to feel gentle, short enough to keep up
+     with the 180ms cascade. */
+  transition:
+    opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.intro-log-line.intro-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Slight extra emphasis on the most recent cluster (Agent work, last 6 posts) */
+.intro-log-line[data-emphasis='1'] .intro-log-title {
+  color: hsl(200, 35%, 92%);
+}
+
+.intro-log-stamp {
+  color: hsl(200, 14%, 42%);
+  font-size: 12px;
+  letter-spacing: 0.2px;
+}
+
+.intro-log-sep {
+  color: hsl(200, 14%, 28%);
+  letter-spacing: -1px;
+  user-select: none;
+}
+
+.intro-log-title {
+  color: hsl(200, 24%, 84%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.intro-log-meta {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Type-based accent colors for the meta tag. Strictly monochrome cool palette. */
+.intro-log-line[data-type='blog'] .intro-log-meta {
+  color: hsl(195, 50%, 64%);
+  background: hsl(195, 40%, 22% / 0.5);
+  border: 1px solid hsl(195, 35%, 38% / 0.6);
+}
+
+.intro-log-line[data-type='repo'] .intro-log-meta {
+  color: hsl(170, 45%, 64%);
+  background: hsl(170, 40%, 20% / 0.5);
+  border: 1px solid hsl(170, 35%, 36% / 0.6);
+}
+
+.intro-log-line[data-type='work'] .intro-log-meta {
+  color: hsl(220, 30%, 70%);
+  background: hsl(220, 25%, 22% / 0.5);
+  border: 1px solid hsl(220, 20%, 38% / 0.6);
+}
+
+/* === Footer summary === */
+.intro-log-footer {
+  margin-top: 22px;
+  color: hsl(200, 14%, 50%);
+  font-size: 11.5px;
+  letter-spacing: 0.4px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.intro-log-footer.intro-visible {
+  opacity: 0.85;
+  transform: translateY(0);
+}
+
+/* === Reduced motion === */
 @media (prefers-reduced-motion: reduce) {
   #intro-overlay {
     display: none !important;
+  }
+}
+
+/* === Mobile === */
+@media (max-width: 640px) {
+  #intro-log {
+    max-width: 100%;
+    padding: 0 18px;
+    font-size: 11.5px;
+  }
+  .intro-log-line {
+    grid-template-columns: 70px 16px 1fr auto;
+    gap: 6px;
+  }
+  .intro-log-stamp {
+    font-size: 10.5px;
+  }
+  .intro-log-meta {
+    font-size: 9.5px;
+    padding: 1px 5px;
+  }
+  .intro-boot {
+    font-size: 13px;
   }
 }
 
@@ -165,7 +310,6 @@ html.intro-skip #intro-overlay {
   width: 16px;
   height: 16px;
 }
-/* Hide while the intro is actively playing so it doesn't steal attention. */
 html.intro-active #intro-replay {
   display: none !important;
 }
