@@ -7,6 +7,8 @@
  *    - a boot line (`> cat joye.log`) for the typewriter
  *    - all log lines from src/data/joye-log.ts already in the DOM
  *      (hidden via CSS, revealed staggered by the client script)
+ *    - each title char is wrapped in a <span> for per-char stagger
+ *    - keywords (Agent / LLM / RoPE …) and numbers get accent spans
  * 2. An inline script in <head> runs ASAP to decide whether to play:
  *    - skip if sessionStorage says we've played this session
  *    - skip if prefers-reduced-motion
@@ -18,6 +20,95 @@ import { JOYE_LOG } from '@/data/joye-log'
 import './intro.css'
 
 const isDev = import.meta.env.DEV
+
+// Keywords that get an accent span — domain concepts the visitor should
+// walk away remembering. Match is case-insensitive on word boundaries.
+const KEYWORDS = [
+  'Agent',
+  'Agents',
+  'LLM',
+  'Transformer',
+  'Transformers',
+  'Attention',
+  'RoPE',
+  'Normalization',
+  'RMSNorm',
+  'FeedForward',
+  'OpenHarness',
+  'Interview',
+  'Interviews',
+  'Mock',
+  'Playyy.ai',
+  'atypica.ai',
+  'AIXCut',
+  'fAIshion.ai'
+]
+
+const KEYWORD_RE = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'gi')
+const NUM_RE = /\b(\d[\d,]*(?:\.\d+)?(?:h\d+m)?|-?\d+)\b/g
+
+function escapeHtml(ch: string): string {
+  return ch === '<'
+    ? '&lt;'
+    : ch === '>'
+      ? '&gt;'
+      : ch === '&'
+        ? '&amp;'
+        : ch
+}
+
+type Span = { start: number; end: number; kind: 'kw' | 'num' }
+
+/** Tokenize a string into char spans + accent spans for keywords / numbers.
+ * Output is an HTML string meant for `set:html`. */
+function renderTokenized(text: string): string {
+  const spans: Span[] = []
+  let m: RegExpExecArray | null
+
+  KEYWORD_RE.lastIndex = 0
+  while ((m = KEYWORD_RE.exec(text)) !== null) {
+    spans.push({ start: m.index, end: m.index + m[0].length, kind: 'kw' })
+  }
+  NUM_RE.lastIndex = 0
+  while ((m = NUM_RE.exec(text)) !== null) {
+    spans.push({ start: m.index, end: m.index + m[0].length, kind: 'num' })
+  }
+  spans.sort((a, b) => a.start - b.start || b.end - a.end)
+
+  let html = ''
+  let i = 0
+  let charIdx = 0
+  while (i < text.length) {
+    const span = spans.find((s) => s.start === i && s.end > s.start)
+    if (span) {
+      const cls = span.kind === 'kw' ? 'token-kw' : 'token-num'
+      // Wrap the whole token in one accent span, but still char-stagger inside
+      // so the reveal feels alive.
+      const inner = text
+        .slice(span.start, span.end)
+        .split('')
+        .map((ch) => {
+          if (ch === ' ') return ' '
+          const out = `<span class="char" style="--i:${charIdx}">${escapeHtml(ch)}</span>`
+          charIdx++
+          return out
+        })
+        .join('')
+      html += `<span class="${cls}">${inner}</span>`
+      i = span.end
+    } else {
+      const ch = text[i]
+      if (ch === ' ') {
+        html += ' '
+      } else {
+        html += `<span class="char" style="--i:${charIdx}">${escapeHtml(ch)}</span>`
+        charIdx++
+      }
+      i++
+    }
+  }
+  return html
+}
 ---
 
 <script is:inline>
@@ -45,32 +136,55 @@ const isDev = import.meta.env.DEV
 </script>
 
 <div id='intro-overlay' aria-hidden='true'>
+  {/* Atmosphere layers — film grain, chromatic aberration, vignette.
+      All pseudo-elements so they don't add DOM weight. */}
+  <div class='intro-atmosphere' aria-hidden='true'></div>
+
   <div id='intro-log'>
     <div class='intro-boot'>
       <span class='intro-boot-prompt'>&gt;</span>
-      <span class='intro-boot-text' data-typewriter='cat joye.log'></span><span
-        class='intro-boot-cursor'
-        aria-hidden='true'
-      ></span>
+      <span
+        class='intro-boot-text'
+        data-typewriter='cat joye.log'
+      ></span><span class='intro-boot-cursor' aria-hidden='true'></span>
     </div>
 
     <div id='intro-log-list'>
       {
         JOYE_LOG.map((entry) => (
           <div class='intro-log-line' data-type={entry.type}>
-            <span class='intro-log-stamp'>{entry.stamp}</span>
+            <span class='intro-log-stamp'>
+              {entry.stamp.split('').map((ch, i) => (
+                <span class='stamp-char' style={`--i:${i}`}>
+                  {ch === ' ' ? '\u00A0' : ch}
+                </span>
+              ))}
+            </span>
             <span class='intro-log-sep' aria-hidden='true'>
               ┄┄┄
             </span>
-            <span class='intro-log-title'>{entry.title}</span>
-            {entry.meta && <span class='intro-log-meta'>{entry.meta}</span>}
+            <span class='intro-log-title' set:html={renderTokenized(entry.title)} />
+            {entry.meta && (
+              <span
+                class='intro-log-meta'
+                set:html={renderTokenized(entry.meta)}
+              />
+            )}
           </div>
         ))
       }
     </div>
 
-    <div class='intro-log-footer intro-hidden-init'>
-      <span class='intro-log-footer-text'>18 entries · 12 posts · 2 repos · 4 roles</span>
+    <div class='intro-log-footer'>
+      <span class='intro-log-footer-text'>
+        {'18 entries · 12 posts · 2 repos · 4 roles'
+          .split('')
+          .map((ch, i) => (
+            <span class='footer-char' style={`--i:${i}`}>
+              {ch === ' ' ? '\u00A0' : ch}
+            </span>
+          ))}
+      </span>
     </div>
   </div>
 </div>
@@ -111,3 +225,4 @@ const isDev = import.meta.env.DEV
     </script>
   )
 }
+

@@ -6,13 +6,10 @@ html.intro-active {
   height: 100vh;
 }
 
-/* Suppress the default `.animate` fade-in-up so it doesn't run behind the
-   overlay. GSAP / CSS transitions take over the hero zoom-in on reveal. */
 html.intro-active .animate {
   animation: none !important;
 }
 
-/* Hero starts hidden in a zoomed/blur state; revealed on outro. */
 html.intro-active #content-header,
 html.intro-active #content {
   opacity: 0;
@@ -22,23 +19,20 @@ html.intro-active #content {
   will-change: transform, opacity, filter;
 }
 
-/* Skip-state visitors see no overlay at all. */
 html.intro-skip #intro-overlay {
   display: none !important;
 }
 
-/* === Overlay shell — soft dark, not pitch black === */
+/* === Overlay shell — soft dark, layered for depth === */
 #intro-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  /* Layered radial gradients give the overlay depth without being a flat
-     black slab. ~96% opacity overall so the hero's silhouette can bleed
-     through subtly during the final coalesce → reveal handoff. */
   background:
-    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(56, 92, 120, 0.18) 0%, rgba(8, 14, 22, 0) 60%),
-    radial-gradient(circle at 30% 20%, rgba(40, 60, 80, 0.08) 0%, rgba(0, 0, 0, 0) 50%),
+    radial-gradient(ellipse 70% 50% at 50% 42%, rgba(64, 100, 130, 0.22) 0%, rgba(8, 14, 22, 0) 60%),
+    radial-gradient(circle at 22% 18%, rgba(40, 70, 95, 0.10) 0%, rgba(0, 0, 0, 0) 45%),
+    radial-gradient(circle at 78% 82%, rgba(35, 55, 75, 0.08) 0%, rgba(0, 0, 0, 0) 45%),
     radial-gradient(circle at center, rgb(10, 15, 21) 0%, rgb(5, 8, 11) 100%);
   opacity: 1;
   transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -57,30 +51,38 @@ html.intro-skip #intro-overlay {
   display: none;
 }
 
-/* Subtle scanline pattern — barely visible, reinforces terminal DNA. */
-#intro-overlay::before {
-  content: '';
+/* === Atmosphere layers (film grain + chromatic + vignette) === */
+.intro-atmosphere {
   position: absolute;
   inset: 0;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.012) 0px,
-    rgba(255, 255, 255, 0.012) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-  mix-blend-mode: screen;
   pointer-events: none;
+  /* Vignette darkens the corners to focus the eye on center column. */
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.55) 100%);
+  z-index: 1;
+}
+/* Film grain — a tiny inline SVG noise pattern, animated for life. */
+.intro-atmosphere::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.7  0 0 0 0 0.8  0 0 0 0.45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.10;
+  mix-blend-mode: screen;
+  animation: grain-shift 0.6s steps(4) infinite;
+}
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-2%, -2%); }
+  100% { transform: translate(3%, 3%); }
 }
 
-#intro-overlay.intro-hidden::before {
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-/* === Log container — narrow column, generous breathing room === */
+/* === Log container — narrow column, breathing room === */
 #intro-log {
   position: relative;
+  z-index: 2;
   width: 100%;
   max-width: 680px;
   padding: 0 28px;
@@ -99,8 +101,8 @@ html.intro-skip #intro-overlay {
 }
 
 #intro-log.coalescing {
-  transform: scale(0.32) translateY(-12vh);
-  filter: blur(18px);
+  transform: scale(0.30) translateY(-14vh);
+  filter: blur(20px);
   opacity: 0;
 }
 
@@ -138,14 +140,8 @@ html.intro-skip #intro-overlay {
 }
 
 @keyframes intro-cursor-blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  50.01%,
-  100% {
-    opacity: 0;
-  }
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
 }
 
 /* === Log lines === */
@@ -156,32 +152,122 @@ html.intro-skip #intro-overlay {
 }
 
 .intro-log-line {
+  position: relative;
   display: grid;
   grid-template-columns: 92px 24px 1fr auto;
   align-items: baseline;
   gap: 10px;
   width: 100%;
   opacity: 0;
-  transform: translateY(10px);
-  filter: blur(4px);
-  /* The reveal transition — long enough to feel gentle, short enough to keep up
-     with the 180ms cascade. */
-  transition:
-    opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(8px);
   white-space: nowrap;
+  /* Line reveal — fast + soft, characters carry the detailed motion. */
+  transition:
+    opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .intro-log-line.intro-visible {
   opacity: 1;
   transform: translateY(0);
-  filter: blur(0);
 }
 
-/* Slight extra emphasis on the most recent cluster (Agent work, last 6 posts) */
+/* Scan light — a thin vertical beam that sweeps left → right when the
+   line becomes visible. Implemented as a ::before with a horizontal
+   gradient + transform animation. */
+.intro-log-line::before {
+  content: '';
+  position: absolute;
+  inset: -2px -8px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(123, 184, 212, 0) 30%,
+    rgba(123, 184, 212, 0.18) 48%,
+    rgba(180, 220, 240, 0.32) 50%,
+    rgba(123, 184, 212, 0.18) 52%,
+    rgba(123, 184, 212, 0) 70%,
+    transparent 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+
+.intro-log-line.intro-visible::before {
+  animation: scan-sweep 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scan-sweep {
+  0% {
+    background-position: 100% 0;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -50% 0;
+    opacity: 0;
+  }
+}
+
+/* Per-char reveal inside title + meta. Default hidden, becomes visible
+   when the parent line gets .intro-visible. Stagger via --i variable
+   set inline during SSR. */
+.intro-log-line .char,
+.intro-log-line .stamp-char,
+.intro-log-line .footer-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  filter: blur(2px);
+  transition:
+    opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.intro-log-line.intro-visible .char {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition-delay: calc(80ms + var(--i, 0) * 14ms);
+}
+
+/* Stamp chars appear with the line, no per-char stagger (date isn't worth
+   the focus). */
+.intro-log-line.intro-visible .stamp-char {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition-delay: 60ms;
+}
+
+/* === Keyword / number accent spans === */
+.token-kw {
+  color: hsl(195, 75%, 78%);
+  text-shadow:
+    0 0 8px rgba(123, 184, 212, 0.55),
+    0 0 18px rgba(123, 184, 212, 0.25);
+}
+
+.token-num {
+  color: hsl(170, 55%, 70%);
+  font-weight: 600;
+  text-shadow:
+    0 0 6px rgba(120, 200, 180, 0.5),
+    0 0 14px rgba(120, 200, 180, 0.2);
+}
+
+/* === Subtle emphasis on the most recent (Agent era) lines === */
 .intro-log-line[data-emphasis='1'] .intro-log-title {
-  color: hsl(200, 35%, 92%);
+  color: hsl(200, 32%, 92%);
 }
 
 .intro-log-stamp {
@@ -191,7 +277,7 @@ html.intro-skip #intro-overlay {
 }
 
 .intro-log-sep {
-  color: hsl(200, 14%, 28%);
+  color: hsl(200, 14%, 26%);
   letter-spacing: -1px;
   user-select: none;
 }
@@ -211,7 +297,6 @@ html.intro-skip #intro-overlay {
   flex-shrink: 0;
 }
 
-/* Type-based accent colors for the meta tag. Strictly monochrome cool palette. */
 .intro-log-line[data-type='blog'] .intro-log-meta {
   color: hsl(195, 50%, 64%);
   background: hsl(195, 40%, 22% / 0.5);
@@ -230,7 +315,7 @@ html.intro-skip #intro-overlay {
   border: 1px solid hsl(220, 20%, 38% / 0.6);
 }
 
-/* === Footer summary === */
+/* === Footer === */
 .intro-log-footer {
   margin-top: 22px;
   color: hsl(200, 14%, 50%);
@@ -246,6 +331,13 @@ html.intro-skip #intro-overlay {
 .intro-log-footer.intro-visible {
   opacity: 0.85;
   transform: translateY(0);
+}
+
+.intro-log-footer.intro-visible .footer-char {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+  transition-delay: calc(40ms + var(--i, 0) * 8ms);
 }
 
 /* === Reduced motion === */
