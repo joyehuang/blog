@@ -1,0 +1,49 @@
+---
+/**
+ * IntroOverlay — cinematic 3D particle entry animation.
+ *
+ * Strategy:
+ * 1. SSR renders a dark overlay shell (#intro-overlay) + canvas immediately.
+ * 2. An inline script in <head> runs ASAP to decide whether to play:
+ *    - skip if sessionStorage says we've played this session
+ *    - skip if prefers-reduced-motion
+ *    - otherwise lock the page (`intro-active` class)
+ * 3. The heavy three.js logic is lazy-loaded via a module script so it never
+ *    blocks first paint of the document.
+ */
+import './intro.css'
+---
+
+{
+  /* Inline script — runs synchronously during <head> parse, before body exists.
+     Sets a class on <html> so CSS can hide the overlay immediately if needed,
+     without waiting for any JS bundle. */
+}
+
+<script is:inline>
+  ;(function () {
+    try {
+      var doc = document.documentElement
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      var played = sessionStorage.getItem('intro-played')
+      if (reduce || played) {
+        doc.classList.add('intro-skip')
+      } else {
+        doc.classList.add('intro-active')
+        try {
+          sessionStorage.setItem('intro-played', '1')
+        } catch (e) {}
+      }
+    } catch (e) {
+      document.documentElement.classList.add('intro-skip')
+    }
+  })()
+</script>
+
+<div id='intro-overlay' aria-hidden='true'>
+  <canvas id='intro-canvas'></canvas>
+</div>
+
+<script>
+  import '@/scripts/intro.ts'
+</script>

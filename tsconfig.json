@@ -24,7 +24,8 @@
       "@/pages/*": ["src/pages/*"],
       "@/types": ["src/types/index.ts"],
       "@/site-config": ["src/site.config.ts"],
-      "@/data/*": ["src/data/*"]
+      "@/data/*": ["src/data/*"],
+      "@/scripts/*": ["src/scripts/*"]
     }
   },
   "exclude": ["node_modules", "**/node_modules/*", ".vscode", "dist", "public/scripts/*", "test/*"]

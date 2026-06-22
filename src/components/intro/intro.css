@@ -1,0 +1,96 @@
+/* ===== Intro Cinematic Overlay ===== */
+
+/* Lock the page while the intro is playing. */
+html.intro-active {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Suppress the default `.animate` fade-in-up so it doesn't run behind the overlay.
+   GSAP takes over the hero zoom-in once the overlay starts dissolving. */
+html.intro-active .animate {
+  animation: none !important;
+}
+
+/* Hero starts in a zoomed-in / blurred state; GSAP animates it back to neutral.
+   ID selector (1,1,1) outranks the .animate rule (0,2,1) so opacity:0 wins. */
+html.intro-active #content-header,
+html.intro-active #content {
+  opacity: 0;
+  transform: scale(0.94);
+  filter: blur(8px);
+  transition: none;
+  will-change: transform, opacity, filter;
+}
+
+/* If the visitor already saw the intro this session, skip entirely. */
+html.intro-skip #intro-overlay {
+  display: none !important;
+}
+
+/* Full-screen cinematic overlay. */
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(82, 125, 148, 0.18) 0%, rgba(5, 10, 16, 0) 60%),
+    radial-gradient(circle at center, #0c1a25 0%, #050a10 100%);
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+
+#intro-overlay.intro-hidden {
+  opacity: 0;
+}
+
+#intro-overlay.intro-done {
+  display: none;
+}
+
+#intro-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Tiny progress hint in case the cold-start of three.js takes a moment. */
+#intro-overlay::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  width: 36px;
+  height: 2px;
+  margin-left: -18px;
+  background: linear-gradient(90deg, transparent, rgba(82, 125, 148, 0.7), transparent);
+  opacity: 0;
+  animation: intro-pulse 1.6s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+@keyframes intro-pulse {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scaleX(0.4);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scaleX(1);
+  }
+}
+
+html.intro-hidden #intro-overlay::after {
+  animation: none;
+}
+
+/* Respect reduced-motion: never show the overlay. */
+@media (prefers-reduced-motion: reduce) {
+  #intro-overlay {
+    display: none !important;
+  }
+}
