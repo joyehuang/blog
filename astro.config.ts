@@ -1,5 +1,6 @@
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import react from '@astrojs/react'
+import sitemap from '@astrojs/sitemap'
 import vercel from '@astrojs/vercel'
 import AstroPureIntegration from 'astro-pure'
 import { defineConfig } from 'astro/config'
@@ -22,6 +23,19 @@ import {
   updateStyle
 } from './src/plugins/shiki-transformers.ts'
 import config from './src/site.config.ts'
+
+const excludedSitemapPathPatterns = [
+  /^\/(?:en\/)?404\/?$/,
+  /^\/(?:en\/)?search\/?$/,
+  /^\/api(?:\/|$)/,
+  /^\/\.well-known\/joye-manifest\.json$/,
+  /^\/pagefind(?:\/|$)/
+]
+
+const shouldIncludeInSitemap = (page: string) => {
+  const { pathname } = new URL(page)
+  return !excludedSitemapPathPatterns.some((pattern) => pattern.test(pathname))
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -49,6 +63,16 @@ export default defineConfig({
   },
 
   integrations: [
+    sitemap({
+      filter: shouldIncludeInSitemap,
+      i18n: {
+        defaultLocale: 'zh',
+        locales: {
+          zh: 'zh-CN',
+          en: 'en'
+        }
+      }
+    }),
     // astro-pure will automatically add sitemap, mdx & unocss
     AstroPureIntegration(config),
     react()
