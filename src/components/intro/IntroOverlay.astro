@@ -142,11 +142,26 @@ function renderTokenized(text: string): string {
 
   <div id='intro-log'>
     <div class='intro-boot'>
-      <span class='intro-boot-prompt'>&gt;</span>
-      <span
-        class='intro-boot-text'
-        data-typewriter='cat joye.log'
-      ></span><span class='intro-boot-cursor' aria-hidden='true'></span>
+      <div class='intro-boot-line'>
+        <span class='intro-boot-prompt'>&gt;</span>
+        <span
+          class='intro-boot-text'
+          data-typewriter='ssh joye@mind'
+        ></span>
+      </div>
+      <div class='intro-boot-line intro-boot-output'>
+        <span
+          class='intro-boot-text'
+          data-typewriter='loading 18 entries... ok'
+        ></span>
+      </div>
+      <div class='intro-boot-line'>
+        <span class='intro-boot-prompt'>&gt;</span>
+        <span
+          class='intro-boot-text'
+          data-typewriter='cat joye.log'
+        ></span><span class='intro-boot-cursor' aria-hidden='true'></span>
+      </div>
     </div>
 
     <div id='intro-log-list'>

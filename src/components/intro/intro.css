@@ -106,16 +106,40 @@ html.intro-skip #intro-overlay {
   opacity: 0;
 }
 
-/* === Boot line (typewriter) === */
+/* === Boot sequence (typewriter) === */
 .intro-boot {
   color: hsl(195, 60%, 68%);
   margin-bottom: 22px;
-  font-size: 14.5px;
+  font-size: 14px;
   letter-spacing: 0.3px;
   text-shadow:
     0 0 12px rgba(123, 184, 212, 0.35),
     0 0 28px rgba(123, 184, 212, 0.15);
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 60px;
+}
+
+.intro-boot-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.intro-boot-output {
+  color: hsl(170, 35% 60%);
+  font-size: 12px;
+  padding-left: 18px;
+  opacity: 0.85;
+}
+
+.intro-boot-output::before {
+  content: '↳';
+  margin-right: 4px;
+  color: hsl(170, 45% 55%);
+  opacity: 0.7;
 }
 
 .intro-boot-prompt {
@@ -744,6 +768,71 @@ html.intro-active #intro-replay {
   opacity: 1;
   pointer-events: auto;
   transform: scale(1);
+}
+
+/* Glitch transition — fires on user-initiated panel changes (arrow keys,
+   rail hover). 350ms of RGB-shifted jitter, like a CRT flipping channels. */
+.showcase-panel.panel-glitch .showcase-screenshot {
+  animation: panel-glitch-shift 0.35s steps(2, end);
+}
+.showcase-panel.panel-glitch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(123, 184, 212, 0.12) 50%,
+      transparent 100%
+    );
+  background-size: 100% 8px;
+  pointer-events: none;
+  z-index: 4;
+  animation: panel-glitch-scan 0.35s steps(6, end);
+  mix-blend-mode: screen;
+}
+@keyframes panel-glitch-shift {
+  0% {
+    transform: translate(0, 0);
+    filter:
+      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
+      hue-rotate(168deg) saturate(0.78);
+  }
+  20% {
+    transform: translate(-4px, 1px);
+    filter:
+      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
+      hue-rotate(140deg) saturate(1.4);
+  }
+  40% {
+    transform: translate(3px, -2px);
+    filter:
+      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
+      hue-rotate(200deg) saturate(0.5);
+  }
+  60% {
+    transform: translate(-2px, 2px);
+    filter:
+      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
+      hue-rotate(170deg) saturate(0.78);
+  }
+  80% {
+    transform: translate(2px, -1px);
+    filter:
+      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
+      hue-rotate(180deg) saturate(1.1);
+  }
+  100% {
+    transform: translate(0, 0);
+    filter:
+      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
+      hue-rotate(168deg) saturate(0.78);
+  }
+}
+@keyframes panel-glitch-scan {
+  0% { background-position: 0 -100%; }
+  100% { background-position: 0 200%; }
 }
 
 .showcase-screenshot {

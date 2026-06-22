@@ -33,14 +33,16 @@ async function runIntro() {
   window.scrollTo(0, 0)
 
   const overlay = document.getElementById('intro-overlay')
-  const bootText = document.querySelector<HTMLSpanElement>('.intro-boot-text')
+  const bootLines = Array.from(
+    document.querySelectorAll<HTMLElement>('.intro-boot-text[data-typewriter]')
+  )
   const groups = Array.from(
     document.querySelectorAll<HTMLElement>('.intro-log-group')
   )
   const footer = document.querySelector<HTMLElement>('.intro-log-footer')
   const showcase = document.getElementById('intro-showcase')
 
-  if (!overlay || !bootText || !groups.length) {
+  if (!overlay || !bootLines.length || !groups.length) {
     revealImmediately()
     return
   }
@@ -50,11 +52,18 @@ async function runIntro() {
   )
   const otherGroups = groups.filter((g) => g !== experienceGroup)
 
-  // === Phase 1: TYPEWRITER ===
-  const typed = bootText.dataset.typewriter || 'cat joye.log'
-  bootText.textContent = ''
-  await typewriter(bootText, typed, 65)
-  await sleep(280)
+  // === Phase 1: TYPEWRITER (multi-line boot sequence) ===
+  // Each line types out one after another — reads like ssh-ing into a
+  // system rather than a single canned command.
+  for (let i = 0; i < bootLines.length; i++) {
+    const line = bootLines[i]
+    const text = line.dataset.typewriter || ''
+    line.textContent = ''
+    // Faster per-char on the longer output line so the boot doesn't drag.
+    const ms = i === 1 ? 32 : 60
+    await typewriter(line, text, ms)
+    await sleep(i === bootLines.length - 1 ? 320 : 180)
+  }
 
   // === Phase 2: EXPERIENCE CASCADE (first — sets up the showcase) ===
   if (experienceGroup) {
@@ -182,13 +191,25 @@ async function runShowcase(showcase: HTMLElement): Promise<void> {
   let isPaused = false
   let advanceTimer: ReturnType<typeof setTimeout> | null = null
 
-  function showPanel(idx: number) {
+  function showPanel(idx: number, withGlitch = true) {
     if (idx === currentIdx && panels[idx]?.classList.contains('panel-active')) {
       return
     }
+    const previousIdx = currentIdx
     currentIdx = idx
-    for (const p of panels) p.classList.remove('panel-active')
+    for (const p of panels) {
+      p.classList.remove('panel-active')
+      p.classList.remove('panel-glitch')
+    }
     panels[idx]?.classList.add('panel-active')
+    // Glitch only on user-initiated changes (not the initial show) — gives
+    // the switch a CRT-channel-flip feel.
+    if (withGlitch && previousIdx !== idx) {
+      panels[idx]?.classList.add('panel-glitch')
+      // Remove the glitch class once the animation finishes so it can
+      // re-trigger on the next switch.
+      setTimeout(() => panels[idx]?.classList.remove('panel-glitch'), 350)
+    }
     for (const r of railItems) r.classList.remove('rail-active')
     railItems[idx]?.classList.add('rail-active')
     if (counterCurrent) counterCurrent.textContent = fmt(idx)
@@ -257,10 +278,32 @@ async function runShowcase(showcase: HTMLElement): Promise<void> {
     panel.addEventListener('click', onPanelClick)
   }
 
+  // === Keyboard navigation (real-terminal feel) ===
+  // ArrowUp / ArrowLeft → previous company, ArrowDown / ArrowRight → next,
+  // Enter / Space → open current company's URL. Pauses auto-advance.
+  const onKeydown = (e: KeyboardEvent) => {
+    if (!showcase.classList.contains('showcase-active')) return
+    const key = e.key
+    if (key === 'ArrowDown' || key === 'ArrowRight') {
+      setPaused(true)
+      showPanel((currentIdx + 1) % panels.length)
+      e.preventDefault()
+    } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+      setPaused(true)
+      showPanel((currentIdx - 1 + panels.length) % panels.length)
+      e.preventDefault()
+    } else if (key === 'Enter' || key === ' ') {
+      const url = panels[currentIdx]?.dataset.url
+      if (url) window.open(url, '_blank', 'noopener,noreferrer')
+      e.preventDefault()
+    }
+  }
+  window.addEventListener('keydown', onKeydown)
+
   // === Kick off ===
   showcase.classList.add('showcase-active')
   await sleep(500) // let the frame scale-in settle
-  showPanel(0)
+  showPanel(0, false) // initial show, no glitch
   scheduleNext()
 
   // Auto-end after a full tour (gives the visitor ~6.5s minimum in the
@@ -280,6 +323,7 @@ async function runShowcase(showcase: HTMLElement): Promise<void> {
     panel.removeEventListener('mouseleave', onPanelLeave)
     panel.removeEventListener('click', onPanelClick)
   }
+  window.removeEventListener('keydown', onKeydown)
   if (advanceTimer) clearTimeout(advanceTimer)
 }
 
@@ -376,7 +420,7 @@ function morphGroupIntoSection(
             {
               transform: 'translate(0, 0) rotate(0deg) scale(1)',
               opacity: 1,
-              filter: 'blur(0px)',
+              filter: 'blur(0px) drop-shadow(0 0 0 transparent)',
               offset: 0
             },
             // 14% — starting to scatter
@@ -385,7 +429,8 @@ function morphGroupIntoSection(
                 rot * 0.18
               }deg) scale(0.96)`,
               opacity: 0.92,
-              filter: 'blur(1px)',
+              filter:
+                'blur(1px) drop-shadow(-3px 0 3px rgba(123, 184, 212, 0.45))',
               offset: 0.14
             },
             // 28% — scattered (peak outward displacement)
@@ -394,7 +439,8 @@ function morphGroupIntoSection(
                 rot * 0.38
               }deg) scale(0.86)`,
               opacity: 0.82,
-              filter: 'blur(3px)',
+              filter:
+                'blur(3px) drop-shadow(-5px 0 5px rgba(123, 184, 212, 0.55)) drop-shadow(4px 0 4px rgba(180, 200, 220, 0.35))',
               offset: 0.28
             },
             // 52% — mid-flight, curving back toward the section
@@ -403,7 +449,8 @@ function morphGroupIntoSection(
                 (sy + ty) * 0.5
               }px) rotate(${rot * 0.65}deg) scale(0.68)`,
               opacity: 0.62,
-              filter: 'blur(5px)',
+              filter:
+                'blur(5px) drop-shadow(-7px 0 6px rgba(123, 184, 212, 0.6)) drop-shadow(6px 0 5px rgba(180, 200, 220, 0.4))',
               offset: 0.52
             },
             // 76% — approaching the section
@@ -412,14 +459,16 @@ function morphGroupIntoSection(
                 ty * 0.88 + sy * 0.12
               }px) rotate(${rot * 0.88}deg) scale(0.48)`,
               opacity: 0.42,
-              filter: 'blur(8px)',
+              filter:
+                'blur(8px) drop-shadow(-5px 0 4px rgba(123, 184, 212, 0.5)) drop-shadow(4px 0 4px rgba(180, 200, 220, 0.3))',
               offset: 0.76
             },
             // 88% — arrived on the section, still glowing faintly
             {
               transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(0.32)`,
               opacity: 0.22,
-              filter: 'blur(11px)',
+              filter:
+                'blur(11px) drop-shadow(0 0 8px rgba(123, 184, 212, 0.55))',
               offset: 0.88
             },
             // 95% — drifting past, dissolving
@@ -428,7 +477,7 @@ function morphGroupIntoSection(
                 dy * 0.6 + ty * 0.4
               }px) rotate(${rot * 1.15}deg) scale(0.2)`,
               opacity: 0.08,
-              filter: 'blur(16px)',
+              filter: 'blur(16px) drop-shadow(0 0 6px rgba(123, 184, 212, 0.3))',
               offset: 0.95
             },
             // 100% — gone
@@ -437,7 +486,7 @@ function morphGroupIntoSection(
                 rot * 1.3
               }deg) scale(0.12)`,
               opacity: 0,
-              filter: 'blur(22px)',
+              filter: 'blur(22px) drop-shadow(0 0 0 transparent)',
               offset: 1
             }
           ],
