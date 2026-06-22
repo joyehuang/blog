@@ -25,6 +25,10 @@ export type LogEntry = {
    * the cascade doesn't read as a flat list.
    */
   weight?: 0 | 1 | 2
+  /** Experience-only: homepage screenshot for the VR-style showcase. */
+  screenshot?: string
+  /** Experience-only: one-line description shown under the screenshot. */
+  description?: string
 }
 
 export type LogGroup = {
@@ -36,6 +40,48 @@ export type LogGroup = {
 }
 
 export const JOYE_LOG_GROUPS: LogGroup[] = [
+  {
+    label: 'Experience',
+    type: 'work',
+    entries: [
+      {
+        stamp: '— now —',
+        title: 'Adastra Labs → Playyy.ai',
+        type: 'work',
+        tag: 'AI full-stack',
+        weight: 2,
+        screenshot: '/intro/playyy.png',
+        description: 'AI image generation & brand design platform'
+      },
+      {
+        stamp: '— prev —',
+        title: 'Tezign → atypica.ai',
+        type: 'work',
+        tag: 'multi-agent',
+        weight: 1,
+        screenshot: '/intro/atypica.png',
+        description: 'Multi-agent system for commercial research'
+      },
+      {
+        stamp: '— prev —',
+        title: 'AIXCut → AI video agent',
+        type: 'work',
+        tag: 'AI editing',
+        weight: 1,
+        screenshot: '/intro/aixcut.png',
+        description: 'AI video editing agent'
+      },
+      {
+        stamp: '— prev —',
+        title: 'fAIshion.ai → virtual try-on',
+        type: 'work',
+        tag: 'AI try-on',
+        weight: 0,
+        screenshot: '/intro/faishion.png',
+        description: 'AI virtual try-on & styling'
+      }
+    ]
+  },
   {
     label: 'Blog',
     type: 'blog',
@@ -144,40 +190,6 @@ export const JOYE_LOG_GROUPS: LogGroup[] = [
         type: 'repo',
         tag: '93 stars',
         weight: 1
-      }
-    ]
-  },
-  {
-    label: 'Experience',
-    type: 'work',
-    entries: [
-      {
-        stamp: '— now —',
-        title: 'Adastra Labs → Playyy.ai',
-        type: 'work',
-        tag: 'AI full-stack',
-        weight: 2
-      },
-      {
-        stamp: '— prev —',
-        title: 'Tezign → atypica.ai',
-        type: 'work',
-        tag: 'multi-agent',
-        weight: 1
-      },
-      {
-        stamp: '— prev —',
-        title: 'AIXCut → AI video agent',
-        type: 'work',
-        tag: 'AI editing',
-        weight: 1
-      },
-      {
-        stamp: '— prev —',
-        title: 'fAIshion.ai → virtual try-on',
-        type: 'work',
-        tag: 'AI try-on',
-        weight: 0
       }
     ]
   }

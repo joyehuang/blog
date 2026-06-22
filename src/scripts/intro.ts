@@ -1,22 +1,21 @@
 /**
- * joye.log — Cinematic Entry Animation (grouped + morph)
+ * joye.log — Cinematic Entry Animation
  *
- * Tells Joye's story by grouping real shipped work into the same domains
- * the landing page already shows (Blog / Open Source / Experience), then
- * morphing each group into the corresponding landing-page section so the
- * entry animation and the page itself read as one continuous experience.
+ * Timeline (~14s — extended so the new Experience showcase and the
+ * particle-dispersion morph both have room to breathe):
  *
- * Timeline (~10s):
- *   0.0 ~ 1.6s   TYPEWRITER  `> cat joye.log` typed one char at a time
- *   1.6 ~ 6.0s   CASCADE     groups reveal top → bottom; inside each group,
- *                            the header slides in, then entries cascade with
- *                            per-char title stagger. Weight drives brightness.
- *   6.0 ~ 6.8s   FOOTER      the "18 entries · 12 posts · ..." summary
- *   6.8 ~ 8.6s   MORPH       each group flies to the landing-page <section>
- *                            with the same title (Blog / Open Source /
- *                            Experience) and dissolves into it
- *   7.6 ~ 9.0s   REVEAL      overlay fades, hero zooms in, residual sections
- *                            (Talks / Notes / Skills / Education) stagger in
+ *   0.0 ~ 1.5s   TYPEWRITER  `> cat joye.log`
+ *   1.5 ~ 2.7s   EXPERIENCE CASCADE  the 4 work entries appear as a log
+ *   2.7 ~ 8.5s   EXPERIENCE SHOWCASE  full-viewport terminal "company tour"
+ *                                       — 4 homepage screenshots in a CRT
+ *                                       frame, dolly-in on each, ~1.4s each
+ *   8.5 ~ 10.7s  BLOG + OPENSOURCE CASCADE  the remaining groups stream in
+ *   10.7 ~ 11.4s FOOTER  the summary line
+ *   11.4 ~ 14.0s MORPH  Blog + Open-Source groups particle-disperse into
+ *                       their landing sections; Experience section fades
+ *                       in directly (it was already showcased)
+ *   13.2 ~ 14.0s REVEAL REMAINING  About / Notes / Talks / Edu / Skills
+ *                                  stagger in
  */
 
 const SKIP =
@@ -31,9 +30,6 @@ if (!SKIP) {
 }
 
 async function runIntro() {
-  // Defensive: lock scroll to top so the hero <img> ends up at the right
-  // screen position. Inline script also does this, but we re-do it here in
-  // case anything moved between then and now.
   window.scrollTo(0, 0)
 
   const overlay = document.getElementById('intro-overlay')
@@ -42,12 +38,17 @@ async function runIntro() {
     document.querySelectorAll<HTMLElement>('.intro-log-group')
   )
   const footer = document.querySelector<HTMLElement>('.intro-log-footer')
-  const logEl = document.getElementById('intro-log')
+  const showcase = document.getElementById('intro-showcase')
 
-  if (!overlay || !bootText || !groups.length || !logEl) {
+  if (!overlay || !bootText || !groups.length) {
     revealImmediately()
     return
   }
+
+  const experienceGroup = groups.find(
+    (g) => g.dataset.morphLabel === 'Experience'
+  )
+  const otherGroups = groups.filter((g) => g !== experienceGroup)
 
   // === Phase 1: TYPEWRITER ===
   const typed = bootText.dataset.typewriter || 'cat joye.log'
@@ -55,40 +56,44 @@ async function runIntro() {
   await typewriter(bootText, typed, 65)
   await sleep(280)
 
-  // === Phase 2: CASCADE (group by group, with intra-group line stagger) ===
-  for (const group of groups) {
-    group.classList.add('intro-group-visible')
-    const lines = Array.from(group.querySelectorAll<HTMLElement>('.intro-log-line'))
-    // Stagger inside the group — weight 2 (newest) reveals first, weight 0 last,
-    // so the eye lands on the marquee work before the history.
-    lines.sort(
-      (a, b) =>
-        Number(b.dataset.weight || 1) - Number(a.dataset.weight || 1)
-    )
-    for (let i = 0; i < lines.length; i++) {
-      lines[i].classList.add('intro-visible')
-      // Faster stagger for short groups (repos / experience).
-      const stagger = lines.length <= 4 ? 110 : 95
-      await sleep(stagger)
-    }
-    // small breath between groups
-    await sleep(180)
+  // === Phase 2: EXPERIENCE CASCADE (first — sets up the showcase) ===
+  if (experienceGroup) {
+    await cascadeGroup(experienceGroup)
+    await sleep(380)
   }
 
-  // === Phase 3: FOOTER ===
-  await sleep(220)
+  // === Phase 3: EXPERIENCE SHOWCASE ===
+  // The Experience log collapses away and a full-viewport terminal "tour"
+  // takes over, showing each company's homepage screenshot in a CRT frame.
+  if (showcase && experienceGroup) {
+    // Slide the Experience log group away (it'll be replaced visually).
+    experienceGroup.style.transition =
+      'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s cubic-bezier(0.4, 0, 0.2, 1)'
+    experienceGroup.style.opacity = '0'
+    experienceGroup.style.transform = 'translateY(-20px) scale(0.94)'
+    experienceGroup.style.filter = 'blur(6px)'
+
+    await sleep(220)
+    await runShowcase(showcase)
+
+    // After the showcase, slide it away — the Experience landing section
+    // will fade in to replace it during Phase 5 morph.
+    showcase.classList.remove('showcase-active')
+    await sleep(380)
+  }
+
+  // === Phase 4: BLOG + OPENSOURCE CASCADE ===
+  for (const g of otherGroups) {
+    await cascadeGroup(g)
+    await sleep(180)
+  }
+  await sleep(200)
   footer?.classList.add('intro-visible')
-  await sleep(900)
+  await sleep(700)
 
-  // === Phase 4: MORPH ===
-  // For each group, find the landing-page <section> whose <h2> matches the
-  // group label, then transform the group onto the section's rectangle.
-  // The section itself fades in in parallel — so the eye reads it as
-  // "the log line became the section", not as two separate things.
-
-  // Pre-hide every landing section so removing .intro-active (which would
-  // otherwise unhide #content wholesale) doesn't flash fully-visible
-  // sections before the morph / reveal choreography runs.
+  // === Phase 5: MORPH ===
+  // Pre-hide every landing section so removing .intro-active doesn't flash
+  // them all at once.
   const allSections = Array.from(
     document.querySelectorAll<HTMLElement>('main #content section')
   )
@@ -98,36 +103,88 @@ async function runIntro() {
     s.style.transition =
       'opacity 0.9s cubic-bezier(0.2, 0.6, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.6, 0.2, 1)'
   }
-  // Now safe to drop the lock — sections stay hidden via inline style above.
   document.documentElement.classList.remove('intro-active')
 
+  // Morph Blog + Open Source groups (particle dispersion).
   const morphs: Array<Promise<void>> = []
-  for (const group of groups) {
-    const label = group.dataset.morphLabel
+  for (const g of otherGroups) {
+    const label = g.dataset.morphLabel
     if (!label) continue
     const section = findLandingSection(label)
     if (!section) continue
-    morphs.push(morphGroupIntoSection(group, section))
+    morphs.push(morphGroupIntoSection(g, section))
   }
-  // Reveal hero (header) right as the morphs start — it's the visual anchor.
+
+  // Experience section fades in directly — it was just showcased so a
+  // second particle morph would be redundant.
+  const expSection = findLandingSection('Experience')
+  if (expSection) {
+    setTimeout(() => {
+      expSection.style.opacity = '1'
+      expSection.style.transform = 'translateY(0)'
+    }, 350)
+  }
+
   revealHero()
   await Promise.all(morphs)
 
-  // === Phase 5: REVEAL remaining sections ===
-  // The non-morphed sections (Talks / Notes / Education / Skills / SiteStats)
-  // never had a corresponding log group; stagger them in now, top → bottom.
+  // === Phase 6: REVEAL REMAINING SECTIONS ===
   await revealRemainingSections(allSections)
 
-  // Drop the overlay.
   overlay.classList.add('intro-hidden')
   await sleep(500)
   overlay.classList.add('intro-done')
   document.documentElement.classList.remove('intro-hidden')
 
-  // Notify the JoJo tour (and any other listeners) that the intro is done.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(window as any).__introDone = true
   window.dispatchEvent(new CustomEvent('intro:complete'))
+}
+
+/** Cascade a single group's entries — header first, then lines stagger
+ *  in weight-descending order so the marquee work shows first. */
+async function cascadeGroup(group: HTMLElement): Promise<void> {
+  group.classList.add('intro-group-visible')
+  const lines = Array.from(
+    group.querySelectorAll<HTMLElement>('.intro-log-line')
+  )
+  lines.sort(
+    (a, b) => Number(b.dataset.weight || 1) - Number(a.dataset.weight || 1)
+  )
+  for (const line of lines) {
+    line.classList.add('intro-visible')
+    const stagger = lines.length <= 4 ? 110 : 95
+    await sleep(stagger)
+  }
+}
+
+/** Run the Experience showcase — cycle through each panel in turn. */
+async function runShowcase(showcase: HTMLElement): Promise<void> {
+  const panels = Array.from(
+    showcase.querySelectorAll<HTMLElement>('.showcase-panel')
+  )
+  const counterCurrent = showcase.querySelector<HTMLElement>(
+    '.showcase-counter-current'
+  )
+  if (!panels.length) return
+
+  // Format: "01" .. "04"
+  const fmt = (n: number) => String(n + 1).padStart(2, '0')
+
+  showcase.classList.add('showcase-active')
+  // small delay so the frame scales in before panels start cycling
+  await sleep(500)
+
+  for (let i = 0; i < panels.length; i++) {
+    // Activate this panel (deactivate others).
+    for (const p of panels) p.classList.remove('panel-active')
+    panels[i].classList.add('panel-active')
+    if (counterCurrent) counterCurrent.textContent = fmt(i)
+
+    // Hold each company for ~1.4s. Last one gets an extra beat so the
+    // visitor can register the "current role" before we move on.
+    await sleep(i === panels.length - 1 ? 1900 : 1400)
+  }
 }
 
 /** Find the first <section> in <main> whose <h2> text matches the label. */
@@ -141,17 +198,7 @@ function findLandingSection(label: string): HTMLElement | null {
   return null
 }
 
-/** Particle-dispersion morph.
- *
- * Each character in the group:
- *   1. jitters briefly (signal destabilization)
- *   2. scatters outward in a random direction (shatter)
- *   3. curves toward the landing section's bounding rect
- *   4. arrives and dissolves into a glow as the section content fades in
- *
- * Result: the eye reads it as the log literally becoming the section,
- * not as a transform + crossfade.
- */
+/** Particle-dispersion morph — chars jitter, scatter, fly to section, dissolve. */
 function morphGroupIntoSection(
   group: HTMLElement,
   section: HTMLElement
@@ -164,17 +211,12 @@ function morphGroupIntoSection(
     const sCx = sectionRect.left + sectionRect.width / 2
     const sCy = sectionRect.top + sectionRect.height / 2
 
-    // Stash the original transform so we can revert if needed.
     const groupRect = group.getBoundingClientRect()
     const groupCx = groupRect.left + groupRect.width / 2
     const groupCy = groupRect.top + groupRect.height / 2
-
-    // Direction from group center → section center, used to bias scatter
-    // so chars initially explode away from the section, then curve back
-    // (more dynamic than a straight line).
     const baseAngle = Math.atan2(sCy - groupCy, sCx - groupCx)
 
-    // === Phase A: Jitter (signal destabilization, 0.3s) ===
+    // === A. JITTER (0.45s) — extended from 0.3s on user request ===
     for (const ch of chars) {
       ch.animate(
         [
@@ -192,36 +234,26 @@ function morphGroupIntoSection(
           },
           { transform: 'translate(0, 0)' }
         ],
-        {
-          duration: 300,
-          easing: 'linear',
-          fill: 'forwards'
-        }
+        { duration: 450, easing: 'linear', fill: 'forwards' }
       )
     }
 
-    // === Phase B: Scatter + Fly (starts after jitter, ~1.2s) ===
+    // === B. SCATTER + FLY (extended to ~1.8s) ===
     setTimeout(() => {
-      for (let i = 0; i < chars.length; i++) {
-        const ch = chars[i]
+      for (const ch of chars) {
         const chRect = ch.getBoundingClientRect()
         const cx = chRect.left + chRect.width / 2
         const cy = chRect.top + chRect.height / 2
 
-        // Scatter direction: opposite of baseAngle ± random, so chars
-        // explode away from the section first.
         const scatterAngle =
           baseAngle + Math.PI + (Math.random() - 0.5) * Math.PI * 0.8
-        const scatterDist = 40 + Math.random() * 80
+        const scatterDist = 50 + Math.random() * 110
         const sx = Math.cos(scatterAngle) * scatterDist
         const sy = Math.sin(scatterAngle) * scatterDist
 
-        // Final position: a random point within the section rect.
         const tx = sCx - cx + (Math.random() - 0.5) * sectionRect.width * 0.85
         const ty = sCy - cy + (Math.random() - 0.5) * sectionRect.height * 0.85
-
-        // Rotation for visual richness.
-        const rot = (Math.random() - 0.5) * 90
+        const rot = (Math.random() - 0.5) * 100
 
         ch.animate(
           [
@@ -242,50 +274,40 @@ function morphGroupIntoSection(
                 ty * 0.5 + sy * 0.5
               }px) rotate(${rot * 0.7}deg) scale(0.7)`,
               opacity: 0.6,
-              filter: 'blur(4px)',
+              filter: 'blur(5px)',
               offset: 0.6
             },
             {
               transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(0.3)`,
               opacity: 0,
-              filter: 'blur(10px)',
+              filter: 'blur(12px)',
               offset: 1
             }
           ],
           {
-            duration: 1100 + Math.random() * 350,
-            delay: Math.random() * 180,
+            duration: 1600 + Math.random() * 450,
+            delay: Math.random() * 220,
             easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
             fill: 'forwards'
           }
         )
       }
 
-      // Fade the group's chrome (header / stamp / meta etc. that we didn't
-      // animate as chars) out as the chars leave.
-      group.animate(
-        [
-          { opacity: 1 },
-          { opacity: 0.4, offset: 0.5 },
-          { opacity: 0 }
-        ],
-        {
-          duration: 1300,
-          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          fill: 'forwards',
-          delay: 200
-        }
-      )
-    }, 280)
+      group.animate([{ opacity: 1 }, { opacity: 0.4, offset: 0.5 }, { opacity: 0 }], {
+        duration: 1700,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        fill: 'forwards',
+        delay: 250
+      })
+    }, 430)
 
-    // === Phase C: Materialize section content (chars are mid-flight) ===
+    // === C. MATERIALIZE ===
     setTimeout(() => {
       section.style.opacity = '1'
       section.style.transform = 'translateY(0)'
-    }, 700)
+    }, 950)
 
-    // Resolve after the slowest char could land.
-    setTimeout(resolve, 1900)
+    setTimeout(resolve, 2600)
   })
 }
 
@@ -310,18 +332,23 @@ async function revealRemainingSections(allSections: HTMLElement[]): Promise<void
       (g) => g.dataset.morphLabel
     )
   )
+  // Experience was showcased (not morphed) — treat it as already revealed.
   const remaining = allSections.filter((s) => {
     const h = s.querySelector('h2')
-    return h && !morphedLabels.has(h.textContent?.trim() || '')
+    const label = h?.textContent?.trim() || ''
+    return (
+      h &&
+      !morphedLabels.has(label) &&
+      label !== 'Experience' &&
+      getComputedStyle(s).opacity !== '1'
+    )
   })
 
-  // Reveal them with a soft stagger.
   for (const section of remaining) {
     section.style.opacity = '1'
     section.style.transform = 'translateY(0)'
     await sleep(90)
   }
-  // Let the last one finish.
   await sleep(500)
 }
 
