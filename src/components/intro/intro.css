@@ -93,7 +93,7 @@ html.intro-skip #intro-overlay {
   z-index: 10000;
   width: 36px;
   height: 36px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid hsl(var(--border));
@@ -106,17 +106,18 @@ html.intro-skip #intro-overlay {
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
-    transform 0.15s ease;
+    transform 0.3s ease;
 }
 #intro-replay:hover {
   color: hsl(var(--primary));
   border-color: hsl(var(--primary) / 0.5);
-  transform: rotate(-45deg);
+  transform: rotate(-180deg);
 }
 #intro-replay svg {
   width: 16px;
   height: 16px;
 }
+/* Hide while the intro is actively playing so it doesn't steal attention. */
 html.intro-active #intro-replay {
   display: none !important;
 }

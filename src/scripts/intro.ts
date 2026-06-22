@@ -128,14 +128,27 @@ async function runIntro() {
   const AMBIENT_COUNT = isMobile ? 220 : 480
   const TOTAL = TARGET_COUNT + AMBIENT_COUNT
 
-  // Scale the avatar sample points to viewport-relative size.
-  // The sample grid is ~220x220 (in sample-canvas coords). Map so the
-  // avatar occupies ~38% of the shorter viewport dimension.
-  const baseSize = Math.min(W(), H()) * 0.38
-  const scaleFactor = baseSize / 220
+  // === Anchor the silhouette to where the real hero avatar lives on the page,
+  // so when the overlay dissolves the assembled char-avatar sits exactly on
+  // top of the real <img>. Falls back to viewport center if the element
+  // can't be found (defensive — should always exist on the landing page).
+  const realAvatar =
+    document.querySelector('#content-header img') ||
+    document.querySelector('main img[alt="profile"]') as HTMLImageElement | null
+  const avatarRect = realAvatar?.getBoundingClientRect()
+  // hero is scaled to 0.94 during intro; the unscaled rect center is what we want
+  const cx = avatarRect ? avatarRect.left + avatarRect.width / 2 : W() / 2
+  const cy = avatarRect ? avatarRect.top + avatarRect.height / 2 : H() / 2
 
-  const cx = W() / 2
-  const cy = H() / 2
+  // Scale the avatar sample points so the assembled silhouette matches the
+  // real avatar's rendered size. Sample grid is 220x220; the real avatar is
+  // ~112px in hero, but the avatar PNG is square-cropped so the head occupies
+  // most of it. We size the silhouette to ~1.6x the visible avatar so the
+  // char-cloud extends a bit past the edges (more dramatic reveal).
+  const targetRenderSize = avatarRect
+    ? Math.max(avatarRect.width, avatarRect.height) * 1.6
+    : Math.min(W(), H()) * 0.38
+  const scaleFactor = targetRenderSize / 220
 
   const particles: Particle[] = []
   for (let i = 0; i < TOTAL; i++) {
