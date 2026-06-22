@@ -76,6 +76,12 @@ const isDev = import.meta.env.DEV
             sessionStorage.removeItem('intro-played')
             sessionStorage.removeItem('tour-played')
           } catch (e) {}
+          // Prevent the browser from restoring the previous scroll position
+          // after reload — the intro should always start from the top.
+          if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual'
+          }
+          window.scrollTo(0, 0)
           location.reload()
         })
       })()

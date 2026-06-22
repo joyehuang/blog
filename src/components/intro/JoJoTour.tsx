@@ -172,50 +172,61 @@ export default function JoJoTour() {
       return () => clearTimeout(t)
     }
 
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    // === Compute the target's "future" rect — i.e. where it will sit on
+    // screen once we've scrolled to center it. We use this immediately so
+    // the spotlight doesn't lag behind the smooth-scroll for 500ms.
+    const rect = target.getBoundingClientRect()
+    const currentScrollY = window.scrollY
+    const docTop = rect.top + currentScrollY
+    const viewportH = window.innerHeight
+    const viewportW = window.innerWidth
+    // Where the target's top will be in viewport coords after scroll:
+    const futureTop = (viewportH - rect.height) / 2
 
-    const compute = () => {
-      const rect = target.getBoundingClientRect()
-      const vw = window.innerWidth
-      const vh = window.innerHeight
+    const targetScrollY = docTop - (viewportH - rect.height) / 2
+    // Smooth-scroll the window. Use 'auto' if user prefers reduced motion.
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({
+      top: Math.max(0, targetScrollY),
+      behavior: reduce ? 'auto' : 'smooth'
+    })
 
-      setSpotRect({
-        x: Math.max(0, rect.left - TARGET_PADDING),
-        y: Math.max(0, rect.top - TARGET_PADDING),
-        w: Math.min(vw, rect.width + TARGET_PADDING * 2),
-        h: Math.min(vh, rect.height + TARGET_PADDING * 2)
-      })
+    // Set spotlight to the "future" position immediately — CSS transition
+    // animates it from the previous spot.
+    setSpotRect({
+      x: Math.max(0, rect.left - TARGET_PADDING),
+      y: Math.max(0, futureTop - TARGET_PADDING),
+      w: Math.min(viewportW, rect.width + TARGET_PADDING * 2),
+      h: Math.min(viewportH, rect.height + TARGET_PADDING * 2)
+    })
 
-      let x: number
-      let y: number
-      if (step.side === 'right') {
-        x = rect.right + 20
-        y = rect.top + rect.height / 2 - JOJO_BOX_H / 2
-      } else if (step.side === 'left') {
-        x = rect.left - JOJO_BOX_W - 20
-        y = rect.top + rect.height / 2 - JOJO_BOX_H / 2
-      } else if (step.side === 'top') {
-        x = rect.left + rect.width / 2 - JOJO_BOX_W / 2
-        y = rect.top - JOJO_BOX_H - 20
-      } else {
-        x = rect.left + rect.width / 2 - JOJO_BOX_W / 2
-        y = rect.bottom + 20
-      }
-      if (step.side === 'right' && x + JOJO_BOX_W > vw - 16) {
-        x = Math.max(16, rect.left - JOJO_BOX_W - 20)
-      }
-      if (step.side === 'left' && x < 16) {
-        x = Math.min(vw - JOJO_BOX_W - 16, rect.right + 20)
-      }
-
-      x = Math.max(16, Math.min(vw - JOJO_BOX_W - 16, x))
-      y = Math.max(16, Math.min(vh - JOJO_BOX_H - 16, y))
-      setJojoPos({ x, y })
+    // Position JoJo beside the (future) target rect.
+    let x: number
+    let y: number
+    if (step.side === 'right') {
+      x = rect.right + 20
+      y = futureTop + rect.height / 2 - JOJO_BOX_H / 2
+    } else if (step.side === 'left') {
+      x = rect.left - JOJO_BOX_W - 20
+      y = futureTop + rect.height / 2 - JOJO_BOX_H / 2
+    } else if (step.side === 'top') {
+      x = rect.left + rect.width / 2 - JOJO_BOX_W / 2
+      y = futureTop - JOJO_BOX_H - 20
+    } else {
+      x = rect.left + rect.width / 2 - JOJO_BOX_W / 2
+      y = futureTop + rect.height + 20
     }
+    if (step.side === 'right' && x + JOJO_BOX_W > viewportW - 16) {
+      x = Math.max(16, rect.left - JOJO_BOX_W - 20)
+    }
+    if (step.side === 'left' && x < 16) {
+      x = Math.min(viewportW - JOJO_BOX_W - 16, rect.right + 20)
+    }
+    x = Math.max(16, Math.min(viewportW - JOJO_BOX_W - 16, x))
+    y = Math.max(16, Math.min(viewportH - JOJO_BOX_H - 16, y))
+    setJojoPos({ x, y })
 
-    compute()
-    scrollTimer.current = setTimeout(compute, 500)
-
+    // Schedule auto-advance.
     const duration = step.duration ?? 2400
     advanceTimer.current = setTimeout(advance, duration)
 
@@ -245,9 +256,11 @@ export default function JoJoTour() {
       const rect = target.getBoundingClientRect()
       const vw = window.innerWidth
       const vh = window.innerHeight
+      // Target should be centered (we scrolled to center it).
+      const futureTop = (vh - rect.height) / 2
       setSpotRect({
         x: Math.max(0, rect.left - TARGET_PADDING),
-        y: Math.max(0, rect.top - TARGET_PADDING),
+        y: Math.max(0, futureTop - TARGET_PADDING),
         w: Math.min(vw, rect.width + TARGET_PADDING * 2),
         h: Math.min(vh, rect.height + TARGET_PADDING * 2)
       })

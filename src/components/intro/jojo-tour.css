@@ -5,8 +5,9 @@
   inset: 0;
   z-index: 10001;
   pointer-events: none;
-  --jojo-tour-ease: cubic-bezier(0.65, 0, 0.35, 1);
-  animation: jojo-tour-fade-in 0.4s var(--jojo-tour-ease) both;
+  /* Material standard ease — quick to settle, no bounce. */
+  --jojo-tour-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  animation: jojo-tour-fade-in 0.3s var(--jojo-tour-ease) both;
 }
 
 .jojo-tour-root.jojo-tour-fading {
@@ -43,10 +44,11 @@
   box-shadow:
     0 0 0 9999px rgba(0, 0, 0, 0.68),
     0 0 32px rgba(0, 0, 0, 0.35);
+  /* Snappier transitions — no floaty bounce between steps. */
   transition:
-    transform 0.55s var(--jojo-tour-ease),
-    width 0.55s var(--jojo-tour-ease),
-    height 0.55s var(--jojo-tour-ease);
+    transform 0.4s var(--jojo-tour-ease),
+    width 0.4s var(--jojo-tour-ease),
+    height 0.4s var(--jojo-tour-ease);
   pointer-events: none;
 }
 
@@ -60,7 +62,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  transition: transform 0.65s var(--jojo-tour-ease);
+  transition: transform 0.4s var(--jojo-tour-ease);
   pointer-events: auto;
 }
 
