@@ -198,7 +198,13 @@ function findLandingSection(label: string): HTMLElement | null {
   return null
 }
 
-/** Particle-dispersion morph — chars jitter, scatter, fly to section, dissolve. */
+/** Particle-dispersion morph — softer, more organic.
+ *
+ * Each character now follows a 7-keyframe trajectory with swift-out
+ * easing, arrives at the section, then keeps drifting past it while
+ * slowly dissolving. Arrivals are staggered so the cloud feels alive
+ * instead of robotic.
+ */
 function morphGroupIntoSection(
   group: HTMLElement,
   section: HTMLElement
@@ -216,7 +222,7 @@ function morphGroupIntoSection(
     const groupCy = groupRect.top + groupRect.height / 2
     const baseAngle = Math.atan2(sCy - groupCy, sCx - groupCx)
 
-    // === A. JITTER (0.45s) — extended from 0.3s on user request ===
+    // === A. JITTER (0.45s) — destabilize before shatter ===
     for (const ch of chars) {
       ch.animate(
         [
@@ -224,90 +230,158 @@ function morphGroupIntoSection(
           {
             transform: `translate(${(Math.random() - 0.5) * 3}px, ${
               (Math.random() - 0.5) * 3
-            }px)`
+            }px)`,
+            offset: 0.25
           },
-          { transform: 'translate(0, 0)' },
+          { transform: 'translate(0, 0)', offset: 0.5 },
           {
             transform: `translate(${(Math.random() - 0.5) * 4}px, ${
               (Math.random() - 0.5) * 4
-            }px)`
+            }px)`,
+            offset: 0.75
           },
           { transform: 'translate(0, 0)' }
         ],
-        { duration: 450, easing: 'linear', fill: 'forwards' }
+        { duration: 450, easing: 'ease-in-out', fill: 'forwards' }
       )
     }
 
-    // === B. SCATTER + FLY (extended to ~1.8s) ===
+    // === B. SCATTER → FLY → DRIFT (per char, swift-out) ===
     setTimeout(() => {
       for (const ch of chars) {
         const chRect = ch.getBoundingClientRect()
         const cx = chRect.left + chRect.width / 2
         const cy = chRect.top + chRect.height / 2
 
+        // Scatter: explode away from the section first.
         const scatterAngle =
-          baseAngle + Math.PI + (Math.random() - 0.5) * Math.PI * 0.8
+          baseAngle + Math.PI + (Math.random() - 0.5) * Math.PI * 0.85
         const scatterDist = 50 + Math.random() * 110
         const sx = Math.cos(scatterAngle) * scatterDist
         const sy = Math.sin(scatterAngle) * scatterDist
 
+        // Target: a random point inside the section rect.
         const tx = sCx - cx + (Math.random() - 0.5) * sectionRect.width * 0.85
         const ty = sCy - cy + (Math.random() - 0.5) * sectionRect.height * 0.85
-        const rot = (Math.random() - 0.5) * 100
+
+        // Drift: where the char keeps going after arriving — past the
+        // section, fading out. This is the key change that removes the
+        // 'hard cut' feeling at the end of the morph.
+        const driftAngle = Math.atan2(sCy - groupCy, sCx - groupCx)
+        const driftDist = 80 + Math.random() * 120
+        const dx = tx + Math.cos(driftAngle) * driftDist
+        const dy = ty + Math.sin(driftAngle) * driftDist
+
+        const rot = (Math.random() - 0.5) * 120
 
         ch.animate(
           [
+            // 0% — at rest
             {
               transform: 'translate(0, 0) rotate(0deg) scale(1)',
               opacity: 1,
               filter: 'blur(0px)',
               offset: 0
             },
+            // 14% — starting to scatter
             {
-              transform: `translate(${sx}px, ${sy}px) rotate(${rot * 0.3}deg) scale(0.9)`,
-              opacity: 0.85,
-              filter: 'blur(2px)',
-              offset: 0.25
+              transform: `translate(${sx * 0.55}px, ${sy * 0.55}px) rotate(${
+                rot * 0.18
+              }deg) scale(0.96)`,
+              opacity: 0.92,
+              filter: 'blur(1px)',
+              offset: 0.14
             },
+            // 28% — scattered (peak outward displacement)
             {
-              transform: `translate(${tx * 0.5 + sx * 0.5}px, ${
-                ty * 0.5 + sy * 0.5
-              }px) rotate(${rot * 0.7}deg) scale(0.7)`,
-              opacity: 0.6,
+              transform: `translate(${sx}px, ${sy}px) rotate(${
+                rot * 0.38
+              }deg) scale(0.86)`,
+              opacity: 0.82,
+              filter: 'blur(3px)',
+              offset: 0.28
+            },
+            // 52% — mid-flight, curving back toward the section
+            {
+              transform: `translate(${(sx + tx) * 0.5}px, ${
+                (sy + ty) * 0.5
+              }px) rotate(${rot * 0.65}deg) scale(0.68)`,
+              opacity: 0.62,
               filter: 'blur(5px)',
-              offset: 0.6
+              offset: 0.52
             },
+            // 76% — approaching the section
             {
-              transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(0.3)`,
+              transform: `translate(${tx * 0.88 + sx * 0.12}px, ${
+                ty * 0.88 + sy * 0.12
+              }px) rotate(${rot * 0.88}deg) scale(0.48)`,
+              opacity: 0.42,
+              filter: 'blur(8px)',
+              offset: 0.76
+            },
+            // 88% — arrived on the section, still glowing faintly
+            {
+              transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(0.32)`,
+              opacity: 0.22,
+              filter: 'blur(11px)',
+              offset: 0.88
+            },
+            // 95% — drifting past, dissolving
+            {
+              transform: `translate(${dx * 0.6 + tx * 0.4}px, ${
+                dy * 0.6 + ty * 0.4
+              }px) rotate(${rot * 1.15}deg) scale(0.2)`,
+              opacity: 0.08,
+              filter: 'blur(16px)',
+              offset: 0.95
+            },
+            // 100% — gone
+            {
+              transform: `translate(${dx}px, ${dy}px) rotate(${
+                rot * 1.3
+              }deg) scale(0.12)`,
               opacity: 0,
-              filter: 'blur(12px)',
+              filter: 'blur(22px)',
               offset: 1
             }
           ],
           {
-            duration: 1600 + Math.random() * 450,
-            delay: Math.random() * 220,
-            easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
+            duration: 2200 + Math.random() * 600,
+            delay: Math.random() * 320,
+            // swift-out — feels physical, like the char has inertia and
+            // decelerates naturally rather than moving at constant speed.
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
           }
         )
       }
 
-      group.animate([{ opacity: 1 }, { opacity: 0.4, offset: 0.5 }, { opacity: 0 }], {
-        duration: 1700,
-        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-        fill: 'forwards',
-        delay: 250
-      })
+      // Group chrome (header / stamp / meta not animated above) fades in
+      // sync, but slower than before so it doesn't vanish before the chars.
+      group.animate(
+        [
+          { opacity: 1 },
+          { opacity: 0.7, offset: 0.35 },
+          { opacity: 0.3, offset: 0.7 },
+          { opacity: 0 }
+        ],
+        {
+          duration: 2200,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards',
+          delay: 300
+        }
+      )
     }, 430)
 
-    // === C. MATERIALIZE ===
+    // === C. MATERIALIZE section content (chars are mid-flight) ===
     setTimeout(() => {
       section.style.opacity = '1'
       section.style.transform = 'translateY(0)'
-    }, 950)
+    }, 1100)
 
-    setTimeout(resolve, 2600)
+    // Resolve after the slowest char has had time to drift out.
+    setTimeout(resolve, 3200)
   })
 }
 
