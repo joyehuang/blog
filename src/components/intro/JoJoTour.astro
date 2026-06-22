@@ -1,0 +1,34 @@
+---
+/**
+ * JoJoTour — onboarding tour driven by the JoJo mascot.
+ *
+ * Mounts the React <JoJoTour> component via Astro island (client:idle).
+ * The component itself decides whether to play (based on prefers-reduced-motion
+ * + sessionStorage) and waits for the `intro:complete` event dispatched by
+ * src/scripts/intro.ts once the cinematic intro finishes.
+ */
+import './jojo-tour.css'
+import JoJoTourRoot from './JoJoTour.tsx'
+
+const isDev = import.meta.env.DEV
+---
+
+<JoJoTourRoot client:idle />
+
+{
+  /* Expose a window hook for the dev Replay button to reset both
+     intro + tour so the whole experience can be re-watched in dev. */
+  isDev && (
+    <script is:inline>
+      ;(function () {
+        window.__resetIntroAndTour = function () {
+          try {
+            sessionStorage.removeItem('intro-played')
+            sessionStorage.removeItem('tour-played')
+          } catch (e) {}
+          location.reload()
+        }
+      })()
+    </script>
+  )
+}

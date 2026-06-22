@@ -72,7 +72,10 @@ const isDev = import.meta.env.DEV
         var btn = document.getElementById('intro-replay')
         if (!btn) return
         btn.addEventListener('click', function () {
-          try { sessionStorage.removeItem('intro-played') } catch (e) {}
+          try {
+            sessionStorage.removeItem('intro-played')
+            sessionStorage.removeItem('tour-played')
+          } catch (e) {}
           location.reload()
         })
       })()

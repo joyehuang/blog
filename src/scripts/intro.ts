@@ -451,6 +451,12 @@ async function runIntro() {
     document.documentElement.classList.remove('intro-active')
     document.documentElement.classList.remove('intro-hidden')
     gsap.set(['#content-header', '#content'], { clearProps: 'all' })
+
+    // Notify the JoJo tour (and any other listeners) that the intro is done.
+    // Set the flag first so listeners attaching after the event still see it.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).__introDone = true
+    window.dispatchEvent(new CustomEvent('intro:complete'))
   }
 
   const fallback = setTimeout(() => {
