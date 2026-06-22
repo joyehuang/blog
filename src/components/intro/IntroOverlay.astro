@@ -202,9 +202,11 @@ function renderTokenized(text: string): string {
     </div>
   </div>
 
-  {/* Experience showcase — full-viewport terminal "company tour".
-      Hidden by default, made visible by the client between the Experience
-      cascade and the morph. Each panel is one company. */}
+  {/* Experience showcase — interactive terminal "company tour".
+      Left rail = selectable list of companies; main stage = the selected
+      company's screenshot in a CRT frame; hover any list item to switch.
+      Hidden by default; made visible by the client between the Experience
+      cascade and the morph. */}
   <div id='intro-showcase' aria-hidden='true'>
     <div class='showcase-frame'>
       <div class='showcase-titlebar'>
@@ -218,37 +220,126 @@ function renderTokenized(text: string): string {
           <span class='showcase-counter-total'>04</span>
         </span>
       </div>
-      <div class='showcase-stage'>
-        {
-          JOYE_LOG_GROUPS.map((group) =>
-            group.type === 'work'
-              ? group.entries
-                  .filter((e) => e.screenshot)
-                  .map((entry, i) => (
-                    <div
-                      class='showcase-panel'
-                      data-panel-index={i}
-                      data-total={group.entries.filter((e) => e.screenshot).length}
-                    >
-                      <img
-                        class='showcase-screenshot'
-                        src={entry.screenshot}
-                        alt=''
-                        loading='eager'
-                      />
-                      <div class='showcase-overlay' aria-hidden='true' />
-                      <div class='showcase-caption'>
-                        <span class='showcase-caption-prompt'>&gt;</span>
-                        <span class='showcase-caption-title'>{entry.title}</span>
-                        <span class='showcase-caption-desc'>
-                          {entry.description}
+
+      <div class='showcase-body'>
+        {/* Left rail — selectable list (terminal menu look). */}
+        <ul class='showcase-rail'>
+          {
+            JOYE_LOG_GROUPS.map((group) =>
+              group.type === 'work'
+                ? group.entries
+                    .filter((e) => e.screenshot)
+                    .map((entry, i) => (
+                      <li
+                        class='showcase-rail-item'
+                        data-panel-index={i}
+                        data-url={entry.url}
+                      >
+                        <span class='showcase-rail-cursor'>▸</span>
+                        <span class='showcase-rail-idx'>
+                          {String(i + 1).padStart(2, '0')}
                         </span>
+                        <span class='showcase-rail-name'>
+                          {entry.title.split('→')[1]?.trim() ?? entry.title}
+                        </span>
+                      </li>
+                    ))
+                : null
+            )
+          }
+        </ul>
+
+        {/* Main stage — CRT-framed screenshot of the active company. */}
+        <div class='showcase-stage'>
+          {
+            JOYE_LOG_GROUPS.map((group) =>
+              group.type === 'work'
+                ? group.entries
+                    .filter((e) => e.screenshot)
+                    .map((entry, i) => (
+                      <div
+                        class='showcase-panel'
+                        data-panel-index={i}
+                        data-url={entry.url}
+                      >
+                        <img
+                          class='showcase-screenshot'
+                          src={entry.screenshot}
+                          alt=''
+                          loading='eager'
+                          draggable='false'
+                        />
+                        <div class='showcase-overlay' aria-hidden='true' />
+                        <div class='showcase-scanlines' aria-hidden='true' />
+
+                        {/* Hover info panel — floats on the right side. */}
+                        <aside class='showcase-info'>
+                          <header class='showcase-info-header'>
+                            <span class='showcase-info-prompt'>&gt;</span>
+                            <span class='showcase-info-company'>
+                              {entry.title.split('→')[0]?.trim()}
+                            </span>
+                          </header>
+                          <h3 class='showcase-info-product'>
+                            {entry.title.split('→')[1]?.trim() ?? entry.title}
+                          </h3>
+                          <dl class='showcase-info-meta'>
+                            <div class='meta-row'>
+                              <dt>role</dt>
+                              <dd>{entry.role}</dd>
+                            </div>
+                            <div class='meta-row'>
+                              <dt>period</dt>
+                              <dd>{entry.period}</dd>
+                            </div>
+                            <div class='meta-row'>
+                              <dt>stack</dt>
+                              <dd>
+                                <ul class='stack-chips'>
+                                  {entry.stack?.map((s) => (
+                                    <li class='stack-chip'>{s}</li>
+                                  ))}
+                                </ul>
+                              </dd>
+                            </div>
+                          </dl>
+                          {entry.highlights && entry.highlights.length > 0 && (
+                            <ul class='showcase-info-highlights'>
+                              {entry.highlights.map((h) => (
+                                <li>
+                                  <span class='hl-bullet'>→</span>
+                                  <span>{h}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          {entry.url && (
+                            <a
+                              class='showcase-info-visit'
+                              href={entry.url}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                            >
+                              visit site <span>↗</span>
+                            </a>
+                          )}
+                        </aside>
+
+                        <div class='showcase-caption'>
+                          <span class='showcase-caption-prompt'>&gt;</span>
+                          <span class='showcase-caption-title'>
+                            {entry.title}
+                          </span>
+                          <span class='showcase-caption-desc'>
+                            {entry.description}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))
-              : null
-          )
-        }
+                    ))
+                : null
+            )
+          }
+        </div>
       </div>
     </div>
   </div>

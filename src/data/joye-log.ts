@@ -29,6 +29,16 @@ export type LogEntry = {
   screenshot?: string
   /** Experience-only: one-line description shown under the screenshot. */
   description?: string
+  /** Experience-only: Joye's role at the company. */
+  role?: string
+  /** Experience-only: time period. */
+  period?: string
+  /** Experience-only: tech stack chips. */
+  stack?: string[]
+  /** Experience-only: highlight bullets shown in the hover info panel. */
+  highlights?: string[]
+  /** Experience-only: link to the product (for click-to-visit). */
+  url?: string
 }
 
 export type LogGroup = {
@@ -51,7 +61,16 @@ export const JOYE_LOG_GROUPS: LogGroup[] = [
         tag: 'AI full-stack',
         weight: 2,
         screenshot: '/intro/playyy.png',
-        description: 'AI image generation & brand design platform'
+        description: 'AI image generation & brand design platform',
+        role: 'AI Full-Stack Engineer',
+        period: '2026 — present',
+        stack: ['TypeScript', 'React', 'Next.js', 'GPT Image 2', 'Nano Banana'],
+        highlights: [
+          'Click-to-edit element editor (no selection tools, just describe)',
+          'BG remover + object remover + upscaler pipeline',
+          'Brand-consistent style transfer for campaign visuals'
+        ],
+        url: 'https://playyy.ai/'
       },
       {
         stamp: '— prev —',
@@ -60,7 +79,16 @@ export const JOYE_LOG_GROUPS: LogGroup[] = [
         tag: 'multi-agent',
         weight: 1,
         screenshot: '/intro/atypica.png',
-        description: 'Multi-agent system for commercial research'
+        description: 'Multi-agent system for commercial research',
+        role: 'AIGC Full-Stack Intern',
+        period: '2026',
+        stack: ['Python', 'LangGraph', 'Multi-Agent', 'RAG'],
+        highlights: [
+          'Multi-agent orchestration for business research workflows',
+          'Tool use + planning + reflection loop',
+          'Retrieval pipeline over internal knowledge base'
+        ],
+        url: 'https://atypica.ai/'
       },
       {
         stamp: '— prev —',
@@ -69,7 +97,16 @@ export const JOYE_LOG_GROUPS: LogGroup[] = [
         tag: 'AI editing',
         weight: 1,
         screenshot: '/intro/aixcut.png',
-        description: 'AI video editing agent'
+        description: 'AI video editing agent',
+        role: 'AI Full-Stack Engineer',
+        period: '2025',
+        stack: ['TypeScript', 'FFmpeg', 'LLM', 'Agent'],
+        highlights: [
+          'Agentic video editing — describe the cut, AI assembles it',
+          'Scene detection + automatic B-roll insertion',
+          'Real-time preview pipeline'
+        ],
+        url: 'https://aixcut.cn/'
       },
       {
         stamp: '— prev —',
@@ -78,7 +115,16 @@ export const JOYE_LOG_GROUPS: LogGroup[] = [
         tag: 'AI try-on',
         weight: 0,
         screenshot: '/intro/faishion.png',
-        description: 'AI virtual try-on & styling'
+        description: 'AI virtual try-on & styling',
+        role: 'AI Full-Stack Engineer (Remote)',
+        period: '2025',
+        stack: ['Python', 'Diffusion', 'FastAPI', 'React'],
+        highlights: [
+          'Virtual try-on powered by diffusion models',
+          'Outfit recommendation engine',
+          'Model integration + serving infrastructure'
+        ],
+        url: 'https://www.faishion.ai/'
       }
     ]
   },

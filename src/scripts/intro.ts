@@ -158,33 +158,129 @@ async function cascadeGroup(group: HTMLElement): Promise<void> {
   }
 }
 
-/** Run the Experience showcase — cycle through each panel in turn. */
+/** Run the Experience showcase — auto-cycles panels but pauses on hover,
+ *  and any rail item / panel can be clicked to open the product URL.
+ *
+ *  Layout: left rail = list of companies (terminal menu). Main stage =
+ *  CRT-framed screenshot with a hover-info side panel. Hover a rail item
+ *  or the stage to pause + reveal the info; click to open the site.
+ */
 async function runShowcase(showcase: HTMLElement): Promise<void> {
   const panels = Array.from(
     showcase.querySelectorAll<HTMLElement>('.showcase-panel')
+  )
+  const railItems = Array.from(
+    showcase.querySelectorAll<HTMLElement>('.showcase-rail-item')
   )
   const counterCurrent = showcase.querySelector<HTMLElement>(
     '.showcase-counter-current'
   )
   if (!panels.length) return
 
-  // Format: "01" .. "04"
   const fmt = (n: number) => String(n + 1).padStart(2, '0')
+  let currentIdx = 0
+  let isPaused = false
+  let advanceTimer: ReturnType<typeof setTimeout> | null = null
 
-  showcase.classList.add('showcase-active')
-  // small delay so the frame scales in before panels start cycling
-  await sleep(500)
-
-  for (let i = 0; i < panels.length; i++) {
-    // Activate this panel (deactivate others).
+  function showPanel(idx: number) {
+    if (idx === currentIdx && panels[idx]?.classList.contains('panel-active')) {
+      return
+    }
+    currentIdx = idx
     for (const p of panels) p.classList.remove('panel-active')
-    panels[i].classList.add('panel-active')
-    if (counterCurrent) counterCurrent.textContent = fmt(i)
-
-    // Hold each company for ~1.4s. Last one gets an extra beat so the
-    // visitor can register the "current role" before we move on.
-    await sleep(i === panels.length - 1 ? 1900 : 1400)
+    panels[idx]?.classList.add('panel-active')
+    for (const r of railItems) r.classList.remove('rail-active')
+    railItems[idx]?.classList.add('rail-active')
+    if (counterCurrent) counterCurrent.textContent = fmt(idx)
   }
+
+  function scheduleNext() {
+    if (advanceTimer) clearTimeout(advanceTimer)
+    if (isPaused) return
+    const isLast = currentIdx === panels.length - 1
+    const delay = isLast ? 2000 : 1500
+    advanceTimer = setTimeout(() => {
+      if (isPaused) return
+      if (currentIdx + 1 < panels.length) {
+        showPanel(currentIdx + 1)
+        scheduleNext()
+      }
+      // Last panel: don't auto-advance, let the outer flow end the showcase.
+    }, delay)
+  }
+
+  function setPaused(paused: boolean) {
+    if (isPaused === paused) return
+    isPaused = paused
+    if (paused) {
+      if (advanceTimer) clearTimeout(advanceTimer)
+    } else {
+      scheduleNext()
+    }
+  }
+
+  // === Wire up rail interactions ===
+  const onRailEnter = (e: Event) => {
+    const item = e.currentTarget as HTMLElement
+    const idx = Number(item.dataset.panelIndex)
+    setPaused(true)
+    showPanel(idx)
+  }
+  const onRailLeave = () => {
+    setPaused(false)
+  }
+  const onRailClick = (e: Event) => {
+    const item = e.currentTarget as HTMLElement
+    const url = item.dataset.url
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
+    e.stopPropagation()
+  }
+  for (const item of railItems) {
+    item.addEventListener('mouseenter', onRailEnter)
+    item.addEventListener('mouseleave', onRailLeave)
+    item.addEventListener('click', onRailClick)
+  }
+
+  // === Wire up panel click (open URL) + hover pause ===
+  const onPanelEnter = () => setPaused(true)
+  const onPanelLeave = () => setPaused(false)
+  const onPanelClick = (e: MouseEvent) => {
+    const panel = (e.currentTarget as HTMLElement)
+    // Ignore clicks on the visit link itself — it'll navigate normally.
+    if ((e.target as HTMLElement).closest('.showcase-info-visit')) return
+    const url = panel.dataset.url
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
+  }
+  for (const panel of panels) {
+    panel.addEventListener('mouseenter', onPanelEnter)
+    panel.addEventListener('mouseleave', onPanelLeave)
+    panel.addEventListener('click', onPanelClick)
+  }
+
+  // === Kick off ===
+  showcase.classList.add('showcase-active')
+  await sleep(500) // let the frame scale-in settle
+  showPanel(0)
+  scheduleNext()
+
+  // Auto-end after a full tour (gives the visitor ~6.5s minimum in the
+  // showcase; if they're hovering, the panels just stay put until they
+  // move the mouse out, then the timer resumes from wherever it was).
+  // Total ≈ (1500 * 3) + 2000 + small buffer.
+  await sleep(6800)
+
+  // Cleanup listeners (the DOM nodes will be torn down with the overlay).
+  for (const item of railItems) {
+    item.removeEventListener('mouseenter', onRailEnter)
+    item.removeEventListener('mouseleave', onRailLeave)
+    item.removeEventListener('click', onRailClick)
+  }
+  for (const panel of panels) {
+    panel.removeEventListener('mouseenter', onPanelEnter)
+    panel.removeEventListener('mouseleave', onPanelLeave)
+    panel.removeEventListener('click', onPanelClick)
+  }
+  if (advanceTimer) clearTimeout(advanceTimer)
 }
 
 /** Find the first <section> in <main> whose <h2> text matches the label. */
