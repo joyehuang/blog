@@ -141,39 +141,151 @@ function findLandingSection(label: string): HTMLElement | null {
   return null
 }
 
-/** Morph a log group onto a landing section. Returns when the morph completes. */
+/** Particle-dispersion morph.
+ *
+ * Each character in the group:
+ *   1. jitters briefly (signal destabilization)
+ *   2. scatters outward in a random direction (shatter)
+ *   3. curves toward the landing section's bounding rect
+ *   4. arrives and dissolves into a glow as the section content fades in
+ *
+ * Result: the eye reads it as the log literally becoming the section,
+ * not as a transform + crossfade.
+ */
 function morphGroupIntoSection(
   group: HTMLElement,
   section: HTMLElement
 ): Promise<void> {
   return new Promise((resolve) => {
-    const groupRect = group.getBoundingClientRect()
+    const chars = Array.from(
+      group.querySelectorAll<HTMLElement>('.char, .stamp-char')
+    )
     const sectionRect = section.getBoundingClientRect()
+    const sCx = sectionRect.left + sectionRect.width / 2
+    const sCy = sectionRect.top + sectionRect.height / 2
 
-    // FLIP-style transform: translate + scale the group onto the section rect.
-    const dx = sectionRect.left - groupRect.left
-    const dy = sectionRect.top - groupRect.top
-    const sx = sectionRect.width / Math.max(1, groupRect.width)
-    const sy = sectionRect.height / Math.max(1, groupRect.height)
+    // Stash the original transform so we can revert if needed.
+    const groupRect = group.getBoundingClientRect()
+    const groupCx = groupRect.left + groupRect.width / 2
+    const groupCy = groupRect.top + groupRect.height / 2
 
-    group.style.transformOrigin = 'top left'
-    group.style.transition =
-      'transform 1.1s cubic-bezier(0.55, 0, 0.2, 1), opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.5s, filter 1.1s cubic-bezier(0.55, 0, 0.2, 1)'
+    // Direction from group center → section center, used to bias scatter
+    // so chars initially explode away from the section, then curve back
+    // (more dynamic than a straight line).
+    const baseAngle = Math.atan2(sCy - groupCy, sCx - groupCx)
 
-    // rAF so the transition picks up the change.
-    requestAnimationFrame(() => {
-      group.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`
-      group.style.opacity = '0'
-      group.style.filter = 'blur(6px)'
-      // Fade the section in partway through the morph so the eye reads it
-      // as a handoff, not two parallel motions.
-      setTimeout(() => {
-        section.style.opacity = '1'
-        section.style.transform = 'translateY(0)'
-      }, 350)
-    })
+    // === Phase A: Jitter (signal destabilization, 0.3s) ===
+    for (const ch of chars) {
+      ch.animate(
+        [
+          { transform: 'translate(0, 0)' },
+          {
+            transform: `translate(${(Math.random() - 0.5) * 3}px, ${
+              (Math.random() - 0.5) * 3
+            }px)`
+          },
+          { transform: 'translate(0, 0)' },
+          {
+            transform: `translate(${(Math.random() - 0.5) * 4}px, ${
+              (Math.random() - 0.5) * 4
+            }px)`
+          },
+          { transform: 'translate(0, 0)' }
+        ],
+        {
+          duration: 300,
+          easing: 'linear',
+          fill: 'forwards'
+        }
+      )
+    }
 
-    setTimeout(resolve, 1200)
+    // === Phase B: Scatter + Fly (starts after jitter, ~1.2s) ===
+    setTimeout(() => {
+      for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i]
+        const chRect = ch.getBoundingClientRect()
+        const cx = chRect.left + chRect.width / 2
+        const cy = chRect.top + chRect.height / 2
+
+        // Scatter direction: opposite of baseAngle ± random, so chars
+        // explode away from the section first.
+        const scatterAngle =
+          baseAngle + Math.PI + (Math.random() - 0.5) * Math.PI * 0.8
+        const scatterDist = 40 + Math.random() * 80
+        const sx = Math.cos(scatterAngle) * scatterDist
+        const sy = Math.sin(scatterAngle) * scatterDist
+
+        // Final position: a random point within the section rect.
+        const tx = sCx - cx + (Math.random() - 0.5) * sectionRect.width * 0.85
+        const ty = sCy - cy + (Math.random() - 0.5) * sectionRect.height * 0.85
+
+        // Rotation for visual richness.
+        const rot = (Math.random() - 0.5) * 90
+
+        ch.animate(
+          [
+            {
+              transform: 'translate(0, 0) rotate(0deg) scale(1)',
+              opacity: 1,
+              filter: 'blur(0px)',
+              offset: 0
+            },
+            {
+              transform: `translate(${sx}px, ${sy}px) rotate(${rot * 0.3}deg) scale(0.9)`,
+              opacity: 0.85,
+              filter: 'blur(2px)',
+              offset: 0.25
+            },
+            {
+              transform: `translate(${tx * 0.5 + sx * 0.5}px, ${
+                ty * 0.5 + sy * 0.5
+              }px) rotate(${rot * 0.7}deg) scale(0.7)`,
+              opacity: 0.6,
+              filter: 'blur(4px)',
+              offset: 0.6
+            },
+            {
+              transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(0.3)`,
+              opacity: 0,
+              filter: 'blur(10px)',
+              offset: 1
+            }
+          ],
+          {
+            duration: 1100 + Math.random() * 350,
+            delay: Math.random() * 180,
+            easing: 'cubic-bezier(0.45, 0, 0.55, 1)',
+            fill: 'forwards'
+          }
+        )
+      }
+
+      // Fade the group's chrome (header / stamp / meta etc. that we didn't
+      // animate as chars) out as the chars leave.
+      group.animate(
+        [
+          { opacity: 1 },
+          { opacity: 0.4, offset: 0.5 },
+          { opacity: 0 }
+        ],
+        {
+          duration: 1300,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards',
+          delay: 200
+        }
+      )
+    }, 280)
+
+    // === Phase C: Materialize section content (chars are mid-flight) ===
+    setTimeout(() => {
+      section.style.opacity = '1'
+      section.style.transform = 'translateY(0)'
+    }, 700)
+
+    // Resolve after the slowest char could land.
+    setTimeout(resolve, 1900)
   })
 }
 
