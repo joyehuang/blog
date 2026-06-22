@@ -100,9 +100,13 @@ async function runIntro() {
   footer?.classList.add('intro-visible')
   await sleep(700)
 
-  // === Phase 5: MORPH ===
-  // Pre-hide every landing section so removing .intro-active doesn't flash
-  // them all at once.
+  // === Phase 5: MORPH + REVEAL + DISSOLVE (all in parallel) ===
+  // Old version串行 awaited morph → remaining → overlay, which left a
+  // 'morph, then snap' feeling. Now all three run concurrently: as the
+  // chars fly, the morphed sections fade in, the non-morphed sections
+  // stagger in, and the overlay slowly dissolves. The page emerges
+  // through the dissipating overlay.
+
   const allSections = Array.from(
     document.querySelectorAll<HTMLElement>('main #content section')
   )
@@ -114,18 +118,19 @@ async function runIntro() {
   }
   document.documentElement.classList.remove('intro-active')
 
-  // Morph Blog + Open Source groups (particle dispersion).
+  // Kick off the morphs (Blog + Open Source) — they run for ~3.2s.
   const morphs: Array<Promise<void>> = []
+  const morphedLabels = new Set<string>()
   for (const g of otherGroups) {
     const label = g.dataset.morphLabel
     if (!label) continue
     const section = findLandingSection(label)
     if (!section) continue
+    morphedLabels.add(label)
     morphs.push(morphGroupIntoSection(g, section))
   }
 
-  // Experience section fades in directly — it was just showcased so a
-  // second particle morph would be redundant.
+  // Experience section fades in directly (showcased already).
   const expSection = findLandingSection('Experience')
   if (expSection) {
     setTimeout(() => {
@@ -135,13 +140,32 @@ async function runIntro() {
   }
 
   revealHero()
+
+  // Schedule non-morphed sections to stagger in (parallel with morph).
+  // Tighter stagger than before (60ms vs 90ms) so they all land inside
+  // the morph window instead of trailing it.
+  const remainingSections = allSections.filter((s) => {
+    const label = s.querySelector('h2')?.textContent?.trim() || ''
+    return !morphedLabels.has(label) && label !== 'Experience'
+  })
+  setTimeout(() => {
+    remainingSections.forEach((s, i) => {
+      setTimeout(() => {
+        s.style.opacity = '1'
+        s.style.transform = 'translateY(0)'
+      }, i * 60)
+    })
+  }, 500)
+
+  // Schedule overlay dissolve so it overlaps the tail of the morph.
+  setTimeout(() => {
+    overlay.classList.add('intro-hidden')
+  }, 1400)
+
+  // Wait for the morphs, then give the overlay's 0.9s dissolve time to
+  // complete before tearing it down.
   await Promise.all(morphs)
-
-  // === Phase 6: REVEAL REMAINING SECTIONS ===
-  await revealRemainingSections(allSections)
-
-  overlay.classList.add('intro-hidden')
-  await sleep(500)
+  await sleep(900)
   overlay.classList.add('intro-done')
   document.documentElement.classList.remove('intro-hidden')
 
@@ -420,7 +444,7 @@ function morphGroupIntoSection(
             {
               transform: 'translate(0, 0) rotate(0deg) scale(1)',
               opacity: 1,
-              filter: 'blur(0px) drop-shadow(0 0 0 transparent)',
+              filter: 'blur(0px)',
               offset: 0
             },
             // 14% — starting to scatter
@@ -429,8 +453,7 @@ function morphGroupIntoSection(
                 rot * 0.18
               }deg) scale(0.96)`,
               opacity: 0.92,
-              filter:
-                'blur(1px) drop-shadow(-3px 0 3px rgba(123, 184, 212, 0.45))',
+              filter: 'blur(1px)',
               offset: 0.14
             },
             // 28% — scattered (peak outward displacement)
@@ -439,8 +462,7 @@ function morphGroupIntoSection(
                 rot * 0.38
               }deg) scale(0.86)`,
               opacity: 0.82,
-              filter:
-                'blur(3px) drop-shadow(-5px 0 5px rgba(123, 184, 212, 0.55)) drop-shadow(4px 0 4px rgba(180, 200, 220, 0.35))',
+              filter: 'blur(3px)',
               offset: 0.28
             },
             // 52% — mid-flight, curving back toward the section
@@ -449,8 +471,7 @@ function morphGroupIntoSection(
                 (sy + ty) * 0.5
               }px) rotate(${rot * 0.65}deg) scale(0.68)`,
               opacity: 0.62,
-              filter:
-                'blur(5px) drop-shadow(-7px 0 6px rgba(123, 184, 212, 0.6)) drop-shadow(6px 0 5px rgba(180, 200, 220, 0.4))',
+              filter: 'blur(5px)',
               offset: 0.52
             },
             // 76% — approaching the section
@@ -459,16 +480,14 @@ function morphGroupIntoSection(
                 ty * 0.88 + sy * 0.12
               }px) rotate(${rot * 0.88}deg) scale(0.48)`,
               opacity: 0.42,
-              filter:
-                'blur(8px) drop-shadow(-5px 0 4px rgba(123, 184, 212, 0.5)) drop-shadow(4px 0 4px rgba(180, 200, 220, 0.3))',
+              filter: 'blur(8px)',
               offset: 0.76
             },
             // 88% — arrived on the section, still glowing faintly
             {
               transform: `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(0.32)`,
               opacity: 0.22,
-              filter:
-                'blur(11px) drop-shadow(0 0 8px rgba(123, 184, 212, 0.55))',
+              filter: 'blur(11px)',
               offset: 0.88
             },
             // 95% — drifting past, dissolving
@@ -477,7 +496,7 @@ function morphGroupIntoSection(
                 dy * 0.6 + ty * 0.4
               }px) rotate(${rot * 1.15}deg) scale(0.2)`,
               opacity: 0.08,
-              filter: 'blur(16px) drop-shadow(0 0 6px rgba(123, 184, 212, 0.3))',
+              filter: 'blur(16px)',
               offset: 0.95
             },
             // 100% — gone
@@ -486,7 +505,7 @@ function morphGroupIntoSection(
                 rot * 1.3
               }deg) scale(0.12)`,
               opacity: 0,
-              filter: 'blur(22px) drop-shadow(0 0 0 transparent)',
+              filter: 'blur(22px)',
               offset: 1
             }
           ],

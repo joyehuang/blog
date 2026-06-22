@@ -29,13 +29,24 @@ html.intro-skip #intro-overlay {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
+  /* Layered radial gradients give the overlay depth without being a flat
+     black slab. ~96% opacity overall so the hero's silhouette can bleed
+     through subtly during the final coalesce → reveal handoff. */
   background:
     radial-gradient(ellipse 70% 50% at 50% 42%, rgba(64, 100, 130, 0.22) 0%, rgba(8, 14, 22, 0) 60%),
     radial-gradient(circle at 22% 18%, rgba(40, 70, 95, 0.10) 0%, rgba(0, 0, 0, 0) 45%),
     radial-gradient(circle at 78% 82%, rgba(35, 55, 75, 0.08) 0%, rgba(0, 0, 0, 0) 45%),
     radial-gradient(circle at center, rgb(10, 15, 21) 0%, rgb(5, 8, 11) 100%);
   opacity: 1;
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+  filter: blur(0px);
+  /* Slow dissolve — scale + blur + opacity together read as 'expanding
+     out' rather than a hard fade. Long enough (0.9s) to overlap with
+     the tail of the morph so there's no gap. */
+  transition:
+    opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.9s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,6 +56,8 @@ html.intro-skip #intro-overlay {
 
 #intro-overlay.intro-hidden {
   opacity: 0;
+  transform: scale(1.06);
+  filter: blur(14px);
 }
 
 #intro-overlay.intro-done {
