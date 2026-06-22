@@ -89,6 +89,12 @@ async function runIntro() {
     return
   }
 
+  // Defensive: ensure the page is scrolled to the top before measuring the
+  // hero avatar's position. The inline script in IntroOverlay.astro tries to
+  // do this too, but module scripts run on a later tick — make sure no other
+  // script has scrolled the page in between.
+  window.scrollTo(0, 0)
+
   // === Renderer ===
   const isMobile = window.matchMedia('(max-width: 768px)').matches
   const renderer = new THREE.WebGLRenderer({
@@ -144,13 +150,6 @@ async function runIntro() {
     : 0
   const avatarCenterWorldX = avatarCenterNdcX * revealHalfW
   const avatarCenterWorldY = avatarCenterNdcY * revealHalfH
-  // Fixed silhouette size in world units — independent of how much of the
-  // 220x220 sample grid the avatar actually fills. The particle avatar is
-  // intentionally larger than the real <img> (collapses/hands off on reveal).
-  // At z=0 viewed from z=11 with fov=62, the viewport is ~20 world units wide,
-  // so 6.5 gives a silhouette that fills ~33% of the viewport width.
-  const silhouetteWorldSize = Math.min(revealHalfW, revealHalfH) * 1.3
-  const scaleFactor = silhouetteWorldSize / 220
 
   // === Build per-token data ===
   type TokenData = {
@@ -224,14 +223,40 @@ async function runIntro() {
       if (tokenIdx < tokenData.length) targetAssignmentOrder.push(tokenIdx)
     })
   }
+  // Fixed silhouette size in world units — independent of how much of the
+  // 220x220 sample grid the avatar actually fills. Height = ~22% of viewport
+  // (≈ revealHalfH * 0.45) so the particle avatar is clearly visible but
+  // never spills off the top of the screen.
+  //
+  // First compute the actual bounding box of the sampled silhouette points
+  // so we can scale them uniformly (preserving the PNG's intrinsic aspect
+  // ratio — the avatar is much wider than tall, head+shoulders).
+  let minSX = Infinity, maxSX = -Infinity
+  let minSY = Infinity, maxSY = -Infinity
+  for (const pt of targetPoints) {
+    if (pt.x < minSX) minSX = pt.x
+    if (pt.x > maxSX) maxSX = pt.x
+    if (pt.y < minSY) minSY = pt.y
+    if (pt.y > maxSY) maxSY = pt.y
+  }
+  const sampleH = Math.max(1, maxSY - minSY)
+  const sampleMidX = (minSX + maxSX) / 2
+  const sampleMidY = (minSY + maxSY) / 2
+  // Height = ~27% of viewport (revealHalfH * 0.55). Cap is set so the
+  // top of the silhouette never crosses past the top edge of the screen
+  // (avatarCenterWorldY + silhouetteWorldHeight/2 ≤ revealHalfH).
+  const silhouetteWorldHeight = revealHalfH * 0.55
+  const uniformScale = silhouetteWorldHeight / sampleH
+
   targetPoints.forEach((pt, i) => {
     const tokenIdx = targetAssignmentOrder[i] ?? i
     const t = tokenData[tokenIdx]
     if (!t) return
     t.hasTarget = true
+    // Note the Y flip: PNG pixel Y grows downward, world Y grows upward.
     t.target.set(
-      avatarCenterWorldX + pt.x * scaleFactor,
-      avatarCenterWorldY + pt.y * scaleFactor,
+      avatarCenterWorldX + (pt.x - sampleMidX) * uniformScale,
+      avatarCenterWorldY - (pt.y - sampleMidY) * uniformScale,
       0
     )
   })
@@ -463,6 +488,11 @@ async function runIntro() {
     raf = requestAnimationFrame(tick)
     const t = time * 0.001
     tokenMat.uniforms.uTime.value = t
+
+    // Re-lookAt every frame so the camera is always in sync with whatever
+    // position GSAP has moved it to this tick. (Relying on GSAP's onUpdate
+    // alone can leave the camera matrix a frame behind on some timings.)
+    camera.lookAt(0, 0, 0)
 
     // smooth camera parallax
     camOffsetX += (mouseX * 0.6 - camOffsetX) * 0.05

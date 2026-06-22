@@ -28,15 +28,18 @@ html.intro-skip #intro-overlay {
   display: none !important;
 }
 
-/* Full-screen cinematic overlay. */
+/* Full-screen cinematic overlay. Background is mostly opaque so the
+   cinematic reads clean, but a hair of translucency lets the hero
+   silhouette bleed through once tokens get close to their target
+   positions — making the handoff feel continuous. */
 #intro-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(40, 60, 80, 0.16) 0%, rgba(0, 0, 0, 0) 55%),
-    radial-gradient(circle at center, #0a0f15 0%, #050709 100%);
+    radial-gradient(ellipse at 50% 50%, rgba(50, 75, 95, 0.22) 0%, rgba(5, 8, 12, 0) 60%),
+    radial-gradient(circle at center, rgba(10, 15, 21, 0.94) 0%, rgba(5, 7, 9, 0.98) 100%);
   opacity: 1;
   transition: opacity 0.4s ease-out;
 }

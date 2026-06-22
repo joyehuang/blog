@@ -36,6 +36,14 @@ const isDev = import.meta.env.DEV
         doc.classList.add('intro-skip')
       } else {
         doc.classList.add('intro-active')
+        // Lock scroll restoration so reload doesn't dump the visitor back at
+        // wherever they were last (e.g. mid-page from a previous tour test).
+        // Without this, the hero <img> ends up off-screen and every position
+        // calc downstream is wrong.
+        if ('scrollRestoration' in history) {
+          history.scrollRestoration = 'manual'
+        }
+        window.scrollTo(0, 0)
         try {
           sessionStorage.setItem('intro-played', '1')
         } catch (e) {}
