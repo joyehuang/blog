@@ -1,4 +1,4 @@
-/* ===== joye.log — Cinematic Entry ===== */
+/* ===== joye.log — Cinematic Entry (card-grid edition) ===== */
 
 /* Lock the page while the intro is playing. */
 html.intro-active {
@@ -31,7 +31,7 @@ html.intro-skip #intro-overlay {
   pointer-events: none;
   /* Layered radial gradients give the overlay depth without being a flat
      black slab. ~96% opacity overall so the hero's silhouette can bleed
-     through subtly during the final coalesce → reveal handoff. */
+     through subtly during the final dissolve → reveal handoff. */
   background:
     radial-gradient(ellipse 70% 50% at 50% 42%, rgba(64, 100, 130, 0.22) 0%, rgba(8, 14, 22, 0) 60%),
     radial-gradient(circle at 22% 18%, rgba(40, 70, 95, 0.10) 0%, rgba(0, 0, 0, 0) 45%),
@@ -40,16 +40,16 @@ html.intro-skip #intro-overlay {
   opacity: 1;
   transform: scale(1);
   filter: blur(0px);
-  /* Slow dissolve — scale + blur + opacity together read as 'expanding
-     out' rather than a hard fade. Long enough (0.9s) to overlap with
-     the tail of the morph so there's no gap. */
   transition:
     opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.9s cubic-bezier(0.4, 0, 0.2, 1),
     filter 0.9s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
+  /* Allow scroll only as a fallback if the grid is taller than the viewport
+     (short screens); normally the cards size to fit. */
+  overflow-y: auto;
   font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   color: hsl(200, 22%, 78%);
 }
@@ -69,12 +69,10 @@ html.intro-skip #intro-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  /* Vignette darkens the corners to focus the eye on center column. */
   background:
     radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.55) 100%);
   z-index: 1;
 }
-/* Film grain — a tiny inline SVG noise pattern, animated for life. */
 .intro-atmosphere::before {
   content: '';
   position: absolute;
@@ -92,13 +90,14 @@ html.intro-skip #intro-overlay {
   100% { transform: translate(3%, 3%); }
 }
 
-/* === Log container — narrow column, breathing room === */
+/* === Log container — holds boot + grid + footer === */
 #intro-log {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 680px;
+  max-width: 1140px;
   padding: 0 28px;
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -106,17 +105,6 @@ html.intro-skip #intro-overlay {
   line-height: 1.55;
   font-feature-settings: 'tnum' 1, 'calt' 0;
   letter-spacing: 0.1px;
-  transform-origin: 50% 40%;
-  transition:
-    transform 1.4s cubic-bezier(0.55, 0, 0.2, 1),
-    filter 1.4s cubic-bezier(0.55, 0, 0.2, 1),
-    opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-#intro-log.coalescing {
-  transform: scale(0.30) translateY(-14vh);
-  filter: blur(20px);
-  opacity: 0;
 }
 
 /* === Boot sequence (typewriter) === */
@@ -181,299 +169,242 @@ html.intro-skip #intro-overlay {
   50.01%, 100% { opacity: 0; }
 }
 
-/* === Log lines === */
-#intro-log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+/* ===== Card grid — the centerpiece ===== */
+#intro-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+  gap: 14px;
+  padding: 2px;
 }
 
-.intro-log-group {
+.intro-card {
+  /* Per-kind accent drives the kind label, tag, glyph + scan colors. */
+  --card-accent: 200 30% 65%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: rgba(9, 15, 22, 0.8);
+  border: 1px solid hsl(195 30% 32% / 0.32);
+  overflow: hidden;
+  text-align: left;
+  /* Pop-in initial state. Revealed when #intro-grid gains .grid-active. */
+  opacity: 0;
+  transform: translateY(34px) scale(0.9);
+  filter: blur(10px);
+  transition:
+    opacity 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.7s cubic-bezier(0.18, 1.35, 0.32, 1),
+    filter 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  /* Diagonal wave: each card lags the previous by 75ms. */
+  transition-delay: calc(var(--i, 0) * 75ms);
+  will-change: transform, opacity, filter;
+}
+
+#intro-grid.grid-active .intro-card {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Dissolve — cards lift away as the overlay opens up. Reverse stagger so
+   the last cards to arrive are the first to leave. */
+#intro-grid.grid-dissolving .intro-card {
+  opacity: 0;
+  transform: translateY(-52px) scale(1.06);
+  filter: blur(18px);
+  transition-delay: calc((var(--n, 11) - var(--i, 0) - 1) * 42ms);
+}
+
+/* Kind accents. */
+.intro-card[data-kind='work'] { --card-accent: 220 35% 68%; }
+.intro-card[data-kind='repo'] { --card-accent: 170 50% 60%; }
+.intro-card[data-kind='blog'] { --card-accent: 195 65% 66%; }
+
+/* Weight drives prominence — marquee (2) gets a stronger border + glow. */
+.intro-card[data-weight='2'] {
+  border-color: hsl(195 45% 42% / 0.5);
+  box-shadow:
+    0 0 0 1px hsl(195 50% 45% / 0.1),
+    0 10px 34px rgba(0, 0, 0, 0.42);
+}
+
+/* Interactive — cards with a url are hoverable (work + repo). */
+#intro-grid.grid-active .intro-card[data-url]:not([data-url='']) {
+  pointer-events: auto;
+}
+.intro-card[data-url]:not([data-url='']):hover {
+  border-color: hsl(var(--card-accent) / 0.6);
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.55),
+    0 0 34px hsl(var(--card-accent) / 0.18);
+}
+.intro-card[data-url=''] {
+  cursor: default;
+}
+
+/* === Media area === */
+.intro-card-media {
+  position: relative;
+  height: 96px;
+  background:
+    radial-gradient(ellipse at 30% 20%, hsl(var(--card-accent) / 0.22) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(14, 22, 32, 0.9), rgba(6, 10, 16, 0.95));
+  overflow: hidden;
+  border-bottom: 1px solid hsl(var(--card-accent) / 0.18);
+}
+
+.intro-card-shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  /* Terminal-ize the screenshot — cool CRT cast. */
+  filter:
+    grayscale(0.55)
+    brightness(0.62)
+    contrast(1.12)
+    sepia(0.18)
+    hue-rotate(178deg)
+    saturate(0.82);
+  transform: scale(1.04);
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.intro-card:hover .intro-card-shot {
+  transform: scale(1.08);
+}
+
+/* Bottom fade so the body text reads cleanly over the screenshot. */
+.intro-card-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 25%, rgba(6, 10, 16, 0.92) 100%);
+  pointer-events: none;
+}
+
+/* Glyph for cards without a screenshot (repo / blog). */
+.intro-card-glyph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--card-accent) / 0.5);
+  filter: drop-shadow(0 0 10px hsl(var(--card-accent) / 0.25));
+}
+.intro-card-glyph svg {
+  width: 44px;
+  height: 44px;
+}
+
+/* Scan-light — a diagonal sheen sweeps each card as it pops in. */
+.intro-card-scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 32%,
+    hsl(var(--card-accent) / 0.28) 50%,
+    transparent 68%
+  );
+  background-size: 220% 100%;
+  background-position: 120% 0;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+#intro-grid.grid-active .intro-card-scan {
+  animation: card-sheen 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+  animation-delay: calc(var(--i, 0) * 75ms + 0.18s);
+  animation-fill-mode: forwards;
+}
+@keyframes card-sheen {
+  0% { background-position: 120% 0; opacity: 0; }
+  30% { opacity: 1; }
+  100% { background-position: -40% 0; opacity: 0; }
+}
+
+/* === Body === */
+.intro-card-body {
+  position: relative;
+  padding: 11px 14px 13px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  position: relative;
-  padding-left: 14px;
 }
 
-.intro-log-group::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 28px;
-  bottom: 4px;
-  width: 1px;
-  background: linear-gradient(
-    to bottom,
-    hsl(195, 35%, 40% / 0.5),
-    hsl(195, 25% 30% / 0.1)
-  );
-}
-
-.intro-log-group-header {
+.intro-card-top {
   display: flex;
+  justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  margin-bottom: 8px;
-  font-size: 16px;
-  letter-spacing: 0.5px;
+  font-size: 9.5px;
+  letter-spacing: 0.8px;
+}
+
+.intro-card-kind {
+  color: hsl(var(--card-accent));
   font-weight: 600;
-  color: hsl(200, 35%, 92%);
-  opacity: 0;
-  transform: translateX(-6px);
-  transition:
-    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.intro-log-group.intro-group-visible .intro-log-group-header {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.intro-log-group-bracket {
-  color: hsl(195, 60%, 55%);
-  font-weight: 400;
-  text-shadow: 0 0 8px hsl(195, 60% 55% / 0.4);
-}
-
-.intro-log-group-label {
-  background: linear-gradient(
-    90deg,
-    hsl(200, 50%, 85%),
-    hsl(195, 40%, 70%)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.intro-log-group-count {
-  font-size: 11px;
-  font-weight: 400;
-  color: hsl(200, 14%, 45%);
-  letter-spacing: 0.5px;
-}
-
-/* Type-based accent on the group's left rule. */
-.intro-log-group[data-type='repo']::before {
-  background: linear-gradient(
-    to bottom,
-    hsl(170, 40% 45% / 0.5),
-    hsl(170, 30% 30% / 0.1)
-  );
-}
-.intro-log-group[data-type='work']::before {
-  background: linear-gradient(
-    to bottom,
-    hsl(220, 30% 55% / 0.5),
-    hsl(220, 20% 30% / 0.1)
-  );
-}
-
-.intro-log-line {
-  position: relative;
-  display: grid;
-  grid-template-columns: 92px 24px 1fr auto;
-  align-items: baseline;
-  gap: 10px;
-  width: 100%;
-  opacity: 0;
-  transform: translateY(8px);
+  text-shadow: 0 0 8px hsl(var(--card-accent) / 0.4);
   white-space: nowrap;
-  transition:
-    opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.intro-log-line.intro-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Weight drives the visual hierarchy — recent / marquee work is brighter
-   and slightly larger, early work is dimmer and smaller. */
-.intro-log-line[data-weight='2'] {
-  --line-alpha: 1;
-  font-size: 14.5px;
-}
-.intro-log-line[data-weight='2'] .intro-log-title {
-  color: hsl(200, 32%, 92%);
-}
-.intro-log-line[data-weight='2'] .intro-log-stamp {
-  color: hsl(200, 22%, 62%);
-}
-
-.intro-log-line[data-weight='1'] {
-  --line-alpha: 0.78;
-  font-size: 13px;
-}
-.intro-log-line[data-weight='1'] .intro-log-title {
-  color: hsl(200, 22%, 78%);
-}
-.intro-log-line[data-weight='1'] .intro-log-stamp {
-  color: hsl(200, 14%, 45%);
-}
-
-.intro-log-line[data-weight='0'] {
-  --line-alpha: 0.5;
-  font-size: 12px;
-}
-.intro-log-line[data-weight='0'] .intro-log-title {
-  color: hsl(200, 16%, 58%);
-}
-.intro-log-line[data-weight='0'] .intro-log-stamp {
-  color: hsl(200, 12%, 36%);
-}
-.intro-log-line[data-weight='0'] .intro-log-meta {
-  opacity: 0.7;
-}
-
-/* Scan light — a thin vertical beam that sweeps left → right when the
-   line becomes visible. Implemented as a ::before with a horizontal
-   gradient + transform animation. */
-.intro-log-line::before {
-  content: '';
-  position: absolute;
-  inset: -2px -8px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(123, 184, 212, 0) 30%,
-    rgba(123, 184, 212, 0.18) 48%,
-    rgba(180, 220, 240, 0.32) 50%,
-    rgba(123, 184, 212, 0.18) 52%,
-    rgba(123, 184, 212, 0) 70%,
-    transparent 100%
-  );
-  background-size: 250% 100%;
-  background-position: 100% 0;
-  pointer-events: none;
-  opacity: 0;
-  mix-blend-mode: screen;
-}
-
-.intro-log-line.intro-visible::before {
-  animation: scan-sweep 0.85s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes scan-sweep {
-  0% {
-    background-position: 100% 0;
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    background-position: -50% 0;
-    opacity: 0;
-  }
-}
-
-/* Per-char reveal inside title + meta. Default hidden, becomes visible
-   when the parent line gets .intro-visible. Stagger via --i variable
-   set inline during SSR. */
-.intro-log-line .char,
-.intro-log-line .stamp-char,
-.intro-log-line .footer-char {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(0.4em);
-  filter: blur(2px);
-  transition:
-    opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.intro-log-line.intro-visible .char {
-  opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
-  transition-delay: calc(80ms + var(--i, 0) * 14ms);
-}
-
-/* Stamp chars appear with the line, no per-char stagger (date isn't worth
-   the focus). */
-.intro-log-line.intro-visible .stamp-char {
-  opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
-  transition-delay: 60ms;
-}
-
-/* === Keyword / number accent spans === */
-.token-kw {
-  color: hsl(195, 75%, 78%);
-  text-shadow:
-    0 0 8px rgba(123, 184, 212, 0.55),
-    0 0 18px rgba(123, 184, 212, 0.25);
-}
-
-.token-num {
-  color: hsl(170, 55%, 70%);
-  font-weight: 600;
-  text-shadow:
-    0 0 6px rgba(120, 200, 180, 0.5),
-    0 0 14px rgba(120, 200, 180, 0.2);
-}
-
-/* === Subtle emphasis on the most recent (Agent era) lines === */
-/* (Now handled by data-weight — keeping the selector empty as a no-op
-   so the SSR markup stays forward-compatible if we re-add this hook.) */
-
-.intro-log-stamp {
-  color: hsl(200, 14%, 42%);
-  font-size: 12px;
-  letter-spacing: 0.2px;
-}
-
-.intro-log-sep {
-  color: hsl(200, 14%, 26%);
-  letter-spacing: -1px;
-  user-select: none;
-}
-
-.intro-log-title {
-  color: hsl(200, 24%, 84%);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.intro-log-meta {
-  font-size: 11px;
-  padding: 1px 7px;
-  border-radius: 4px;
-  letter-spacing: 0.2px;
+.intro-card-meta {
+  color: hsl(200 14% 45%);
+  font-size: 9px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   flex-shrink: 0;
 }
 
-.intro-log-line[data-type='blog'] .intro-log-meta {
-  color: hsl(195, 50%, 64%);
-  background: hsl(195, 40%, 22% / 0.5);
-  border: 1px solid hsl(195, 35%, 38% / 0.6);
+.intro-card-title {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: hsl(200 30% 92%);
+  font-family: inherit;
+  text-shadow: 0 0 14px rgba(80, 130, 170, 0.12);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.intro-log-line[data-type='repo'] .intro-log-meta {
-  color: hsl(170, 45%, 64%);
-  background: hsl(170, 40%, 20% / 0.5);
-  border: 1px solid hsl(170, 35%, 36% / 0.6);
+.intro-card-subtitle {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: hsl(200 16% 62%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.intro-log-line[data-type='work'] .intro-log-meta {
-  color: hsl(220, 30%, 70%);
-  background: hsl(220, 25%, 22% / 0.5);
-  border: 1px solid hsl(220, 20%, 38% / 0.6);
+.intro-card-tag {
+  align-self: flex-start;
+  margin-top: 5px;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.2px;
+  color: hsl(var(--card-accent) / 0.95);
+  background: hsl(var(--card-accent) / 0.12);
+  border: 1px solid hsl(var(--card-accent) / 0.35);
 }
 
 /* === Footer === */
 .intro-log-footer {
-  margin-top: 22px;
+  margin-top: 24px;
   color: hsl(200, 14%, 50%);
   font-size: 11.5px;
   letter-spacing: 0.4px;
@@ -496,6 +427,17 @@ html.intro-skip #intro-overlay {
   transition-delay: calc(40ms + var(--i, 0) * 8ms);
 }
 
+.footer-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  filter: blur(2px);
+  transition:
+    opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* === Reduced motion === */
 @media (prefers-reduced-motion: reduce) {
   #intro-overlay {
@@ -507,19 +449,25 @@ html.intro-skip #intro-overlay {
 @media (max-width: 640px) {
   #intro-log {
     max-width: 100%;
-    padding: 0 18px;
+    padding: 0 16px;
     font-size: 11.5px;
   }
-  .intro-log-line {
-    grid-template-columns: 70px 16px 1fr auto;
-    gap: 6px;
+  #intro-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
   }
-  .intro-log-stamp {
-    font-size: 10.5px;
+  .intro-card-media {
+    height: 74px;
   }
-  .intro-log-meta {
+  .intro-card-glyph svg {
+    width: 34px;
+    height: 34px;
+  }
+  .intro-card-title {
+    font-size: 12.5px;
+  }
+  .intro-card-subtitle {
     font-size: 9.5px;
-    padding: 1px 5px;
   }
   .intro-boot {
     font-size: 13px;
@@ -560,577 +508,4 @@ html.intro-skip #intro-overlay {
 }
 html.intro-active #intro-replay {
   display: none !important;
-}
-
-/* ===== Experience showcase (interactive terminal tour) ===== */
-#intro-showcase {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5vh 5vw;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 3;
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-#intro-showcase.showcase-active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.showcase-frame {
-  width: 100%;
-  max-width: 1180px;
-  height: 80vh;
-  max-height: 740px;
-  background: rgb(6, 10, 16);
-  border: 1px solid hsl(195, 40% 40% / 0.55);
-  border-radius: 10px;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 30px 80px rgba(0, 0, 0, 0.7),
-    0 0 90px rgba(80, 130, 170, 0.15);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transform: scale(0.92);
-  opacity: 0;
-  transition:
-    transform 0.7s cubic-bezier(0.2, 0.6, 0.2, 1),
-    opacity 0.5s cubic-bezier(0.2, 0.6, 0.2, 1);
-}
-
-#intro-showcase.showcase-active .showcase-frame {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.showcase-titlebar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
-  background: linear-gradient(
-    to bottom,
-    hsl(195, 35% 14% / 0.95),
-    hsl(195, 35% 10% / 0.95)
-  );
-  border-bottom: 1px solid hsl(195, 35% 28% / 0.6);
-  font-size: 12px;
-  color: hsl(195, 25% 70%);
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  flex-shrink: 0;
-}
-
-.showcase-traffic {
-  display: inline-flex;
-  gap: 6px;
-}
-.showcase-traffic i {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: 0 0 6px currentColor;
-}
-.showcase-traffic i:nth-child(1) {
-  background: hsl(0, 70% 58%);
-  color: hsl(0, 70% 58% / 0.6);
-}
-.showcase-traffic i:nth-child(2) {
-  background: hsl(40, 80% 55%);
-  color: hsl(40, 80% 55% / 0.6);
-}
-.showcase-traffic i:nth-child(3) {
-  background: hsl(140, 60% 50%);
-  color: hsl(140, 60% 50% / 0.6);
-}
-
-.showcase-title {
-  flex: 1;
-  text-align: center;
-  letter-spacing: 0.5px;
-  color: hsl(195, 20% 60%);
-}
-
-.showcase-counter {
-  font-variant-numeric: tabular-nums;
-  color: hsl(195, 30% 60%);
-  letter-spacing: 0.5px;
-}
-.showcase-counter-current {
-  color: hsl(170, 50% 70%);
-  font-weight: 600;
-  text-shadow: 0 0 6px hsl(170, 50% 70% / 0.5);
-}
-.showcase-counter-sep {
-  margin: 0 2px;
-  opacity: 0.5;
-}
-
-/* Body: left rail + main stage */
-.showcase-body {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-}
-
-/* === Left rail (selectable company list, terminal menu look) === */
-.showcase-rail {
-  list-style: none;
-  margin: 0;
-  padding: 14px 0;
-  width: 230px;
-  flex-shrink: 0;
-  background: linear-gradient(
-    to right,
-    hsl(195, 30% 8% / 0.6),
-    hsl(195, 30% 8% / 0.2)
-  );
-  border-right: 1px solid hsl(195, 30% 24% / 0.5);
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 12.5px;
-  overflow-y: auto;
-}
-
-.showcase-rail-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  cursor: pointer;
-  color: hsl(200, 14% 56%);
-  border-left: 2px solid transparent;
-  transition:
-    color 0.18s ease,
-    background 0.18s ease,
-    border-color 0.18s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.showcase-rail-item:hover {
-  color: hsl(195, 30% 78%);
-  background: hsl(195, 30% 14% / 0.6);
-}
-
-.showcase-rail-item.rail-active {
-  color: hsl(195, 60% 80%);
-  background: linear-gradient(
-    to right,
-    hsl(195, 40% 18% / 0.7),
-    hsl(195, 40% 12% / 0.2)
-  );
-  border-left-color: hsl(170, 50% 60%);
-}
-
-.showcase-rail-cursor {
-  color: hsl(170, 50% 60%);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
-  text-shadow: 0 0 6px hsl(170, 50% 60% / 0.6);
-}
-.showcase-rail-item.rail-active .showcase-rail-cursor,
-.showcase-rail-item:hover .showcase-rail-cursor {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.showcase-rail-idx {
-  color: hsl(200, 14% 42%);
-  font-size: 11px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.showcase-rail-item.rail-active .showcase-rail-idx {
-  color: hsl(170, 50% 65%);
-}
-
-.showcase-rail-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* === Main stage (CRT-framed screenshot) === */
-.showcase-stage {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-  background: #000;
-}
-
-.showcase-panel {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(1.08);
-  transition:
-    opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 1.8s cubic-bezier(0.2, 0.6, 0.2, 1);
-}
-
-.showcase-panel.panel-active {
-  opacity: 1;
-  pointer-events: auto;
-  transform: scale(1);
-}
-
-/* Glitch transition — fires on user-initiated panel changes (arrow keys,
-   rail hover). 350ms of RGB-shifted jitter, like a CRT flipping channels. */
-.showcase-panel.panel-glitch .showcase-screenshot {
-  animation: panel-glitch-shift 0.35s steps(2, end);
-}
-.showcase-panel.panel-glitch::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgba(123, 184, 212, 0.12) 50%,
-      transparent 100%
-    );
-  background-size: 100% 8px;
-  pointer-events: none;
-  z-index: 4;
-  animation: panel-glitch-scan 0.35s steps(6, end);
-  mix-blend-mode: screen;
-}
-@keyframes panel-glitch-shift {
-  0% {
-    transform: translate(0, 0);
-    filter:
-      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
-      hue-rotate(168deg) saturate(0.78);
-  }
-  20% {
-    transform: translate(-4px, 1px);
-    filter:
-      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
-      hue-rotate(140deg) saturate(1.4);
-  }
-  40% {
-    transform: translate(3px, -2px);
-    filter:
-      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
-      hue-rotate(200deg) saturate(0.5);
-  }
-  60% {
-    transform: translate(-2px, 2px);
-    filter:
-      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
-      hue-rotate(170deg) saturate(0.78);
-  }
-  80% {
-    transform: translate(2px, -1px);
-    filter:
-      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
-      hue-rotate(180deg) saturate(1.1);
-  }
-  100% {
-    transform: translate(0, 0);
-    filter:
-      grayscale(0.7) brightness(0.7) contrast(1.18) sepia(0.22)
-      hue-rotate(168deg) saturate(0.78);
-  }
-}
-@keyframes panel-glitch-scan {
-  0% { background-position: 0 -100%; }
-  100% { background-position: 0 200%; }
-}
-
-.showcase-screenshot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  /* Terminal-ize the screenshot — heavier CRT treatment than before. */
-  filter:
-    grayscale(0.7)
-    brightness(0.7)
-    contrast(1.18)
-    sepia(0.22)
-    hue-rotate(168deg)
-    saturate(0.78);
-}
-
-/* CRT scanlines + vignette + bloom — layered overlays. */
-.showcase-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.65) 100%);
-  mix-blend-mode: multiply;
-}
-
-.showcase-scanlines {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 1.5px,
-    rgba(0, 0, 0, 0.34) 2px,
-    rgba(0, 0, 0, 0.34) 3px
-  );
-  mix-blend-mode: multiply;
-  /* slow vertical sweep to sell the CRT refresh */
-  animation: crt-sweep 5s linear infinite;
-}
-
-@keyframes crt-sweep {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 100px; }
-}
-
-/* A subtle blue glow over everything to sell 'emitted from a CRT'. */
-.showcase-stage::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 70% 50% at 50% 50%,
-    rgba(80, 150, 200, 0.10) 0%,
-    rgba(0, 0, 0, 0) 70%
-  );
-  mix-blend-mode: screen;
-  z-index: 1;
-}
-
-/* === Hover info panel (floats on the right side) === */
-.showcase-info {
-  position: absolute;
-  top: 22px;
-  right: 22px;
-  bottom: 22px;
-  width: 280px;
-  background: rgba(8, 14, 22, 0.88);
-  border: 1px solid hsl(195, 40% 38% / 0.55);
-  border-radius: 8px;
-  padding: 18px 18px 16px;
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  color: hsl(200, 18% 78%);
-  font-size: 11.5px;
-  line-height: 1.55;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 12px 32px rgba(0, 0, 0, 0.5),
-    0 0 28px rgba(80, 130, 170, 0.18);
-  overflow-y: auto;
-  opacity: 0;
-  transform: translateX(20px);
-  transition:
-    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 3;
-}
-
-.showcase-panel.panel-active:hover .showcase-info,
-.showcase-panel.panel-active .showcase-info.always-on {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.showcase-info-header {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.showcase-info-prompt {
-  color: hsl(155, 55% 58%);
-  font-weight: 600;
-}
-
-.showcase-info-company {
-  color: hsl(195, 18% 52%);
-  font-size: 10.5px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.showcase-info-product {
-  margin: 0 0 14px;
-  font-size: 15px;
-  font-weight: 600;
-  color: hsl(195, 50% 80%);
-  text-shadow:
-    0 0 10px rgba(123, 184, 212, 0.4),
-    0 0 22px rgba(123, 184, 212, 0.18);
-  line-height: 1.3;
-}
-
-.showcase-info-meta {
-  margin: 0 0 14px;
-  padding: 0;
-}
-
-.showcase-info-meta .meta-row {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 8px;
-  margin-bottom: 6px;
-  align-items: start;
-}
-
-.showcase-info-meta dt {
-  color: hsl(195, 22% 44%);
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.showcase-info-meta dd {
-  margin: 0;
-  color: hsl(200, 16% 78%);
-  font-size: 11.5px;
-}
-
-.stack-chips {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.stack-chip {
-  display: inline-block;
-  padding: 1px 7px;
-  border-radius: 3px;
-  font-size: 10px;
-  color: hsl(170, 40% 70%);
-  background: hsl(170, 30% 18% / 0.7);
-  border: 1px solid hsl(170, 30% 36% / 0.6);
-  letter-spacing: 0.2px;
-}
-
-.showcase-info-highlights {
-  list-style: none;
-  margin: 0 0 14px;
-  padding: 0;
-}
-
-.showcase-info-highlights li {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-  color: hsl(200, 16% 70%);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.hl-bullet {
-  color: hsl(170, 50% 60%);
-  flex-shrink: 0;
-  font-weight: 600;
-}
-
-.showcase-info-visit {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  background: hsl(170, 40% 22% / 0.7);
-  border: 1px solid hsl(170, 40% 42% / 0.7);
-  color: hsl(170, 45% 78%);
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease;
-}
-
-.showcase-info-visit:hover {
-  background: hsl(170, 50% 30% / 0.9);
-  border-color: hsl(170, 50% 60%);
-  color: hsl(170, 60% 88%);
-}
-
-.showcase-info-visit span {
-  font-size: 12px;
-}
-
-/* Caption at the bottom — always visible, gives context. */
-.showcase-caption {
-  position: absolute;
-  left: 22px;
-  bottom: 22px;
-  right: 22px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 13px;
-  color: hsl(195, 25% 86%);
-  text-shadow:
-    0 0 8px rgba(0, 0, 0, 0.95),
-    0 1px 2px rgba(0, 0, 0, 1);
-  flex-wrap: wrap;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.showcase-caption-prompt {
-  color: hsl(155, 55% 58%);
-  font-weight: 600;
-}
-
-.showcase-caption-title {
-  color: hsl(195, 45% 78%);
-  font-weight: 600;
-  text-shadow:
-    0 0 12px rgba(123, 184, 212, 0.5),
-    0 0 24px rgba(123, 184, 212, 0.2),
-    0 0 8px rgba(0, 0, 0, 0.95);
-}
-
-.showcase-caption-desc {
-  color: hsl(200, 14% 65%);
-  font-size: 12px;
-}
-
-/* When info panel is hovered, fade the caption so it doesn't compete. */
-.showcase-panel.panel-active:hover .showcase-caption {
-  opacity: 0.5;
-}
-
-/* Mobile: hide the rail (too cramped), keep the stage + info as overlay. */
-@media (max-width: 720px) {
-  .showcase-rail {
-    display: none;
-  }
-  .showcase-info {
-    width: auto;
-    left: 14px;
-    right: 14px;
-    top: auto;
-    bottom: 14px;
-    max-height: 40vh;
-  }
-  .showcase-caption {
-    display: none;
-  }
 }
