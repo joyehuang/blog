@@ -19,6 +19,13 @@ const sinceLabel = sinceDate
   ? `${sinceDate.getUTCFullYear()} 年 ${sinceDate.getUTCMonth() + 1} 月`
   : '—'
 const latestEpisode = talks.length ? Math.max(...talks.map((t) => t.data.episode)) : 0
+// Published-only count for the "已记录 N 期" stat — upcoming teasers don't count as recorded.
+const publishedCount = talks.filter((t) => t.data.status !== 'upcoming').length
+// True when the feed already shows a concrete upcoming teaser; in that case the generic
+// "下一期 · 主题征集中" placeholder at the bottom is redundant and stays hidden.
+const hasUpcoming = talks.some((t) => t.data.status === 'upcoming')
+// First published entry is the one left open by default (teasers are always-open cards).
+const firstPublishedIdx = talks.findIndex((t) => t.data.status !== 'upcoming')
 
 const takeawayHtml = (title: string, desc?: string) =>
   `<strong>${renderInlineMd(title)}</strong>` + (desc ? '：' + renderInlineMd(desc) : '')
@@ -34,7 +41,7 @@ const takeawayHtml = (title: string, desc?: string) =>
     </p>
     <div class='tk-hero-foot'>
       <div class='tk-stats'>
-        <span>已记录 <b>{talks.length}</b> 期</span>
+        <span>已记录 <b>{publishedCount}</b> 期</span>
         <span><b>每周</b> 一次</span>
         <span>自 <b>{sinceLabel}</b></span>
         <span>浏览 <b class='waline-pageview-count' data-path='/talks'></b> 次</span>
@@ -60,7 +67,46 @@ const takeawayHtml = (title: string, desc?: string) =>
         const epLabel = talkEpisodeLabel(d.episode)
         const dateCN = formatTalkDateCN(d.date)
         const weekday = talkWeekday(d.date)
-        const open = i === 0
+        if (d.status === 'upcoming') {
+          return (
+            <article class='tk-entry tk-preview-entry'>
+              <div class='tk-rail' aria-hidden='true'>
+                <span class='tk-ep'>{epLabel}</span>
+                <span class='tk-rail-date'>{dateCN}</span>
+              </div>
+              <div class='tk-preview'>
+                <span class='tk-node' aria-hidden='true' />
+                <span class='tk-preview-badge'>
+                  <span class='tk-badge-dot' /> 本期预告
+                </span>
+                {d.teaser && (
+                  <div class='tk-term'>
+                    <div>
+                      <span class='tk-term-p'>$</span> {d.teaser.prompt}
+                    </div>
+                    {d.teaser.loading && <div class='tk-term-o'>{d.teaser.loading}</div>}
+                    <div>
+                      <span class='tk-term-p'>$</span> _<span class='tk-term-caret' />
+                    </div>
+                  </div>
+                )}
+                <h3 class='tk-preview-title'>{d.title}</h3>
+                {d.subtitle && <p class='tk-preview-sub'>{d.subtitle}</p>}
+                <div class='tk-preview-foot'>
+                  <span class='tk-preview-brand'>
+                    分享人 Joye · joyehuang.me · AI Agent &amp; Full-Stack Dev
+                  </span>
+                  {d.deckUrl && (
+                    <a class='tk-preview-cta' href={d.deckUrl} target='_blank' rel='noopener'>
+                      先看预告片 →
+                    </a>
+                  )}
+                </div>
+              </div>
+            </article>
+          )
+        }
+        const open = i === firstPublishedIdx
         return (
           <article class='tk-entry' data-open={open ? 'true' : 'false'}>
             <div class='tk-rail' aria-hidden='true'>
@@ -190,22 +236,25 @@ const takeawayHtml = (title: string, desc?: string) =>
       })
     }
 
-    {/* next session — guide people to join the group via Contact */}
-    <article class='tk-entry tk-upcoming'>
-      <div class='tk-rail' aria-hidden='true'>
-        <span class='tk-ep tk-ep-ghost'>下一期</span>
-        <span class='tk-rail-date'>待定</span>
-      </div>
-      <a class='tk-upcoming-row' href='/contact'>
-        <span class='tk-node tk-node-ghost' aria-hidden='true'></span>
-        <span class='tk-upcoming-tag'>下一期 · 待定</span>
-        <span class='tk-upcoming-main'>
-          <span class='tk-upcoming-title'>第 {latestEpisode + 1} 期 · 主题征集中</span>
-          <span class='tk-upcoming-desc'>每周同一时间，轮到下一位群友分享。想听、想讲都欢迎——</span>
-        </span>
-        <span class='tk-upcoming-cta'>想来参加？→</span>
-      </a>
-    </article>
+    {/* next session — guide people to join the group via Contact.
+        Hidden when a concrete upcoming teaser is already shown above. */}
+    {!hasUpcoming && (
+      <article class='tk-entry tk-upcoming'>
+        <div class='tk-rail' aria-hidden='true'>
+          <span class='tk-ep tk-ep-ghost'>下一期</span>
+          <span class='tk-rail-date'>待定</span>
+        </div>
+        <a class='tk-upcoming-row' href='/contact'>
+          <span class='tk-node tk-node-ghost' aria-hidden='true'></span>
+          <span class='tk-upcoming-tag'>下一期 · 待定</span>
+          <span class='tk-upcoming-main'>
+            <span class='tk-upcoming-title'>第 {latestEpisode + 1} 期 · 主题征集中</span>
+            <span class='tk-upcoming-desc'>每周同一时间，轮到下一位群友分享。想听、想讲都欢迎——</span>
+          </span>
+          <span class='tk-upcoming-cta'>想来参加？→</span>
+        </a>
+      </article>
+    )}
   </div>
 
   <p class='tk-foot'>每周更新一期 · 往前翻就是第一期</p>
@@ -730,6 +779,120 @@ const takeawayHtml = (title: string, desc?: string) =>
     font-family: var(--tk-mono);
     font-size: 11.5px;
     color: var(--tk-faint);
+  }
+
+  /* ---------- upcoming teaser / preview card ---------- */
+  /* Echoes the deck's terminal cover: shell prompt + loading line, big title,
+     subtitle, brand line and a "watch the teaser" CTA. Visually distinct from
+     published records via an accent-tinted panel and a left accent rail. */
+  .tk-preview-entry {
+    margin-bottom: 1.6rem;
+  }
+  .tk-preview {
+    position: relative;
+    border: 1px solid var(--tk-accent-dim);
+    border-radius: 14px;
+    padding: 1.15rem 1.3rem 1.05rem;
+    background:
+      linear-gradient(
+        180deg,
+        var(--tk-accent-soft),
+        hsl(var(--muted) / 0.16) 60%,
+        transparent
+      );
+    overflow: hidden;
+  }
+  .tk-preview::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--tk-accent), var(--tk-accent-dim));
+  }
+  .tk-preview .tk-node {
+    top: 1.55rem;
+  }
+  .tk-preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--tk-accent);
+    background: hsl(var(--background) / 0.55);
+    border: 1px solid var(--tk-accent-dim);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: 0.9rem;
+  }
+  .tk-term {
+    font-family: var(--tk-mono);
+    font-size: 0.86rem;
+    line-height: 1.75;
+    color: var(--tk-faint);
+    margin-bottom: 0.9rem;
+  }
+  .tk-term-p {
+    color: var(--tk-accent);
+  }
+  .tk-term-o {
+    color: var(--tk-dim);
+  }
+  .tk-term-caret {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background: var(--tk-accent);
+    vertical-align: -0.15em;
+    margin-left: 3px;
+    animation: tk-blink 1.1s steps(1) infinite;
+  }
+  @keyframes tk-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .tk-preview-title {
+    margin: 0;
+    font-size: clamp(1.4rem, 3.2vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--tk-text);
+  }
+  .tk-preview-sub {
+    margin: 0.5rem 0 0;
+    max-width: 42rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--tk-dim);
+  }
+  .tk-preview-foot {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.2rem;
+    margin-top: 1.15rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--tk-border-soft);
+  }
+  .tk-preview-brand {
+    font-family: var(--tk-mono);
+    font-size: 11.5px;
+    color: var(--tk-faint);
+  }
+  .tk-preview-cta {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--tk-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.16s;
+  }
+  .tk-preview-cta:hover {
+    text-decoration: underline;
   }
 
   /* next session (guides to Contact) */

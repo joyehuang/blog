@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>一场面试,反推 AI 时代的产品形态 · Joye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B10; --bg-elev:#10101a; --panel:#14151F;
+    --accent:#B4EBFD; --teal:#517E94; --teal-2:#6FA3B8;
+    --hair:#2C2D39; --text:#E8E8ED; --dim:#8A8A95; --mute:#565663;
+    --red:#E5746B; --green:#5FBF86;
+    --mono:"Geist Mono",ui-monospace,monospace;
+    --sans:"Geist","Noto Sans SC",system-ui,sans-serif;
+    --cn:"Noto Sans SC","Geist",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:var(--cn);overflow:hidden;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(var(--hair) 1px,transparent 1px),linear-gradient(90deg,var(--hair) 1px,transparent 1px);
+    background-size:64px 64px;opacity:.15;
+    mask-image:radial-gradient(ellipse 82% 72% at 50% 45%,#000 28%,transparent 90%);
+    -webkit-mask-image:radial-gradient(ellipse 82% 72% at 50% 45%,#000 28%,transparent 90%);}
+  #stage{position:fixed;inset:0;z-index:1}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:clamp(28px,6vw,92px);padding-bottom:clamp(60px,10vh,116px);overflow-y:auto}
+  .slide.active{display:flex}
+
+  .kick{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--teal-2);text-transform:uppercase;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+  .kick::before{content:"";width:26px;height:1px;background:var(--teal)}
+  h1{font-family:var(--sans);font-weight:600;line-height:1.13;letter-spacing:-.01em}
+  .t-xl{font-size:clamp(30px,5.2vw,66px)}
+  .t-lg{font-size:clamp(25px,4.2vw,50px)}
+  .t-md{font-size:clamp(21px,3.3vw,38px)}
+  .sub{color:var(--dim);font-weight:300;font-size:clamp(15px,1.9vw,22px);line-height:1.6;margin-top:20px;max-width:62ch}
+  .body{color:var(--text);font-weight:300;font-size:clamp(14.5px,1.8vw,20px);line-height:1.7;margin-top:20px;max-width:64ch}
+  .body b{font-weight:500;color:#fff}
+  .cyan{color:var(--accent)}
+  .small{font-size:clamp(12.5px,1.4vw,15px);color:var(--dim);font-weight:300;line-height:1.6}
+  .punch{margin-top:26px;padding:17px 22px;border-left:2px solid var(--accent);
+    background:linear-gradient(90deg,rgba(180,235,253,.07),transparent);
+    font-size:clamp(15.5px,2vw,23px);line-height:1.5;font-weight:400;max-width:62ch}
+  .punch b{color:var(--accent);font-weight:600}
+  .note{margin-top:20px;font-size:clamp(12.5px,1.4vw,15px);color:var(--mute);font-weight:300;display:flex;gap:10px;align-items:flex-start;max-width:58ch}
+  .note .gt{font-family:var(--mono);color:var(--teal);white-space:nowrap}
+
+  /* cover terminal */
+  .term{font-family:var(--mono);font-size:clamp(13px,1.5vw,17px);line-height:1.95;color:var(--dim);margin-bottom:28px}
+  .term .p{color:var(--accent)} .term .o{color:var(--text)}
+  .caret{display:inline-block;width:9px;height:1.05em;background:var(--accent);vertical-align:-2px;margin-left:3px;animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .foot{margin-top:34px;font-family:var(--mono);font-size:13px;color:var(--mute);letter-spacing:.04em}
+  .foot .dot{color:var(--teal)}
+
+  /* whoami */
+  .who{display:grid;grid-template-columns:1.35fr .65fr;gap:40px;align-items:center;max-width:1100px}
+  .role{font-family:var(--mono);color:var(--teal-2);font-size:clamp(14px,1.7vw,19px);margin-top:14px;letter-spacing:.02em}
+  .avatar-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+  .avatar{width:min(230px,34vw);aspect-ratio:1;border-radius:18px;object-fit:cover;border:1px solid var(--hair);position:relative;z-index:2}
+  .ring{position:absolute;width:min(280px,42vw);aspect-ratio:1;border-radius:50%;border:1px solid rgba(180,235,253,.18);z-index:1}
+  .ring::after{content:"";position:absolute;inset:-22px;border-radius:50%;border:1px dashed rgba(81,126,148,.35)}
+
+  /* company cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px;max-width:1080px}
+  .ccard{border:1px solid var(--hair);border-radius:14px;padding:22px 22px;background:var(--bg-elev)}
+  .ccard .nm{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--accent)}
+  .ccard .big{font-size:clamp(26px,3.4vw,40px);font-weight:700;margin-top:8px;line-height:1.05}
+  .ccard .big .u{font-size:.5em;color:var(--dim);font-weight:400}
+  .ccard ul{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:7px}
+  .ccard li{font-size:clamp(12.5px,1.35vw,14.5px);color:var(--dim);font-weight:300;display:flex;gap:8px;line-height:1.4}
+  .ccard li::before{content:"·";color:var(--teal)}
+  .ccard.warn .big{color:var(--red)}
+
+  /* positioning axis */
+  .axiswrap{margin-top:40px;max-width:940px}
+  .axis-line{position:relative;height:2px;background:linear-gradient(90deg,var(--teal),var(--accent));margin:64px 10px 0}
+  .axis-line .end{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;transform:translateY(-50%)}
+  .axis-line .l{left:-2px;background:var(--teal)} .axis-line .r{right:-2px;background:var(--accent)}
+  .pin{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--accent);box-shadow:0 0 0 5px rgba(180,235,253,.12)}
+  .axislab{position:absolute;top:24px;font-size:clamp(13px,1.5vw,16px);transform:translateX(-50%);text-align:center;line-height:1.45}
+  .axislab .nm{font-weight:600;font-size:clamp(15px,1.8vw,19px)}
+  .axislab .sm{color:var(--dim);font-weight:300;font-family:var(--mono);font-size:12px}
+  .axislab.you{top:-58px}.axislab.you .nm{color:var(--accent)}
+  .axislab.you::after{content:"";position:absolute;left:50%;top:46px;width:1px;height:18px;background:var(--accent);transform:translateX(-50%)}
+
+  /* growth bars */
+  .bars{margin-top:32px;max-width:720px;display:flex;flex-direction:column;gap:22px}
+  .bar-row .lab{font-family:var(--mono);font-size:13.5px;color:var(--dim);margin-bottom:9px;display:flex;justify-content:space-between}
+  .track{height:16px;border-radius:8px;background:var(--bg-elev);border:1px solid var(--hair);overflow:hidden}
+  .fill{height:100%;border-radius:8px}
+  .fill.cy{background:linear-gradient(90deg,var(--teal),var(--accent));width:88%}
+  .fill.dim{background:linear-gradient(90deg,var(--mute),#3a3a44);width:40%}
+
+  /* triad */
+  .triad{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px;max-width:980px}
+  .ti{border:1px solid var(--hair);border-radius:14px;padding:20px;background:var(--bg-elev)}
+  .ti .h{font-family:var(--mono);color:var(--accent);font-size:12px;letter-spacing:.1em}
+  .ti .x{margin-top:10px;font-size:clamp(15px,1.7vw,19px);font-weight:500}
+  .ti .d{margin-top:8px;font-size:clamp(12.5px,1.35vw,14.5px);color:var(--dim);font-weight:300;line-height:1.5}
+
+  /* integration bridge */
+  .bridge{margin-top:34px;max-width:960px}
+  /* questions list */
+  .qlist{margin-top:26px;max-width:1000px;border-top:1px solid var(--hair)}
+  .qrow{display:grid;grid-template-columns:1.05fr auto 1fr;gap:18px;align-items:center;padding:15px 4px;border-bottom:1px solid var(--hair)}
+  .qrow .q{font-size:clamp(13.5px,1.65vw,17.5px);font-weight:400}
+  .qrow .ar{font-family:var(--mono);color:var(--teal);font-size:15px}
+  .qrow .a{font-size:clamp(12.5px,1.45vw,16px);color:var(--accent);font-weight:300}
+
+  /* action cards */
+  .acts{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:15px;max-width:980px}
+  .act{border:1px solid var(--hair);border-radius:14px;padding:19px 21px;background:var(--bg-elev)}
+  .act .n{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em}
+  .act .x{margin-top:11px;font-size:clamp(13.5px,1.55vw,17.5px);font-weight:400;line-height:1.5}
+  .act .d{margin-top:6px;font-size:clamp(12px,1.3vw,14px);color:var(--dim);font-weight:300;line-height:1.45}
+
+  /* reveal */
+  .reveal{opacity:0}
+  .slide.active .reveal{animation:rise .72s cubic-bezier(.2,.72,.2,1) both;animation-delay:calc(var(--i,0) * 105ms)}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  svg .draw{stroke-dasharray:1;stroke-dashoffset:1}
+  .slide.active svg .draw{animation:dash 1.05s ease forwards;animation-delay:.45s}
+  @keyframes dash{to{stroke-dashoffset:0}}
+  svg .fade{opacity:0}
+  .slide.active svg .fade{animation:rise .7s ease both;animation-delay:.7s}
+
+  /* chrome */
+  #bar{position:fixed;left:0;top:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--accent));z-index:30;transition:width .5s cubic-bezier(.2,.7,.2,1);width:0}
+  #count{position:fixed;right:clamp(20px,4vw,44px);bottom:clamp(18px,4vh,38px);font-family:var(--mono);font-size:13px;color:var(--mute);letter-spacing:.1em;z-index:30}
+  #count b{color:var(--accent);font-weight:500}
+  #fs{position:fixed;right:clamp(20px,4vw,44px);top:clamp(16px,3.4vh,32px);z-index:30;background:transparent;border:1px solid var(--hair);color:var(--dim);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s}
+  #fs:hover{border-color:var(--teal);color:var(--accent)}
+  #hint{position:fixed;left:clamp(20px,4vw,44px);bottom:clamp(18px,4vh,38px);font-family:var(--mono);font-size:11.5px;color:var(--mute);z-index:30;letter-spacing:.06em}
+  .nav-z{position:fixed;top:0;bottom:0;width:16%;z-index:20;cursor:pointer}
+  .nav-z.prev{left:0}.nav-z.next{right:0}
+
+  @media (max-width:780px){
+    .who{grid-template-columns:1fr;gap:24px}.avatar-wrap{order:-1}
+    .cards,.triad{grid-template-columns:1fr}
+    .acts{grid-template-columns:1fr}
+    .qrow{grid-template-columns:1fr;gap:5px}.qrow .ar{display:none}
+    #hint{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<button id="fs" title="全屏 (F)">⛶</button>
+<div id="count"><b id="cur">01</b> / <span id="tot">16</span></div>
+<div id="hint">← → 翻页 · F 全屏</div>
+<div class="nav-z prev" onclick="go(-1)"></div>
+<div class="nav-z next" onclick="go(1)"></div>
+
+<div id="stage">
+
+  <!-- 1 COVER -->
+  <section class="slide">
+    <div class="term reveal" style="--i:0">
+      <div><span class="p">$</span> ./talk --topic "AI 时代的产品形态"</div>
+      <div class="o">loading: 一场面试 → 反推一整个赛道</div>
+      <div><span class="p">$</span> _<span class="caret"></span></div>
+    </div>
+    <h1 class="t-xl reveal" style="--i:1">一场面试,<br>反推 <span class="cyan">AI 时代</span>的产品形态</h1>
+    <div class="sub reveal" style="--i:2">从一家"文档协作 → AI 版 Canva"公司的面试聊起 —— 软件、Agent,与垂类的未来。</div>
+    <div class="foot reveal" style="--i:3">分享人 Joye <span class="dot">·</span> joyehuang.me <span class="dot">·</span> AI Agent &amp; Full-Stack Dev</div>
+  </section>
+
+  <!-- 2 WHOAMI -->
+  <section class="slide">
+    <div class="who">
+      <div>
+        <div class="kick reveal" style="--i:0">&gt; whoami</div>
+        <h1 class="t-lg reveal" style="--i:1">我是 Joye</h1>
+        <div class="role reveal" style="--i:2">AI Agent &amp; Full-Stack Developer · 在读</div>
+        <div class="body reveal" style="--i:3">这一年我面了 100+ 个 AI 岗、攒了 30+ offer;白天在 Tezign、fAIshion 搭 agent 和 AI 全栈,晚上捣鼓自己的常驻个人 agent。</div>
+        <div class="punch reveal" style="--i:4">最近又拿下一个<b>远程岗</b> —— 开到 <b>3500 美金/月</b>(约 2.3–2.4 万人民币),直接对标正式员工。今天就从这场面试聊起。</div>
+        <div class="note reveal" style="--i:5"><span class="gt">立场 ›</span> 面试和开发两头都在踩坑,所以今天讲的全是一手的,不是二手转述。</div>
+      </div>
+      <div class="avatar-wrap reveal" style="--i:3">
+        <div class="ring"></div>
+        <img class="avatar" src="https://www.joyehuang.me/_astro/avatar.DkFdhJyn_ZvTwz6.webp" alt="Joye">
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 缘起 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">01 / 缘起</div>
+    <h1 class="t-md reveal" style="--i:1">那场面试,来自一家"文档协作 → AI 版 Canva"的公司</h1>
+    <div class="body reveal" style="--i:2">创始人做<b>石墨文档</b>这类文档协作 SaaS 起家,现在转头做 AI native 的设计工具。我做好了被拷打一小时的准备——结果整场没在考"我背没背过",而是对着他们产品里那些<b>还没想清楚的问题</b>,聊了一个多小时。</div>
+    <div class="punch reveal" style="--i:3">聊完我脑子里的问题不是"我答得怎么样",而是:<b>AI 时代,一个软件产品到底该长成什么样?</b></div>
+  </section>
+
+  <!-- 4 背景 赛道有多大 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">02 / 背景 · 这条赛道有多大</div>
+    <h1 class="t-md reveal" style="--i:1">设计 / 创作工具,是个正在被 AI 重写的巨型市场</h1>
+    <div class="cards">
+      <div class="ccard reveal" style="--i:2">
+        <div class="nm">Canva</div>
+        <div class="big">~$42<span class="u">B</span></div>
+        <ul><li>260M 月活 · 29M 付费</li><li>年化收入 $3.5B+,连续 8 年盈利</li><li>$370M 收购 Leonardo AI 自建模型</li></ul>
+      </div>
+      <div class="ccard warn reveal" style="--i:3">
+        <div class="nm">Figma</div>
+        <div class="big">~$10<span class="u">B</span></div>
+        <ul><li>2025 上市,一度冲到 ~$59B</li><li>到 2026 年已腰斩</li><li>市场在为"AI 颠覆设计工具"定价</li></ul>
+      </div>
+      <div class="ccard reveal" style="--i:4">
+        <div class="nm">石墨 / 这类</div>
+        <div class="big">转型中</div>
+        <ul><li>国内第一款实时协作云文档</li><li>设计驱动 · 五轮融资</li><li>正从文档协作 → AI 设计</li></ul>
+      </div>
+    </div>
+    <div class="note reveal" style="--i:5"><span class="gt">读数 ›</span> 一家上市设计公司因"AI 会不会颠覆我"被腰斩——这本身就是今天命题的入口。</div>
+  </section>
+
+  <!-- 5 产品论1 figma vs canva -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">03 / 产品论① · 产品形态的分野</div>
+    <h1 class="t-md reveal" style="--i:1">Figma 很强,但它要"设计功底";Canva 不要</h1>
+    <div class="body reveal" style="--i:2">Figma 强在专业、上限高,但门槛也高;Canva 中性化、人人可上手。在 AI 时代,产品该往哪一侧站,其实很清楚。</div>
+    <div class="axiswrap reveal" style="--i:3">
+      <div class="axis-line">
+        <span class="end l"></span><span class="end r"></span>
+        <span class="pin" style="left:84%"></span>
+        <div class="axislab" style="left:6%"><div class="nm">Figma</div><div class="sm">专业 · 高门槛</div></div>
+        <div class="axislab" style="left:94%"><div class="nm">Canva</div><div class="sm">大众 · 零门槛</div></div>
+        <div class="axislab you" style="left:84%"><div class="nm">AI native 的设计工具</div></div>
+      </div>
+    </div>
+    <div class="note reveal" style="--i:4"><span class="gt">推论 ›</span> 当所有人都能做出干净的设计,优势就从"会不会设计"转移到"差异化、产品选择、执行速度"。</div>
+  </section>
+
+  <!-- 6 产品论2 表达意图 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">04 / 产品论② · 交互范式的跃迁</div>
+    <h1 class="t-md reveal" style="--i:1">从"操作工具",到"表达意图"</h1>
+    <div class="body reveal" style="--i:2">Figma 要你<b>会操作工具</b>;AI native 的工具,你只要<b>表达意图</b>——专业那部分,交给模型补。门槛塌掉的本质,是交互范式变了。</div>
+    <div class="punch reveal" style="--i:3">注意:这跟我面试被问的"<b>意图识别</b>"是<b>同一件事的两面</b>——产品侧叫"表达意图",技术侧叫"意图识别"。产品愿景和技术难点,是同一枚硬币。</div>
+  </section>
+
+  <!-- 7 放大命题 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">05 / 放大命题</div>
+    <h1 class="t-lg reveal" style="--i:1">别只盯着"Agent",<br>盯"AI 时代软件该怎么长"</h1>
+    <div class="body reveal" style="--i:2">我们不该被"Agent"这个词框住。真正的问题是:AI 时代,软件本身的形态在变。</div>
+    <div class="note reveal" style="--i:3"><span class="gt">趋势 ›</span> Gartner:到 2028,约 1/3 的用户体验会从"原生 App"转向 agentic 前端。SaaS 正从"数据库 + 表单",变成"会干活的 worker"。</div>
+  </section>
+
+  <!-- 8 核心论点 通用 vs 垂类 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">06 / 核心论点</div>
+    <h1 class="t-md reveal" style="--i:1">我的判断:通用 Agent 走不通,垂类才有护城河</h1>
+    <div class="body reveal" style="--i:2">号称首个通用 agent 的 <b>Manus</b>,2025 底被 Meta 收编、暂停注册;横向通用市场仍在混战,但<b>垂类已经分化出胜负</b>——护城河在"领域上下文 &gt; 通用推理"的地方。</div>
+    <div class="bars">
+      <div class="bar-row reveal" style="--i:3">
+        <div class="lab"><span style="color:var(--accent)">垂类 SaaS · 年增</span><span style="color:var(--accent)">18–32%</span></div>
+        <div class="track"><div class="fill cy"></div></div>
+      </div>
+      <div class="bar-row reveal" style="--i:4">
+        <div class="lab"><span>横向通用 · 年增</span><span>12–15%</span></div>
+        <div class="track"><div class="fill dim"></div></div>
+      </div>
+    </div>
+    <div class="note reveal" style="--i:5"><span class="gt">现实 ›</span> 若把 Claude Code、Cursor 当通用 agent(强在 coding、越来越通用),普通开发者正面 PK 打不赢——只能做垂类、深耕行业 know-how。Atypica(商业研究)就是垂类样本。</div>
+  </section>
+
+  <!-- 9 反直觉 集成层 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">07 / 反直觉的一面</div>
+    <h1 class="t-md reveal" style="--i:1">垂类做完了,你还得"接"通用能力</h1>
+    <div class="body reveal" style="--i:2">为什么?<b>技术变化太快</b>。哪怕产品形态做完、需求写死,后面还是要把 Claude Code、Codex 这类通用能力,通过<b>插件 / MCP</b> 接进来。</div>
+    <div class="bridge reveal" style="--i:3">
+      <svg viewBox="0 0 760 200" width="100%">
+        <rect x="290" y="74" width="180" height="56" rx="11" fill="var(--bg-elev)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="380" y="98" fill="#fff" font-family="Noto Sans SC" font-size="15" text-anchor="middle" font-weight="500">你的垂类产品</text>
+        <text x="380" y="118" fill="var(--dim)" font-family="Geist Mono" font-size="11" text-anchor="middle">行业 know-how</text>
+        <rect x="36" y="78" width="150" height="48" rx="10" fill="none" stroke="var(--teal)" stroke-width="1.3"/>
+        <text x="111" y="107" fill="var(--teal-2)" font-family="Geist Mono" font-size="13" text-anchor="middle">Claude Code</text>
+        <rect x="574" y="78" width="150" height="48" rx="10" fill="none" stroke="var(--teal)" stroke-width="1.3"/>
+        <text x="649" y="107" fill="var(--teal-2)" font-family="Geist Mono" font-size="13" text-anchor="middle">Codex</text>
+        <path class="draw" d="M186,102 L290,102" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <path class="draw" d="M470,102 L574,102" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="238" y="92" fill="var(--accent)" font-family="Geist Mono" font-size="11" text-anchor="middle">MCP</text>
+        <text x="522" y="92" fill="var(--accent)" font-family="Geist Mono" font-size="11" text-anchor="middle">插件</text>
+        <text x="380" y="170" fill="var(--mute)" font-family="Noto Sans SC" font-size="13" text-anchor="middle" class="fade">这座桥本身,就是一个巨大的市场</text>
+      </svg>
+    </div>
+    <div class="note reveal" style="--i:4"><span class="gt">证据 ›</span> 多数 2025–26 领头羊把垂类 agent 叠在现有 SaaS 上(agent-over-SaaS),MCP 已成标准集成层,OpenAI、Google、微软都接了;Canva 现在也能被 Claude Code / Codex 通过 MCP 双向调用。</div>
+  </section>
+
+  <!-- 10 编排层 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">08 / 价值的迁移</div>
+    <h1 class="t-md reveal" style="--i:1">价值,正从"单个应用"挪到"编排层"</h1>
+    <div class="body reveal" style="--i:2">从"集成很多 SaaS 工具",到"一个 agent 编排所有系统"。价值从任何单一应用,转移到连接它们的<b>编排层</b>——就像当年从单体架构走向微服务。</div>
+    <div class="punch reveal" style="--i:3">现在的 agent 生态 ≈ 2008 年的云:AWS 还没铺满、Stripe 还没出现。<b>每一层都是机会</b>——包括底下"卖铲子"的基础设施。</div>
+  </section>
+
+  <!-- 11 回到面试 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">09 / 回到那场面试</div>
+    <h1 class="t-md reveal" style="--i:1">我被问的题,没一道在问"模型行不行"</h1>
+    <div class="qlist">
+      <div class="qrow reveal" style="--i:2"><div class="q">给 agent 灌审美(taste)</div><div class="ar">→</div><div class="a">用户偏好的长期记忆</div></div>
+      <div class="qrow reveal" style="--i:3"><div class="q">用户丢参考图 / PDF / CSV / PPT,意图含糊</div><div class="ar">→</div><div class="a">意图识别 + 文件归类</div></div>
+      <div class="qrow reveal" style="--i:4"><div class="q">截图预览要两个 tool call</div><div class="ar">→</div><div class="a">成本怎么压</div></div>
+      <div class="qrow reveal" style="--i:5"><div class="q">除了 O 系列和 GPT,哪个模型更胜任</div><div class="ar">→</div><div class="a">模型按任务路由</div></div>
+    </div>
+    <div class="punch reveal" style="--i:6">全是"模型外面那层(垂类 + 集成)的工程"。<b>题目本身,就是趋势数据。</b></div>
+  </section>
+
+  <!-- 12 经验>知识 -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">10 / 那这跟"我"有什么关系</div>
+    <h1 class="t-md reveal" style="--i:1">AI 让知识廉价,面试称重的是<span class="cyan">经验</span></h1>
+    <div class="body reveal" style="--i:2">"意图识别""文件系统"这种 System Design 大题,常人要 1 分钟构思,我 5–10 秒就讲完——不是反应快,是我<b>真做过</b>。经验,是 AI 顶不掉、面试也装不出来的东西。</div>
+    <div class="punch reveal" style="--i:3">这也是我能拿到<b>对标正式员工薪资</b>的原因:在没有标准答案的地方,你能做对判断。薪资,是判断力的定价。</div>
+  </section>
+
+  <!-- 13 takeaways -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">11 / 给开发者的四条</div>
+    <h1 class="t-md reveal" style="--i:1">如果你也在做产品 / 找方向</h1>
+    <div class="acts">
+      <div class="act reveal" style="--i:2"><div class="n">做产品</div><div class="x">往"表达意图"那侧走</div><div class="d">别要求用户有专业功底,让模型补专业。</div></div>
+      <div class="act reveal" style="--i:3"><div class="n">选方向</div><div class="x">做垂类,深耕行业 know-how</div><div class="d">护城河 = 领域上下文 + 系统集成 + 结果定价。</div></div>
+      <div class="act reveal" style="--i:4"><div class="n">搭架构</div><div class="x">留好 MCP / 插件口</div><div class="d">技术变化快,准备好随时接通用能力。</div></div>
+      <div class="act reveal" style="--i:5"><div class="n">做自己</div><div class="x">攒经验和判断力</div><div class="d">AI 顶不掉、面试装不出,这才是溢价来源。</div></div>
+    </div>
+  </section>
+
+  <!-- 14 closing -->
+  <section class="slide">
+    <div class="kick reveal" style="--i:0">// end</div>
+    <h1 class="t-xl reveal" style="--i:1">模型在卷,<br>但<span class="cyan">产品形态</span>才刚开始重写。</h1>
+    <div class="sub reveal" style="--i:2">垂类做深,接口留开,判断力攒厚。我们评论区聊。</div>
+    <div class="foot reveal" style="--i:3">谢谢 · Q&amp;A <span class="dot">|</span> Joye · joyehuang.me</div>
+  </section>
+
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const tot=slides.length;let i=0;
+  document.getElementById('tot').textContent=String(tot).padStart(2,'0');
+  function render(){
+    slides.forEach((s,n)=>s.classList.toggle('active',n===i));
+    document.getElementById('bar').style.width=((i+1)/tot*100)+'%';
+    document.getElementById('cur').textContent=String(i+1).padStart(2,'0');
+  }
+  function go(d){i=Math.min(tot-1,Math.max(0,i+d));render();}
+  window.go=go;
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(-1);}
+    else if(e.key==='Home'){i=0;render();}else if(e.key==='End'){i=tot-1;render();}
+    else if(e.key==='f'||e.key==='F'){toggleFs();}
+  });
+  let sx=0,sy=0;
+  document.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))go(dx<0?1:-1);
+  },{passive:true});
+  function toggleFs(){
+    if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}
+    else{document.exitFullscreen&&document.exitFullscreen();}
+  }
+  document.getElementById('fs').addEventListener('click',toggleFs);
+  render();
+</script>
+</body>
+</html>
