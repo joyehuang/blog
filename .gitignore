@@ -79,6 +79,9 @@ bunfig.toml
 /src/content/blog/test.*
 /test/
 
+# in-progress talk deck (local working copy, never commit/serve)
+/talk-deck-v2.html
+
 # personal / resume data — never commit
 /*.json
 !/package.json
