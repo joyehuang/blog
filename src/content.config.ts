@@ -135,6 +135,14 @@ const talksSchema = z.object({
   quotes: z.array(z.object({ text: z.string(), gloss: z.string().optional() })).default([]),
   takeaways: z.array(z.object({ title: z.string(), desc: z.string().optional() })).default([]),
   diagrams: z.array(z.object({ src: z.string(), caption: z.string().optional() })).default([]),
+  // Cover-style teaser shown on the Talks feed when an episode is upcoming.
+  // Mirrors the deck's terminal cover: a shell prompt line + a loading line.
+  teaser: z
+    .object({
+      prompt: z.string(),
+      loading: z.string().optional()
+    })
+    .optional(),
   // State
   status: z.enum(['published', 'upcoming']).default('published'),
   draft: z.boolean().default(false)

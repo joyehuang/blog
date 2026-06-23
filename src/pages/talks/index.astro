@@ -9,9 +9,7 @@ import { sortTalks } from '@/lib/talks'
 
 export const prerender = true
 
-const talks = sortTalks(
-  (await getCollection('talks')).filter((t) => !t.data.draft && t.data.status === 'published')
-)
+const talks = sortTalks((await getCollection('talks')).filter((t) => !t.data.draft))
 ---
 
 <PageLayout
