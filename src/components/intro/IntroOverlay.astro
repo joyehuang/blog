@@ -62,9 +62,12 @@ const cardCount = PORTFOLIO_CARDS.length
 </script>
 
 <div id='intro-overlay' aria-hidden='true'>
-  {/* Atmosphere layers — film grain, chromatic aberration, vignette.
-      All pseudo-elements so they don't add DOM weight. */}
+  {/* Atmosphere layers — film grain, CRT scanlines, vignette. */}
   <div class='intro-atmosphere' aria-hidden='true'></div>
+  {/* CRT power-on flash — classic tube turn-on, driven by GSAP. */}
+  <div id='intro-crt-power' aria-hidden='true'></div>
+  {/* Particle shatter layer — filled by the client on handoff. */}
+  <div id='intro-particles' aria-hidden='true'></div>
 
   <div id='intro-log'>
     <div class='intro-boot'>
@@ -90,52 +93,61 @@ const cardCount = PORTFOLIO_CARDS.length
       </div>
     </div>
 
-    {/* Card grid — the centerpiece. Cards pop in one-by-one in a diagonal
-        wave (CSS transition-delay driven by --i), hold, then dissolve as
-        the overlay lifts to reveal the landing page. */}
-    <div id='intro-grid' style={`--n:${cardCount}`}>
-      {PORTFOLIO_CARDS.map((card, i) => (
-        <article
-          class='intro-card'
-          data-kind={card.kind}
-          data-weight={card.weight}
-          data-index={i}
-          data-url={card.url ?? null}
-          style={`--i:${i}`}
-        >
-          <div class='intro-card-media'>
-            {card.screenshot ? (
-              <img
-                class='intro-card-shot'
-                src={card.screenshot}
-                alt=''
-                loading='eager'
-                draggable='false'
-              />
-            ) : (
-              <div
-                class='intro-card-glyph'
-                aria-hidden='true'
-                set:html={cardGlyph(card.kind)}
-              />
-            )}
-            <div class='intro-card-veil' aria-hidden='true' />
-            <div class='intro-card-scan' aria-hidden='true' />
-          </div>
-
-          <div class='intro-card-body'>
-            <div class='intro-card-top'>
-              <span class='intro-card-kind'>{KIND_LABEL[card.kind]}</span>
-              {card.meta && <span class='intro-card-meta'>{card.meta}</span>}
+    {/* 3D stage — perspective container; the grid floats inside it with a
+        real depth tilt. Cards materialize from deep Z, hold, then shatter
+        into particles that streak to the landing sections. */}
+    <div id='intro-stage'>
+      <div id='intro-grid' style={`--n:${cardCount}`}>
+        {PORTFOLIO_CARDS.map((card, i) => (
+          <article
+            class='intro-card'
+            data-kind={card.kind}
+            data-weight={card.weight}
+            data-index={i}
+            data-url={card.url ?? null}
+            style={`--i:${i}`}
+          >
+            <div class='intro-card-media'>
+              {card.screenshot ? (
+                <img
+                  class='intro-card-shot'
+                  src={card.screenshot}
+                  alt=''
+                  loading='eager'
+                  draggable='false'
+                />
+              ) : (
+                <div
+                  class='intro-card-glyph'
+                  aria-hidden='true'
+                  set:html={cardGlyph(card.kind)}
+                />
+              )}
+              <div class='intro-card-veil' aria-hidden='true' />
             </div>
-            <h3 class='intro-card-title'>{card.title}</h3>
-            {card.subtitle && (
-              <p class='intro-card-subtitle'>{card.subtitle}</p>
-            )}
-            {card.tag && <span class='intro-card-tag'>{card.tag}</span>}
-          </div>
-        </article>
-      ))}
+
+            <div class='intro-card-body'>
+              <div class='intro-card-top'>
+                <span class='intro-card-kind'>{KIND_LABEL[card.kind]}</span>
+                {card.meta && <span class='intro-card-meta'>{card.meta}</span>}
+              </div>
+              <h3 class='intro-card-title'>{card.title}</h3>
+              {card.subtitle && (
+                <p class='intro-card-subtitle'>{card.subtitle}</p>
+              )}
+              {card.tag && <span class='intro-card-tag'>{card.tag}</span>}
+            </div>
+
+            {/* Holographic overlays — scanlines, sheen, HUD corner brackets. */}
+            <div class='intro-card-scanlines' aria-hidden='true' />
+            <div class='intro-card-sheen' aria-hidden='true' />
+            <span class='intro-card-corner intro-card-corner--tl' aria-hidden='true' />
+            <span class='intro-card-corner intro-card-corner--tr' aria-hidden='true' />
+            <span class='intro-card-corner intro-card-corner--bl' aria-hidden='true' />
+            <span class='intro-card-corner intro-card-corner--br' aria-hidden='true' />
+          </article>
+        ))}
+      </div>
     </div>
 
     <div class='intro-log-footer'>

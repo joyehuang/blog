@@ -1,4 +1,4 @@
-/* ===== joye.log — Cinematic Entry (card-grid edition) ===== */
+/* ===== joye.log — Cinematic Entry (holographic deck edition) ===== */
 
 /* Lock the page while the intro is playing. */
 html.intro-active {
@@ -23,15 +23,12 @@ html.intro-skip #intro-overlay {
   display: none !important;
 }
 
-/* === Overlay shell — soft dark, layered for depth === */
+/* === Overlay shell === */
 #intro-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  /* Layered radial gradients give the overlay depth without being a flat
-     black slab. ~96% opacity overall so the hero's silhouette can bleed
-     through subtly during the final dissolve → reveal handoff. */
   background:
     radial-gradient(ellipse 70% 50% at 50% 42%, rgba(64, 100, 130, 0.22) 0%, rgba(8, 14, 22, 0) 60%),
     radial-gradient(circle at 22% 18%, rgba(40, 70, 95, 0.10) 0%, rgba(0, 0, 0, 0) 45%),
@@ -47,8 +44,6 @@ html.intro-skip #intro-overlay {
   display: flex;
   align-items: safe center;
   justify-content: center;
-  /* Allow scroll only as a fallback if the grid is taller than the viewport
-     (short screens); normally the cards size to fit. */
   overflow-y: auto;
   font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   color: hsl(200, 22%, 78%);
@@ -64,21 +59,26 @@ html.intro-skip #intro-overlay {
   display: none;
 }
 
-/* === Atmosphere layers (film grain + chromatic + vignette) === */
+/* === Atmosphere (vignette + grain + slow vignette pulse) === */
 .intro-atmosphere {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.55) 100%);
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.6) 100%);
   z-index: 1;
+  animation: vignette-breathe 7s ease-in-out infinite;
+}
+@keyframes vignette-breathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 .intro-atmosphere::before {
   content: '';
   position: absolute;
   inset: -50%;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.7  0 0 0 0 0.8  0 0 0 0.45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  opacity: 0.10;
+  opacity: 0.1;
   mix-blend-mode: screen;
   animation: grain-shift 0.6s steps(4) infinite;
 }
@@ -90,12 +90,49 @@ html.intro-skip #intro-overlay {
   100% { transform: translate(3%, 3%); }
 }
 
-/* === Log container — holds boot + grid + footer === */
+/* Global CRT scanlines across the whole overlay — sells the "screen". */
+.intro-atmosphere::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.16) 3px,
+    rgba(0, 0, 0, 0.16) 3.2px
+  );
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* === CRT power-on flash (classic tube turn-on) === */
+#intro-crt-power {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(140, 220, 240, 0) 0%,
+    rgba(170, 230, 245, 0.85) 49%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(170, 230, 245, 0.85) 51%,
+    rgba(140, 220, 240, 0) 100%
+  );
+  transform: scaleY(0);
+  transform-origin: 50% 50%;
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+/* === Log container === */
 #intro-log {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1140px;
+  max-width: 1180px;
   padding: 0 28px;
   margin: auto;
   display: flex;
@@ -107,52 +144,40 @@ html.intro-skip #intro-overlay {
   letter-spacing: 0.1px;
 }
 
-/* === Boot sequence (typewriter) === */
+/* === Boot typewriter === */
 .intro-boot {
   color: hsl(195, 60%, 68%);
   margin-bottom: 22px;
   font-size: 14px;
   letter-spacing: 0.3px;
   text-shadow:
-    0 0 12px rgba(123, 184, 212, 0.35),
-    0 0 28px rgba(123, 184, 212, 0.15);
+    0 0 12px rgba(123, 184, 212, 0.4),
+    0 0 28px rgba(123, 184, 212, 0.16);
   white-space: nowrap;
   display: flex;
   flex-direction: column;
   gap: 3px;
   min-height: 60px;
 }
-
-.intro-boot-line {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
+.intro-boot-line { display: flex; align-items: baseline; gap: 6px; }
 .intro-boot-output {
   color: hsl(170, 35% 60%);
   font-size: 12px;
   padding-left: 18px;
   opacity: 0.85;
 }
-
 .intro-boot-output::before {
   content: '↳';
   margin-right: 4px;
-  color: hsl(170, 45% 55%);
+  color: hsl(170, 45%, 55%);
   opacity: 0.7;
 }
-
 .intro-boot-prompt {
   color: hsl(155, 55%, 58%);
   margin-right: 8px;
   font-weight: 600;
 }
-
-.intro-boot-text {
-  color: hsl(195, 25%, 90%);
-}
-
+.intro-boot-text { color: hsl(195, 25%, 90%); }
 .intro-boot-cursor {
   display: inline-block;
   width: 7px;
@@ -163,100 +188,86 @@ html.intro-skip #intro-overlay {
   box-shadow: 0 0 8px rgba(123, 184, 212, 0.6);
   animation: intro-cursor-blink 1s steps(2) infinite;
 }
-
 @keyframes intro-cursor-blink {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
 }
 
-/* ===== Card grid — the centerpiece ===== */
+/* ===== 3D stage + grid ===== */
+#intro-stage {
+  width: 100%;
+  perspective: 1400px;
+  perspective-origin: 50% 42%;
+}
 #intro-grid {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
   padding: 2px;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
+/* ===== Holographic card ===== */
 .intro-card {
-  /* Per-kind accent drives the kind label, tag, glyph + scan colors. */
   --card-accent: 200 30% 65%;
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
-  background: rgba(9, 15, 22, 0.8);
-  border: 1px solid hsl(195 30% 32% / 0.32);
+  border-radius: 10px;
+  background:
+    linear-gradient(160deg, rgba(12, 20, 28, 0.92) 0%, rgba(4, 8, 12, 0.97) 100%);
+  border: 1px solid hsl(var(--card-accent) / 0.38);
+  box-shadow:
+    0 0 0 1px hsl(var(--card-accent) / 0.08),
+    0 18px 50px rgba(0, 0, 0, 0.6),
+    inset 0 0 36px hsl(var(--card-accent) / 0.06);
   overflow: hidden;
   text-align: left;
-  /* Pop-in initial state. Revealed when #intro-grid gains .grid-active. */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  /* GSAP sets the initial 3D state; keep a sane CSS fallback. */
   opacity: 0;
-  transform: translateY(34px) scale(0.9);
-  filter: blur(10px);
-  transition:
-    opacity 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
-    transform 0.7s cubic-bezier(0.18, 1.35, 0.32, 1),
-    filter 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
-  /* Diagonal wave: each card lags the previous by 75ms. */
-  transition-delay: calc(var(--i, 0) * 75ms);
   will-change: transform, opacity, filter;
 }
 
-#intro-grid.grid-active .intro-card {
-  opacity: 1;
-  transform: none;
-  filter: none;
-}
+.intro-card[data-kind='work'] { --card-accent: 205 80% 68%; }
+.intro-card[data-kind='repo'] { --card-accent: 168 70% 60%; }
+.intro-card[data-kind='blog'] { --card-accent: 38 90% 64%; }
 
-/* Dissolve — cards lift away as the overlay opens up. Reverse stagger so
-   the last cards to arrive are the first to leave. */
-#intro-grid.grid-dissolving .intro-card {
-  opacity: 0;
-  transform: translateY(-52px) scale(1.06);
-  filter: blur(18px);
-  transition-delay: calc((var(--n, 11) - var(--i, 0) - 1) * 42ms);
-}
-
-/* Kind accents. */
-.intro-card[data-kind='work'] { --card-accent: 220 35% 68%; }
-.intro-card[data-kind='repo'] { --card-accent: 170 50% 60%; }
-.intro-card[data-kind='blog'] { --card-accent: 195 65% 66%; }
-
-/* Weight drives prominence — marquee (2) gets a stronger border + glow. */
 .intro-card[data-weight='2'] {
-  border-color: hsl(195 45% 42% / 0.5);
+  border-color: hsl(var(--card-accent) / 0.6);
   box-shadow:
-    0 0 0 1px hsl(195 50% 45% / 0.1),
-    0 10px 34px rgba(0, 0, 0, 0.42);
+    0 0 0 1px hsl(var(--card-accent) / 0.18),
+    0 22px 60px rgba(0, 0, 0, 0.65),
+    inset 0 0 44px hsl(var(--card-accent) / 0.1),
+    0 0 28px hsl(var(--card-accent) / 0.16);
 }
 
-/* Interactive — cards with a url are hoverable (work + repo). */
 #intro-grid.grid-active .intro-card[data-url]:not([data-url='']) {
   pointer-events: auto;
 }
 .intro-card[data-url]:not([data-url='']):hover {
-  border-color: hsl(var(--card-accent) / 0.6);
+  border-color: hsl(var(--card-accent) / 0.85);
   box-shadow:
-    0 16px 44px rgba(0, 0, 0, 0.55),
-    0 0 34px hsl(var(--card-accent) / 0.18);
+    0 0 0 1px hsl(var(--card-accent) / 0.3),
+    0 26px 70px rgba(0, 0, 0, 0.7),
+    inset 0 0 50px hsl(var(--card-accent) / 0.14),
+    0 0 44px hsl(var(--card-accent) / 0.28);
 }
-.intro-card[data-url=''] {
-  cursor: default;
-}
+.intro-card[data-url=''] { cursor: default; }
 
 /* === Media area === */
 .intro-card-media {
   position: relative;
-  height: 96px;
+  height: 104px;
   background:
-    radial-gradient(ellipse at 30% 20%, hsl(var(--card-accent) / 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 20%, hsl(var(--card-accent) / 0.26) 0%, transparent 60%),
     linear-gradient(135deg, rgba(14, 22, 32, 0.9), rgba(6, 10, 16, 0.95));
   overflow: hidden;
-  border-bottom: 1px solid hsl(var(--card-accent) / 0.18);
+  border-bottom: 1px solid hsl(var(--card-accent) / 0.22);
 }
-
 .intro-card-shot {
   position: absolute;
   inset: 0;
@@ -264,70 +275,91 @@ html.intro-skip #intro-overlay {
   height: 100%;
   object-fit: cover;
   object-position: top center;
-  /* Terminal-ize the screenshot — cool CRT cast. */
+  /* Holographic CRT cast on the screenshot — cyan-shifted, glowing. */
   filter:
-    grayscale(0.55)
-    brightness(0.62)
-    contrast(1.12)
-    sepia(0.18)
-    hue-rotate(178deg)
-    saturate(0.82);
-  transform: scale(1.04);
+    grayscale(0.45)
+    brightness(0.66)
+    contrast(1.18)
+    sepia(0.28)
+    hue-rotate(155deg)
+    saturate(1.5);
+  transform: scale(1.05);
   transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.intro-card:hover .intro-card-shot {
-  transform: scale(1.08);
-}
-
-/* Bottom fade so the body text reads cleanly over the screenshot. */
+.intro-card:hover .intro-card-shot { transform: scale(1.1); }
 .intro-card-veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 25%, rgba(6, 10, 16, 0.92) 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 20%, rgba(6, 10, 16, 0.94) 100%);
   pointer-events: none;
 }
-
-/* Glyph for cards without a screenshot (repo / blog). */
 .intro-card-glyph {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: hsl(var(--card-accent) / 0.5);
-  filter: drop-shadow(0 0 10px hsl(var(--card-accent) / 0.25));
+  color: hsl(var(--card-accent) / 0.6);
+  filter: drop-shadow(0 0 12px hsl(var(--card-accent) / 0.4));
 }
-.intro-card-glyph svg {
-  width: 44px;
-  height: 44px;
-}
+.intro-card-glyph svg { width: 46px; height: 46px; }
 
-/* Scan-light — a diagonal sheen sweeps each card as it pops in. */
-.intro-card-scan {
+/* === Holographic overlays === */
+/* Card-local scanlines (sharper than the global ones). */
+.intro-card-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.22) 2.6px,
+    rgba(0, 0, 0, 0.22) 3px
+  );
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.6;
+}
+/* Diagonal sheen — sweeping highlight, plays during the hold phase. */
+.intro-card-sheen {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    110deg,
-    transparent 32%,
+    115deg,
+    transparent 38%,
     hsl(var(--card-accent) / 0.28) 50%,
-    transparent 68%
+    transparent 62%
   );
-  background-size: 220% 100%;
-  background-position: 120% 0;
-  opacity: 0;
+  background-size: 250% 100%;
+  background-position: 130% 0;
   pointer-events: none;
   mix-blend-mode: screen;
+  border-radius: inherit;
+  opacity: 0;
 }
-#intro-grid.grid-active .intro-card-scan {
-  animation: card-sheen 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-  animation-delay: calc(var(--i, 0) * 75ms + 0.18s);
-  animation-fill-mode: forwards;
+#intro-grid.grid-settled .intro-card-sheen {
+  animation: sheen-sweep 3.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.22s);
 }
-@keyframes card-sheen {
-  0% { background-position: 120% 0; opacity: 0; }
-  30% { opacity: 1; }
+@keyframes sheen-sweep {
+  0%, 68% { background-position: 130% 0; opacity: 0; }
+  82% { opacity: 0.8; }
   100% { background-position: -40% 0; opacity: 0; }
 }
+/* HUD corner brackets — the "targeting reticle" hologram read. */
+.intro-card-corner {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid hsl(var(--card-accent) / 0.9);
+  filter: drop-shadow(0 0 4px hsl(var(--card-accent) / 0.7));
+  pointer-events: none;
+}
+.intro-card-corner--tl { top: 6px; left: 6px; border-right-width: 0; border-bottom-width: 0; border-top-left-radius: 3px; }
+.intro-card-corner--tr { top: 6px; right: 6px; border-left-width: 0; border-bottom-width: 0; border-top-right-radius: 3px; }
+.intro-card-corner--bl { bottom: 6px; left: 6px; border-right-width: 0; border-top-width: 0; border-bottom-left-radius: 3px; }
+.intro-card-corner--br { bottom: 6px; right: 6px; border-left-width: 0; border-top-width: 0; border-bottom-right-radius: 3px; }
 
 /* === Body === */
 .intro-card-body {
@@ -337,49 +369,48 @@ html.intro-skip #intro-overlay {
   flex-direction: column;
   gap: 3px;
 }
-
 .intro-card-top {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
   font-size: 9.5px;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.9px;
 }
-
 .intro-card-kind {
   color: hsl(var(--card-accent));
   font-weight: 600;
-  text-shadow: 0 0 8px hsl(var(--card-accent) / 0.4);
+  text-shadow: 0 0 8px hsl(var(--card-accent) / 0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .intro-card-meta {
-  color: hsl(200 14% 45%);
+  color: hsl(200 14% 46%);
   font-size: 9px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
 }
-
 .intro-card-title {
   margin: 2px 0 0;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.3;
-  color: hsl(200 30% 92%);
+  color: hsl(200 35% 94%);
   font-family: inherit;
-  text-shadow: 0 0 14px rgba(80, 130, 170, 0.12);
+  /* Chromatic-aberration text-shadow → glitchy hologram read. */
+  text-shadow:
+    0 0 14px hsl(var(--card-accent) / 0.35),
+    1px 0 rgba(255, 40, 90, 0.32),
+    -1px 0 rgba(60, 210, 255, 0.36);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 .intro-card-subtitle {
   margin: 0;
   font-size: 10.5px;
@@ -389,7 +420,6 @@ html.intro-skip #intro-overlay {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .intro-card-tag {
   align-self: flex-start;
   margin-top: 5px;
@@ -398,8 +428,41 @@ html.intro-skip #intro-overlay {
   border-radius: 3px;
   letter-spacing: 0.2px;
   color: hsl(var(--card-accent) / 0.95);
-  background: hsl(var(--card-accent) / 0.12);
-  border: 1px solid hsl(var(--card-accent) / 0.35);
+  background: hsl(var(--card-accent) / 0.14);
+  border: 1px solid hsl(var(--card-accent) / 0.4);
+}
+
+/* Holographic flicker — only after the deck has assembled. */
+#intro-grid.grid-settled .intro-card-scanlines {
+  animation: holo-flicker 5.5s steps(1, end) infinite;
+}
+@keyframes holo-flicker {
+  0%, 91%, 100% { opacity: 0.6; }
+  92% { opacity: 0.3; }
+  93% { opacity: 0.72; }
+  94% { opacity: 0.4; }
+  95% { opacity: 0.66; }
+}
+
+/* ===== Particle shatter layer ===== */
+#intro-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.intro-particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: hsl(var(--p-accent, 195 60% 65%));
+  box-shadow: 0 0 6px hsl(var(--p-accent, 195 60% 65%)),
+    0 0 12px hsl(var(--p-accent, 195 60% 65%) / 0.6);
+  will-change: transform, opacity;
+  opacity: 0;
 }
 
 /* === Footer === */
@@ -409,40 +472,17 @@ html.intro-skip #intro-overlay {
   font-size: 11.5px;
   letter-spacing: 0.4px;
   opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-.intro-log-footer.intro-visible {
-  opacity: 0.85;
-  transform: translateY(0);
-}
-
-.intro-log-footer.intro-visible .footer-char {
-  opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
-  transition-delay: calc(40ms + var(--i, 0) * 8ms);
-}
-
 .footer-char {
   display: inline-block;
   opacity: 0;
   transform: translateY(0.4em);
   filter: blur(2px);
-  transition:
-    opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* === Reduced motion === */
 @media (prefers-reduced-motion: reduce) {
-  #intro-overlay {
-    display: none !important;
-  }
+  #intro-overlay { display: none !important; }
 }
 
 /* === Mobile === */
@@ -454,24 +494,13 @@ html.intro-skip #intro-overlay {
   }
   #intro-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
+    gap: 11px;
   }
-  .intro-card-media {
-    height: 74px;
-  }
-  .intro-card-glyph svg {
-    width: 34px;
-    height: 34px;
-  }
-  .intro-card-title {
-    font-size: 12.5px;
-  }
-  .intro-card-subtitle {
-    font-size: 9.5px;
-  }
-  .intro-boot {
-    font-size: 13px;
-  }
+  .intro-card-media { height: 78px; }
+  .intro-card-glyph svg { width: 34px; height: 34px; }
+  .intro-card-title { font-size: 12.5px; }
+  .intro-card-subtitle { font-size: 9.5px; }
+  .intro-boot { font-size: 13px; }
 }
 
 /* ===== Replay button (dev only) ===== */
@@ -502,10 +531,5 @@ html.intro-skip #intro-overlay {
   border-color: hsl(var(--primary) / 0.5);
   transform: rotate(-180deg);
 }
-#intro-replay svg {
-  width: 16px;
-  height: 16px;
-}
-html.intro-active #intro-replay {
-  display: none !important;
-}
+#intro-replay svg { width: 16px; height: 16px; }
+html.intro-active #intro-replay { display: none !important; }
