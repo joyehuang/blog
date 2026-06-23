@@ -27,7 +27,7 @@ export type LogEntry = {
   weight?: 0 | 1 | 2
   /** Experience-only: homepage screenshot for the VR-style showcase. */
   screenshot?: string
-  /** One-line description — work screenshot caption or repo tagline. */
+  /** Experience-only: one-line description shown under the screenshot. */
   description?: string
   /** Experience-only: Joye's role at the company. */
   role?: string
@@ -228,100 +228,15 @@ export const JOYE_LOG_GROUPS: LogGroup[] = [
         title: 'Learn-Open-Harness',
         type: 'repo',
         tag: '297 stars',
-        weight: 2,
-        description: 'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent'
+        weight: 2
       },
       {
         stamp: '— repo —',
         title: 'minimind-notes',
         type: 'repo',
         tag: '93 stars',
-        weight: 1,
-        description: '从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验'
+        weight: 1
       }
     ]
   }
 ]
-
-/**
- * A flattened, presentation-ready list of "things I've made" for the intro
- * card grid. Combines every work experience, every open-source repo, and
- * the marquee (weight ≥ 2) blog posts into one ordered deck.
- *
- * Order is the order the cards pop in during the intro — the story goes:
- * marquee work first, then other roles, then repos, then writing.
- */
-export type CardKind = 'work' | 'repo' | 'blog'
-
-export interface PortfolioCard {
-  kind: CardKind
-  /** Primary label — product name / repo name / post title. */
-  title: string
-  /** Secondary line — role · period / tagline / tag. */
-  subtitle: string
-  /** Small meta — company / date / star count. */
-  meta?: string
-  /** Category chip text — drives accent color together with `kind`. */
-  tag?: string
-  /** Importance 0..2 — drives brightness + pop-in delay weighting. */
-  weight: number
-  /** Work experiences only — homepage screenshot for the card media. */
-  screenshot?: string
-  /** Optional longer description (work caption / repo tagline). */
-  description?: string
-  /** Optional click-through (work + repo cards). */
-  url?: string
-}
-
-export const PORTFOLIO_CARDS: PortfolioCard[] = (() => {
-  const find = (type: LogType) =>
-    JOYE_LOG_GROUPS.find((g) => g.type === type)
-
-  const workCards: PortfolioCard[] = []
-  for (const e of find('work')?.entries ?? []) {
-    const company = e.title.split('→')[0]?.trim() ?? e.title
-    const product = e.title.split('→')[1]?.trim() ?? ''
-    workCards.push({
-      kind: 'work',
-      title: product || e.title,
-      subtitle: [e.role, e.period].filter(Boolean).join(' · '),
-      meta: company,
-      tag: e.tag,
-      weight: e.weight ?? 1,
-      screenshot: e.screenshot,
-      description: e.description,
-      url: e.url
-    })
-  }
-
-  const repoCards: PortfolioCard[] = []
-  for (const e of find('repo')?.entries ?? []) {
-    repoCards.push({
-      kind: 'repo',
-      title: e.title,
-      subtitle: e.description ?? 'open source',
-      meta: e.tag,
-      tag: 'open source',
-      weight: e.weight ?? 1,
-      url: `https://github.com/joyehuang/${e.title}`
-    })
-  }
-
-  // Marquee posts only (weight ≥ 2) — keeps the grid digestible.
-  const blogCards: PortfolioCard[] = []
-  for (const e of (find('blog')?.entries ?? []).filter(
-    (x) => (x.weight ?? 0) >= 2
-  )) {
-    blogCards.push({
-      kind: 'blog',
-      title: e.title,
-      subtitle: e.tag ?? 'post',
-      meta: e.stamp,
-      tag: e.tag,
-      weight: e.weight ?? 1
-    })
-  }
-
-  // Story order: marquee work → open source → writing.
-  return [...workCards, ...repoCards, ...blogCards]
-})()

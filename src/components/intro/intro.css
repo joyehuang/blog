@@ -1,6 +1,5 @@
-/* ===== joye.log — Cinematic Entry (holographic deck edition) ===== */
+/* ===== "The Generation" — cinematic entry ===== */
 
-/* Lock the page while the intro is playing. */
 html.intro-active {
   overflow: hidden;
   height: 100vh;
@@ -29,11 +28,10 @@ html.intro-skip #intro-overlay {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
+  /* Soft, deep gradient — calm, not a flat black slab. */
   background:
-    radial-gradient(ellipse 70% 50% at 50% 42%, rgba(64, 100, 130, 0.22) 0%, rgba(8, 14, 22, 0) 60%),
-    radial-gradient(circle at 22% 18%, rgba(40, 70, 95, 0.10) 0%, rgba(0, 0, 0, 0) 45%),
-    radial-gradient(circle at 78% 82%, rgba(35, 55, 75, 0.08) 0%, rgba(0, 0, 0, 0) 45%),
-    radial-gradient(circle at center, rgb(10, 15, 21) 0%, rgb(5, 8, 11) 100%);
+    radial-gradient(ellipse 60% 45% at 50% 42%, rgba(70, 110, 140, 0.20) 0%, rgba(8, 13, 20, 0) 62%),
+    radial-gradient(circle at center, rgb(11, 16, 23) 0%, rgb(5, 8, 11) 100%);
   opacity: 1;
   transform: scale(1);
   filter: blur(0px);
@@ -46,12 +44,14 @@ html.intro-skip #intro-overlay {
   justify-content: center;
   overflow-y: auto;
   font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  color: hsl(200, 22%, 78%);
+  color: hsl(200, 20%, 86%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #intro-overlay.intro-hidden {
   opacity: 0;
-  transform: scale(1.06);
+  transform: scale(1.05);
   filter: blur(14px);
 }
 
@@ -59,28 +59,23 @@ html.intro-skip #intro-overlay {
   display: none;
 }
 
-/* === Atmosphere (vignette + grain + slow vignette pulse) === */
+/* === Atmosphere — vignette + faint grain only (no scanlines). === */
 .intro-atmosphere {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 48%, rgba(0, 0, 0, 0.6) 100%);
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 52%, rgba(0, 0, 0, 0.5) 100%);
   z-index: 1;
-  animation: vignette-breathe 7s ease-in-out infinite;
-}
-@keyframes vignette-breathe {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
 }
 .intro-atmosphere::before {
   content: '';
   position: absolute;
   inset: -50%;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.7  0 0 0 0 0.8  0 0 0 0.45 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  opacity: 0.1;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.7  0 0 0 0 0.8  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.05;
   mix-blend-mode: screen;
-  animation: grain-shift 0.6s steps(4) infinite;
+  animation: grain-shift 0.7s steps(4) infinite;
 }
 @keyframes grain-shift {
   0% { transform: translate(0, 0); }
@@ -90,394 +85,157 @@ html.intro-skip #intro-overlay {
   100% { transform: translate(3%, 3%); }
 }
 
-/* Global CRT scanlines across the whole overlay — sells the "screen". */
-.intro-atmosphere::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.16) 3px,
-    rgba(0, 0, 0, 0.16) 3.2px
-  );
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  opacity: 0.55;
-}
-
-/* === CRT power-on flash (classic tube turn-on) === */
-#intro-crt-power {
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(140, 220, 240, 0) 0%,
-    rgba(170, 230, 245, 0.85) 49%,
-    rgba(255, 255, 255, 0.95) 50%,
-    rgba(170, 230, 245, 0.85) 51%,
-    rgba(140, 220, 240, 0) 100%
-  );
-  transform: scaleY(0);
-  transform-origin: 50% 50%;
-  mix-blend-mode: screen;
-  opacity: 0;
-}
-
-/* === Log container === */
-#intro-log {
+/* === The generation wrapper — centered, generous negative space. === */
+#intro-gen-wrap {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1180px;
-  padding: 0 28px;
+  max-width: 720px;
+  /* The "padding" fix: real breathing room, sized to the viewport so it
+     never overflows. */
+  padding: 6vh 40px;
   margin: auto;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  font-size: 13.5px;
-  line-height: 1.55;
-  font-feature-settings: 'tnum' 1, 'calt' 0;
-  letter-spacing: 0.1px;
+  align-items: center;
+  gap: 30px;
+  text-align: center;
+  opacity: 0;
 }
 
-/* === Boot typewriter === */
-.intro-boot {
-  color: hsl(195, 60%, 68%);
-  margin-bottom: 22px;
-  font-size: 14px;
-  letter-spacing: 0.3px;
-  text-shadow:
-    0 0 12px rgba(123, 184, 212, 0.4),
-    0 0 28px rgba(123, 184, 212, 0.16);
-  white-space: nowrap;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-height: 60px;
+/* === Prompt === */
+#intro-gen-prompt {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+  letter-spacing: 0.4px;
+  color: hsl(200, 16%, 62%);
 }
-.intro-boot-line { display: flex; align-items: baseline; gap: 6px; }
-.intro-boot-output {
-  color: hsl(170, 35% 60%);
-  font-size: 12px;
-  padding-left: 18px;
-  opacity: 0.85;
-}
-.intro-boot-output::before {
-  content: '↳';
-  margin-right: 4px;
-  color: hsl(170, 45%, 55%);
-  opacity: 0.7;
-}
-.intro-boot-prompt {
-  color: hsl(155, 55%, 58%);
-  margin-right: 8px;
+.prompt-arrow {
+  color: hsl(155, 55%, 60%);
   font-weight: 600;
+  text-shadow: 0 0 10px hsl(155 55% 60% / 0.4);
 }
-.intro-boot-text { color: hsl(195, 25%, 90%); }
-.intro-boot-cursor {
+.prompt-text {
+  color: hsl(195, 30%, 80%);
+}
+
+/* === The generated bio — large, calm, lots of air. === */
+#intro-gen {
+  font-size: clamp(18px, 2.5vw, 25px);
+  line-height: 1.6;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+  color: hsl(200, 16%, 90%);
+  max-width: 660px;
+  text-wrap: balance;
+}
+.gen-line {
+  margin: 0;
+}
+.gen-line + .gen-line {
+  margin-top: 0.28em;
+}
+
+/* Each character is wrapped by the client; default hidden, faded in. */
+.gen-char {
   display: inline-block;
-  width: 7px;
-  height: 15px;
-  vertical-align: text-bottom;
-  margin-left: 3px;
-  background: hsl(195, 60%, 65%);
-  box-shadow: 0 0 8px rgba(123, 184, 212, 0.6);
-  animation: intro-cursor-blink 1s steps(2) infinite;
+  opacity: 0;
+  transition:
+    opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: blur(3px);
+  white-space: pre;
 }
-@keyframes intro-cursor-blink {
+
+/* Streaming cursor — a thin bar that follows the last emitted char. */
+.gen-cursor {
+  display: inline-block;
+  width: 0.5ch;
+  height: 1.05em;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  background: hsl(195, 70%, 66%);
+  box-shadow: 0 0 10px hsl(195 70% 66% / 0.6);
+  animation: gen-cursor-blink 1s steps(2) infinite;
+  transform: translateY(0.06em);
+}
+@keyframes gen-cursor-blink {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
 }
 
-/* ===== 3D stage + grid ===== */
-#intro-stage {
-  width: 100%;
-  perspective: 1400px;
-  perspective-origin: 50% 42%;
-}
-#intro-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  padding: 2px;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-/* ===== Holographic card ===== */
-.intro-card {
-  --card-accent: 200 30% 65%;
+/* === Entities — light up once the model "predicts" them. === */
+.gen-entity {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  background:
-    linear-gradient(160deg, rgba(12, 20, 28, 0.92) 0%, rgba(4, 8, 12, 0.97) 100%);
-  border: 1px solid hsl(var(--card-accent) / 0.38);
-  box-shadow:
-    0 0 0 1px hsl(var(--card-accent) / 0.08),
-    0 18px 50px rgba(0, 0, 0, 0.6),
-    inset 0 0 36px hsl(var(--card-accent) / 0.06);
-  overflow: hidden;
-  text-align: left;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  /* GSAP sets the initial 3D state; keep a sane CSS fallback. */
-  opacity: 0;
-  will-change: transform, opacity, filter;
-}
-
-.intro-card[data-kind='work'] { --card-accent: 205 80% 68%; }
-.intro-card[data-kind='repo'] { --card-accent: 168 70% 60%; }
-.intro-card[data-kind='blog'] { --card-accent: 38 90% 64%; }
-
-.intro-card[data-weight='2'] {
-  border-color: hsl(var(--card-accent) / 0.6);
-  box-shadow:
-    0 0 0 1px hsl(var(--card-accent) / 0.18),
-    0 22px 60px rgba(0, 0, 0, 0.65),
-    inset 0 0 44px hsl(var(--card-accent) / 0.1),
-    0 0 28px hsl(var(--card-accent) / 0.16);
-}
-
-#intro-grid.grid-active .intro-card[data-url]:not([data-url='']) {
-  pointer-events: auto;
-}
-.intro-card[data-url]:not([data-url='']):hover {
-  border-color: hsl(var(--card-accent) / 0.85);
-  box-shadow:
-    0 0 0 1px hsl(var(--card-accent) / 0.3),
-    0 26px 70px rgba(0, 0, 0, 0.7),
-    inset 0 0 50px hsl(var(--card-accent) / 0.14),
-    0 0 44px hsl(var(--card-accent) / 0.28);
-}
-.intro-card[data-url=''] { cursor: default; }
-
-/* === Media area === */
-.intro-card-media {
-  position: relative;
-  height: 104px;
-  background:
-    radial-gradient(ellipse at 30% 20%, hsl(var(--card-accent) / 0.26) 0%, transparent 60%),
-    linear-gradient(135deg, rgba(14, 22, 32, 0.9), rgba(6, 10, 16, 0.95));
-  overflow: hidden;
-  border-bottom: 1px solid hsl(var(--card-accent) / 0.22);
-}
-.intro-card-shot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  /* Holographic CRT cast on the screenshot — cyan-shifted, glowing. */
-  filter:
-    grayscale(0.45)
-    brightness(0.66)
-    contrast(1.18)
-    sepia(0.28)
-    hue-rotate(155deg)
-    saturate(1.5);
-  transform: scale(1.05);
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.intro-card:hover .intro-card-shot { transform: scale(1.1); }
-.intro-card-veil {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 20%, rgba(6, 10, 16, 0.94) 100%);
-  pointer-events: none;
-}
-.intro-card-glyph {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: hsl(var(--card-accent) / 0.6);
-  filter: drop-shadow(0 0 12px hsl(var(--card-accent) / 0.4));
-}
-.intro-card-glyph svg { width: 46px; height: 46px; }
-
-/* === Holographic overlays === */
-/* Card-local scanlines (sharper than the global ones). */
-.intro-card-scanlines {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.22) 2.6px,
-    rgba(0, 0, 0, 0.22) 3px
-  );
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  border-radius: inherit;
-  opacity: 0.6;
-}
-/* Diagonal sheen — sweeping highlight, plays during the hold phase. */
-.intro-card-sheen {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    115deg,
-    transparent 38%,
-    hsl(var(--card-accent) / 0.28) 50%,
-    transparent 62%
-  );
-  background-size: 250% 100%;
-  background-position: 130% 0;
-  pointer-events: none;
-  mix-blend-mode: screen;
-  border-radius: inherit;
-  opacity: 0;
-}
-#intro-grid.grid-settled .intro-card-sheen {
-  animation: sheen-sweep 3.4s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * 0.22s);
-}
-@keyframes sheen-sweep {
-  0%, 68% { background-position: 130% 0; opacity: 0; }
-  82% { opacity: 0.8; }
-  100% { background-position: -40% 0; opacity: 0; }
-}
-/* HUD corner brackets — the "targeting reticle" hologram read. */
-.intro-card-corner {
-  position: absolute;
-  width: 11px;
-  height: 11px;
-  border: 1.5px solid hsl(var(--card-accent) / 0.9);
-  filter: drop-shadow(0 0 4px hsl(var(--card-accent) / 0.7));
-  pointer-events: none;
-}
-.intro-card-corner--tl { top: 6px; left: 6px; border-right-width: 0; border-bottom-width: 0; border-top-left-radius: 3px; }
-.intro-card-corner--tr { top: 6px; right: 6px; border-left-width: 0; border-bottom-width: 0; border-top-right-radius: 3px; }
-.intro-card-corner--bl { bottom: 6px; left: 6px; border-right-width: 0; border-top-width: 0; border-bottom-left-radius: 3px; }
-.intro-card-corner--br { bottom: 6px; right: 6px; border-left-width: 0; border-top-width: 0; border-bottom-right-radius: 3px; }
-
-/* === Body === */
-.intro-card-body {
-  position: relative;
-  padding: 11px 14px 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.intro-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 9.5px;
-  letter-spacing: 0.9px;
-}
-.intro-card-kind {
-  color: hsl(var(--card-accent));
-  font-weight: 600;
-  text-shadow: 0 0 8px hsl(var(--card-accent) / 0.5);
+  color: inherit;
+  transition:
+    color 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    text-shadow 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.intro-card-meta {
-  color: hsl(200 14% 46%);
-  font-size: 9px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 0;
-}
-.intro-card-title {
-  margin: 2px 0 0;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: hsl(200 35% 94%);
-  font-family: inherit;
-  /* Chromatic-aberration text-shadow → glitchy hologram read. */
+.gen-entity[data-kind='work'] { --ent-accent: 199 80% 68%; }
+.gen-entity[data-kind='topic'] { --ent-accent: 38 88% 66%; }
+
+.gen-entity.entity-active {
+  color: hsl(var(--ent-accent));
   text-shadow:
-    0 0 14px hsl(var(--card-accent) / 0.35),
-    1px 0 rgba(255, 40, 90, 0.32),
-    -1px 0 rgba(60, 210, 255, 0.36);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    0 0 16px hsl(var(--ent-accent) / 0.45),
+    0 0 32px hsl(var(--ent-accent) / 0.18);
 }
-.intro-card-subtitle {
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.4;
-  color: hsl(200 16% 62%);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.intro-card-tag {
-  align-self: flex-start;
-  margin-top: 5px;
-  font-size: 9px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  letter-spacing: 0.2px;
-  color: hsl(var(--card-accent) / 0.95);
-  background: hsl(var(--card-accent) / 0.14);
-  border: 1px solid hsl(var(--card-accent) / 0.4);
-}
-
-/* Holographic flicker — only after the deck has assembled. */
-#intro-grid.grid-settled .intro-card-scanlines {
-  animation: holo-flicker 5.5s steps(1, end) infinite;
-}
-@keyframes holo-flicker {
-  0%, 91%, 100% { opacity: 0.6; }
-  92% { opacity: 0.3; }
-  93% { opacity: 0.72; }
-  94% { opacity: 0.4; }
-  95% { opacity: 0.66; }
-}
-
-/* ===== Particle shatter layer ===== */
-#intro-particles {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-}
-.intro-particle {
+/* Underline draws in once activated. */
+.gen-entity::after {
+  content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: hsl(var(--p-accent, 195 60% 65%));
-  box-shadow: 0 0 6px hsl(var(--p-accent, 195 60% 65%)),
-    0 0 12px hsl(var(--p-accent, 195 60% 65%) / 0.6);
-  will-change: transform, opacity;
-  opacity: 0;
+  right: 0;
+  bottom: 0.08em;
+  height: 1.5px;
+  background: hsl(var(--ent-accent) / 0.8);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  border-radius: 1px;
+}
+.gen-entity.entity-active::after {
+  transform: scaleX(1);
 }
 
-/* === Footer === */
-.intro-log-footer {
-  margin-top: 24px;
-  color: hsl(200, 14%, 50%);
-  font-size: 11.5px;
-  letter-spacing: 0.4px;
-  opacity: 0;
+/* === Status line === */
+#intro-gen-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: hsl(200, 14%, 48%);
+  text-transform: lowercase;
 }
-.footer-char {
-  display: inline-block;
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsl(155, 55%, 58%);
+  box-shadow: 0 0 8px hsl(155 55% 58% / 0.7);
+  animation: status-pulse 1.3s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.82); }
+}
+#intro-gen-status.gen-done .status-dot {
+  background: hsl(195, 70%, 66%);
+  box-shadow: 0 0 8px hsl(195 70% 66% / 0.7);
+  animation: none;
+}
+
+/* === Foot summary === */
+#intro-gen-foot {
+  font-size: 11.5px;
+  letter-spacing: 0.6px;
+  color: hsl(200, 12%, 40%);
   opacity: 0;
-  transform: translateY(0.4em);
-  filter: blur(2px);
 }
 
 /* === Reduced motion === */
@@ -487,20 +245,15 @@ html.intro-skip #intro-overlay {
 
 /* === Mobile === */
 @media (max-width: 640px) {
-  #intro-log {
-    max-width: 100%;
-    padding: 0 16px;
-    font-size: 11.5px;
+  #intro-gen-wrap {
+    padding: 10vh 24px;
+    gap: 34px;
   }
-  #intro-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 11px;
+  #intro-gen {
+    font-size: clamp(18px, 5.6vw, 24px);
+    line-height: 1.6;
   }
-  .intro-card-media { height: 78px; }
-  .intro-card-glyph svg { width: 34px; height: 34px; }
-  .intro-card-title { font-size: 12.5px; }
-  .intro-card-subtitle { font-size: 9.5px; }
-  .intro-boot { font-size: 13px; }
+  #intro-gen-prompt { font-size: 13px; }
 }
 
 /* ===== Replay button (dev only) ===== */
