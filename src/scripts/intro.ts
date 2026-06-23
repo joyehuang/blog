@@ -130,7 +130,10 @@ async function runIntro() {
     morphs.push(morphGroupIntoSection(g, section))
   }
 
-  // Experience section fades in directly (showcased already).
+  // Experience section fades in directly (showcased already) — best-effort
+  // early fade. The remainingSections stagger below acts as a guaranteed
+  // safety-net so Experience can never get stuck at opacity 0 even if this
+  // lookup were to fail.
   const expSection = findLandingSection('Experience')
   if (expSection) {
     setTimeout(() => {
@@ -143,10 +146,12 @@ async function runIntro() {
 
   // Schedule non-morphed sections to stagger in (parallel with morph).
   // Tighter stagger than before (60ms vs 90ms) so they all land inside
-  // the morph window instead of trailing it.
+  // the morph window instead of trailing it. Experience is intentionally
+  // INCLUDED here: its visibility must not depend on the best-effort
+  // expSection lookup above succeeding.
   const remainingSections = allSections.filter((s) => {
     const label = s.querySelector('h2')?.textContent?.trim() || ''
-    return !morphedLabels.has(label) && label !== 'Experience'
+    return !morphedLabels.has(label)
   })
   setTimeout(() => {
     remainingSections.forEach((s, i) => {
@@ -620,6 +625,16 @@ function revealImmediately() {
   doc.classList.remove('intro-hidden')
   doc.classList.add('intro-skip')
   if (overlay) overlay.classList.add('intro-done')
+
+  // If runIntro aborted after hiding landing sections, clear those inline
+  // styles so CSS takes over and nothing stays stuck at opacity 0.
+  document
+    .querySelectorAll<HTMLElement>('main #content section')
+    .forEach((s) => {
+      s.style.opacity = ''
+      s.style.transform = ''
+      s.style.transition = ''
+    })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(window as any).__introDone = true
