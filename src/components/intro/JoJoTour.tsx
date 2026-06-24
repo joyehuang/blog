@@ -16,7 +16,6 @@ type Step = {
   /** Auto-advance duration in ms (default 2400). */
   duration?: number
 }
-
 /** Find the first <section> whose <h2> matches the title exactly. */
 function sectionByTitle(title: string): HTMLElement | null {
   const headings = document.querySelectorAll('main section h2')
@@ -317,4 +316,3 @@ export default function JoJoTour() {
     </div>
   )
 }
-
