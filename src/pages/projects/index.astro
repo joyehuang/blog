@@ -8,6 +8,9 @@ import Sponsorship from '@/components/projects/Sponsorship.astro'
 import alipay from '@/assets/alipay-qrcode.jpg'
 import wechat from '@/assets/wechat-qrcode.jpg'
 
+const agentHackathonLink =
+  'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
+
 const headings = [
   { depth: 2, slug: 'open-source', text: 'Open Source' },
   { depth: 2, slug: 'programs', text: 'Programs' },
@@ -49,6 +52,11 @@ const headings = [
   <h2 id='programs'>Programs</h2>
   <ProjectSection
     project={[
+      {
+        name: '第一届 Joye 粉丝 Agent 比赛',
+        description: '暑假一起做点东西。参赛、围观、聊天、找队友都欢迎，对 Agent 感兴趣就来玩。',
+        links: [{ type: 'doc', href: agentHackathonLink }]
+      },
       {
         name: 'Atypica',
         description:
