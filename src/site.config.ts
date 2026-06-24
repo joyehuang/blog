@@ -117,6 +117,11 @@ export const integ: IntegrationUserConfig = {
         date: '2026-06-06',
         content:
           '添加 <a href="https://blog.cooingcode.space" target="_blank">Cooing\'s Blog</a> 与 <a href="https://blog.joshua2008.top" target="_blank">Joshua Chen Personal Blog</a>。'
+      },
+      {
+        date: '2026-06-25',
+        content:
+          '添加 <a href="https://cxin.vercel.app/" target="_blank">Cxin Blog</a>。'
       }
     ],
     // Yourself link info

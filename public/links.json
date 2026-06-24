@@ -5,6 +5,15 @@
       "desc": "Friends I exchange blog links with",
       "link_list": [
         {
+          "name": "Cxin Blog",
+          "intro": "AI Native",
+          "link": "https://cxin.vercel.app/",
+          "avatar": "https://cxin.vercel.app/favicon/android-chrome-512x512.png",
+          "since": "2026-06-25",
+          "met": "互换友链",
+          "note": "AI Native，把思考和实践沉淀在个人站里。"
+        },
+        {
           "name": "Cooing's Blog",
           "intro": "Cooing 维护的像素复古 Astro 个人站模板，用于长文、笔记、日志和项目整理。",
           "link": "https://blog.cooingcode.space",
