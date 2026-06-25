@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · Constellation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1419;--fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;--ok:#41d18a;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:radial-gradient(120% 120% at 50% 30%,#121a22,#0b0f14 70%);color:var(--fg);
+    font-family:var(--sans);overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
+
+  .tag{position:fixed;left:0;right:0;top:62%;text-align:center;font-family:var(--mono);
+    font-size:14px;letter-spacing:.18em;color:var(--cyan);opacity:0;text-transform:uppercase}
+  .tag.show{animation:fade .9s ease forwards}
+  @keyframes fade{to{opacity:.9}}
+
+  /* hero reveal */
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;
+    border:1px solid rgba(255,255,255,.14);object-fit:cover;
+    background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));
+    box-shadow:0 0 50px rgba(125,211,252,.3)}
+  .name{font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .ital{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);font-size:14px;
+    color:var(--fg);text-decoration:none;transition:.2s}
+  .pill:hover{border-color:rgba(125,211,252,.4);box-shadow:0 0 0 4px rgba(125,211,252,.08)}
+  .ping{position:relative;width:9px;height:9px}
+  .ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}
+  .hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}
+  .hero.show .card>*:nth-child(4){animation-delay:.36s}
+  .hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.5);z-index:20}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="tag" id="tag">frontend · design · ai-agent</div>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye"
+           onerror="this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="ital">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">这是入场动画演示 · 鼠标移动可与粒子互动</div>
+  <div class="ctl"><button id="skip">跳过 →</button><button id="replay">重播 ↻</button></div>
+
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const tag = document.getElementById('tag');
+const hero = document.getElementById('hero');
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+let W,H,DPR, particles=[], mouse={x:-1e9,y:-1e9}, phase='gather', raf, t0;
+
+function vw(){ return innerWidth || document.documentElement.clientWidth || 1280; }
+function vh(){ return innerHeight || document.documentElement.clientHeight || 800; }
+function resize(){
+  DPR = Math.min(devicePixelRatio||1, 2);
+  const w=vw(), h=vh();
+  W = cv.width = w*DPR; H = cv.height = h*DPR;
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+}
+addEventListener('resize', ()=>{ resize(); buildTargets(); });
+addEventListener('mousemove', e=>{ mouse.x=e.clientX*DPR; mouse.y=e.clientY*DPR; });
+addEventListener('mouseleave', ()=>{ mouse.x=mouse.y=-1e9; });
+
+// sample the word "JOYE" into target points (manual letter-spacing for legibility)
+function sampleText(text){
+  if(!W || !H) return [];
+  const off = document.createElement('canvas');
+  const o = off.getContext('2d');
+  off.width = W; off.height = H;
+  o.fillStyle = '#fff';
+  o.textBaseline = 'middle';
+  o.textAlign = 'left';
+
+  const tracking = 0.18;                 // extra space between letters (× font size)
+  let size = Math.min(H * 0.42, W * 0.34);
+  const setFont = () => o.font = `700 ${size}px Inter, system-ui, sans-serif`;
+  setFont();
+  const advance = () => {
+    let w = 0; for (const ch of text) w += o.measureText(ch).width + size * tracking;
+    return w - size * tracking;
+  };
+  const maxW = W * 0.74;
+  if (advance() > maxW) { size *= maxW / advance(); setFont(); }
+
+  let x = (W - advance()) / 2;
+  const y = H * 0.46;
+  for (const ch of text) {
+    o.fillText(ch, x, y);
+    x += o.measureText(ch).width + size * tracking;
+  }
+
+  const data = o.getImageData(0, 0, W, H).data;
+  const gap = Math.max(5, Math.round(7 * DPR));   // sparser → letters breathe
+  const pts = [];
+  for (let yy = 0; yy < H; yy += gap)
+    for (let xx = 0; xx < W; xx += gap)
+      if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy });
+  return pts;
+}
+
+function buildTargets(){
+  const pts = sampleText('JOYE');
+  // grow/shrink the particle pool to match
+  while(particles.length < pts.length){
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H,
+      vx:0, vy:0, tx:0, ty:0,
+      r: (Math.random()*0.9+0.7)*DPR,
+      hue: Math.random(), tw: Math.random()*Math.PI*2
+    });
+  }
+  particles.length = pts.length;
+  // assign nearest-ish targets (shuffle for organic look)
+  pts.sort(()=> Math.random()-0.5);
+  particles.forEach((p,i)=>{ p.tx=pts[i].x; p.ty=pts[i].y; });
+}
+
+function color(p, a){
+  // steel -> cyan gradient by x position
+  const k = p.x / W;
+  const r = Math.round(101 + (125-101)*k);
+  const g = Math.round(158 + (211-158)*k);
+  const b = Math.round(185 + (252-185)*k);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function frame(ts){
+  if(!t0) t0=ts;
+  const el = (ts - t0)/1000;
+  ctx.clearRect(0,0,W,H);
+
+  // phase transitions
+  if(phase==='gather' && el>2.7) phase='hold';
+  if(phase==='hold' && el>4.0) phase='scatter';
+  if(phase==='scatter' && el>4.9 && !hero.classList.contains('show')){
+    hero.classList.add('show');
+  }
+
+  const ease = phase==='gather' ? 0.06 : phase==='hold' ? 0.12 : 0.02;
+
+  // constellation links (only while formed-ish)
+  if(phase==='gather' || phase==='hold'){
+    ctx.lineWidth = DPR*0.6;
+    for(let i=0;i<particles.length;i+=2){
+      const p=particles[i];
+      for(let j=i+2;j<i+10 && j<particles.length;j++){
+        const q=particles[j];
+        const dx=p.x-q.x, dy=p.y-q.y; const d2=dx*dx+dy*dy;
+        if(d2 < (26*DPR)**2){
+          ctx.strokeStyle = `rgba(125,211,252,${0.10*(1-d2/((26*DPR)**2))})`;
+          ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+        }
+      }
+    }
+  }
+
+  for(const p of particles){
+    // target seeking
+    if(phase==='scatter'){
+      p.vx += (Math.random()-0.5)*0.6*DPR;
+      p.vy += (Math.random()-0.5)*0.6*DPR - 0.05*DPR;
+    }else{
+      p.vx += (p.tx - p.x)*ease;
+      p.vy += (p.ty - p.y)*ease;
+    }
+    // mouse repel
+    const mdx=p.x-mouse.x, mdy=p.y-mouse.y, md2=mdx*mdx+mdy*mdy;
+    const R=(110*DPR)**2;
+    if(md2<R){ const f=(1-md2/R)*4; const d=Math.sqrt(md2)||1; p.vx+=mdx/d*f; p.vy+=mdy/d*f; }
+
+    p.vx*=0.86; p.vy*=0.86;
+    p.x+=p.vx; p.y+=p.vy;
+    p.tw+=0.05;
+
+    const near = (p.x-p.tx)**2+(p.y-p.ty)**2 < (8*DPR)**2;
+    const tw = 0.55 + Math.sin(p.tw)*0.25;
+    const a = phase==='scatter' ? Math.max(0, 1 - el*0.5 + 1.5) * 0.6
+            : (near ? 0.95 : 0.7) * tw;
+    ctx.beginPath();
+    ctx.fillStyle = color(p, Math.min(1,a));
+    ctx.arc(p.x,p.y, p.r*(near?1.25:1), 0, 7);
+    ctx.fill();
+  }
+
+  // glow pass
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalCompositeOperation='source-over';
+
+  if(el>1.6 && !tag.classList.contains('show') && phase!=='scatter') tag.classList.add('show');
+  if(phase==='scatter') tag.classList.remove('show');
+
+  raf = requestAnimationFrame(frame);
+}
+
+function start(){
+  cancelAnimationFrame(raf);
+  resize(); particles=[]; buildTargets();
+  if(particles.length === 0){ setTimeout(start, 120); return; } // viewport not ready yet
+  // scatter start positions outward
+  particles.forEach(p=>{ const ang=Math.random()*7; const rad=Math.max(W,H);
+    p.x=W/2+Math.cos(ang)*rad; p.y=H/2+Math.sin(ang)*rad; });
+  phase='gather'; t0=0; hero.classList.remove('show'); tag.classList.remove('show');
+  if(reduce){ hero.classList.add('show'); return; }
+  raf=requestAnimationFrame(frame);
+}
+function boot(){
+  // sample text only once the real font is ready, so "JOYE" has the right shape
+  if(document.fonts && document.fonts.ready){
+    Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,800))]).then(start);
+  } else start();
+}
+
+function skip(){ cancelAnimationFrame(raf); ctx.clearRect(0,0,W,H); tag.classList.remove('show'); hero.classList.add('show'); }
+
+document.getElementById('skip').onclick = skip;
+document.getElementById('replay').onclick = start;
+boot();
+</script>
+</body>
+</html>
