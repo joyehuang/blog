@@ -1,0 +1,337 @@
+---
+/**
+ * IntroOverlay — full-screen particle entrance that forms the word "JOYE"
+ * from drifting particles, then disperses + fades to reveal the page beneath.
+ *
+ * Behaviour:
+ *  - Plays once per browser session (sessionStorage `intro-seen`).
+ *  - Skippable (button or click anywhere).
+ *  - Respects `prefers-reduced-motion` (removed before first paint).
+ *  - Theme-aware: colours are read from the site's CSS design tokens
+ *    (`--background` / `--primary` / `--foreground`), so it matches both
+ *    light (steel-blue particles) and dark (cyan particles) modes.
+ *
+ * The overlay does NOT render its own hero — it sits above the real homepage
+ * and fades out to reveal it, so there is nothing to keep in sync.
+ */
+---
+
+<div id='intro-overlay' class='intro-overlay' aria-hidden='true'>
+  <canvas id='intro-canvas'></canvas>
+  <button id='intro-skip' class='intro-skip' type='button' aria-label='跳过入场动画'>跳过 →</button>
+</div>
+
+{/* Synchronous gate: drop the overlay before first paint for repeat visits / reduced motion. */}
+<script is:inline>
+  ;(function () {
+    try {
+      var skip =
+        sessionStorage.getItem('intro-seen') === '1' ||
+        (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+      if (skip) {
+        var el = document.getElementById('intro-overlay')
+        if (el) el.remove()
+      }
+    } catch (e) {}
+  })()
+</script>
+
+<style>
+  .intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: hsl(var(--background));
+    overflow: hidden;
+    /* keep it opaque from first paint; JS fades it out */
+    opacity: 1;
+  }
+  .intro-overlay::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    pointer-events: none;
+    background: radial-gradient(42% 46% at 50% 45%, hsl(var(--primary) / 0.1), transparent 70%);
+  }
+  .intro-overlay.intro-done {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.9s ease;
+  }
+  #intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .intro-skip {
+    position: absolute;
+    bottom: 22px;
+    right: 22px;
+    z-index: 2;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--card) / 0.55);
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .intro-skip:hover {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.5);
+  }
+  /* Belt-and-braces: never show for reduced-motion users even before JS runs. */
+  @media (prefers-reduced-motion: reduce) {
+    .intro-overlay {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const overlay = document.getElementById('intro-overlay') as HTMLElement | null
+  const canvas = document.getElementById('intro-canvas') as HTMLCanvasElement | null
+
+  if (overlay && canvas) {
+    // Mark immediately so a refresh mid-play doesn't replay.
+    try {
+      sessionStorage.setItem('intro-seen', '1')
+    } catch (e) {}
+
+    const ctx = canvas.getContext('2d')!
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    type P = { x: number; y: number; vx: number; vy: number; tx: number; ty: number; r: number; tw: number }
+    let W = 0
+    let H = 0
+    let DPR = 1
+    let particles: P[] = []
+    let phase: 'gather' | 'hold' | 'scatter' = 'gather'
+    let finishing = false
+    let finished = false
+    let raf = 0
+    let t0 = 0
+    const mouse = { x: -1e9, y: -1e9 }
+
+    // ── theme tokens → canvas colours ──────────────────────────────────────
+    const cs = getComputedStyle(document.documentElement)
+    const parseHSL = (v: string) => {
+      const m = v.trim().match(/([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/)
+      return m ? { h: +m[1], s: +m[2], l: +m[3] } : { h: 200, s: 30, l: 50 }
+    }
+    const PRI = parseHSL(cs.getPropertyValue('--primary'))
+    const isDark = document.documentElement.classList.contains('dark')
+    // Light mode sits on a near-white bg, so push particles darker + more
+    // saturated + more opaque to keep "JOYE" crisp. Dark mode keeps the bright
+    // cyan that already pops against the dark background.
+    const baseL = isDark ? PRI.l : Math.min(PRI.l, 40)
+    const sat = isDark ? PRI.s : Math.min(PRI.s + 18, 62)
+    const SPAN = isDark ? 18 : 14 // lightness spread across x → subtle gradient
+    const linkA = isDark ? 0.1 : 0.18
+    const dot = (k: number, a: number) => {
+      const l = Math.max(4, Math.min(96, baseL + (k - 0.5) * SPAN))
+      return `hsl(${PRI.h} ${sat}% ${l}% / ${a})`
+    }
+    const linkColor = `hsl(${PRI.h} ${sat}% ${baseL}%`
+
+    const vw = () => innerWidth || document.documentElement.clientWidth || 1280
+    const vh = () => innerHeight || document.documentElement.clientHeight || 800
+    function resize() {
+      DPR = Math.min(devicePixelRatio || 1, 2)
+      const w = vw()
+      const h = vh()
+      W = canvas!.width = Math.round(w * DPR)
+      H = canvas!.height = Math.round(h * DPR)
+      canvas!.style.width = w + 'px'
+      canvas!.style.height = h + 'px'
+    }
+
+    // Sample "JOYE" into target points, with manual letter-spacing for legibility.
+    function sampleText(text: string) {
+      if (!W || !H) return [] as { x: number; y: number }[]
+      const off = document.createElement('canvas')
+      off.width = W
+      off.height = H
+      const o = off.getContext('2d')!
+      o.fillStyle = '#fff'
+      o.textBaseline = 'middle'
+      o.textAlign = 'left'
+      const tracking = 0.18
+      let size = Math.min(H * 0.4, W * 0.32)
+      const setFont = () => (o.font = `700 ${size}px Satoshi, system-ui, sans-serif`)
+      setFont()
+      const advance = () => {
+        let w = 0
+        for (const ch of text) w += o.measureText(ch).width + size * tracking
+        return w - size * tracking
+      }
+      const maxW = W * 0.72
+      if (advance() > maxW) {
+        size *= maxW / advance()
+        setFont()
+      }
+      let x = (W - advance()) / 2
+      const y = H * 0.47
+      for (const ch of text) {
+        o.fillText(ch, x, y)
+        x += o.measureText(ch).width + size * tracking
+      }
+      const data = o.getImageData(0, 0, W, H).data
+      const gap = Math.max(5, Math.round(7 * DPR))
+      const pts: { x: number; y: number }[] = []
+      for (let yy = 0; yy < H; yy += gap)
+        for (let xx = 0; xx < W; xx += gap)
+          if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy })
+      return pts
+    }
+
+    function build() {
+      const pts = sampleText('JOYE')
+      while (particles.length < pts.length)
+        particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28 })
+      particles.length = pts.length
+      pts.sort(() => Math.random() - 0.5)
+      particles.forEach((p, i) => {
+        p.tx = pts[i].x
+        p.ty = pts[i].y
+      })
+    }
+
+    function frame(ts: number) {
+      if (!t0) t0 = ts
+      const el = (ts - t0) / 1000
+      ctx.clearRect(0, 0, W, H)
+
+      if (el > 1.7 && phase === 'gather') phase = 'hold'
+      if (el > 2.5 && !finishing) beginReveal()
+
+      const ease = phase === 'gather' ? 0.07 : phase === 'hold' ? 0.13 : 0.02
+
+      // constellation links while formed-ish
+      if (phase !== 'scatter') {
+        ctx.lineWidth = DPR * 0.6
+        for (let i = 0; i < particles.length; i += 2) {
+          const p = particles[i]
+          for (let j = i + 2; j < i + 10 && j < particles.length; j++) {
+            const q = particles[j]
+            const dx = p.x - q.x
+            const dy = p.y - q.y
+            const d2 = dx * dx + dy * dy
+            const R = 26 * DPR
+            if (d2 < R * R) {
+              ctx.strokeStyle = `${linkColor} / ${linkA * (1 - d2 / (R * R))})`
+              ctx.beginPath()
+              ctx.moveTo(p.x, p.y)
+              ctx.lineTo(q.x, q.y)
+              ctx.stroke()
+            }
+          }
+        }
+      }
+
+      for (const p of particles) {
+        if (phase === 'scatter') {
+          p.vx += (Math.random() - 0.5) * 0.7 * DPR
+          p.vy += ((Math.random() - 0.5) * 0.7 - 0.16) * DPR
+        } else {
+          p.vx += (p.tx - p.x) * ease
+          p.vy += (p.ty - p.y) * ease
+          const mdx = p.x - mouse.x
+          const mdy = p.y - mouse.y
+          const md2 = mdx * mdx + mdy * mdy
+          const R = 110 * DPR
+          if (md2 < R * R) {
+            const f = (1 - md2 / (R * R)) * 4
+            const d = Math.sqrt(md2) || 1
+            p.vx += (mdx / d) * f
+            p.vy += (mdy / d) * f
+          }
+        }
+        p.vx *= 0.86
+        p.vy *= 0.86
+        p.x += p.vx
+        p.y += p.vy
+        p.tw += 0.05
+
+        const near = (p.x - p.tx) ** 2 + (p.y - p.ty) ** 2 < (8 * DPR) ** 2
+        const tw = (isDark ? 0.6 : 0.8) + Math.sin(p.tw) * (isDark ? 0.22 : 0.15)
+        const a =
+          phase === 'scatter'
+            ? isDark
+              ? 0.5
+              : 0.62
+            : (near ? (isDark ? 0.95 : 1) : isDark ? 0.7 : 0.86) * tw
+        ctx.beginPath()
+        ctx.fillStyle = dot(p.x / W, Math.min(1, a))
+        ctx.arc(p.x, p.y, p.r * (near ? 1.25 : 1), 0, 7)
+        ctx.fill()
+      }
+
+      if (!finished) raf = requestAnimationFrame(frame)
+    }
+
+    function beginReveal() {
+      if (finishing) return
+      finishing = true
+      phase = 'scatter'
+      overlay!.classList.add('intro-done')
+      setTimeout(() => {
+        finished = true
+        cancelAnimationFrame(raf)
+        overlay!.remove()
+      }, 950)
+    }
+
+    function start() {
+      resize()
+      particles = []
+      build()
+      if (particles.length === 0) {
+        // font/layout not ready or sampling failed → don't block the page
+        beginReveal()
+        return
+      }
+      // scatter-in start positions
+      const rad = Math.max(W, H)
+      particles.forEach((p) => {
+        const ang = Math.random() * 6.283
+        p.x = W / 2 + Math.cos(ang) * rad
+        p.y = H / 2 + Math.sin(ang) * rad
+      })
+      raf = requestAnimationFrame(frame)
+    }
+
+    // interactions
+    addEventListener('resize', () => {
+      if (!finished) {
+        resize()
+        build()
+      }
+    })
+    addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX * DPR
+      mouse.y = e.clientY * DPR
+    })
+    document.getElementById('intro-skip')?.addEventListener('click', (e) => {
+      e.stopPropagation()
+      beginReveal()
+    })
+    overlay.addEventListener('click', beginReveal)
+
+    if (reduce) {
+      overlay.remove()
+    } else {
+      // Sample once the brand font is ready so "JOYE" has the right shape.
+      const go = () => start()
+      const fontReady = (document as any).fonts?.load?.('700 120px "Satoshi"')
+      Promise.race([
+        Promise.resolve(fontReady).catch(() => {}),
+        new Promise((r) => setTimeout(r, 700))
+      ]).then(go)
+    }
+  }
+</script>
