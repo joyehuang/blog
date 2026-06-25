@@ -1,49 +1,65 @@
 ---
 /**
- * IntroOverlay — full-screen particle entrance that forms the word "JOYE"
- * from drifting particles, then disperses + fades to reveal the page beneath.
+ * IntroOverlay — full-screen home-page entrance animation, with a small
+ * "Tweak" panel (bottom-left) for switching between variants + replaying.
  *
- * Behaviour:
- *  - Plays once per browser session (sessionStorage `intro-seen`).
- *  - Skippable (button or click anywhere).
- *  - Respects `prefers-reduced-motion` (removed before first paint).
- *  - Theme-aware: colours are read from the site's CSS design tokens
- *    (`--background` / `--primary` / `--foreground`), so it matches both
- *    light (steel-blue particles) and dark (cyan particles) modes.
+ * Three variants (selected via localStorage `intro-variant`, default '2'):
+ *   1 · 粒子   — particles fly in and spell "JOYE" (constellation)
+ *   2 · 终端   — `joye.init()` terminal boot sequence
+ *   3 · 排版   — kinetic variable-weight typography
  *
- * The overlay does NOT render its own hero — it sits above the real homepage
- * and fades out to reveal it, so there is nothing to keep in sync.
+ * Shared behaviour:
+ *   - Auto-plays once per session (sessionStorage `intro-seen`), skippable,
+ *     disabled under prefers-reduced-motion.
+ *   - Never renders its own hero — it sits above the page and fades out to
+ *     reveal the real homepage beneath. Overlay bg == site bg (no colour jump).
+ *   - The overlay is hidden (not removed) after playing, so the Tweak panel's
+ *     replay / variant buttons can re-run it without a reload.
+ *
+ * NOTE: the Tweak panel is a review/testing aid. Before a production merge we
+ * should gate it (e.g. `?tweak` query or remove it).
+ *
+ * Scripts use `is:inline` so the dynamically-created DOM (canvas / terminal /
+ * words) is styled by the `is:global` block below (Astro's scoped styles don't
+ * reach nodes created at runtime).
  */
 ---
 
 <div id='intro-overlay' class='intro-overlay' aria-hidden='true'>
-  <canvas id='intro-canvas'></canvas>
+  <div id='intro-stage' class='intro-stage'></div>
   <button id='intro-skip' class='intro-skip' type='button' aria-label='跳过入场动画'>跳过 →</button>
 </div>
 
-{/* Synchronous gate: drop the overlay before first paint for repeat visits / reduced motion. */}
+<div id='intro-tweak' class='intro-tweak' aria-hidden='true'>
+  <span class='intro-tweak__label'>入场动画</span>
+  <button type='button' data-variant='1'>动画一 · 粒子</button>
+  <button type='button' data-variant='2'>动画二 · 终端</button>
+  <button type='button' data-variant='3'>动画三 · 排版</button>
+  <span class='intro-tweak__sep'></span>
+  <button type='button' id='intro-replay'>↻ replay</button>
+</div>
+
+{/* Synchronous gate: hide the overlay before first paint for repeat visits / reduced motion. */}
 <script is:inline>
   ;(function () {
     try {
-      var skip =
-        sessionStorage.getItem('intro-seen') === '1' ||
-        (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
-      if (skip) {
+      var seen = sessionStorage.getItem('intro-seen') === '1'
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (seen || reduce) {
         var el = document.getElementById('intro-overlay')
-        if (el) el.remove()
+        if (el) el.classList.add('intro-idle')
       }
     } catch (e) {}
   })()
 </script>
 
-<style>
+<style is:global>
   .intro-overlay {
     position: fixed;
     inset: 0;
     z-index: 9999;
     background: hsl(var(--background));
     overflow: hidden;
-    /* keep it opaque from first paint; JS fades it out */
     opacity: 1;
   }
   .intro-overlay::before {
@@ -53,18 +69,29 @@
     pointer-events: none;
     background: radial-gradient(42% 46% at 50% 45%, hsl(var(--primary) / 0.1), transparent 70%);
   }
+  .intro-overlay.intro-idle {
+    display: none;
+  }
   .intro-overlay.intro-done {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.9s ease;
   }
-  #intro-canvas {
+  .intro-stage {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  .intro-canvas {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     display: block;
   }
+
+  /* skip button */
   .intro-skip {
     position: absolute;
     bottom: 22px;
@@ -84,7 +111,229 @@
     color: hsl(var(--foreground));
     border-color: hsl(var(--primary) / 0.5);
   }
-  /* Belt-and-braces: never show for reduced-motion users even before JS runs. */
+
+  /* Tweak panel (review aid) */
+  .intro-tweak {
+    position: fixed;
+    bottom: 18px;
+    left: 18px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 12px;
+    background: hsl(var(--card) / 0.82);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+  }
+  .intro-tweak__label {
+    padding: 0 6px 0 4px;
+    color: hsl(var(--muted-foreground));
+    opacity: 0.8;
+  }
+  .intro-tweak button {
+    font: inherit;
+    color: hsl(var(--muted-foreground));
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: 0.15s;
+    white-space: nowrap;
+  }
+  .intro-tweak button:hover {
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.6);
+  }
+  .intro-tweak button.on {
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.45);
+    background: hsl(var(--primary) / 0.08);
+  }
+  .intro-tweak #intro-replay {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+  .intro-tweak__sep {
+    width: 1px;
+    align-self: stretch;
+    margin: 2px 2px;
+    background: hsl(var(--border));
+  }
+
+  /* ── variant 2 · terminal boot (always-dark window for the boot aesthetic) ── */
+  .intro-term {
+    width: min(680px, 90vw);
+    background: rgba(13, 18, 24, 0.85);
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .intro-term__chrome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .intro-term__chrome .d {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+  .intro-term__chrome .r {
+    background: #ff5f57;
+  }
+  .intro-term__chrome .y {
+    background: #febc2e;
+  }
+  .intro-term__chrome .g {
+    background: #28c840;
+  }
+  .intro-term__chrome .t {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #9aa6b2;
+  }
+  .intro-term__body {
+    padding: 20px 22px 26px;
+    font-size: 14px;
+    line-height: 1.85;
+    min-height: 280px;
+    color: #dfe7ef;
+  }
+  .intro-term .ln {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .intro-term .p {
+    color: #7dd3fc;
+  }
+  .intro-term .ok {
+    color: #41d18a;
+  }
+  .intro-term .dim {
+    color: #9aa6b2;
+  }
+  .intro-term .b {
+    color: #659eb9;
+  }
+  .intro-term .c {
+    color: #7dd3fc;
+  }
+  .intro-term .art {
+    color: #7dd3fc;
+    line-height: 1.15;
+    font-size: clamp(9px, 2.1vw, 15px);
+    white-space: pre;
+    text-shadow: 0 0 18px rgba(125, 211, 252, 0.35);
+  }
+  .intro-term .cr {
+    display: inline-block;
+    width: 9px;
+    height: 1.05em;
+    background: #7dd3fc;
+    margin-left: 2px;
+    transform: translateY(2px);
+    animation: intro-blink 1s steps(1) infinite;
+  }
+  @keyframes intro-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* ── variant 3 · kinetic type ── */
+  .intro-kin {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .intro-kin .wd {
+    position: absolute;
+    display: flex;
+    gap: 0.02em;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    font-size: clamp(56px, 13vw, 170px);
+    color: hsl(var(--foreground));
+  }
+  .intro-kin .ch {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.9em);
+    font-variation-settings: 'wght' 200;
+  }
+  .intro-kin .wd.in .ch {
+    animation: intro-rise 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .intro-kin .wd.out {
+    animation: intro-leave 0.45s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  }
+  .intro-kin .ac {
+    color: hsl(var(--primary));
+  }
+  .intro-kin .th {
+    font-weight: 200;
+  }
+  .intro-kin__bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 42vw;
+    left: -46vw;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.16),
+      hsl(var(--primary) / 0.5) 92%,
+      hsl(var(--primary))
+    );
+    box-shadow: 0 0 80px 20px hsl(var(--primary) / 0.18);
+  }
+  .intro-kin__bar.go {
+    animation: intro-wipe 1.05s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+  }
+  @keyframes intro-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(0.9em);
+      font-variation-settings: 'wght' 200;
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+      font-variation-settings: 'wght' 800;
+    }
+  }
+  @keyframes intro-leave {
+    to {
+      opacity: 0;
+      transform: translateY(-0.35em);
+      filter: blur(6px);
+    }
+  }
+  @keyframes intro-wipe {
+    to {
+      left: 104vw;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .intro-overlay {
       display: none;
@@ -92,246 +341,342 @@
   }
 </style>
 
-<script>
-  const overlay = document.getElementById('intro-overlay') as HTMLElement | null
-  const canvas = document.getElementById('intro-canvas') as HTMLCanvasElement | null
+<script is:inline>
+  ;(function () {
+    var overlay = document.getElementById('intro-overlay')
+    var stage = document.getElementById('intro-stage')
+    var panel = document.getElementById('intro-tweak')
+    if (!overlay || !stage) return
 
-  if (overlay && canvas) {
-    // Mark immediately so a refresh mid-play doesn't replay.
-    try {
-      sessionStorage.setItem('intro-seen', '1')
-    } catch (e) {}
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+    var active = null
+    var revealing = false
 
-    const ctx = canvas.getContext('2d')!
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    type P = { x: number; y: number; vx: number; vy: number; tx: number; ty: number; r: number; tw: number }
-    let W = 0
-    let H = 0
-    let DPR = 1
-    let particles: P[] = []
-    let phase: 'gather' | 'hold' | 'scatter' = 'gather'
-    let finishing = false
-    let finished = false
-    let raf = 0
-    let t0 = 0
-    const mouse = { x: -1e9, y: -1e9 }
-
-    // ── theme tokens → canvas colours ──────────────────────────────────────
-    const cs = getComputedStyle(document.documentElement)
-    const parseHSL = (v: string) => {
-      const m = v.trim().match(/([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/)
-      return m ? { h: +m[1], s: +m[2], l: +m[3] } : { h: 200, s: 30, l: 50 }
-    }
-    const PRI = parseHSL(cs.getPropertyValue('--primary'))
-    const isDark = document.documentElement.classList.contains('dark')
-    // Light mode sits on a near-white bg, so push particles darker + more
-    // saturated + more opaque to keep "JOYE" crisp. Dark mode keeps the bright
-    // cyan that already pops against the dark background.
-    const baseL = isDark ? PRI.l : Math.min(PRI.l, 40)
-    const sat = isDark ? PRI.s : Math.min(PRI.s + 18, 62)
-    const SPAN = isDark ? 18 : 14 // lightness spread across x → subtle gradient
-    const linkA = isDark ? 0.1 : 0.18
-    const dot = (k: number, a: number) => {
-      const l = Math.max(4, Math.min(96, baseL + (k - 0.5) * SPAN))
-      return `hsl(${PRI.h} ${sat}% ${l}% / ${a})`
-    }
-    const linkColor = `hsl(${PRI.h} ${sat}% ${baseL}%`
-
-    const vw = () => innerWidth || document.documentElement.clientWidth || 1280
-    const vh = () => innerHeight || document.documentElement.clientHeight || 800
-    function resize() {
-      DPR = Math.min(devicePixelRatio || 1, 2)
-      const w = vw()
-      const h = vh()
-      W = canvas!.width = Math.round(w * DPR)
-      H = canvas!.height = Math.round(h * DPR)
-      canvas!.style.width = w + 'px'
-      canvas!.style.height = h + 'px'
-    }
-
-    // Sample "JOYE" into target points, with manual letter-spacing for legibility.
-    function sampleText(text: string) {
-      if (!W || !H) return [] as { x: number; y: number }[]
-      const off = document.createElement('canvas')
-      off.width = W
-      off.height = H
-      const o = off.getContext('2d')!
-      o.fillStyle = '#fff'
-      o.textBaseline = 'middle'
-      o.textAlign = 'left'
-      const tracking = 0.18
-      let size = Math.min(H * 0.4, W * 0.32)
-      const setFont = () => (o.font = `700 ${size}px Satoshi, system-ui, sans-serif`)
-      setFont()
-      const advance = () => {
-        let w = 0
-        for (const ch of text) w += o.measureText(ch).width + size * tracking
-        return w - size * tracking
+    function getVariant() {
+      try {
+        return localStorage.getItem('intro-variant') || '2'
+      } catch (e) {
+        return '2'
       }
-      const maxW = W * 0.72
-      if (advance() > maxW) {
-        size *= maxW / advance()
+    }
+    function setVariant(v) {
+      try {
+        localStorage.setItem('intro-variant', v)
+      } catch (e) {}
+      highlight(v)
+    }
+    function highlight(v) {
+      if (!panel) return
+      var btns = panel.querySelectorAll('[data-variant]')
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.toggle('on', btns[i].getAttribute('data-variant') === v)
+      }
+    }
+    function stopActive() {
+      if (active && active.stop) {
+        try {
+          active.stop()
+        } catch (e) {}
+      }
+      active = null
+    }
+    function reveal() {
+      if (revealing) return
+      revealing = true
+      overlay.classList.add('intro-done')
+      setTimeout(function () {
+        stopActive()
+        overlay.classList.add('intro-idle')
+        overlay.classList.remove('intro-done')
+        stage.innerHTML = ''
+      }, 950)
+    }
+    function play() {
+      stopActive()
+      revealing = false
+      stage.innerHTML = ''
+      overlay.classList.remove('intro-idle')
+      overlay.classList.remove('intro-done')
+      try {
+        sessionStorage.setItem('intro-seen', '1')
+      } catch (e) {}
+      var v = getVariant()
+      highlight(v)
+      if (v === '2') active = playTerminal(stage, reveal)
+      else if (v === '3') active = playKinetic(stage, reveal)
+      else active = playConstellation(stage, reveal)
+    }
+
+    // ── variant 1 · constellation ───────────────────────────────────────────
+    function playConstellation(stage, done) {
+      var canvas = document.createElement('canvas')
+      canvas.className = 'intro-canvas'
+      stage.appendChild(canvas)
+      var ctx = canvas.getContext('2d')
+      var root = document.documentElement
+      var dark = root.classList.contains('dark')
+      var styles = getComputedStyle(root)
+      function parseHSL(v) {
+        var m = String(v).trim().match(/([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/)
+        return m ? { h: +m[1], s: +m[2], l: +m[3] } : { h: 200, s: 30, l: 50 }
+      }
+      var PRI = parseHSL(styles.getPropertyValue('--primary'))
+      var baseL = dark ? PRI.l : Math.min(PRI.l, 40)
+      var sat = dark ? PRI.s : Math.min(PRI.s + 18, 62)
+      var SPAN = dark ? 18 : 14
+      var linkA = dark ? 0.1 : 0.18
+      function dot(k, a) {
+        var l = Math.max(4, Math.min(96, baseL + (k - 0.5) * SPAN))
+        return 'hsl(' + PRI.h + ' ' + sat + '% ' + l + '% / ' + a + ')'
+      }
+      var linkColor = 'hsl(' + PRI.h + ' ' + sat + '% ' + baseL + '%'
+      var W = 0, H = 0, DPR = 1, particles = [], phase = 'gather', t0 = 0, raf = 0, stopped = false
+      var mouse = { x: -1e9, y: -1e9 }
+      function vw() { return innerWidth || document.documentElement.clientWidth || 1280 }
+      function vh() { return innerHeight || document.documentElement.clientHeight || 800 }
+      function resize() {
+        DPR = Math.min(devicePixelRatio || 1, 2)
+        var w = vw(), h = vh()
+        W = canvas.width = Math.round(w * DPR)
+        H = canvas.height = Math.round(h * DPR)
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+      }
+      function sampleText(text) {
+        if (!W || !H) return []
+        var off = document.createElement('canvas')
+        off.width = W
+        off.height = H
+        var o = off.getContext('2d')
+        o.fillStyle = '#fff'
+        o.textBaseline = 'middle'
+        o.textAlign = 'left'
+        var tracking = 0.18
+        var size = Math.min(H * 0.4, W * 0.32)
+        function setFont() { o.font = '700 ' + size + 'px Satoshi, system-ui, sans-serif' }
         setFont()
+        function advance() {
+          var w = 0
+          for (var i = 0; i < text.length; i++) w += o.measureText(text[i]).width + size * tracking
+          return w - size * tracking
+        }
+        var maxW = W * 0.72
+        if (advance() > maxW) { size *= maxW / advance(); setFont() }
+        var x = (W - advance()) / 2
+        var y = H * 0.47
+        for (var i = 0; i < text.length; i++) {
+          o.fillText(text[i], x, y)
+          x += o.measureText(text[i]).width + size * tracking
+        }
+        var data = o.getImageData(0, 0, W, H).data
+        var gap = Math.max(5, Math.round(7 * DPR))
+        var pts = []
+        for (var yy = 0; yy < H; yy += gap)
+          for (var xx = 0; xx < W; xx += gap)
+            if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy })
+        return pts
       }
-      let x = (W - advance()) / 2
-      const y = H * 0.47
-      for (const ch of text) {
-        o.fillText(ch, x, y)
-        x += o.measureText(ch).width + size * tracking
+      function build() {
+        var pts = sampleText('JOYE')
+        while (particles.length < pts.length)
+          particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28 })
+        particles.length = pts.length
+        pts.sort(function () { return Math.random() - 0.5 })
+        for (var i = 0; i < particles.length; i++) { particles[i].tx = pts[i].x; particles[i].ty = pts[i].y }
       }
-      const data = o.getImageData(0, 0, W, H).data
-      const gap = Math.max(5, Math.round(7 * DPR))
-      const pts: { x: number; y: number }[] = []
-      for (let yy = 0; yy < H; yy += gap)
-        for (let xx = 0; xx < W; xx += gap)
-          if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy })
-      return pts
-    }
-
-    function build() {
-      const pts = sampleText('JOYE')
-      while (particles.length < pts.length)
-        particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28 })
-      particles.length = pts.length
-      pts.sort(() => Math.random() - 0.5)
-      particles.forEach((p, i) => {
-        p.tx = pts[i].x
-        p.ty = pts[i].y
-      })
-    }
-
-    function frame(ts: number) {
-      if (!t0) t0 = ts
-      const el = (ts - t0) / 1000
-      ctx.clearRect(0, 0, W, H)
-
-      if (el > 1.7 && phase === 'gather') phase = 'hold'
-      if (el > 2.5 && !finishing) beginReveal()
-
-      const ease = phase === 'gather' ? 0.07 : phase === 'hold' ? 0.13 : 0.02
-
-      // constellation links while formed-ish
-      if (phase !== 'scatter') {
-        ctx.lineWidth = DPR * 0.6
-        for (let i = 0; i < particles.length; i += 2) {
-          const p = particles[i]
-          for (let j = i + 2; j < i + 10 && j < particles.length; j++) {
-            const q = particles[j]
-            const dx = p.x - q.x
-            const dy = p.y - q.y
-            const d2 = dx * dx + dy * dy
-            const R = 26 * DPR
-            if (d2 < R * R) {
-              ctx.strokeStyle = `${linkColor} / ${linkA * (1 - d2 / (R * R))})`
-              ctx.beginPath()
-              ctx.moveTo(p.x, p.y)
-              ctx.lineTo(q.x, q.y)
-              ctx.stroke()
+      function frame(ts) {
+        if (stopped) return
+        if (!t0) t0 = ts
+        var el = (ts - t0) / 1000
+        ctx.clearRect(0, 0, W, H)
+        if (el > 1.7 && phase === 'gather') phase = 'hold'
+        if (el > 2.5 && phase !== 'scatter') { phase = 'scatter'; done() }
+        var ease = phase === 'gather' ? 0.07 : phase === 'hold' ? 0.13 : 0.02
+        if (phase !== 'scatter') {
+          ctx.lineWidth = DPR * 0.6
+          for (var i = 0; i < particles.length; i += 2) {
+            var p = particles[i]
+            for (var j = i + 2; j < i + 10 && j < particles.length; j++) {
+              var q = particles[j]
+              var dx = p.x - q.x, dy = p.y - q.y, d2 = dx * dx + dy * dy, R = 26 * DPR
+              if (d2 < R * R) {
+                ctx.strokeStyle = linkColor + ' / ' + (linkA * (1 - d2 / (R * R))) + ')'
+                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke()
+              }
             }
           }
         }
-      }
-
-      for (const p of particles) {
-        if (phase === 'scatter') {
-          p.vx += (Math.random() - 0.5) * 0.7 * DPR
-          p.vy += ((Math.random() - 0.5) * 0.7 - 0.16) * DPR
-        } else {
-          p.vx += (p.tx - p.x) * ease
-          p.vy += (p.ty - p.y) * ease
-          const mdx = p.x - mouse.x
-          const mdy = p.y - mouse.y
-          const md2 = mdx * mdx + mdy * mdy
-          const R = 110 * DPR
-          if (md2 < R * R) {
-            const f = (1 - md2 / (R * R)) * 4
-            const d = Math.sqrt(md2) || 1
-            p.vx += (mdx / d) * f
-            p.vy += (mdy / d) * f
+        for (var k = 0; k < particles.length; k++) {
+          var pt = particles[k]
+          if (phase === 'scatter') {
+            pt.vx += (Math.random() - 0.5) * 0.7 * DPR
+            pt.vy += ((Math.random() - 0.5) * 0.7 - 0.16) * DPR
+          } else {
+            pt.vx += (pt.tx - pt.x) * ease
+            pt.vy += (pt.ty - pt.y) * ease
+            var mdx = pt.x - mouse.x, mdy = pt.y - mouse.y, md2 = mdx * mdx + mdy * mdy, MR = 110 * DPR
+            if (md2 < MR * MR) { var f = (1 - md2 / (MR * MR)) * 4, d = Math.sqrt(md2) || 1; pt.vx += (mdx / d) * f; pt.vy += (mdy / d) * f }
           }
+          pt.vx *= 0.86; pt.vy *= 0.86; pt.x += pt.vx; pt.y += pt.vy; pt.tw += 0.05
+          var near = (pt.x - pt.tx) * (pt.x - pt.tx) + (pt.y - pt.ty) * (pt.y - pt.ty) < (8 * DPR) * (8 * DPR)
+          var tw = (dark ? 0.6 : 0.8) + Math.sin(pt.tw) * (dark ? 0.22 : 0.15)
+          var a = phase === 'scatter' ? (dark ? 0.5 : 0.62) : (near ? (dark ? 0.95 : 1) : dark ? 0.7 : 0.86) * tw
+          ctx.beginPath()
+          ctx.fillStyle = dot(pt.x / W, Math.min(1, a))
+          ctx.arc(pt.x, pt.y, pt.r * (near ? 1.25 : 1), 0, 7)
+          ctx.fill()
         }
-        p.vx *= 0.86
-        p.vy *= 0.86
-        p.x += p.vx
-        p.y += p.vy
-        p.tw += 0.05
-
-        const near = (p.x - p.tx) ** 2 + (p.y - p.ty) ** 2 < (8 * DPR) ** 2
-        const tw = (isDark ? 0.6 : 0.8) + Math.sin(p.tw) * (isDark ? 0.22 : 0.15)
-        const a =
-          phase === 'scatter'
-            ? isDark
-              ? 0.5
-              : 0.62
-            : (near ? (isDark ? 0.95 : 1) : isDark ? 0.7 : 0.86) * tw
-        ctx.beginPath()
-        ctx.fillStyle = dot(p.x / W, Math.min(1, a))
-        ctx.arc(p.x, p.y, p.r * (near ? 1.25 : 1), 0, 7)
-        ctx.fill()
+        raf = requestAnimationFrame(frame)
       }
-
-      if (!finished) raf = requestAnimationFrame(frame)
+      function onMove(e) { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR }
+      function onResize() { if (!stopped) { resize(); build() } }
+      addEventListener('mousemove', onMove)
+      addEventListener('resize', onResize)
+      resize(); build()
+      if (particles.length === 0) { done() }
+      else {
+        var rad = Math.max(W, H)
+        for (var i = 0; i < particles.length; i++) {
+          var ang = Math.random() * 6.283
+          particles[i].x = W / 2 + Math.cos(ang) * rad
+          particles[i].y = H / 2 + Math.sin(ang) * rad
+        }
+        raf = requestAnimationFrame(frame)
+      }
+      return {
+        stop: function () { stopped = true; cancelAnimationFrame(raf); removeEventListener('mousemove', onMove); removeEventListener('resize', onResize) }
+      }
     }
 
-    function beginReveal() {
-      if (finishing) return
-      finishing = true
-      phase = 'scatter'
-      overlay!.classList.add('intro-done')
-      setTimeout(() => {
-        finished = true
-        cancelAnimationFrame(raf)
-        overlay!.remove()
-      }, 950)
+    // ── variant 2 · terminal boot ────────────────────────────────────────────
+    function playTerminal(stage, done) {
+      var wrap = document.createElement('div')
+      wrap.innerHTML =
+        '<div class="intro-term">' +
+        '<div class="intro-term__chrome"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="t">joye@dev — ~/site — zsh</span></div>' +
+        '<div class="intro-term__body"></div></div>'
+      stage.appendChild(wrap)
+      var out = wrap.querySelector('.intro-term__body')
+      var timers = [], stopped = false
+      function sleep(ms) { return new Promise(function (r) { timers.push(setTimeout(r, ms)) }) }
+      function line(html, cls) { var d = document.createElement('div'); d.className = 'ln ' + (cls || ''); d.innerHTML = html; out.appendChild(d); return d }
+      function caret(prefix, cmd, sp) {
+        sp = sp || 34
+        var el = line('<span class="p">' + prefix + '</span> ')
+        var c = document.createElement('span'); c.className = 'cr'; el.appendChild(c)
+        var i = 0
+        return new Promise(function (resolve) {
+          function step() {
+            if (stopped) return resolve()
+            if (i >= cmd.length) { timers.push(setTimeout(function () { c.remove(); resolve() }, 240)); return }
+            c.parentNode.insertBefore(document.createTextNode(cmd[i]), c); i++
+            timers.push(setTimeout(step, sp))
+          }
+          step()
+        })
+      }
+      function prog(label) {
+        var el = line('<span class="ok">[ ok ]</span> ' + label + '  <span class="b"></span>')
+        var b = el.querySelector('.b')
+        var steps = ['▓▓░░░░░░░░', '▓▓▓▓▓░░░░░', '▓▓▓▓▓▓▓▓░░', '▓▓▓▓▓▓▓▓▓▓ 100%']
+        var i = 0
+        return new Promise(function (resolve) {
+          function step() {
+            if (stopped || i >= steps.length) return resolve()
+            b.textContent = steps[i]; i++
+            timers.push(setTimeout(step, 90))
+          }
+          step()
+        })
+      }
+      var ART = '   ___ ___  _   _ ___\n  |_  / _ \\| | | | __|\n   / / (_) | |_| | _|\n  /___\\___/ \\___/|___|'
+      ;(async function () {
+        await sleep(250); if (stopped) return
+        await caret('$', './joye --init'); if (stopped) return
+        await prog('booting joye.dev'); await prog('loading design-system'); if (stopped) return
+        line('<span class="ok">[ ok ]</span> mounting personality module: <span class="c">JoJo</span> 🤖'); await sleep(150)
+        line('<span class="ok">[ ok ]</span> compiling <span class="dim">8 years of</span> frontend <span class="p">→</span> ai-agent'); await sleep(420); if (stopped) return
+        await caret('$', 'whoami'); var a = line('', 'art'); a.textContent = ART; await sleep(120)
+        line('<span class="dim">Joye · Full-Stack &amp; AI Agent Developer · Melbourne 🇦🇺</span>'); await sleep(520); if (stopped) return
+        await caret('$', 'open ~/'); await sleep(320)
+        if (!stopped) done()
+      })()
+      return { stop: function () { stopped = true; for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]); timers = [] } }
     }
 
-    function start() {
-      resize()
-      particles = []
-      build()
-      if (particles.length === 0) {
-        // font/layout not ready or sampling failed → don't block the page
-        beginReveal()
-        return
+    // ── variant 3 · kinetic type ─────────────────────────────────────────────
+    function playKinetic(stage, done) {
+      var kin = document.createElement('div'); kin.className = 'intro-kin'
+      var bar = document.createElement('div'); bar.className = 'intro-kin__bar'
+      var seq = document.createElement('div'); seq.style.position = 'absolute'; seq.style.inset = '0'
+      seq.style.display = 'grid'; seq.style.placeItems = 'center'
+      kin.appendChild(bar); kin.appendChild(seq); stage.appendChild(kin)
+      var timers = [], stopped = false
+      function sleep(ms) { return new Promise(function (r) { timers.push(setTimeout(r, ms)) }) }
+      var WORDS = [
+        [{ t: 'FRONT' }, { t: 'END', c: 'ac' }],
+        [{ t: 'DESIGN' }],
+        [{ t: '×', c: 'th' }, { t: ' AI', c: 'ac' }],
+        [{ t: 'JOYE' }]
+      ]
+      function makeWord(parts) {
+        var w = document.createElement('div'); w.className = 'wd'
+        parts.forEach(function (p) {
+          var s = document.createElement('span'); if (p.c) s.className = p.c
+          for (var i = 0; i < p.t.length; i++) {
+            var c = document.createElement('span'); c.className = 'ch'
+            c.textContent = p.t[i] === ' ' ? ' ' : p.t[i]
+            c.style.animationDelay = i * 0.045 + 's'
+            s.appendChild(c)
+          }
+          w.appendChild(s)
+        })
+        return w
       }
-      // scatter-in start positions
-      const rad = Math.max(W, H)
-      particles.forEach((p) => {
-        const ang = Math.random() * 6.283
-        p.x = W / 2 + Math.cos(ang) * rad
-        p.y = H / 2 + Math.sin(ang) * rad
-      })
-      raf = requestAnimationFrame(frame)
+      async function show(parts, hold, last) {
+        if (stopped) return null
+        var w = makeWord(parts); seq.appendChild(w)
+        bar.classList.remove('go'); void bar.offsetWidth; bar.classList.add('go')
+        await sleep(140); if (stopped) return w
+        w.classList.add('in')
+        await sleep(hold)
+        if (!last && !stopped) { w.classList.add('out'); await sleep(420); w.remove() }
+        return w
+      }
+      ;(async function () {
+        await sleep(220)
+        await show(WORDS[0], 720); await show(WORDS[1], 600); await show(WORDS[2], 680)
+        var j = await show(WORDS[3], 820, true); if (stopped) return
+        await sleep(160); if (j) j.classList.add('out'); await sleep(320)
+        if (!stopped) done()
+      })()
+      return { stop: function () { stopped = true; for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]); timers = []; kin.remove() } }
     }
 
-    // interactions
-    addEventListener('resize', () => {
-      if (!finished) {
-        resize()
-        build()
+    // ── wiring ───────────────────────────────────────────────────────────────
+    var skipBtn = document.getElementById('intro-skip')
+    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    overlay.addEventListener('click', function (e) { if (e.target === overlay || e.target === stage) reveal() })
+    var replayBtn = document.getElementById('intro-replay')
+    if (replayBtn) replayBtn.addEventListener('click', function () { play() })
+    if (panel) {
+      var btns = panel.querySelectorAll('[data-variant]')
+      for (var i = 0; i < btns.length; i++) {
+        ;(function (b) {
+          b.addEventListener('click', function () { setVariant(b.getAttribute('data-variant')); play() })
+        })(btns[i])
       }
-    })
-    addEventListener('mousemove', (e) => {
-      mouse.x = e.clientX * DPR
-      mouse.y = e.clientY * DPR
-    })
-    document.getElementById('intro-skip')?.addEventListener('click', (e) => {
-      e.stopPropagation()
-      beginReveal()
-    })
-    overlay.addEventListener('click', beginReveal)
+    }
+    highlight(getVariant())
 
-    if (reduce) {
-      overlay.remove()
+    // auto-play once per session
+    var seen = false
+    try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
+    if (!seen && !reduce) {
+      var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
+      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(play)
     } else {
-      // Sample once the brand font is ready so "JOYE" has the right shape.
-      const go = () => start()
-      const fontReady = (document as any).fonts?.load?.('700 120px "Satoshi"')
-      Promise.race([
-        Promise.resolve(fontReady).catch(() => {}),
-        new Promise((r) => setTimeout(r, 700))
-      ]).then(go)
+      overlay.classList.add('intro-idle')
     }
-  }
+  })()
 </script>
