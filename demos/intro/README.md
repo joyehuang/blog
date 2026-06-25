@@ -2,12 +2,16 @@
 
 > 这是 Joye 个人博客首页入场动画的完整自然语言描述，作为后续复用 / 再生成 / 写作的素材。
 >
-> - 已上线版本对应组件：[`src/components/intro/IntroOverlay.astro`](../../src/components/intro/IntroOverlay.astro)，接入于首页 `src/pages/index.astro` 与 `src/pages/en/index.astro`。
-> - 本目录另有三个独立全屏 demo，是当时探索的三个方向，最终选用 **constellation**：
->   - [`constellation.html`](./constellation.html) —— 粒子聚合（**已选用**）
->   - [`terminal-boot.html`](./terminal-boot.html) —— 终端开机 `joye.init()`
->   - [`kinetic-type.html`](./kinetic-type.html) —— 动态排版 Kinetic Type
+> - 对应组件：[`src/components/intro/IntroOverlay.astro`](../../src/components/intro/IntroOverlay.astro)，接入于首页 `src/pages/index.astro` 与 `src/pages/en/index.astro`。
+> - 本目录另有三个独立全屏 demo（探索期的三个方向）：
+>   - [`constellation.html`](./constellation.html) —— 动画一 · 粒子聚合
+>   - [`terminal-boot.html`](./terminal-boot.html) —— 动画二 · 终端开机 `joye.init()`
+>   - [`kinetic-type.html`](./kinetic-type.html) —— 动画三 · 动态排版 Kinetic Type
 >   - [`index.html`](./index.html) —— 三方案对比画廊
+>
+> **当前状态（评审中）**：三个方向都已集成为组件里的「变体」，由左下角的 **Tweak 切换面板**（动画一 / 二 / 三 + replay）实时切换，方便对比。默认当前播放 **动画二 · 终端**。Tweak 面板是评审辅助工具，定稿前会下掉或加开关。
+>
+> 下方的「逐拍 / 视觉 / 实现」详述以 **动画一 · 粒子聚合** 为主线；动画二（终端开机）、动画三（动态排版）的描述见各自 demo 文件顶部与组件源码。
 
 ---
 
