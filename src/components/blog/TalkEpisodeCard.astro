@@ -1,126 +1,19 @@
 ---
+import FeatureCalloutCard from '@/components/blog/FeatureCalloutCard.astro'
+
 const talkHref = '/talks#talk-1'
 const deckHref = '/talks/2026-from-interview-to-agent.html'
 const videoHref = 'https://www.bilibili.com/video/BV1sQJN6rE1D'
 ---
 
-<aside class='talk-card not-prose' aria-label='相关分享会'>
-  <div class='talk-card-main'>
-    <div class='talk-card-kicker'>
-      <span>Talks · 第 1 期</span>
-      <span>2026.06.13</span>
-    </div>
-    <h2>从实习面试到 Agent 开发</h2>
-    <p>这篇文章是这期分享的文字版。如果你想看原始分享记录、幻灯片或录屏，可以从这里跳过去。</p>
-  </div>
-  <div class='talk-card-actions'>
-    <a class='talk-card-primary' href={talkHref}>看分享会记录</a>
-    <a href={deckHref} target='_blank' rel='noopener'>打开幻灯片</a>
-    <a href={videoHref} target='_blank' rel='noopener'>看录屏</a>
-  </div>
-</aside>
-
-<style>
-  .talk-card {
-    position: relative;
-    overflow: hidden;
-    margin: 1.5rem 0 2rem;
-    border: 1px solid hsl(var(--border));
-    border-radius: 8px;
-    background:
-      radial-gradient(circle at 82% 18%, hsl(var(--primary) / 0.12), transparent 34%),
-      linear-gradient(135deg, hsl(var(--muted) / 0.65), hsl(var(--background)));
-    padding: 1rem;
-    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
-  }
-
-  .talk-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-top: 1px solid hsl(var(--primary) / 0.22);
-    pointer-events: none;
-  }
-
-  .talk-card-main {
-    position: relative;
-    max-width: 42rem;
-  }
-
-  .talk-card-kicker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem 0.75rem;
-    color: hsl(var(--primary));
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-
-  .talk-card h2 {
-    margin: 0.55rem 0 0.4rem;
-    color: hsl(var(--foreground));
-    font-size: clamp(1.12rem, 2.4vw, 1.5rem);
-    line-height: 1.28;
-  }
-
-  .talk-card p {
-    margin: 0;
-    color: hsl(var(--muted-foreground));
-    font-size: 0.95rem;
-    line-height: 1.65;
-  }
-
-  .talk-card-actions {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.55rem;
-    margin-top: 1rem;
-  }
-
-  .talk-card a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.25rem;
-    border: 1px solid hsl(var(--border));
-    border-radius: 8px;
-    padding: 0 0.78rem;
-    color: hsl(var(--foreground));
-    background: hsl(var(--background) / 0.72);
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition:
-      border-color 160ms ease,
-      background-color 160ms ease,
-      color 160ms ease;
-  }
-
-  .talk-card a:hover {
-    border-color: hsl(var(--primary) / 0.48);
-    background: hsl(var(--muted) / 0.8);
-    color: hsl(var(--primary));
-  }
-
-  .talk-card a.talk-card-primary {
-    border-color: hsl(var(--primary) / 0.35);
-    color: hsl(var(--primary));
-    background: hsl(var(--primary) / 0.1);
-  }
-
-  @media (max-width: 640px) {
-    .talk-card {
-      padding: 0.9rem;
-    }
-
-    .talk-card-actions {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .talk-card a {
-      justify-content: center;
-    }
-  }
-</style>
+<FeatureCalloutCard
+  ariaLabel='相关分享会'
+  meta={['Talks · 第 1 期', '2026.06.13']}
+  title='从实习面试到 Agent 开发'
+  description='这篇文章是这期分享的文字版。如果你想看原始分享记录、幻灯片或录屏，可以从这里跳过去。'
+  actions={[
+    { label: '看分享会记录', href: talkHref, primary: true },
+    { label: '打开幻灯片', href: deckHref, external: true },
+    { label: '看录屏', href: videoHref, external: true }
+  ]}
+/>
