@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · Multi-Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1419;--fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;--ok:#41d18a;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:radial-gradient(120% 120% at 50% 38%,#121a22,#0a0e13 70%);color:var(--fg);
+    font-family:var(--sans);overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
+
+  .cap{position:fixed;left:0;right:0;top:7%;text-align:center;font-family:var(--mono);
+    font-size:12.5px;letter-spacing:.22em;color:var(--cyan);opacity:0;text-transform:uppercase}
+  .cap.show{animation:fade .8s ease forwards}
+  @keyframes fade{to{opacity:.8}}
+
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;
+    border:1px solid rgba(255,255,255,.14);object-fit:cover;
+    background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));
+    box-shadow:0 0 50px rgba(125,211,252,.3)}
+  .name{font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .ital{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);font-size:14px;
+    color:var(--fg);text-decoration:none;transition:.2s}
+  .pill:hover{border-color:rgba(125,211,252,.4);box-shadow:0 0 0 4px rgba(125,211,252,.08)}
+  .ping{position:relative;width:9px;height:9px}
+  .ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}
+  .hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}
+  .hero.show .card>*:nth-child(4){animation-delay:.36s}
+  .hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.5);z-index:20}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="cap" id="cap">multi-agent runtime</div>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye" onerror="this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="ital">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">这是入场动画演示 · 动画三候选 · Multi-Agent 编排</div>
+  <div class="ctl"><button id="skip">跳过 →</button><button id="replay">重播 ↻</button></div>
+
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const cap = document.getElementById('cap');
+const hero = document.getElementById('hero');
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+let W,H,DPR, raf, t0=0;
+let nodes=[], edges=[], messages=[], schedule=[], schedPtr=0, parts=[], joyePts=[], converged=false, heroShown=false;
+
+const ROLES = ['planner','router','search','code','memory','judge','tool','writer'];
+
+function vw(){ return innerWidth||document.documentElement.clientWidth||1280; }
+function vh(){ return innerHeight||document.documentElement.clientHeight||800; }
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=cv.width=Math.round(vw()*DPR); H=cv.height=Math.round(vh()*DPR);
+  cv.style.width=vw()+'px'; cv.style.height=vh()+'px';
+}
+addEventListener('resize', ()=>{ if(!converged){ resize(); buildGraph(); } });
+
+function buildGraph(){
+  nodes=[]; edges=[];
+  const cx=W/2, cy=H*0.45, R=Math.min(W,H)*0.30;
+  // orchestrator (index 0)
+  nodes.push({ x:cx, y:cy, hx:cx, hy:cy, label:'orchestrator', hub:true, act:0, appear:0.0, r:7*DPR });
+  // workers on a ring
+  for(let i=0;i<ROLES.length;i++){
+    const a = (-Math.PI/2) + i/ROLES.length*Math.PI*2;
+    const jitter = (Math.sin(i*12.9)*0.5)*R*0.10;
+    const x=cx+Math.cos(a)*(R+jitter), y=cy+Math.sin(a)*(R+jitter);
+    nodes.push({ x, y, hx:x, hy:y, label:ROLES[i], hub:false, act:0, appear:0.18+i*0.06, r:5.5*DPR });
+  }
+  // edges: hub<->worker
+  for(let i=1;i<nodes.length;i++) edges.push({ a:0, b:i, appear:0.4+i*0.05, lit:0 });
+  // edges: ring between adjacent workers
+  for(let i=1;i<nodes.length;i++){
+    const j = i%ROLES.length + 1;
+    edges.push({ a:i, b:j, appear:0.8+i*0.03, lit:0 });
+  }
+  buildSchedule();
+}
+
+function buildSchedule(){
+  schedule=[]; schedPtr=0;
+  // wave 1 — orchestrator dispatches to every worker
+  for(let i=1;i<nodes.length;i++) schedule.push({ t:0.95+i*0.055, a:0, b:i });
+  // wave 2 — workers cross-talk along the ring
+  for(let i=1;i<nodes.length;i++) schedule.push({ t:1.5+i*0.05, a:i, b:(i%ROLES.length)+1 });
+  // wave 3 — workers report back to orchestrator
+  for(let i=1;i<nodes.length;i++) schedule.push({ t:2.05+i*0.05, a:i, b:0 });
+  schedule.sort((p,q)=>p.t-q.t);
+}
+
+function sampleJOYE(){
+  if(!W||!H) return [];
+  const off=document.createElement('canvas'); off.width=W; off.height=H;
+  const o=off.getContext('2d');
+  o.fillStyle='#fff'; o.textBaseline='middle'; o.textAlign='left';
+  const tracking=0.18; let size=Math.min(H*0.4, W*0.34);
+  const setFont=()=>o.font=`700 ${size}px Inter, system-ui, sans-serif`;
+  setFont();
+  const adv=()=>{ let w=0; for(const ch of 'JOYE') w+=o.measureText(ch).width+size*tracking; return w-size*tracking; };
+  if(adv()>W*0.74){ size*=W*0.74/adv(); setFont(); }
+  let x=(W-adv())/2; const y=H*0.45;
+  for(const ch of 'JOYE'){ o.fillText(ch,x,y); x+=o.measureText(ch).width+size*tracking; }
+  const d=o.getImageData(0,0,W,H).data; const gap=Math.max(5,Math.round(7*DPR)); const pts=[];
+  for(let yy=0;yy<H;yy+=gap) for(let xx=0;xx<W;xx+=gap) if(d[(yy*W+xx)*4+3]>128) pts.push({x:xx,y:yy});
+  return pts;
+}
+
+function spawnMsg(a,b){
+  edges.forEach(e=>{ if((e.a===a&&e.b===b)||(e.a===b&&e.b===a)) e.lit=1; });
+  messages.push({ a, b, t:0, dur:0.5 });
+}
+
+function nodeColor(n, a){
+  return n.hub ? `rgba(125,211,252,${a})` : `rgba(150,200,225,${a})`;
+}
+
+function converge(){
+  converged=true;
+  joyePts=sampleJOYE();
+  parts=[];
+  for(let i=0;i<joyePts.length;i++){
+    const src=nodes[(Math.random()*nodes.length)|0];
+    parts.push({ x:src.x, y:src.y, tx:joyePts[i].x, ty:joyePts[i].y,
+      r:(Math.random()*0.9+0.7)*DPR, k:0, hue:Math.random() });
+  }
+  cap.classList.remove('show');
+}
+
+function frame(ts){
+  if(!t0) t0=ts;
+  const el=(ts-t0)/1000;
+  ctx.clearRect(0,0,W,H);
+
+  if(el>1.4 && !cap.classList.contains('show') && !converged) cap.classList.add('show');
+  if(el>2.6 && !converged) converge();
+  if(converged && el>3.7 && !heroShown){ heroShown=true; hero.classList.add('show'); }
+
+  if(!converged){
+    // fire scheduled messages
+    while(schedPtr<schedule.length && el>=schedule[schedPtr].t){
+      const s=schedule[schedPtr++]; spawnMsg(s.a,s.b);
+    }
+    // edges
+    for(const e of edges){
+      const ap=Math.max(0,Math.min(1,(el-e.appear)/0.5));
+      if(ap<=0) continue;
+      const A=nodes[e.a], B=nodes[e.b];
+      ctx.strokeStyle=`rgba(125,211,252,${(0.10+e.lit*0.35)*ap})`;
+      ctx.lineWidth=(0.7+e.lit*1.2)*DPR;
+      ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke();
+      e.lit*=0.92;
+    }
+    // messages
+    for(const m of messages){
+      m.t+=0.016/m.dur;
+      const A=nodes[m.a], B=nodes[m.b];
+      const e=m.t<1?m.t*m.t*(3-2*m.t):1;
+      const x=A.x+(B.x-A.x)*e, y=A.y+(B.y-A.y)*e;
+      ctx.beginPath(); ctx.fillStyle='rgba(174,232,255,0.95)';
+      ctx.shadowColor='rgba(125,211,252,0.9)'; ctx.shadowBlur=10*DPR;
+      ctx.arc(x,y,2.4*DPR,0,7); ctx.fill(); ctx.shadowBlur=0;
+      if(m.t>=1) nodes[m.b].act=1;
+    }
+    messages=messages.filter(m=>m.t<1);
+    // nodes
+    for(const n of nodes){
+      const ap=Math.max(0,Math.min(1,(el-n.appear)/0.3));
+      if(ap<=0) continue;
+      n.act*=0.94;
+      const rr=n.r*ap*(1+n.act*0.5);
+      // glow
+      if(n.act>0.02){
+        ctx.beginPath(); ctx.fillStyle=`rgba(125,211,252,${0.12*n.act})`;
+        ctx.arc(n.x,n.y,rr*3.4,0,7); ctx.fill();
+      }
+      ctx.beginPath(); ctx.fillStyle='rgba(13,20,28,0.9)';
+      ctx.arc(n.x,n.y,rr,0,7); ctx.fill();
+      ctx.lineWidth=(n.hub?2:1.4)*DPR;
+      ctx.strokeStyle=nodeColor(n,(0.55+n.act*0.45)*ap);
+      ctx.beginPath(); ctx.arc(n.x,n.y,rr,0,7); ctx.stroke();
+      // label
+      ctx.font=`${(n.hub?12:11)*DPR}px ${'JetBrains Mono, monospace'}`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle=`rgba(${n.act>0.3?'200,235,255':'150,166,178'},${(0.5+n.act*0.5)*ap})`;
+      ctx.fillText(n.label, n.x, n.y+rr+11*DPR);
+    }
+  } else {
+    // convergence: nodes fade, particles assemble JOYE
+    const since=(ts-t0)/1000-2.6;
+    const nodeA=Math.max(0,1-since*1.6);
+    if(nodeA>0.02){
+      for(const e of edges){ const A=nodes[e.a],B=nodes[e.b];
+        ctx.strokeStyle=`rgba(125,211,252,${0.08*nodeA})`; ctx.lineWidth=0.7*DPR;
+        ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke(); }
+      for(const n of nodes){ ctx.beginPath(); ctx.fillStyle=nodeColor(n,0.5*nodeA);
+        ctx.arc(n.x,n.y,n.r,0,7); ctx.fill(); }
+    }
+    for(const p of parts){
+      p.k=Math.min(1,p.k+0.045);
+      const e=1-Math.pow(1-p.k,3);
+      p.x+=(p.tx-p.x)*0.12; p.y+=(p.ty-p.y)*0.12;
+      const k=p.x/W; const r=Math.round(101+(125-101)*k), g=Math.round(158+(211-158)*k), b=Math.round(185+(252-185)*k);
+      ctx.beginPath(); ctx.fillStyle=`rgba(${r},${g},${b},${0.6+0.4*e})`;
+      ctx.arc(p.x,p.y,p.r,0,7); ctx.fill();
+    }
+  }
+
+  raf=requestAnimationFrame(frame);
+}
+
+function start(){
+  cancelAnimationFrame(raf);
+  resize();
+  messages=[]; parts=[]; converged=false; heroShown=false; t0=0;
+  hero.classList.remove('show'); cap.classList.remove('show');
+  buildGraph();
+  if(reduce){ hero.classList.add('show'); return; }
+  raf=requestAnimationFrame(frame);
+}
+function skip(){ cancelAnimationFrame(raf); ctx.clearRect(0,0,W,H); cap.classList.remove('show'); hero.classList.add('show'); }
+
+document.getElementById('skip').onclick=skip;
+document.getElementById('replay').onclick=start;
+start();
+</script>
+</body>
+</html>
