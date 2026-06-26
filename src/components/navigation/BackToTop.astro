@@ -22,7 +22,7 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
     <div
       class='top-text absolute bottom-0 end-0 start-0 top-0 flex items-center justify-center group-[.ended]:opacity-0'
     >
-      <span class='text'>0</span>
+      <span class='progress-number'>0</span>
       <span class='text-xs'>%</span>
     </div>
     <Icon name='up' class='top-icon group-[.ended]:opacity-100' />
@@ -32,7 +32,7 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
 <script is:inline define:vars={{ headerName, contentName, needPercent }}>
   const actionBtns = document.getElementById('action-buttons')
   const scrollBtn = document.getElementById('to-top-btn')
-  const scrollPercentEl = scrollBtn?.querySelector('.top-text .text')
+  const scrollPercentEl = scrollBtn?.querySelector('.top-text .progress-number')
   const targetHeader = document.getElementById(headerName)
   const articleElement = document.getElementById(contentName)
 
@@ -146,15 +146,18 @@ const { header: headerName, content: contentName, needPercent = true } = Astro.p
       }
 
       & .top-text {
+        box-sizing: border-box;
+        width: 100%;
         opacity: 1;
-        font-size: 0.75rem;
+        gap: 0.03rem;
+        padding-inline: 0.25rem;
+        font-size: 0.72rem;
         line-height: 1;
+        font-variant-numeric: tabular-nums;
       }
 
-      & .top-text .text {
-        min-width: 1.45rem;
-        text-align: end;
-        font-variant-numeric: tabular-nums;
+      & .top-text .progress-number {
+        text-align: center;
       }
 
       & .top-icon {

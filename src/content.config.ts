@@ -34,6 +34,7 @@ const blogSchema = ({ image }: SchemaContext) =>
     // (e.g. `20251216---normalization/post`). Drives en routing + hreflang.
     translationKey: z.string().optional(),
     tocDepth: z.number().int().min(2).max(6).optional(),
+    tocLabels: z.record(z.string(), z.string()).optional(),
     draft: z.boolean().default(false),
     comment: z.boolean().default(true)
   })

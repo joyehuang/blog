@@ -45,7 +45,13 @@ const socialImage = `/og/blog/${id.replace(/\.en$/, '')}.png`
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
 const tocDepth = data.tocDepth ?? 3
-const tocHeadings = headings.filter(({ depth }) => depth <= tocDepth)
+const tocLabels = data.tocLabels ?? {}
+const tocHeadings = headings
+  .filter(({ depth }) => depth <= tocDepth)
+  .map((heading) => ({
+    ...heading,
+    text: tocLabels[heading.slug] ?? heading.text
+  }))
 ---
 
 <PageLayout
