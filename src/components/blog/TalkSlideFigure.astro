@@ -24,25 +24,47 @@ const { alt, caption, href, src } = Astro.props
 
 <style>
   .talk-slide-figure {
+    position: relative;
+    isolation: isolate;
     margin: 1.4rem 0 1.8rem;
   }
 
+  .talk-slide-figure::before {
+    content: '';
+    position: absolute;
+    inset: 8% -2% -8%;
+    z-index: 0;
+    border-radius: 999px;
+    background:
+      radial-gradient(ellipse at 50% 55%, hsl(var(--primary) / 0.2), transparent 58%),
+      radial-gradient(ellipse at 36% 72%, hsl(var(--foreground) / 0.14), transparent 62%);
+    filter: blur(48px);
+    opacity: 0.82;
+    pointer-events: none;
+    transform: translateY(12px);
+  }
+
   .talk-slide-figure a {
+    position: relative;
+    z-index: 1;
     display: block;
     text-decoration: none;
   }
 
   .talk-slide-figure img {
+    position: relative;
+    z-index: 1;
     display: block;
     width: 100%;
     height: auto;
     border: 1px solid hsl(var(--border));
     border-radius: 8px;
     background: hsl(var(--muted));
-    box-shadow: 0 16px 46px hsl(var(--foreground) / 0.12);
   }
 
   .talk-slide-figure figcaption {
+    position: relative;
+    z-index: 1;
     margin-top: 0.55rem;
     color: hsl(var(--muted-foreground));
     font-size: 0.86rem;
