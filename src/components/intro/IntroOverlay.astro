@@ -166,88 +166,114 @@
     background: hsl(var(--border));
   }
 
-  /* ── variant 2 · terminal boot (always-dark window for the boot aesthetic) ── */
-  .intro-term {
-    width: min(680px, 90vw);
-    background: rgba(13, 18, 24, 0.85);
-    border: 1px solid rgba(125, 211, 252, 0.18);
-    border-radius: 12px;
-    box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7);
+  /* ── variant 2 · fullscreen CRT boot ── */
+  .intro-crt {
+    position: absolute;
+    inset: 0;
     overflow: hidden;
+    background: radial-gradient(120% 120% at 50% 42%, #0a1117 0%, #04070a 100%);
+    color: #d7f5e6;
     font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: clamp(11px, 1.5vw, 16px);
+    line-height: 1.72;
+    text-shadow: 0 0 6px rgba(125, 211, 252, 0.22);
+    transform-origin: 50% 50%;
+    animation: intro-crt-flicker 4s infinite steps(40);
   }
-  .intro-term__chrome {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 14px;
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  .intro-crt__inner {
+    position: absolute;
+    inset: 0;
+    padding: clamp(22px, 5.5vh, 70px) clamp(20px, 6vw, 96px);
+    overflow: hidden;
   }
-  .intro-term__chrome .d {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
+  .intro-crt::after {
+    /* scanlines */
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
   }
-  .intro-term__chrome .r {
-    background: #ff5f57;
+  .intro-crt__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 220px 70px rgba(0, 0, 0, 0.72);
   }
-  .intro-term__chrome .y {
-    background: #febc2e;
-  }
-  .intro-term__chrome .g {
-    background: #28c840;
-  }
-  .intro-term__chrome .t {
-    margin-left: 8px;
-    font-size: 12px;
-    color: #9aa6b2;
-  }
-  .intro-term__body {
-    padding: 20px 22px 26px;
-    font-size: 14px;
-    line-height: 1.85;
-    min-height: 280px;
-    color: #dfe7ef;
-  }
-  .intro-term .ln {
+  .intro-crt .ln {
     white-space: pre-wrap;
     word-break: break-word;
   }
-  .intro-term .p {
+  .intro-crt .p {
     color: #7dd3fc;
   }
-  .intro-term .ok {
+  .intro-crt .ok {
     color: #41d18a;
   }
-  .intro-term .dim {
-    color: #9aa6b2;
+  .intro-crt .dim {
+    color: #5e7385;
   }
-  .intro-term .b {
-    color: #659eb9;
-  }
-  .intro-term .c {
+  .intro-crt .c {
     color: #7dd3fc;
   }
-  .intro-term .art {
+  .intro-crt .hd {
+    color: #9effd0;
+  }
+  .intro-crt .art {
     color: #7dd3fc;
-    line-height: 1.15;
-    font-size: clamp(9px, 2.1vw, 15px);
     white-space: pre;
-    text-shadow: 0 0 18px rgba(125, 211, 252, 0.35);
+    line-height: 1.12;
+    text-shadow: 0 0 16px rgba(125, 211, 252, 0.4);
   }
-  .intro-term .cr {
+  .intro-crt .cr {
     display: inline-block;
-    width: 9px;
+    width: 0.6em;
     height: 1.05em;
     background: #7dd3fc;
     margin-left: 2px;
     transform: translateY(2px);
+    box-shadow: 0 0 8px rgba(125, 211, 252, 0.7);
     animation: intro-blink 1s steps(1) infinite;
+  }
+  .intro-crt.intro-crt--off {
+    animation: intro-crt-off 0.55s ease-in forwards;
   }
   @keyframes intro-blink {
     50% {
       opacity: 0;
+    }
+  }
+  @keyframes intro-crt-flicker {
+    0%, 46%, 54%, 100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.06);
+    }
+    52% {
+      filter: brightness(0.96);
+    }
+  }
+  @keyframes intro-crt-off {
+    0% {
+      transform: scale(1, 1);
+      opacity: 1;
+      filter: brightness(1.3);
+    }
+    48% {
+      transform: scale(1, 0.004);
+      opacity: 1;
+      filter: brightness(3.2);
+    }
+    70% {
+      transform: scale(1, 0.004);
+      filter: brightness(3.2);
+    }
+    100% {
+      transform: scale(0, 0.004);
+      opacity: 0;
+      filter: brightness(3.4);
     }
   }
 
@@ -350,7 +376,7 @@
 
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
     var active = null
-    var revealing = false
+    var exiting = false
 
     function getVariant() {
       try {
@@ -380,20 +406,28 @@
       }
       active = null
     }
+    function hideOverlay() {
+      stopActive()
+      overlay.classList.add('intro-idle')
+      overlay.classList.remove('intro-done')
+      stage.innerHTML = ''
+    }
     function reveal() {
-      if (revealing) return
-      revealing = true
+      if (exiting) return
+      exiting = true
       overlay.classList.add('intro-done')
-      setTimeout(function () {
-        stopActive()
-        overlay.classList.add('intro-idle')
-        overlay.classList.remove('intro-done')
-        stage.innerHTML = ''
-      }, 950)
+      setTimeout(hideOverlay, 950)
+    }
+    function crtExit(screen) {
+      // variant 2's own outro: CRT power-off collapse, then hide
+      if (exiting) return
+      exiting = true
+      if (screen) screen.classList.add('intro-crt--off')
+      setTimeout(hideOverlay, 560)
     }
     function play() {
       stopActive()
-      revealing = false
+      exiting = false
       stage.innerHTML = ''
       overlay.classList.remove('intro-idle')
       overlay.classList.remove('intro-done')
@@ -402,7 +436,7 @@
       } catch (e) {}
       var v = getVariant()
       highlight(v)
-      if (v === '2') active = playTerminal(stage, reveal)
+      if (v === '2') active = playTerminal(stage)
       else if (v === '3') active = playKinetic(stage, reveal)
       else active = playConstellation(stage, reveal)
     }
@@ -548,58 +582,50 @@
       }
     }
 
-    // ── variant 2 · terminal boot ────────────────────────────────────────────
-    function playTerminal(stage, done) {
-      var wrap = document.createElement('div')
-      wrap.innerHTML =
-        '<div class="intro-term">' +
-        '<div class="intro-term__chrome"><span class="d r"></span><span class="d y"></span><span class="d g"></span><span class="t">joye@dev — ~/site — zsh</span></div>' +
-        '<div class="intro-term__body"></div></div>'
-      stage.appendChild(wrap)
-      var out = wrap.querySelector('.intro-term__body')
+    // ── variant 2 · fullscreen CRT boot ──────────────────────────────────────
+    function playTerminal(stage) {
+      var screen = document.createElement('div')
+      screen.className = 'intro-crt'
+      screen.innerHTML = '<div class="intro-crt__inner"></div><div class="intro-crt__vignette"></div>'
+      stage.appendChild(screen)
+      var out = screen.querySelector('.intro-crt__inner')
       var timers = [], stopped = false
       function sleep(ms) { return new Promise(function (r) { timers.push(setTimeout(r, ms)) }) }
       function line(html, cls) { var d = document.createElement('div'); d.className = 'ln ' + (cls || ''); d.innerHTML = html; out.appendChild(d); return d }
+      function boot(ts, label) { return line('<span class="dim">[ ' + ts + ' ]</span> ' + label + ' <span class="ok">[  OK  ]</span>') }
       function caret(prefix, cmd, sp) {
-        sp = sp || 34
+        sp = sp || 32
         var el = line('<span class="p">' + prefix + '</span> ')
         var c = document.createElement('span'); c.className = 'cr'; el.appendChild(c)
         var i = 0
         return new Promise(function (resolve) {
           function step() {
             if (stopped) return resolve()
-            if (i >= cmd.length) { timers.push(setTimeout(function () { c.remove(); resolve() }, 240)); return }
+            if (i >= cmd.length) { timers.push(setTimeout(function () { c.remove(); resolve() }, 220)); return }
             c.parentNode.insertBefore(document.createTextNode(cmd[i]), c); i++
             timers.push(setTimeout(step, sp))
           }
           step()
         })
       }
-      function prog(label) {
-        var el = line('<span class="ok">[ ok ]</span> ' + label + '  <span class="b"></span>')
-        var b = el.querySelector('.b')
-        var steps = ['▓▓░░░░░░░░', '▓▓▓▓▓░░░░░', '▓▓▓▓▓▓▓▓░░', '▓▓▓▓▓▓▓▓▓▓ 100%']
-        var i = 0
-        return new Promise(function (resolve) {
-          function step() {
-            if (stopped || i >= steps.length) return resolve()
-            b.textContent = steps[i]; i++
-            timers.push(setTimeout(step, 90))
-          }
-          step()
-        })
-      }
       var ART = '   ___ ___  _   _ ___\n  |_  / _ \\| | | | __|\n   / / (_) | |_| | _|\n  /___\\___/ \\___/|___|'
       ;(async function () {
-        await sleep(250); if (stopped) return
-        await caret('$', './joye --init'); if (stopped) return
-        await prog('booting joye.dev'); await prog('loading design-system'); if (stopped) return
-        line('<span class="ok">[ ok ]</span> mounting personality module: <span class="c">JoJo</span> 🤖'); await sleep(150)
-        line('<span class="ok">[ ok ]</span> compiling <span class="dim">8 years of</span> frontend <span class="p">→</span> ai-agent'); await sleep(420); if (stopped) return
-        await caret('$', 'whoami'); var a = line('', 'art'); a.textContent = ART; await sleep(120)
-        line('<span class="dim">Joye · Full-Stack &amp; AI Agent Developer · Melbourne 🇦🇺</span>'); await sleep(520); if (stopped) return
-        await caret('$', 'open ~/'); await sleep(320)
-        if (!stopped) done()
+        await sleep(200); if (stopped) return
+        line('<span class="hd">JoyeOS 4.8.0</span> <span class="dim">(tty1)</span>')
+        line('&nbsp;'); await sleep(180)
+        boot('0.000000', 'Booting <span class="hd">joye.dev</span> kernel'); await sleep(85)
+        boot('0.013002', 'Loading design-system'); await sleep(80)
+        boot('0.041190', 'Mounting /home/joye'); await sleep(80)
+        boot('0.072551', 'Starting personality daemon (<span class="c">JoJo</span>)'); await sleep(80)
+        line('<span class="dim">[ 0.105324 ]</span> compiling <span class="dim">8 years of</span> frontend <span class="p">→</span> ai-agent'); await sleep(120)
+        boot('0.151002', 'Initializing multi-agent runtime'); await sleep(280); if (stopped) return
+        var a = line('', 'art'); a.textContent = ART; await sleep(200)
+        line('&nbsp;'); await sleep(140)
+        await caret('joye@dev:~$', 'whoami'); if (stopped) return
+        line('<span class="hd">Joye</span> <span class="dim">· Full-Stack &amp; AI Agent Developer · Melbourne 🇦🇺</span>'); await sleep(440)
+        await caret('joye@dev:~$', 'open ~/'); await sleep(180)
+        line('<span class="dim">[ launching interface ... ]</span>'); await sleep(360)
+        if (!stopped) crtExit(screen)
       })()
       return { stop: function () { stopped = true; for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]); timers = [] } }
     }
