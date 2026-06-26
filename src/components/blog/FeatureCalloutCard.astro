@@ -89,24 +89,11 @@ const ariaLabel = Astro.props.ariaLabel ?? title
   .feature-callout::after {
     inset: 0;
     border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      115deg,
-      hsl(var(--border) / 0.35),
-      hsl(var(--primary) / 0.62),
-      hsl(var(--border) / 0.26)
-    );
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    opacity: 0.58;
-    transform: translateX(-64%);
-    animation: callout-border-flow 6.4s ease-in-out infinite;
+    border: 1px solid hsl(var(--primary) / 0.18);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--primary) / 0.16),
+      inset 0 -1px 0 hsl(var(--foreground) / 0.04);
+    opacity: 0.75;
   }
 
   .feature-callout-content {
@@ -192,25 +179,8 @@ const ariaLabel = Astro.props.ariaLabel ?? title
     }
   }
 
-  @keyframes callout-border-flow {
-    0%,
-    18% {
-      opacity: 0;
-      transform: translateX(-64%);
-    }
-    38%,
-    70% {
-      opacity: 0.58;
-    }
-    100% {
-      opacity: 0;
-      transform: translateX(64%);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .feature-callout::before,
-    .feature-callout::after {
+    .feature-callout::before {
       animation: none;
       opacity: 0.35;
       transform: none;
