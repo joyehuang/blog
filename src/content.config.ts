@@ -30,6 +30,7 @@ const blogSchema = ({ image }: SchemaContext) =>
       .optional(),
     tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
     language: z.string().optional(),
+    ogImage: z.string().optional(),
     // For English mirrors: the Chinese entry's URL path after `/blog/`
     // (e.g. `20251216---normalization/post`). Drives en routing + hreflang.
     translationKey: z.string().optional(),
