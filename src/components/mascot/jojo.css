@@ -45,7 +45,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: 10px;
   max-width: 220px;
-  white-space: nowrap;
+  white-space: pre-line;
   animation: jojo-bubble-in 0.2s ease-out both;
   font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   pointer-events: none;
