@@ -3,10 +3,11 @@
  * IntroOverlay — full-screen home-page entrance animation, with a small
  * "Tweak" panel (bottom-left) for switching between variants + replaying.
  *
- * Three variants (selected via localStorage `intro-variant`, default '2'):
- *   1 · 粒子   — particles fly in and spell "JOYE" (constellation)
+ * Four variants (selected via localStorage `intro-variant`, default '2'):
+ *   1 · 粒子   — agent/context tokens feed particles that spell "JOYE"
  *   2 · 终端   — `joye.init()` terminal boot sequence
  *   3 · 排版   — kinetic variable-weight typography
+ *   4 · 编排   — labelled multi-agent graph converges into "JOYE"
  *
  * Shared behaviour:
  *   - Auto-plays once per session (sessionStorage `intro-seen`), skippable,
@@ -35,6 +36,7 @@
   <button type='button' data-variant='1'>动画一 · 粒子</button>
   <button type='button' data-variant='2'>动画二 · 终端</button>
   <button type='button' data-variant='3'>动画三 · 排版</button>
+  <button type='button' data-variant='4'>动画四 · 编排</button>
   <span class='intro-tweak__sep'></span>
   <button type='button' id='intro-replay'>↻ replay</button>
 </div>
@@ -90,6 +92,108 @@
     height: 100%;
     display: block;
   }
+  .intro-context {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .intro-token {
+    position: absolute;
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+    color: hsl(var(--primary) / 0.56);
+    font-size: clamp(10px, 1.2vw, 13px);
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+    text-shadow: 0 0 18px hsl(var(--primary) / 0.16);
+    transition:
+      opacity 0.9s ease,
+      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+      filter 0.9s ease;
+    white-space: nowrap;
+  }
+  .intro-context.show .intro-token {
+    opacity: 0.46;
+    transform: translateY(0) scale(1);
+  }
+  .intro-context.folding .intro-token {
+    opacity: 0.16;
+    transform: translateY(-12px) scale(0.96);
+    filter: blur(0.5px);
+  }
+  .intro-context.leaving .intro-token {
+    opacity: 0;
+    transform: translateY(-34px) scale(0.94);
+    filter: blur(2px);
+  }
+  .intro-enter {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + clamp(96px, 18vh, 170px));
+    z-index: 3;
+    transform: translate(-50%, 10px);
+    opacity: 0;
+    pointer-events: none;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    color: hsl(var(--foreground));
+    background: hsl(var(--card) / 0.68);
+    border: 1px solid hsl(var(--primary) / 0.34);
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 14px 36px -18px hsl(var(--foreground) / 0.45),
+      inset 0 1px 0 hsl(var(--foreground) / 0.08);
+    transition:
+      opacity 0.45s ease,
+      transform 0.45s ease,
+      background 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .intro-enter.show {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .intro-enter:hover {
+    border-color: hsl(var(--primary) / 0.65);
+    background: hsl(var(--primary) / 0.11);
+    box-shadow:
+      0 18px 48px -20px hsl(var(--primary) / 0.72),
+      inset 0 1px 0 hsl(var(--foreground) / 0.12);
+  }
+  .intro-enter:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 3px;
+  }
+  .intro-trace {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + clamp(164px, 26vh, 250px));
+    z-index: 3;
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    pointer-events: none;
+    color: hsl(var(--muted-foreground));
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-align: center;
+    white-space: nowrap;
+    transition:
+      opacity 0.55s ease,
+      transform 0.55s ease;
+  }
+  .intro-trace.show {
+    transform: translate(-50%, 0);
+    opacity: 0.46;
+  }
 
   /* skip button */
   .intro-skip {
@@ -120,7 +224,9 @@
     z-index: 10000;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 6px;
+    max-width: calc(100vw - 36px);
     padding: 6px;
     border-radius: 12px;
     background: hsl(var(--card) / 0.82);
@@ -360,6 +466,31 @@
     }
   }
 
+  /* ── variant 4 · multi-agent orchestration ── */
+  .intro-agent {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .intro-agent__cap {
+    position: absolute;
+    top: 7%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    text-align: center;
+    color: hsl(var(--primary));
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  .intro-agent__cap.show {
+    opacity: 0.78;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .intro-overlay {
       display: none;
@@ -380,7 +511,8 @@
 
     function getVariant() {
       try {
-        return localStorage.getItem('intro-variant') || '2'
+        var v = localStorage.getItem('intro-variant') || '2'
+        return /^(1|2|3|4)$/.test(v) ? v : '2'
       } catch (e) {
         return '2'
       }
@@ -438,6 +570,7 @@
       highlight(v)
       if (v === '2') active = playTerminal(stage)
       else if (v === '3') active = playKinetic(stage, reveal)
+      else if (v === '4') active = playMultiAgent(stage, reveal)
       else active = playConstellation(stage, reveal)
     }
 
@@ -446,6 +579,30 @@
       var canvas = document.createElement('canvas')
       canvas.className = 'intro-canvas'
       stage.appendChild(canvas)
+      var context = document.createElement('div')
+      context.className = 'intro-context'
+      var TOKENS = ['context', 'planner', 'tools', 'memory', 'eval', 'rag', 'multi-agent', 'openharness', 'frontend', 'design', 'ship', 'notes', 'search', 'trace', 'typescript', 'cursor']
+      var POS = [[10, 18], [24, 12], [43, 16], [62, 11], [80, 19], [14, 38], [30, 31], [68, 34], [84, 42], [18, 66], [36, 76], [55, 71], [75, 66], [8, 82], [48, 88], [87, 82]]
+      for (var ti = 0; ti < TOKENS.length; ti++) {
+        var token = document.createElement('span')
+        token.className = 'intro-token'
+        token.textContent = TOKENS[ti]
+        token.style.left = POS[ti][0] + '%'
+        token.style.top = POS[ti][1] + '%'
+        token.style.transitionDelay = (ti * 0.045) + 's'
+        context.appendChild(token)
+      }
+      stage.appendChild(context)
+      var enter = document.createElement('button')
+      enter.className = 'intro-enter'
+      enter.type = 'button'
+      enter.textContent = location.pathname.indexOf('/en') === 0 ? 'enter ~/joye →' : '进入 ~/joye →'
+      enter.setAttribute('aria-label', enter.textContent)
+      stage.appendChild(enter)
+      var trace = document.createElement('div')
+      trace.className = 'intro-trace'
+      trace.textContent = 'context loaded · tools ready · welcome back'
+      stage.appendChild(trace)
       var ctx = canvas.getContext('2d')
       var root = document.documentElement
       var dark = root.classList.contains('dark')
@@ -466,6 +623,33 @@
       var linkColor = 'hsl(' + PRI.h + ' ' + sat + '% ' + baseL + '%'
       var W = 0, H = 0, DPR = 1, particles = [], phase = 'gather', t0 = 0, raf = 0, stopped = false
       var mouse = { x: -1e9, y: -1e9 }
+      var enterShown = false, exitingLocal = false, autoExit = 0, revealDelay = 0, contextTimer = 0, scatterStart = 0
+      contextTimer = setTimeout(function () { if (!stopped) context.classList.add('show') }, 120)
+      function showEnter() {
+        if (enterShown || exitingLocal || stopped) return
+        enterShown = true
+        context.classList.add('folding')
+        enter.classList.add('show')
+        trace.classList.add('show')
+        autoExit = setTimeout(beginExit, 12000)
+      }
+      function beginExit() {
+        if (exitingLocal || stopped) return
+        exitingLocal = true
+        phase = 'scatter'
+        scatterStart = 0
+        context.classList.remove('show')
+        context.classList.add('leaving')
+        enter.classList.remove('show')
+        trace.classList.remove('show')
+        enter.disabled = true
+        clearTimeout(autoExit)
+        revealDelay = setTimeout(done, 1350)
+      }
+      function onEnter(e) {
+        e.stopPropagation()
+        beginExit()
+      }
       function vw() { return innerWidth || document.documentElement.clientWidth || 1280 }
       function vh() { return innerHeight || document.documentElement.clientHeight || 800 }
       function resize() {
@@ -513,19 +697,27 @@
       function build() {
         var pts = sampleText('JOYE')
         while (particles.length < pts.length)
-          particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28 })
+          particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28, delay: 0, drift: Math.random() * 6.28 })
         particles.length = pts.length
         pts.sort(function () { return Math.random() - 0.5 })
-        for (var i = 0; i < particles.length; i++) { particles[i].tx = pts[i].x; particles[i].ty = pts[i].y }
+        for (var i = 0; i < particles.length; i++) {
+          particles[i].tx = pts[i].x
+          particles[i].ty = pts[i].y
+          particles[i].delay = 0.2 + (i % 6) * 0.18 + Math.random() * 1.25
+          if (!particles[i].drift) particles[i].drift = Math.random() * 6.28
+        }
       }
       function frame(ts) {
         if (stopped) return
         if (!t0) t0 = ts
         var el = (ts - t0) / 1000
+        if (phase === 'scatter' && !scatterStart) scatterStart = ts
+        var scatterAge = scatterStart ? (ts - scatterStart) / 1000 : 0
         ctx.clearRect(0, 0, W, H)
-        if (el > 1.7 && phase === 'gather') phase = 'hold'
-        if (el > 2.5 && phase !== 'scatter') { phase = 'scatter'; done() }
-        var ease = phase === 'gather' ? 0.07 : phase === 'hold' ? 0.13 : 0.02
+        if (el > 3.15 && phase === 'gather') phase = 'hold'
+        if (el > 2.35 && phase !== 'scatter') context.classList.add('folding')
+        if (el > 4.05 && phase === 'hold') showEnter()
+        var ease = phase === 'gather' ? 0.045 : phase === 'hold' ? 0.11 : 0.018
         if (phase !== 'scatter') {
           ctx.lineWidth = DPR * 0.6
           for (var i = 0; i < particles.length; i += 2) {
@@ -543,28 +735,40 @@
         for (var k = 0; k < particles.length; k++) {
           var pt = particles[k]
           if (phase === 'scatter') {
-            pt.vx += (Math.random() - 0.5) * 0.7 * DPR
-            pt.vy += ((Math.random() - 0.5) * 0.7 - 0.16) * DPR
+            var odx = (pt.x - W / 2) / Math.max(W, 1)
+            pt.vx += (Math.random() - 0.5) * 0.16 * DPR + odx * 0.09 * DPR
+            pt.vy += ((Math.random() - 0.5) * 0.08 - 0.11) * DPR
           } else {
-            pt.vx += (pt.tx - pt.x) * ease
-            pt.vy += (pt.ty - pt.y) * ease
+            var pull = phase === 'hold' ? 1 : Math.max(0, Math.min(1, (el - pt.delay) / 1.55))
+            if (pull < 1) {
+              pt.vx += Math.sin(el * 0.9 + pt.drift) * 0.012 * DPR
+              pt.vy += Math.cos(el * 0.7 + pt.drift) * 0.012 * DPR
+            }
+            var localEase = ease * (0.2 + pull * 0.8)
+            pt.vx += (pt.tx - pt.x) * localEase * pull
+            pt.vy += (pt.ty - pt.y) * localEase * pull
             var mdx = pt.x - mouse.x, mdy = pt.y - mouse.y, md2 = mdx * mdx + mdy * mdy, MR = 110 * DPR
             if (md2 < MR * MR) { var f = (1 - md2 / (MR * MR)) * 4, d = Math.sqrt(md2) || 1; pt.vx += (mdx / d) * f; pt.vy += (mdy / d) * f }
           }
-          pt.vx *= 0.86; pt.vy *= 0.86; pt.x += pt.vx; pt.y += pt.vy; pt.tw += 0.05
+          var damp = phase === 'scatter' ? 0.91 : 0.87
+          pt.vx *= damp; pt.vy *= damp; pt.x += pt.vx; pt.y += pt.vy; pt.tw += 0.05
           var near = (pt.x - pt.tx) * (pt.x - pt.tx) + (pt.y - pt.ty) * (pt.y - pt.ty) < (8 * DPR) * (8 * DPR)
           var tw = (dark ? 0.6 : 0.8) + Math.sin(pt.tw) * (dark ? 0.22 : 0.15)
-          var a = phase === 'scatter' ? (dark ? 0.5 : 0.62) : (near ? (dark ? 0.95 : 1) : dark ? 0.7 : 0.86) * tw
+          var fade = phase === 'scatter' ? Math.max(0, 1 - scatterAge / 2.4) : 1
+          var a = phase === 'scatter' ? (dark ? 0.5 : 0.62) * fade : (near ? (dark ? 0.95 : 1) : dark ? 0.7 : 0.86) * tw
           ctx.beginPath()
           ctx.fillStyle = dot(pt.x / W, Math.min(1, a))
-          ctx.arc(pt.x, pt.y, pt.r * (near ? 1.25 : 1), 0, 7)
+          ctx.arc(pt.x, pt.y, pt.r * (near ? 1.25 : 1) * (phase === 'scatter' ? 0.95 + scatterAge * 0.08 : 1), 0, 7)
           ctx.fill()
         }
         raf = requestAnimationFrame(frame)
       }
       function onMove(e) { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR }
+      function onLeave() { mouse.x = -1e9; mouse.y = -1e9 }
       function onResize() { if (!stopped) { resize(); build() } }
+      enter.addEventListener('click', onEnter)
       addEventListener('mousemove', onMove)
+      addEventListener('mouseleave', onLeave)
       addEventListener('resize', onResize)
       resize(); build()
       if (particles.length === 0) { done() }
@@ -578,7 +782,18 @@
         raf = requestAnimationFrame(frame)
       }
       return {
-        stop: function () { stopped = true; cancelAnimationFrame(raf); removeEventListener('mousemove', onMove); removeEventListener('resize', onResize) }
+        blockOverlayClick: true,
+        stop: function () {
+          stopped = true
+          clearTimeout(autoExit)
+          clearTimeout(revealDelay)
+          clearTimeout(contextTimer)
+          cancelAnimationFrame(raf)
+          enter.removeEventListener('click', onEnter)
+          removeEventListener('mousemove', onMove)
+          removeEventListener('mouseleave', onLeave)
+          removeEventListener('resize', onResize)
+        }
       }
     }
 
@@ -679,10 +894,182 @@
       return { stop: function () { stopped = true; for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]); timers = []; kin.remove() } }
     }
 
+    // ── variant 4 · multi-agent orchestration ────────────────────────────────
+    function playMultiAgent(stage, done) {
+      var wrap = document.createElement('div'); wrap.className = 'intro-agent'
+      var canvas = document.createElement('canvas'); canvas.className = 'intro-canvas'
+      var cap = document.createElement('div'); cap.className = 'intro-agent__cap'; cap.textContent = 'multi-agent runtime'
+      wrap.appendChild(canvas); wrap.appendChild(cap); stage.appendChild(wrap)
+      var ctx = canvas.getContext('2d')
+      if (!ctx) { done(); return { stop: function () { wrap.remove() } } }
+
+      var root = document.documentElement
+      var styles = getComputedStyle(root)
+      var dark = root.classList.contains('dark')
+      function parseHSL(v) {
+        var m = String(v).trim().match(/([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/)
+        return m ? { h: +m[1], s: +m[2], l: +m[3] } : { h: 200, s: 36, l: 56 }
+      }
+      var PRI = parseHSL(styles.getPropertyValue('--primary'))
+      var SAT = Math.min(90, PRI.s + 16)
+      function tone(l, a) { return 'hsl(' + PRI.h + ' ' + SAT + '% ' + l + '% / ' + a + ')' }
+      function textTone(a) { return dark ? 'rgba(250,249,248,' + a + ')' : 'rgba(24,30,36,' + a + ')' }
+
+      var W = 0, H = 0, DPR = 1, raf = 0, t0 = 0, stopped = false, converged = false, finished = false
+      var nodes = [], edges = [], messages = [], schedule = [], schedPtr = 0, parts = []
+      var ROLES = ['planner', 'router', 'search', 'code', 'memory', 'judge', 'tool', 'writer']
+
+      function vw() { return innerWidth || document.documentElement.clientWidth || 1280 }
+      function vh() { return innerHeight || document.documentElement.clientHeight || 800 }
+      function resize() {
+        DPR = Math.min(devicePixelRatio || 1, 2)
+        var w = vw(), h = vh()
+        W = canvas.width = Math.round(w * DPR)
+        H = canvas.height = Math.round(h * DPR)
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+      }
+      function buildGraph() {
+        nodes = []; edges = []
+        var cx = W / 2, cy = H * 0.45
+        var roles = W / DPR < 560 ? ['plan', 'route', 'code', 'memory', 'judge', 'write'] : ROLES
+        var R = Math.min(W, H) * (roles.length > 6 ? 0.3 : 0.33)
+        nodes.push({ x: cx, y: cy, label: 'orchestrator', hub: true, act: 0, appear: 0, r: 7 * DPR })
+        for (var i = 0; i < roles.length; i++) {
+          var a = -Math.PI / 2 + (i / roles.length) * Math.PI * 2
+          var jitter = Math.sin(i * 12.9) * R * 0.05
+          nodes.push({ x: cx + Math.cos(a) * (R + jitter), y: cy + Math.sin(a) * (R + jitter), label: roles[i], hub: false, act: 0, appear: 0.18 + i * 0.06, r: 5.5 * DPR })
+        }
+        for (var j = 1; j < nodes.length; j++) edges.push({ a: 0, b: j, appear: 0.4 + j * 0.05, lit: 0 })
+        for (var k = 1; k < nodes.length; k++) edges.push({ a: k, b: (k % roles.length) + 1, appear: 0.8 + k * 0.03, lit: 0 })
+        buildSchedule()
+      }
+      function buildSchedule() {
+        schedule = []; schedPtr = 0
+        for (var i = 1; i < nodes.length; i++) schedule.push({ t: 0.95 + i * 0.055, a: 0, b: i })
+        for (var j = 1; j < nodes.length; j++) schedule.push({ t: 1.5 + j * 0.05, a: j, b: (j % (nodes.length - 1)) + 1 })
+        for (var k = 1; k < nodes.length; k++) schedule.push({ t: 2.05 + k * 0.05, a: k, b: 0 })
+        schedule.sort(function (a, b) { return a.t - b.t })
+      }
+      function sampleJOYE() {
+        var off = document.createElement('canvas')
+        off.width = W; off.height = H
+        var o = off.getContext('2d')
+        o.fillStyle = '#fff'; o.textBaseline = 'middle'; o.textAlign = 'left'
+        var tracking = 0.18, size = Math.min(H * 0.4, W * 0.34)
+        function setFont() { o.font = '700 ' + size + 'px Satoshi, system-ui, sans-serif' }
+        setFont()
+        function advance() {
+          var w = 0
+          for (var i = 0; i < 4; i++) w += o.measureText('JOYE'[i]).width + size * tracking
+          return w - size * tracking
+        }
+        if (advance() > W * 0.74) { size *= (W * 0.74) / advance(); setFont() }
+        var x = (W - advance()) / 2, y = H * 0.45
+        for (var i = 0; i < 4; i++) { var ch = 'JOYE'[i]; o.fillText(ch, x, y); x += o.measureText(ch).width + size * tracking }
+        var data = o.getImageData(0, 0, W, H).data
+        var gap = Math.max(5, Math.round(7 * DPR))
+        var pts = []
+        for (var yy = 0; yy < H; yy += gap)
+          for (var xx = 0; xx < W; xx += gap)
+            if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy })
+        return pts
+      }
+      function spawnMessage(a, b) {
+        for (var i = 0; i < edges.length; i++) {
+          var e = edges[i]
+          if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) e.lit = 1
+        }
+        messages.push({ a: a, b: b, t: 0, dur: 0.5 })
+      }
+      function converge() {
+        converged = true; cap.classList.remove('show')
+        var pts = sampleJOYE()
+        if (pts.length === 0) { finished = true; done(); return }
+        parts = []
+        for (var i = 0; i < pts.length; i++) {
+          var src = nodes[(Math.random() * nodes.length) | 0]
+          parts.push({ x: src.x, y: src.y, vx: 0, vy: 0, tx: pts[i].x, ty: pts[i].y, r: (Math.random() * 0.9 + 0.7) * DPR })
+        }
+      }
+      function frame(ts) {
+        if (stopped) return
+        if (!t0) t0 = ts
+        var el = (ts - t0) / 1000
+        ctx.clearRect(0, 0, W, H)
+        if (el > 1.4 && !converged) cap.classList.add('show')
+        if (el > 2.65 && !converged) converge()
+        if (converged && el > 3.8 && !finished) { finished = true; done() }
+
+        if (!converged) {
+          while (schedPtr < schedule.length && el >= schedule[schedPtr].t) { var s = schedule[schedPtr++]; spawnMessage(s.a, s.b) }
+          for (var i = 0; i < edges.length; i++) {
+            var edge = edges[i], ap = Math.max(0, Math.min(1, (el - edge.appear) / 0.5))
+            if (ap <= 0) continue
+            var A = nodes[edge.a], B = nodes[edge.b]
+            ctx.strokeStyle = tone(dark ? 68 : 46, (0.1 + edge.lit * 0.35) * ap)
+            ctx.lineWidth = (0.7 + edge.lit * 1.2) * DPR
+            ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke()
+            edge.lit *= 0.92
+          }
+          for (var j = 0; j < messages.length; j++) {
+            var m = messages[j]
+            m.t += 0.016 / m.dur
+            var MA = nodes[m.a], MB = nodes[m.b], ease = m.t < 1 ? m.t * m.t * (3 - 2 * m.t) : 1
+            var mx = MA.x + (MB.x - MA.x) * ease, my = MA.y + (MB.y - MA.y) * ease
+            ctx.beginPath(); ctx.fillStyle = tone(dark ? 82 : 38, 0.95); ctx.shadowColor = tone(dark ? 76 : 45, 0.9); ctx.shadowBlur = 10 * DPR
+            ctx.arc(mx, my, 2.4 * DPR, 0, 7); ctx.fill(); ctx.shadowBlur = 0
+            if (m.t >= 1) MB.act = 1
+          }
+          messages = messages.filter(function (m) { return m.t < 1 })
+          for (var k = 0; k < nodes.length; k++) {
+            var n = nodes[k], nap = Math.max(0, Math.min(1, (el - n.appear) / 0.3))
+            if (nap <= 0) continue
+            n.act *= 0.94
+            var rr = n.r * nap * (1 + n.act * 0.5)
+            if (n.act > 0.02) { ctx.beginPath(); ctx.fillStyle = tone(dark ? 72 : 44, 0.12 * n.act); ctx.arc(n.x, n.y, rr * 3.4, 0, 7); ctx.fill() }
+            ctx.beginPath(); ctx.fillStyle = dark ? 'rgba(13, 20, 28, 0.9)' : 'rgba(255, 255, 255, 0.82)'; ctx.arc(n.x, n.y, rr, 0, 7); ctx.fill()
+            ctx.lineWidth = (n.hub ? 2 : 1.4) * DPR
+            ctx.strokeStyle = tone(n.hub ? (dark ? 72 : 43) : (dark ? 78 : 48), (0.55 + n.act * 0.45) * nap)
+            ctx.beginPath(); ctx.arc(n.x, n.y, rr, 0, 7); ctx.stroke()
+            ctx.font = (n.hub ? 12 : 11) * DPR + 'px JetBrains Mono, monospace'
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+            ctx.fillStyle = n.act > 0.3 ? tone(dark ? 84 : 35, nap) : textTone((0.48 + n.act * 0.28) * nap)
+            ctx.fillText(n.label, n.x, n.y + rr + 11 * DPR)
+          }
+        } else {
+          var since = el - 2.65
+          var nodeA = Math.max(0, 1 - since * 1.6)
+          if (nodeA > 0.02) {
+            for (var eix = 0; eix < edges.length; eix++) { var ge = edges[eix], GA = nodes[ge.a], GB = nodes[ge.b]; ctx.strokeStyle = tone(dark ? 68 : 46, 0.08 * nodeA); ctx.lineWidth = 0.7 * DPR; ctx.beginPath(); ctx.moveTo(GA.x, GA.y); ctx.lineTo(GB.x, GB.y); ctx.stroke() }
+            for (var nix = 0; nix < nodes.length; nix++) { var gn = nodes[nix]; ctx.beginPath(); ctx.fillStyle = tone(dark ? 72 : 43, 0.5 * nodeA); ctx.arc(gn.x, gn.y, gn.r, 0, 7); ctx.fill() }
+          }
+          for (var pix = 0; pix < parts.length; pix++) {
+            var p = parts[pix]
+            if (finished) { p.vx += (Math.random() - 0.5) * 0.6 * DPR; p.vy += ((Math.random() - 0.5) * 0.6 - 0.12) * DPR }
+            else { p.vx += (p.tx - p.x) * 0.12; p.vy += (p.ty - p.y) * 0.12 }
+            p.vx *= 0.84; p.vy *= 0.84; p.x += p.vx; p.y += p.vy
+            var shade = dark ? 74 + (p.x / W) * 10 : 42 + (p.x / W) * 12
+            ctx.beginPath(); ctx.fillStyle = tone(shade, dark ? 0.92 : 0.98); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill()
+          }
+        }
+        raf = requestAnimationFrame(frame)
+      }
+      function onResize() { if (!stopped) { resize(); if (!converged) buildGraph() } }
+      addEventListener('resize', onResize)
+      resize(); buildGraph(); raf = requestAnimationFrame(frame)
+      return {
+        stop: function () { stopped = true; cancelAnimationFrame(raf); removeEventListener('resize', onResize); wrap.remove() }
+      }
+    }
+
     // ── wiring ───────────────────────────────────────────────────────────────
     var skipBtn = document.getElementById('intro-skip')
     if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
-    overlay.addEventListener('click', function (e) { if (e.target === overlay || e.target === stage) reveal() })
+    overlay.addEventListener('click', function () {
+      if (active && active.blockOverlayClick) return
+      reveal()
+    })
     var replayBtn = document.getElementById('intro-replay')
     if (replayBtn) replayBtn.addEventListener('click', function () { play() })
     if (panel) {
