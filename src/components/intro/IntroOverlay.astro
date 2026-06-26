@@ -4,7 +4,7 @@
  * "Tweak" panel (bottom-left) for switching between variants + replaying.
  *
  * Four variants (selected via localStorage `intro-variant`, default '2'):
- *   1 · 粒子   — agent/context tokens feed particles that spell "JOYE"
+ *   1 · 粒子   — an agent run calls tools, emits shards, then composes "JOYE"
  *   2 · 终端   — `joye.init()` terminal boot sequence
  *   3 · 排版   — kinetic variable-weight typography
  *   4 · 编排   — labelled multi-agent graph converges into "JOYE"
@@ -92,7 +92,7 @@
     height: 100%;
     display: block;
   }
-  .intro-context {
+  .intro-run {
     position: absolute;
     inset: 0;
     z-index: 1;
@@ -100,33 +100,130 @@
     overflow: hidden;
     font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   }
-  .intro-token {
+  .intro-task {
     position: absolute;
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    top: 8%;
+    left: 50%;
+    transform: translate(-50%, 12px);
     color: hsl(var(--primary) / 0.56);
     font-size: clamp(10px, 1.2vw, 13px);
     letter-spacing: 0.08em;
-    text-transform: lowercase;
     text-shadow: 0 0 18px hsl(var(--primary) / 0.16);
     transition:
       opacity 0.9s ease,
-      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-      filter 0.9s ease;
+      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
   }
-  .intro-context.show .intro-token {
-    opacity: 0.46;
-    transform: translateY(0) scale(1);
+  .intro-run.start .intro-task {
+    opacity: 0.56;
+    transform: translate(-50%, 0);
   }
-  .intro-context.folding .intro-token {
-    opacity: 0.16;
-    transform: translateY(-12px) scale(0.96);
+  .intro-tools {
+    position: absolute;
+    inset: 0;
+  }
+  .intro-tool {
+    position: absolute;
+    width: clamp(132px, 16vw, 212px);
+    max-width: 42vw;
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.98);
+    padding: 8px 10px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--card) / 0.42);
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 8px;
+    box-shadow: 0 14px 36px -24px hsl(var(--foreground) / 0.5);
+    backdrop-filter: blur(8px);
+    transition:
+      opacity 0.65s ease,
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.5s ease,
+      filter 0.5s ease;
+  }
+  .intro-run.invoke .intro-tool {
+    opacity: 0.58;
+    transform: translate(-50%, 0) scale(1);
+  }
+  .intro-tool__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: hsl(var(--foreground) / 0.75);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .intro-tool__call {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .intro-tool__status {
+    color: hsl(var(--primary) / 0.8);
+    font-size: 10px;
+  }
+  .intro-shards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 7px;
+  }
+  .intro-shard {
+    opacity: 0;
+    transform: translateY(6px);
+    color: hsl(var(--primary) / 0.7);
+    font-size: 10px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: hsl(var(--primary) / 0.07);
+    border: 1px solid hsl(var(--primary) / 0.12);
+    transition:
+      opacity 0.55s ease,
+      transform 0.55s ease;
+  }
+  .intro-run.compose .intro-shard {
+    opacity: 0.72;
+    transform: translateY(0);
+  }
+  .intro-run.merge .intro-tool {
+    opacity: 0.2;
+    transform: translate(-50%, -10px) scale(0.97);
     filter: blur(0.5px);
   }
-  .intro-context.leaving .intro-token {
+  .intro-merge {
+    position: absolute;
+    left: 50%;
+    top: 65%;
     opacity: 0;
-    transform: translateY(-34px) scale(0.94);
+    transform: translate(-50%, 10px);
+    color: hsl(var(--primary) / 0.62);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
+  }
+  .intro-run.merge .intro-merge {
+    opacity: 0.58;
+    transform: translate(-50%, 0);
+  }
+  .intro-run.leaving .intro-task {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.94);
+    filter: blur(2px);
+  }
+  .intro-run.leaving .intro-tool {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.94);
+    filter: blur(2px);
+  }
+  .intro-run.leaving .intro-merge {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.94);
     filter: blur(2px);
   }
   .intro-enter {
@@ -193,6 +290,33 @@
   .intro-trace.show {
     transform: translate(-50%, 0);
     opacity: 0.46;
+  }
+  @media (max-width: 700px) {
+    .intro-task {
+      top: 6%;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .intro-tool {
+      width: 138px;
+      max-width: 44vw;
+      padding: 7px 8px;
+    }
+    .intro-tool__head {
+      gap: 8px;
+      font-size: 10px;
+    }
+    .intro-shard {
+      font-size: 9px;
+      padding: 3px 5px;
+    }
+    .intro-merge {
+      top: 56%;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   /* skip button */
@@ -580,18 +704,56 @@
       canvas.className = 'intro-canvas'
       stage.appendChild(canvas)
       var context = document.createElement('div')
-      context.className = 'intro-context'
-      var TOKENS = ['context', 'planner', 'tools', 'memory', 'eval', 'rag', 'multi-agent', 'openharness', 'frontend', 'design', 'ship', 'notes', 'search', 'trace', 'typescript', 'cursor']
-      var POS = [[10, 18], [24, 12], [43, 16], [62, 11], [80, 19], [14, 38], [30, 31], [68, 34], [84, 42], [18, 66], [36, 76], [55, 71], [75, 66], [8, 82], [48, 88], [87, 82]]
-      for (var ti = 0; ti < TOKENS.length; ti++) {
-        var token = document.createElement('span')
-        token.className = 'intro-token'
-        token.textContent = TOKENS[ti]
-        token.style.left = POS[ti][0] + '%'
-        token.style.top = POS[ti][1] + '%'
-        token.style.transitionDelay = (ti * 0.045) + 's'
-        context.appendChild(token)
+      context.className = 'intro-run'
+      var task = document.createElement('div')
+      task.className = 'intro-task'
+      task.textContent = 'task: compose joye.dev/home'
+      context.appendChild(task)
+      var toolsWrap = document.createElement('div')
+      toolsWrap.className = 'intro-tools'
+      var TOOLS = [
+        { call: 'agent.runtime()', shards: ['plan', 'loop'], pos: [50, 15] },
+        { call: 'mcp.filesystem()', shards: ['posts', 'projects'], pos: [22, 27] },
+        { call: 'mcp.github()', shards: ['OpenHarness', 'ship log'], pos: [78, 29] },
+        { call: 'memory.search()', shards: ['design taste', 'frontend'], pos: [22, 56] },
+        { call: 'examples.unitize()', shards: ['tool call', 'UI case'], pos: [78, 56] },
+        { call: 'merge_context()', shards: ['identity', 'JOYE'], pos: [50, 82] }
+      ]
+      for (var ti = 0; ti < TOOLS.length; ti++) {
+        var item = TOOLS[ti]
+        var tool = document.createElement('div')
+        tool.className = 'intro-tool'
+        tool.style.left = item.pos[0] + '%'
+        tool.style.top = item.pos[1] + '%'
+        tool.style.transitionDelay = (0.12 + ti * 0.08) + 's'
+        var head = document.createElement('div')
+        head.className = 'intro-tool__head'
+        var call = document.createElement('span')
+        call.className = 'intro-tool__call'
+        call.textContent = item.call
+        var status = document.createElement('span')
+        status.className = 'intro-tool__status'
+        status.textContent = 'ok'
+        head.appendChild(call)
+        head.appendChild(status)
+        tool.appendChild(head)
+        var shards = document.createElement('div')
+        shards.className = 'intro-shards'
+        for (var si = 0; si < item.shards.length; si++) {
+          var shard = document.createElement('span')
+          shard.className = 'intro-shard'
+          shard.textContent = item.shards[si]
+          shard.style.transitionDelay = (0.24 + ti * 0.07 + si * 0.08) + 's'
+          shards.appendChild(shard)
+        }
+        tool.appendChild(shards)
+        toolsWrap.appendChild(tool)
       }
+      context.appendChild(toolsWrap)
+      var merge = document.createElement('div')
+      merge.className = 'intro-merge'
+      merge.textContent = 'merge: context shards → JOYE'
+      context.appendChild(merge)
       stage.appendChild(context)
       var enter = document.createElement('button')
       enter.className = 'intro-enter'
@@ -601,7 +763,7 @@
       stage.appendChild(enter)
       var trace = document.createElement('div')
       trace.className = 'intro-trace'
-      trace.textContent = 'context loaded · tools ready · welcome back'
+      trace.textContent = 'agent loop complete · context merged'
       stage.appendChild(trace)
       var ctx = canvas.getContext('2d')
       var root = document.documentElement
@@ -623,12 +785,11 @@
       var linkColor = 'hsl(' + PRI.h + ' ' + sat + '% ' + baseL + '%'
       var W = 0, H = 0, DPR = 1, particles = [], phase = 'gather', t0 = 0, raf = 0, stopped = false
       var mouse = { x: -1e9, y: -1e9 }
-      var enterShown = false, exitingLocal = false, autoExit = 0, revealDelay = 0, contextTimer = 0, scatterStart = 0
-      contextTimer = setTimeout(function () { if (!stopped) context.classList.add('show') }, 120)
+      var enterShown = false, exitingLocal = false, autoExit = 0, revealDelay = 0, scatterStart = 0
       function showEnter() {
         if (enterShown || exitingLocal || stopped) return
         enterShown = true
-        context.classList.add('folding')
+        context.classList.add('merge')
         enter.classList.add('show')
         trace.classList.add('show')
         autoExit = setTimeout(beginExit, 12000)
@@ -638,13 +799,12 @@
         exitingLocal = true
         phase = 'scatter'
         scatterStart = 0
-        context.classList.remove('show')
         context.classList.add('leaving')
         enter.classList.remove('show')
         trace.classList.remove('show')
         enter.disabled = true
         clearTimeout(autoExit)
-        revealDelay = setTimeout(done, 1350)
+        revealDelay = setTimeout(done, 850)
       }
       function onEnter(e) {
         e.stopPropagation()
@@ -697,13 +857,16 @@
       function build() {
         var pts = sampleText('JOYE')
         while (particles.length < pts.length)
-          particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28, delay: 0, drift: Math.random() * 6.28 })
+          particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, sx: 0, sy: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28, delay: 0, drift: Math.random() * 6.28 })
         particles.length = pts.length
         pts.sort(function () { return Math.random() - 0.5 })
         for (var i = 0; i < particles.length; i++) {
+          var source = TOOLS[i % TOOLS.length].pos
           particles[i].tx = pts[i].x
           particles[i].ty = pts[i].y
-          particles[i].delay = 0.2 + (i % 6) * 0.18 + Math.random() * 1.25
+          particles[i].sx = W * source[0] / 100 + (Math.random() - 0.5) * 150 * DPR
+          particles[i].sy = H * source[1] / 100 + (Math.random() - 0.5) * 76 * DPR
+          particles[i].delay = 0.9 + (i % TOOLS.length) * 0.16 + Math.random() * 0.85
           if (!particles[i].drift) particles[i].drift = Math.random() * 6.28
         }
       }
@@ -714,10 +877,26 @@
         if (phase === 'scatter' && !scatterStart) scatterStart = ts
         var scatterAge = scatterStart ? (ts - scatterStart) / 1000 : 0
         ctx.clearRect(0, 0, W, H)
-        if (el > 3.15 && phase === 'gather') phase = 'hold'
-        if (el > 2.35 && phase !== 'scatter') context.classList.add('folding')
-        if (el > 4.05 && phase === 'hold') showEnter()
+        if (el > 0.12) context.classList.add('start')
+        if (el > 0.72) context.classList.add('invoke')
+        if (el > 1.55) context.classList.add('compose')
+        if (el > 2.95 && phase !== 'scatter') context.classList.add('merge')
+        if (el > 3.7 && phase === 'gather') phase = 'hold'
+        if (el > 4.35 && phase === 'hold') showEnter()
         var ease = phase === 'gather' ? 0.045 : phase === 'hold' ? 0.11 : 0.018
+        if (phase !== 'scatter' && el > 0.72) {
+          var linkFade = Math.min(1, (el - 0.72) / 0.75)
+          if (el > 2.85) linkFade *= Math.max(0.18, 1 - (el - 2.85) / 1.2)
+          ctx.lineWidth = DPR * 0.7
+          for (var li = 0; li < TOOLS.length; li++) {
+            var src = TOOLS[li].pos
+            ctx.strokeStyle = linkColor + ' / ' + (0.085 * linkFade) + ')'
+            ctx.beginPath()
+            ctx.moveTo(W * src[0] / 100, H * src[1] / 100)
+            ctx.quadraticCurveTo(W / 2, H * 0.35, W / 2, H * 0.47)
+            ctx.stroke()
+          }
+        }
         if (phase !== 'scatter') {
           ctx.lineWidth = DPR * 0.6
           for (var i = 0; i < particles.length; i += 2) {
@@ -739,7 +918,7 @@
             pt.vx += (Math.random() - 0.5) * 0.16 * DPR + odx * 0.09 * DPR
             pt.vy += ((Math.random() - 0.5) * 0.08 - 0.11) * DPR
           } else {
-            var pull = phase === 'hold' ? 1 : Math.max(0, Math.min(1, (el - pt.delay) / 1.55))
+            var pull = phase === 'hold' ? 1 : Math.max(0, Math.min(1, (el - pt.delay) / 2.05))
             if (pull < 1) {
               pt.vx += Math.sin(el * 0.9 + pt.drift) * 0.012 * DPR
               pt.vy += Math.cos(el * 0.7 + pt.drift) * 0.012 * DPR
@@ -754,8 +933,10 @@
           pt.vx *= damp; pt.vy *= damp; pt.x += pt.vx; pt.y += pt.vy; pt.tw += 0.05
           var near = (pt.x - pt.tx) * (pt.x - pt.tx) + (pt.y - pt.ty) * (pt.y - pt.ty) < (8 * DPR) * (8 * DPR)
           var tw = (dark ? 0.6 : 0.8) + Math.sin(pt.tw) * (dark ? 0.22 : 0.15)
-          var fade = phase === 'scatter' ? Math.max(0, 1 - scatterAge / 2.4) : 1
+          var fade = phase === 'scatter' ? Math.max(0, 1 - scatterAge / 1.45) : 1
+          var born = (phase === 'scatter' || phase === 'hold') ? 1 : Math.max(0, Math.min(1, (el - pt.delay + 0.28) / 0.55))
           var a = phase === 'scatter' ? (dark ? 0.5 : 0.62) * fade : (near ? (dark ? 0.95 : 1) : dark ? 0.7 : 0.86) * tw
+          a *= born
           ctx.beginPath()
           ctx.fillStyle = dot(pt.x / W, Math.min(1, a))
           ctx.arc(pt.x, pt.y, pt.r * (near ? 1.25 : 1) * (phase === 'scatter' ? 0.95 + scatterAge * 0.08 : 1), 0, 7)
@@ -773,11 +954,11 @@
       resize(); build()
       if (particles.length === 0) { done() }
       else {
-        var rad = Math.max(W, H)
         for (var i = 0; i < particles.length; i++) {
-          var ang = Math.random() * 6.283
-          particles[i].x = W / 2 + Math.cos(ang) * rad
-          particles[i].y = H / 2 + Math.sin(ang) * rad
+          particles[i].x = particles[i].sx
+          particles[i].y = particles[i].sy
+          particles[i].vx = (Math.random() - 0.5) * DPR
+          particles[i].vy = (Math.random() - 0.5) * DPR
         }
         raf = requestAnimationFrame(frame)
       }
@@ -787,7 +968,6 @@
           stopped = true
           clearTimeout(autoExit)
           clearTimeout(revealDelay)
-          clearTimeout(contextTimer)
           cancelAnimationFrame(raf)
           enter.removeEventListener('click', onEnter)
           removeEventListener('mousemove', onMove)

@@ -24,12 +24,40 @@
   .tag.show{animation:fade .9s ease forwards}
   @keyframes fade{to{opacity:.9}}
   .context{position:fixed;inset:0;pointer-events:none;overflow:hidden;font-family:var(--mono);z-index:3}
-  .token{position:absolute;opacity:0;transform:translateY(12px) scale(.98);color:rgba(125,211,252,.56);
-    font-size:clamp(10px,1.2vw,13px);letter-spacing:.08em;text-transform:lowercase;
-    text-shadow:0 0 18px rgba(125,211,252,.16);transition:opacity .9s ease,transform 1.2s cubic-bezier(.16,1,.3,1),filter .9s ease;white-space:nowrap}
-  .context.show .token{opacity:.46;transform:translateY(0) scale(1)}
-  .context.folding .token{opacity:.16;transform:translateY(-12px) scale(.96);filter:blur(.5px)}
-  .context.leaving .token{opacity:0;transform:translateY(-34px) scale(.94);filter:blur(2px)}
+  .task{position:absolute;top:8%;left:50%;opacity:0;transform:translate(-50%,12px);
+    color:rgba(125,211,252,.56);font-size:clamp(10px,1.2vw,13px);letter-spacing:.08em;
+    text-shadow:0 0 18px rgba(125,211,252,.16);transition:opacity .9s ease,transform 1.2s cubic-bezier(.16,1,.3,1);
+    white-space:nowrap}
+  .context.start .task{opacity:.56;transform:translate(-50%,0)}
+  .tool{position:absolute;width:clamp(132px,16vw,212px);max-width:42vw;opacity:0;
+    transform:translate(-50%,10px) scale(.98);padding:8px 10px;color:var(--muted);
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;
+    box-shadow:0 14px 36px -24px rgba(0,0,0,.8);backdrop-filter:blur(8px);
+    transition:opacity .65s ease,transform .8s cubic-bezier(.16,1,.3,1),filter .5s ease,border-color .5s ease}
+  .context.invoke .tool{opacity:.58;transform:translate(-50%,0) scale(1)}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(250,249,248,.75);
+    font-size:11px;white-space:nowrap}
+  .call{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .status{color:rgba(125,211,252,.8);font-size:10px}
+  .shards{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .shard{opacity:0;transform:translateY(6px);color:rgba(125,211,252,.74);font-size:10px;line-height:1;
+    padding:4px 6px;border-radius:6px;background:rgba(125,211,252,.08);border:1px solid rgba(125,211,252,.14);
+    transition:opacity .55s ease,transform .55s ease}
+  .context.compose .shard{opacity:.72;transform:translateY(0)}
+  .context.merge .tool{opacity:.2;transform:translate(-50%,-10px) scale(.97);filter:blur(.5px)}
+  .merge{position:absolute;left:50%;top:65%;opacity:0;transform:translate(-50%,10px);
+    color:rgba(125,211,252,.62);font-size:11px;letter-spacing:.08em;white-space:nowrap;
+    transition:opacity .7s ease,transform .7s ease}
+  .context.merge .merge{opacity:.58;transform:translate(-50%,0)}
+  .context.leaving .task,.context.leaving .tool,.context.leaving .merge{
+    opacity:0;transform:translate(-50%,-34px) scale(.94);filter:blur(2px)}
+  @media (max-width:700px){
+    .task,.merge{max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+    .tool{width:138px;max-width:44vw;padding:7px 8px}
+    .head{gap:8px;font-size:10px}
+    .shard{font-size:9px;padding:3px 5px}
+    .merge{top:56%}
+  }
   .enter{position:fixed;left:50%;top:calc(50% + 150px);transform:translate(-50%,10px);
     opacity:0;pointer-events:none;z-index:18;font-family:var(--mono);font-size:13px;
     color:var(--fg);background:rgba(255,255,255,.06);border:1px solid rgba(125,211,252,.34);
@@ -80,9 +108,9 @@
 <body>
   <canvas id="c"></canvas>
   <div class="context" id="context"></div>
-  <div class="tag" id="tag">frontend · design · ai-agent</div>
+  <div class="tag" id="tag">agent runtime · tool loop · content merge</div>
   <button class="enter" id="enter">进入 ~/joye →</button>
-  <div class="trace" id="trace">context loaded · tools ready · welcome back</div>
+  <div class="trace" id="trace">agent loop complete · context merged</div>
 
   <div class="hero" id="hero">
     <div class="card">
@@ -107,12 +135,52 @@ const enter = document.getElementById('enter');
 const trace = document.getElementById('trace');
 const hero = document.getElementById('hero');
 const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-let W,H,DPR, particles=[], mouse={x:-1e9,y:-1e9}, phase='gather', raf, t0, scatterAt=0, enterShown=false, autoExit=0, contextTimer=0;
+let W,H,DPR, particles=[], mouse={x:-1e9,y:-1e9}, phase='gather', raf, t0, scatterAt=0, enterShown=false, autoExit=0;
 
-const TOKENS=['context','planner','tools','memory','eval','rag','multi-agent','openharness','frontend','design','ship','notes','search','trace','typescript','cursor'];
-const POS=[[10,18],[24,12],[43,16],[62,11],[80,19],[14,38],[30,31],[68,34],[84,42],[18,66],[36,76],[55,71],[75,66],[8,82],[48,88],[87,82]];
-TOKENS.forEach((text,i)=>{ const s=document.createElement('span'); s.className='token'; s.textContent=text;
-  s.style.left=POS[i][0]+'%'; s.style.top=POS[i][1]+'%'; s.style.transitionDelay=(i*.045)+'s'; context.appendChild(s); });
+const TOOLS=[
+  { call:'agent.runtime()', shards:['plan','loop'], pos:[50,15] },
+  { call:'mcp.filesystem()', shards:['posts','projects'], pos:[22,27] },
+  { call:'mcp.github()', shards:['OpenHarness','ship log'], pos:[78,29] },
+  { call:'memory.search()', shards:['design taste','frontend'], pos:[22,56] },
+  { call:'examples.unitize()', shards:['tool call','UI case'], pos:[78,56] },
+  { call:'merge_context()', shards:['identity','JOYE'], pos:[50,82] }
+];
+const task=document.createElement('div');
+task.className='task';
+task.textContent='task: compose joye.dev/home';
+context.appendChild(task);
+TOOLS.forEach((item,i)=>{
+  const tool=document.createElement('div');
+  tool.className='tool';
+  tool.style.left=item.pos[0]+'%';
+  tool.style.top=item.pos[1]+'%';
+  tool.style.transitionDelay=(.12+i*.08)+'s';
+  const head=document.createElement('div');
+  head.className='head';
+  const call=document.createElement('span');
+  call.className='call';
+  call.textContent=item.call;
+  const status=document.createElement('span');
+  status.className='status';
+  status.textContent='ok';
+  head.append(call,status);
+  tool.appendChild(head);
+  const shards=document.createElement('div');
+  shards.className='shards';
+  item.shards.forEach((text,j)=>{
+    const shard=document.createElement('span');
+    shard.className='shard';
+    shard.textContent=text;
+    shard.style.transitionDelay=(.24+i*.07+j*.08)+'s';
+    shards.appendChild(shard);
+  });
+  tool.appendChild(shards);
+  context.appendChild(tool);
+});
+const merge=document.createElement('div');
+merge.className='merge';
+merge.textContent='merge: context shards → JOYE';
+context.appendChild(merge);
 
 function vw(){ return innerWidth || document.documentElement.clientWidth || 1280; }
 function vh(){ return innerHeight || document.documentElement.clientHeight || 800; }
@@ -169,7 +237,7 @@ function buildTargets(){
   while(particles.length < pts.length){
     particles.push({
       x: Math.random()*W, y: Math.random()*H,
-      vx:0, vy:0, tx:0, ty:0,
+      vx:0, vy:0, tx:0, ty:0, sx:0, sy:0,
       r: (Math.random()*0.9+0.7)*DPR,
       hue: Math.random(), tw: Math.random()*Math.PI*2,
       delay:0, drift:Math.random()*Math.PI*2
@@ -178,7 +246,13 @@ function buildTargets(){
   particles.length = pts.length;
   // assign nearest-ish targets (shuffle for organic look)
   pts.sort(()=> Math.random()-0.5);
-  particles.forEach((p,i)=>{ p.tx=pts[i].x; p.ty=pts[i].y; p.delay=.2+(i%6)*.18+Math.random()*1.25; });
+  particles.forEach((p,i)=>{
+    const source = TOOLS[i % TOOLS.length].pos;
+    p.tx=pts[i].x; p.ty=pts[i].y;
+    p.sx=W*source[0]/100+(Math.random()-.5)*150*DPR;
+    p.sy=H*source[1]/100+(Math.random()-.5)*76*DPR;
+    p.delay=.9+(i%TOOLS.length)*.16+Math.random()*.85;
+  });
 }
 
 function color(p, a){
@@ -196,16 +270,32 @@ function frame(ts){
   ctx.clearRect(0,0,W,H);
 
   // phase transitions
-  if(phase==='gather' && el>3.15) phase='hold';
-  if(el>2.35 && phase!=='scatter') context.classList.add('folding');
-  if(phase==='hold' && el>4.05) showEnter();
+  if(el>.12) context.classList.add('start');
+  if(el>.72) context.classList.add('invoke');
+  if(el>1.55) context.classList.add('compose');
+  if(el>2.95 && phase!=='scatter') context.classList.add('merge');
+  if(phase==='gather' && el>3.7) phase='hold';
+  if(phase==='hold' && el>4.35) showEnter();
   if(phase==='scatter' && !scatterAt) scatterAt = ts;
   const scatterAge = scatterAt ? (ts-scatterAt)/1000 : 0;
-  if(phase==='scatter' && ts-scatterAt>1600 && !hero.classList.contains('show')){
+  if(phase==='scatter' && ts-scatterAt>900 && !hero.classList.contains('show')){
     hero.classList.add('show');
   }
 
   const ease = phase==='gather' ? 0.045 : phase==='hold' ? 0.11 : 0.018;
+  if(phase!=='scatter' && el>.72){
+    let linkFade = Math.min(1, (el-.72)/.75);
+    if(el>2.85) linkFade *= Math.max(.18, 1-(el-2.85)/1.2);
+    ctx.lineWidth = DPR*.7;
+    for(const tool of TOOLS){
+      const [x,y]=tool.pos;
+      ctx.strokeStyle = `rgba(125,211,252,${.085*linkFade})`;
+      ctx.beginPath();
+      ctx.moveTo(W*x/100,H*y/100);
+      ctx.quadraticCurveTo(W/2,H*.35,W/2,H*.47);
+      ctx.stroke();
+    }
+  }
 
   // constellation links (only while formed-ish)
   if(phase==='gather' || phase==='hold'){
@@ -230,7 +320,7 @@ function frame(ts){
       p.vx += (Math.random()-0.5)*0.16*DPR + odx*.09*DPR;
       p.vy += ((Math.random()-0.5)*0.08 - 0.11)*DPR;
     }else{
-      const pull = phase==='hold' ? 1 : Math.max(0, Math.min(1, (el-p.delay)/1.55));
+      const pull = phase==='hold' ? 1 : Math.max(0, Math.min(1, (el-p.delay)/2.05));
       if(pull<1){ p.vx += Math.sin(el*.9+p.drift)*.012*DPR; p.vy += Math.cos(el*.7+p.drift)*.012*DPR; }
       const localEase = ease * (.2 + pull*.8);
       p.vx += (p.tx - p.x)*localEase*pull;
@@ -248,9 +338,10 @@ function frame(ts){
 
     const near = (p.x-p.tx)**2+(p.y-p.ty)**2 < (8*DPR)**2;
     const tw = 0.55 + Math.sin(p.tw)*0.25;
-    const fade = phase==='scatter' ? Math.max(0, 1 - scatterAge/2.4) : 1;
+    const fade = phase==='scatter' ? Math.max(0, 1 - scatterAge/1.45) : 1;
+    const born = (phase==='scatter' || phase==='hold') ? 1 : Math.max(0, Math.min(1, (el-p.delay+.28)/.55));
     const a = phase==='scatter' ? 0.6 * fade
-            : (near ? 0.95 : 0.7) * tw;
+            : (near ? 0.95 : 0.7) * tw * born;
     ctx.beginPath();
     ctx.fillStyle = color(p, Math.min(1,a));
     ctx.arc(p.x,p.y, p.r*(near?1.25:1)*(phase==='scatter' ? .95 + scatterAge*.08 : 1), 0, 7);
@@ -270,7 +361,7 @@ function frame(ts){
 function showEnter(){
   if(enterShown || phase==='scatter') return;
   enterShown = true;
-  context.classList.add('folding');
+  context.classList.add('merge');
   enter.classList.add('show');
   trace.classList.add('show');
   clearTimeout(autoExit);
@@ -281,7 +372,6 @@ function enterSite(){
   if(phase==='scatter') return;
   phase='scatter';
   scatterAt=0;
-  context.classList.remove('show');
   context.classList.add('leaving');
   enter.classList.remove('show');
   trace.classList.remove('show');
@@ -292,13 +382,10 @@ function start(){
   cancelAnimationFrame(raf);
   resize(); particles=[]; buildTargets();
   if(particles.length === 0){ setTimeout(start, 120); return; } // viewport not ready yet
-  // scatter start positions outward
-  particles.forEach(p=>{ const ang=Math.random()*7; const rad=Math.max(W,H);
-    p.x=W/2+Math.cos(ang)*rad; p.y=H/2+Math.sin(ang)*rad; });
-  phase='gather'; t0=0; scatterAt=0; enterShown=false; clearTimeout(autoExit); clearTimeout(contextTimer);
+  particles.forEach(p=>{ p.x=p.sx; p.y=p.sy; p.vx=(Math.random()-.5)*DPR; p.vy=(Math.random()-.5)*DPR; });
+  phase='gather'; t0=0; scatterAt=0; enterShown=false; clearTimeout(autoExit);
   hero.classList.remove('show'); tag.classList.remove('show'); enter.classList.remove('show'); trace.classList.remove('show');
-  context.classList.remove('show','folding','leaving');
-  contextTimer=setTimeout(()=>context.classList.add('show'),120);
+  context.classList.remove('start','invoke','compose','merge','leaving');
   if(reduce){ hero.classList.add('show'); return; }
   raf=requestAnimationFrame(frame);
 }
@@ -309,7 +396,7 @@ function boot(){
   } else start();
 }
 
-function skip(){ cancelAnimationFrame(raf); clearTimeout(autoExit); clearTimeout(contextTimer); ctx.clearRect(0,0,W,H); tag.classList.remove('show'); enter.classList.remove('show'); trace.classList.remove('show'); context.classList.remove('show','folding','leaving'); hero.classList.add('show'); }
+function skip(){ cancelAnimationFrame(raf); clearTimeout(autoExit); ctx.clearRect(0,0,W,H); tag.classList.remove('show'); enter.classList.remove('show'); trace.classList.remove('show'); context.classList.remove('start','invoke','compose','merge','leaving'); hero.classList.add('show'); }
 
 enter.onclick = enterSite;
 document.getElementById('skip').onclick = skip;
