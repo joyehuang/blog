@@ -1,0 +1,19 @@
+---
+import FeatureCalloutCard from '@/components/blog/FeatureCalloutCard.astro'
+
+const talkHref = '/talks#talk-1'
+const deckHref = '/talks/2026-from-interview-to-agent.html'
+const videoHref = 'https://www.bilibili.com/video/BV1sQJN6rE1D'
+---
+
+<FeatureCalloutCard
+  ariaLabel='相关分享会'
+  meta={['Talks · 第 1 期', '2026.06.13']}
+  title='从实习面试到 Agent 开发'
+  description='这篇文章是这期分享的文字版。如果你想看原始分享记录、幻灯片或录屏，可以从这里跳过去。'
+  actions={[
+    { label: '看分享会记录', href: talkHref, primary: true },
+    { label: '打开幻灯片', href: deckHref, external: true },
+    { label: '看录屏', href: videoHref, external: true }
+  ]}
+/>

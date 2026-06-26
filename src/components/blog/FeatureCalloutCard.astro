@@ -1,0 +1,204 @@
+---
+interface Action {
+  href: string
+  label: string
+  external?: boolean
+  primary?: boolean
+}
+
+interface Props {
+  actions: Action[]
+  ariaLabel?: string
+  description: string
+  meta?: string[]
+  title: string
+}
+
+const { actions, description, meta = [], title } = Astro.props
+const ariaLabel = Astro.props.ariaLabel ?? title
+---
+
+<aside class='feature-callout not-prose' aria-label={ariaLabel}>
+  <div class='feature-callout-content'>
+    {
+      meta.length > 0 && (
+        <div class='feature-callout-meta'>
+          {meta.map((item) => (
+            <span>{item}</span>
+          ))}
+        </div>
+      )
+    }
+    <h2>{title}</h2>
+    <p>{description}</p>
+    <div class='feature-callout-actions'>
+      {
+        actions.map((action) => (
+          <a
+            class={action.primary ? 'is-primary' : undefined}
+            href={action.href}
+            target={action.external ? '_blank' : undefined}
+            rel={action.external ? 'noopener' : undefined}
+          >
+            {action.label}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</aside>
+
+<style>
+  .feature-callout {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: 1.5rem 0 2rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background:
+      radial-gradient(ellipse at 82% 18%, hsl(var(--primary) / 0.14), transparent 36%),
+      linear-gradient(135deg, hsl(var(--muted) / 0.68), hsl(var(--background)));
+    padding: 1rem;
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
+  }
+
+  .feature-callout::before,
+  .feature-callout::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .feature-callout::before {
+    inset: -35% -28%;
+    z-index: -1;
+    background: linear-gradient(
+      112deg,
+      transparent 31%,
+      hsl(var(--primary) / 0.04) 43%,
+      hsl(var(--primary) / 0.2) 50%,
+      hsl(var(--primary) / 0.05) 57%,
+      transparent 69%
+    );
+    filter: blur(16px);
+    transform: translateX(-42%) skewX(-10deg);
+    animation: callout-sweep 6.4s ease-in-out infinite;
+  }
+
+  .feature-callout::after {
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid hsl(var(--primary) / 0.18);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--primary) / 0.16),
+      inset 0 -1px 0 hsl(var(--foreground) / 0.04);
+    opacity: 0.75;
+  }
+
+  .feature-callout-content {
+    position: relative;
+    z-index: 1;
+    max-width: 42rem;
+  }
+
+  .feature-callout-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.75rem;
+    color: hsl(var(--primary));
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .feature-callout h2 {
+    margin: 0.55rem 0 0.4rem;
+    color: hsl(var(--foreground));
+    font-size: clamp(1.12rem, 2.4vw, 1.5rem);
+    line-height: 1.28;
+  }
+
+  .feature-callout p {
+    margin: 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  .feature-callout-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1rem;
+  }
+
+  .feature-callout a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 0 0.78rem;
+    color: hsl(var(--foreground));
+    background: hsl(var(--background) / 0.72);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .feature-callout a:hover {
+    border-color: hsl(var(--primary) / 0.48);
+    background: hsl(var(--muted) / 0.8);
+    color: hsl(var(--primary));
+  }
+
+  .feature-callout a.is-primary {
+    border-color: hsl(var(--primary) / 0.35);
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  @keyframes callout-sweep {
+    0%,
+    18% {
+      opacity: 0;
+      transform: translateX(-42%) skewX(-10deg);
+    }
+    38%,
+    70% {
+      opacity: 0.95;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(42%) skewX(-10deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .feature-callout::before {
+      animation: none;
+      opacity: 0.35;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .feature-callout {
+      padding: 0.9rem;
+    }
+
+    .feature-callout-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .feature-callout a {
+      justify-content: center;
+    }
+  }
+</style>

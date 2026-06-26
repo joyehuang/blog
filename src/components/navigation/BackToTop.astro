@@ -1,0 +1,185 @@
+---
+import { Icon } from 'astro-pure/user'
+
+const { header: headerName, content: contentName, needPercent = true } = Astro.props
+---
+
+<div
+  class='z-10 group fixed bottom-8 end-4 transition-all flex flex-col gap-y-4 sm:end-8'
+  id='action-buttons'
+>
+  <slot name='other-icons' />
+  <button
+    aria-label='Back to Top'
+    class='relative size-10 flex items-center justify-center rounded-full border border-border/60 bg-muted text-muted-foreground duration-300 hover:border-border/90 sm:size-12 opacity-0'
+    id='to-top-btn'
+    style='--scroll-percent: 0;'
+  >
+    <svg class='progress-ring' viewBox='0 0 44 44' aria-hidden='true'>
+      <circle class='progress-ring-track' cx='22' cy='22' r='20' pathLength='100'></circle>
+      <circle class='progress-ring-value' cx='22' cy='22' r='20' pathLength='100'></circle>
+    </svg>
+    <div
+      class='top-text absolute bottom-0 end-0 start-0 top-0 flex items-center justify-center group-[.ended]:opacity-0'
+    >
+      <span class='progress-number'>0</span>
+      <span class='text-xs'>%</span>
+    </div>
+    <Icon name='up' class='top-icon group-[.ended]:opacity-100' />
+  </button>
+</div>
+
+<script is:inline define:vars={{ headerName, contentName, needPercent }}>
+  const actionBtns = document.getElementById('action-buttons')
+  const scrollBtn = document.getElementById('to-top-btn')
+  const scrollPercentEl = scrollBtn?.querySelector('.top-text .progress-number')
+  const targetHeader = document.getElementById(headerName)
+  const articleElement = document.getElementById(contentName)
+
+  function clampPercent(value) {
+    return Math.max(0, Math.min(100, value))
+  }
+
+  function updateProgressRing(percent) {
+    const normalizedPercent = clampPercent(percent)
+    scrollBtn?.style.setProperty('--scroll-percent', normalizedPercent.toString())
+    if (scrollPercentEl) scrollPercentEl.innerText = Math.round(normalizedPercent).toString()
+  }
+
+  function callback(entries) {
+    entries.forEach((entry) => {
+      actionBtns?.classList.toggle('show', !entry.isIntersecting)
+    })
+  }
+
+  scrollBtn?.addEventListener('click', () => {
+    document.documentElement.scrollTo({ behavior: 'smooth', top: 0 })
+  })
+
+  if (targetHeader) {
+    const observer = new IntersectionObserver(callback)
+    observer.observe(targetHeader)
+  } else {
+    console.error(`Element with ID ${headerName} not found.`)
+  }
+
+  if (needPercent && articleElement) {
+    function calculateScrollPercent() {
+      const scrollHeight = articleElement.scrollHeight
+      const articleTop = articleElement.offsetTop
+      const clientHeight = document.documentElement.clientHeight
+      const readableDistance = scrollHeight - clientHeight
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+
+      if (scrollTop < articleTop) return undefined
+      if (readableDistance <= 0) return 100
+
+      return ((scrollTop - articleTop) / readableDistance) * 100
+    }
+
+    function handleScroll() {
+      const scrollPercent = calculateScrollPercent()
+      if (scrollPercent === undefined) return
+
+      updateProgressRing(scrollPercent)
+      actionBtns?.classList.toggle('ended', scrollPercent > 100)
+    }
+
+    document.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+    handleScroll()
+  } else {
+    actionBtns?.classList.add('ended')
+    updateProgressRing(100)
+  }
+</script>
+
+<style>
+  #action-buttons {
+    transform: translateY(4rem);
+
+    &.show {
+      transform: translateY(0);
+
+      & #to-top-btn {
+        opacity: 1;
+      }
+    }
+
+    & #to-top-btn {
+      box-shadow:
+        0 0 0 1px hsl(var(--background) / 0.7),
+        0 8px 24px hsl(var(--background) / 0.42);
+
+      & .progress-ring {
+        position: absolute;
+        inset: -4px;
+        height: calc(100% + 8px);
+        width: calc(100% + 8px);
+        pointer-events: none;
+        transform: rotate(-90deg);
+      }
+
+      & .progress-ring-track,
+      & .progress-ring-value {
+        fill: none;
+        stroke-width: 2.4;
+      }
+
+      & .progress-ring-track {
+        stroke: hsl(var(--border) / 0.62);
+      }
+
+      & .progress-ring-value {
+        stroke: hsl(var(--primary));
+        stroke-dasharray: 100;
+        stroke-dashoffset: calc(100 - var(--scroll-percent));
+        stroke-linecap: round;
+        transition: stroke-dashoffset 120ms linear;
+      }
+
+      & .top-text,
+      & .top-icon {
+        transition-property: opacity;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
+
+      & .top-text {
+        box-sizing: border-box;
+        width: 100%;
+        opacity: 1;
+        gap: 0.03rem;
+        padding-inline: 0.25rem;
+        font-size: 0.72rem;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      & .top-text .progress-number {
+        text-align: center;
+      }
+
+      & .top-icon {
+        opacity: 0;
+      }
+    }
+
+    &.ended #to-top-btn,
+    & #to-top-btn:hover {
+      & .top-text {
+        opacity: 0;
+      }
+
+      & .top-icon {
+        opacity: 1;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #to-top-btn .progress-ring-value {
+      transition: none;
+    }
+  }
+</style>

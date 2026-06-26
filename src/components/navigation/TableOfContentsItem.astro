@@ -1,0 +1,40 @@
+---
+import { cn } from 'astro-pure/utils'
+import type { TocItem } from './toc'
+
+interface Props {
+  heading: TocItem
+}
+
+const {
+  heading: { depth, slug, subheadings, text: rawText }
+} = Astro.props
+const text = rawText.endsWith('#') ? rawText.slice(0, -1) : rawText
+---
+
+<li>
+  <div class='relative'>
+    <span
+      data-toc-progress
+      class='absolute top-[5%] w-[2px] rounded transition-colors duration-300 [&.highlight-bg]:bg-primary [&.is-read]:bg-input'
+    ></span>
+    <a
+      data-toc-link
+      aria-label={`Scroll to section: ${text}`}
+      class={cn(
+        'toc-item line-clamp-2 px-3 py-1 ms-2 text-foreground/75 transition-all hover:text-foreground [&.highlight]:font-medium [&.highlight]:text-primary [&.is-read]:text-input [&.highlight-bg-translucent]:bg-muted',
+        depth > 2 && 'ps-7'
+      )}
+      href={`#${slug}`}>{text}</a
+    >
+  </div>
+  {
+    !!subheadings.length && (
+      <ul>
+        {subheadings.map((subheading) => (
+          <Astro.self heading={subheading} />
+        ))}
+      </ul>
+    )
+  }
+</li>

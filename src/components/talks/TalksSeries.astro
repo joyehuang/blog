@@ -69,7 +69,7 @@ const takeawayHtml = (title: string, desc?: string) =>
         const weekday = talkWeekday(d.date)
         if (d.status === 'upcoming') {
           return (
-            <article class='tk-entry tk-preview-entry'>
+            <article id={`talk-${d.episode}`} class='tk-entry tk-preview-entry'>
               <div class='tk-rail' aria-hidden='true'>
                 <span class='tk-ep'>{epLabel}</span>
                 <span class='tk-rail-date'>{dateCN}</span>
@@ -106,7 +106,7 @@ const takeawayHtml = (title: string, desc?: string) =>
         }
         const open = i === firstPublishedIdx
         return (
-          <article class='tk-entry' data-open={open ? 'true' : 'false'}>
+          <article id={`talk-${d.episode}`} class='tk-entry' data-open={open ? 'true' : 'false'}>
             <div class='tk-rail' aria-hidden='true'>
               <span class='tk-ep'>{epLabel}</span>
               <span class='tk-rail-date'>{dateCN}</span>
