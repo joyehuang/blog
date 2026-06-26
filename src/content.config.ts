@@ -33,6 +33,7 @@ const blogSchema = ({ image }: SchemaContext) =>
     // For English mirrors: the Chinese entry's URL path after `/blog/`
     // (e.g. `20251216---normalization/post`). Drives en routing + hreflang.
     translationKey: z.string().optional(),
+    tocDepth: z.number().int().min(2).max(6).optional(),
     draft: z.boolean().default(false),
     comment: z.boolean().default(true)
   })

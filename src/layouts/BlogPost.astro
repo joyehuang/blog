@@ -6,10 +6,11 @@ import type { CollectionEntry } from 'astro:content'
 import 'katex/dist/katex.min.css'
 
 import { MediumZoom } from 'astro-pure/advanced'
-import { ArticleBottom, Copyright, Hero, TOC } from 'astro-pure/components/pages'
+import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import Comment from '@/components/comment/Comment.astro'
 import HeroEn from '@/components/HeroEn.astro'
+import TableOfContents from '@/components/navigation/TableOfContents.astro'
 import { integ } from '@/site-config'
 
 interface Props {
@@ -43,6 +44,8 @@ const {
 const socialImage = `/og/blog/${id.replace(/\.en$/, '')}.png`
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
+const tocDepth = data.tocDepth ?? 3
+const tocHeadings = headings.filter(({ depth }) => depth <= tocDepth)
 ---
 
 <PageLayout
@@ -50,7 +53,7 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
   highlightColor={primaryColor}
   back={back}
 >
-  {!!headings.length && <TOC {headings} slot='sidebar' />}
+  {!!tocHeadings.length && <TableOfContents headings={tocHeadings} slot='sidebar' />}
 
   {
     enHero ? (
