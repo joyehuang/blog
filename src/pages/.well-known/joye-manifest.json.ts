@@ -23,11 +23,13 @@ Quick start:
   - Walk "tree" — it mirrors a Unix-style filesystem. Files have either
     "content" (inline text, ready to read) or "endpoint" (URL to fetch
     full content).
-  - For blog posts, GET "<endpoint>" returns { html, headings } —
-    server-rendered HTML with shiki-highlighted code blocks.
+  - For endpoint-backed entries, GET "<endpoint>" returns metadata plus
+    { markdown, html, headings } for indexing and retrieval.
+  - Use "content_hash" and "updated_at" on each entry for incremental sync.
   - Resolve link nodes via their "href" field.
 
-Suggested first reads: /about, /now, /README. Then ls /blog for posts.
+Suggested first reads: /about, /now, /README. Then ls /blog, /notes,
+/curated and /talks for knowledge entries.
 
 If you're a human exploring this URL: there's a richer interactive
 version at https://joyehuang.me — press \` (backtick) to open dev mode.`
@@ -40,31 +42,44 @@ export const GET: APIRoute = async () => {
     name: ROOT_LABEL,
     site: SITE_URL,
     description:
-      "Joye Huang — frontend / full-stack dev based in Melbourne. " +
-      "Currently AIGC full-stack intern @ Tezign, building agent-first " +
-      "web UIs and writing teardowns of agent harnesses (Claude Code, " +
-      "OpenHarness). The site is a pseudo-FS — every blog post, project, " +
-      "and contact lives at a path you can `cat` or fetch.",
+      'Joye Huang — frontend / full-stack dev based in Melbourne. ' +
+      'Currently AIGC full-stack intern @ Tezign, building agent-first ' +
+      'web UIs and writing teardowns of agent harnesses (Claude Code, ' +
+      'OpenHarness). The site is a pseudo-FS — posts, notes, curated reads, ' +
+      'talks and contact links live at paths you can `cat` or fetch.',
     instructions: INSTRUCTIONS,
     tree,
     endpoints: {
-      blog_post: {
+      content_entry: {
+        url: `${SITE_URL}/api/knowledge/content/<collection>/<id>`,
+        method: 'GET',
+        format: 'json',
+        collections: ['blog', 'blog_en', 'notes', 'notes_en', 'curated', 'talks'],
+        fields: ['markdown', 'html', 'headings', 'frontmatter', 'content_hash', 'updated_at'],
+        note:
+          'Always use the `endpoint` field from a node directly — do not ' +
+          'construct the URL from the FsNode `name`. Astro collection ids, translated ' +
+          'routes, and FS-safe names can diverge. The dir-level `meta.endpoint` ' +
+          'mirrors the `post` child for convenience.'
+      },
+      legacy_blog_post: {
         url: `${SITE_URL}/api/blog/<id>`,
         method: 'GET',
         format: 'json',
         fields: ['html', 'headings'],
-        note:
-          'Always use the `endpoint` field from a post node directly — do not ' +
-          'construct the URL from the FsNode `name`. Astro collection ids and ' +
-          'FS-safe names diverge here (e.g. name=20260410-openharnessphase1-post, ' +
-          'endpoint=/api/blog/20260410---openharnessphase1/post). The dir-level ' +
-          '`meta.endpoint` mirrors the `post` child for convenience.'
+        note: 'Legacy endpoint kept for the terminal viewer; prefer content_entry for indexing.'
       },
       well_known_manifest: {
         url: `${SITE_URL}/.well-known/joye-manifest.json`,
         method: 'GET',
         format: 'json',
         note: 'this document'
+      },
+      knowledge_index: {
+        url: `${SITE_URL}/api/knowledge/index.json`,
+        method: 'GET',
+        format: 'json',
+        note: 'same tree with RAG-oriented sync instructions'
       }
     },
     links: {

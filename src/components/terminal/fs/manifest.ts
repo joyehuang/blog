@@ -1,4 +1,3 @@
-import type { DirNode, FsNode } from './types'
 import {
   ABOUT_TEXT,
   MOTD_TEXT,
@@ -7,6 +6,7 @@ import {
   README_TEXT,
   SOCIAL_LINKS
 } from './content'
+import type { DirNode, FsNode } from './types'
 
 /**
  * Minimal shape we need from a content collection entry. BaseLayout passes
@@ -15,25 +15,35 @@ import {
  */
 export type FsCollectionEntry = {
   id: string
+  routeId: string
+  kind: 'blog' | 'blog_en' | 'notes' | 'notes_en' | 'curated' | 'talks'
   data: {
     title: string
     description?: string
     publishDate?: Date | string
+    updatedDate?: Date | string
     tags?: string[]
+    language?: string
+    contentHash?: string
+    extra?: Record<string, unknown>
   }
 }
 
 export type BuildArgs = {
   blog: FsCollectionEntry[]
+  blogEn: FsCollectionEntry[]
   /** archive collection — surfaced as `/notes` in the FS. */
   notes: FsCollectionEntry[]
+  notesEn: FsCollectionEntry[]
+  curated: FsCollectionEntry[]
+  talks: FsCollectionEntry[]
 }
 
 /**
  * Build the pseudo-FS root from collection data. Pure function: same input
  * always yields the same tree. Called once per page render in BaseLayout.
  */
-export function buildManifest({ blog, notes }: BuildArgs): FsNode {
+export function buildManifest({ blog, blogEn, notes, notesEn, curated, talks }: BuildArgs): FsNode {
   return {
     type: 'dir',
     name: '',
@@ -44,6 +54,10 @@ export function buildManifest({ blog, notes }: BuildArgs): FsNode {
       { type: 'file', name: 'now', description: 'currently working on', content: NOW_TEXT },
       buildPostsDir('blog', 'recent blog posts', blog, '/blog'),
       buildPostsDir('notes', 'short-form notes', notes, '/archive'),
+      buildPostsDir('blog_en', 'English blog mirrors', blogEn, '/en/blog'),
+      buildPostsDir('notes_en', 'English short-form note mirrors', notesEn, '/en/archive'),
+      buildPostsDir('curated', 'curated external readings and digests', curated, '/curated'),
+      buildPostsDir('talks', 'weekly sharing sessions', talks, '/talks'),
       buildContactDir(),
       buildEtcDir(),
       {
@@ -73,20 +87,26 @@ function buildPostsDir(
 function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
   const slug = slugify(p.id)
   const date = formatDate(p.data.publishDate)
+  const updated = formatDate(p.data.updatedDate)
   const summary = p.data.description ?? '(no description)'
   const tags = p.data.tags ?? []
-  const lang = inferLang(p)
+  const lang = p.data.language ?? inferLang(p)
+  const href = hrefFor(p, hrefRoot)
+  const endpoint = `/api/knowledge/content/${p.kind}/${encodeURI(p.id)}`
+  const canonicalUrl = `https://joyehuang.me${href}`
   const metaContent = formatMeta({
     title: p.data.title,
     date,
+    updated,
     slug,
     lang,
-    tags
+    tags,
+    href,
+    endpoint,
+    canonical_url: canonicalUrl,
+    content_hash: p.data.contentHash
   })
-  const href = `${hrefRoot}/${encodeURI(p.id)}`
-  // Inline `cat post` viewer fetches plaintext from this endpoint. Only
-  // wired up for blog so far; archive entries fall back to a placeholder.
-  const endpoint = hrefRoot === '/blog' ? `/api/blog/${encodeURI(p.id)}` : undefined
+  const extra = p.data.extra ?? {}
   return {
     type: 'dir',
     name: slug,
@@ -99,11 +119,17 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
     // verbatim, never construct it from `name`.
     meta: {
       date,
+      updated_at: updated,
       title: p.data.title,
       lang,
       tags,
       endpoint,
-      href
+      href,
+      canonical_url: canonicalUrl,
+      content_hash: p.data.contentHash,
+      collection: p.kind,
+      id: p.id,
+      ...extra
     },
     children: [
       {
@@ -111,7 +137,21 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
         name: 'meta',
         description: 'frontmatter',
         content: metaContent,
-        meta: { slug, date, title: p.data.title, lang, tags }
+        meta: {
+          slug,
+          date,
+          updated_at: updated,
+          title: p.data.title,
+          lang,
+          tags,
+          endpoint,
+          href,
+          canonical_url: canonicalUrl,
+          content_hash: p.data.contentHash,
+          collection: p.kind,
+          id: p.id,
+          ...extra
+        }
       },
       {
         type: 'file',
@@ -122,13 +162,31 @@ function buildPostDir(p: FsCollectionEntry, hrefRoot: string): DirNode {
       {
         type: 'file',
         name: 'post',
-        description: endpoint ? 'full text (inline)' : 'full text (rendered page only)',
+        description: 'full text and rendered HTML',
         endpoint,
         href,
-        meta: { slug, date, title: p.data.title, lang }
+        meta: {
+          slug,
+          date,
+          updated_at: updated,
+          title: p.data.title,
+          lang,
+          endpoint,
+          href,
+          canonical_url: canonicalUrl,
+          content_hash: p.data.contentHash,
+          collection: p.kind,
+          id: p.id
+        }
       }
     ]
   }
+}
+
+function hrefFor(p: FsCollectionEntry, hrefRoot: string): string {
+  if (p.kind === 'curated') return `${hrefRoot}#${encodeURIComponent(p.routeId)}`
+  if (p.kind === 'talks') return `${hrefRoot}#${encodeURIComponent(p.routeId)}`
+  return `${hrefRoot}/${encodeURI(p.routeId)}`
 }
 
 /**
