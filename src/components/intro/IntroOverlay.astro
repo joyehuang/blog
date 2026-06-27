@@ -1,0 +1,1275 @@
+---
+/**
+ * IntroOverlay — full-screen home-page entrance animation, with a small
+ * "Tweak" panel (bottom-left) for switching between variants + replaying.
+ *
+ * Four variants (selected via localStorage `intro-variant`, default '2'):
+ *   1 · 粒子   — an agent run calls tools, emits shards, then composes "JOYE"
+ *   2 · 终端   — `joye.init()` terminal boot sequence
+ *   3 · 排版   — kinetic variable-weight typography
+ *   4 · 编排   — labelled multi-agent graph converges into "JOYE"
+ *
+ * Shared behaviour:
+ *   - Auto-plays once per session (sessionStorage `intro-seen`), skippable,
+ *     disabled under prefers-reduced-motion.
+ *   - Never renders its own hero — it sits above the page and fades out to
+ *     reveal the real homepage beneath. Overlay bg == site bg (no colour jump).
+ *   - The overlay is hidden (not removed) after playing, so the Tweak panel's
+ *     replay / variant buttons can re-run it without a reload.
+ *
+ * NOTE: the Tweak panel is a review/testing aid. Before a production merge we
+ * should gate it (e.g. `?tweak` query or remove it).
+ *
+ * Scripts use `is:inline` so the dynamically-created DOM (canvas / terminal /
+ * words) is styled by the `is:global` block below (Astro's scoped styles don't
+ * reach nodes created at runtime).
+ */
+---
+
+<div id='intro-overlay' class='intro-overlay' aria-hidden='true'>
+  <div id='intro-stage' class='intro-stage'></div>
+  <button id='intro-skip' class='intro-skip' type='button' aria-label='跳过入场动画'>跳过 →</button>
+</div>
+
+<div id='intro-tweak' class='intro-tweak' aria-hidden='true'>
+  <span class='intro-tweak__label'>入场动画</span>
+  <button type='button' data-variant='1'>动画一 · 粒子</button>
+  <button type='button' data-variant='2'>动画二 · 终端</button>
+  <button type='button' data-variant='3'>动画三 · 排版</button>
+  <button type='button' data-variant='4'>动画四 · 编排</button>
+  <span class='intro-tweak__sep'></span>
+  <button type='button' id='intro-replay'>↻ replay</button>
+</div>
+
+{/* Synchronous gate: hide the overlay before first paint for repeat visits / reduced motion. */}
+<script is:inline>
+  ;(function () {
+    try {
+      var seen = sessionStorage.getItem('intro-seen') === '1'
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (seen || reduce) {
+        var el = document.getElementById('intro-overlay')
+        if (el) el.classList.add('intro-idle')
+      }
+    } catch (e) {}
+  })()
+</script>
+
+<style is:global>
+  .intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: hsl(var(--background));
+    overflow: hidden;
+    opacity: 1;
+  }
+  .intro-overlay::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    pointer-events: none;
+    background: radial-gradient(42% 46% at 50% 45%, hsl(var(--primary) / 0.1), transparent 70%);
+  }
+  .intro-overlay.intro-idle {
+    display: none;
+  }
+  .intro-overlay.intro-done {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.9s ease;
+  }
+  .intro-stage {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  .intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .intro-run {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .intro-task {
+    position: absolute;
+    opacity: 0;
+    top: 8%;
+    left: 50%;
+    transform: translate(-50%, 12px);
+    color: hsl(var(--primary) / 0.56);
+    font-size: clamp(10px, 1.2vw, 13px);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 18px hsl(var(--primary) / 0.16);
+    transition:
+      opacity 0.9s ease,
+      transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+  }
+  .intro-run.start .intro-task {
+    opacity: 0.56;
+    transform: translate(-50%, 0);
+  }
+  .intro-tools {
+    position: absolute;
+    inset: 0;
+  }
+  .intro-tool {
+    position: absolute;
+    width: clamp(132px, 16vw, 212px);
+    max-width: 42vw;
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.98);
+    padding: 8px 10px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--card) / 0.42);
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 8px;
+    box-shadow: 0 14px 36px -24px hsl(var(--foreground) / 0.5);
+    backdrop-filter: blur(8px);
+    transition:
+      opacity 0.65s ease,
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.5s ease,
+      filter 0.5s ease;
+  }
+  .intro-run.invoke .intro-tool {
+    opacity: 0.58;
+    transform: translate(-50%, 0) scale(1);
+  }
+  .intro-tool__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: hsl(var(--foreground) / 0.75);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .intro-tool__call {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .intro-tool__status {
+    color: hsl(var(--primary) / 0.8);
+    font-size: 10px;
+  }
+  .intro-shards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 7px;
+  }
+  .intro-shard {
+    opacity: 0;
+    transform: translateY(6px);
+    color: hsl(var(--primary) / 0.7);
+    font-size: 10px;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: hsl(var(--primary) / 0.07);
+    border: 1px solid hsl(var(--primary) / 0.12);
+    transition:
+      opacity 0.55s ease,
+      transform 0.55s ease;
+  }
+  .intro-run.compose .intro-shard {
+    opacity: 0.72;
+    transform: translateY(0);
+  }
+  .intro-run.merge .intro-tool {
+    opacity: 0.2;
+    transform: translate(-50%, -10px) scale(0.97);
+    filter: blur(0.5px);
+  }
+  .intro-merge {
+    position: absolute;
+    left: 50%;
+    top: 65%;
+    opacity: 0;
+    transform: translate(-50%, 10px);
+    color: hsl(var(--primary) / 0.62);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
+  }
+  .intro-run.merge .intro-merge {
+    opacity: 0.58;
+    transform: translate(-50%, 0);
+  }
+  .intro-run.leaving .intro-task {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.94);
+    filter: blur(2px);
+  }
+  .intro-run.leaving .intro-tool {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.94);
+    filter: blur(2px);
+  }
+  .intro-run.leaving .intro-merge {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.94);
+    filter: blur(2px);
+  }
+  .intro-enter {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + clamp(96px, 18vh, 170px));
+    z-index: 3;
+    transform: translate(-50%, 10px);
+    opacity: 0;
+    pointer-events: none;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    color: hsl(var(--foreground));
+    background: hsl(var(--card) / 0.68);
+    border: 1px solid hsl(var(--primary) / 0.34);
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 14px 36px -18px hsl(var(--foreground) / 0.45),
+      inset 0 1px 0 hsl(var(--foreground) / 0.08);
+    transition:
+      opacity 0.45s ease,
+      transform 0.45s ease,
+      background 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .intro-enter.show {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .intro-enter:hover {
+    border-color: hsl(var(--primary) / 0.65);
+    background: hsl(var(--primary) / 0.11);
+    box-shadow:
+      0 18px 48px -20px hsl(var(--primary) / 0.72),
+      inset 0 1px 0 hsl(var(--foreground) / 0.12);
+  }
+  .intro-enter:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 3px;
+  }
+  .intro-trace {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + clamp(164px, 26vh, 250px));
+    z-index: 3;
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    pointer-events: none;
+    color: hsl(var(--muted-foreground));
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-align: center;
+    white-space: nowrap;
+    transition:
+      opacity 0.55s ease,
+      transform 0.55s ease;
+  }
+  .intro-trace.show {
+    transform: translate(-50%, 0);
+    opacity: 0.46;
+  }
+  @media (max-width: 700px) {
+    .intro-task {
+      top: 6%;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .intro-tool {
+      width: 138px;
+      max-width: 44vw;
+      padding: 7px 8px;
+    }
+    .intro-tool__head {
+      gap: 8px;
+      font-size: 10px;
+    }
+    .intro-shard {
+      font-size: 9px;
+      padding: 3px 5px;
+    }
+    .intro-merge {
+      top: 56%;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  /* skip button */
+  .intro-skip {
+    position: absolute;
+    bottom: 22px;
+    right: 22px;
+    z-index: 2;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--card) / 0.55);
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .intro-skip:hover {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  /* Tweak panel (review aid) */
+  .intro-tweak {
+    position: fixed;
+    bottom: 18px;
+    left: 18px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: calc(100vw - 36px);
+    padding: 6px;
+    border-radius: 12px;
+    background: hsl(var(--card) / 0.82);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+  }
+  .intro-tweak__label {
+    padding: 0 6px 0 4px;
+    color: hsl(var(--muted-foreground));
+    opacity: 0.8;
+  }
+  .intro-tweak button {
+    font: inherit;
+    color: hsl(var(--muted-foreground));
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: 0.15s;
+    white-space: nowrap;
+  }
+  .intro-tweak button:hover {
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.6);
+  }
+  .intro-tweak button.on {
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.45);
+    background: hsl(var(--primary) / 0.08);
+  }
+  .intro-tweak #intro-replay {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+  .intro-tweak__sep {
+    width: 1px;
+    align-self: stretch;
+    margin: 2px 2px;
+    background: hsl(var(--border));
+  }
+
+  /* ── variant 2 · fullscreen CRT boot ── */
+  .intro-crt {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(120% 120% at 50% 42%, #0a1117 0%, #04070a 100%);
+    color: #d7f5e6;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: clamp(11px, 1.5vw, 16px);
+    line-height: 1.72;
+    text-shadow: 0 0 6px rgba(125, 211, 252, 0.22);
+    transform-origin: 50% 50%;
+    animation: intro-crt-flicker 4s infinite steps(40);
+  }
+  .intro-crt__inner {
+    position: absolute;
+    inset: 0;
+    padding: clamp(22px, 5.5vh, 70px) clamp(20px, 6vw, 96px);
+    overflow: hidden;
+  }
+  .intro-crt::after {
+    /* scanlines */
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
+  }
+  .intro-crt__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 220px 70px rgba(0, 0, 0, 0.72);
+  }
+  .intro-crt .ln {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .intro-crt .p {
+    color: #7dd3fc;
+  }
+  .intro-crt .ok {
+    color: #41d18a;
+  }
+  .intro-crt .dim {
+    color: #5e7385;
+  }
+  .intro-crt .c {
+    color: #7dd3fc;
+  }
+  .intro-crt .hd {
+    color: #9effd0;
+  }
+  .intro-crt .art {
+    color: #7dd3fc;
+    white-space: pre;
+    line-height: 1.12;
+    text-shadow: 0 0 16px rgba(125, 211, 252, 0.4);
+  }
+  .intro-crt .cr {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.05em;
+    background: #7dd3fc;
+    margin-left: 2px;
+    transform: translateY(2px);
+    box-shadow: 0 0 8px rgba(125, 211, 252, 0.7);
+    animation: intro-blink 1s steps(1) infinite;
+  }
+  .intro-crt.intro-crt--off {
+    animation: intro-crt-off 0.55s ease-in forwards;
+  }
+  @keyframes intro-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  @keyframes intro-crt-flicker {
+    0%, 46%, 54%, 100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.06);
+    }
+    52% {
+      filter: brightness(0.96);
+    }
+  }
+  @keyframes intro-crt-off {
+    0% {
+      transform: scale(1, 1);
+      opacity: 1;
+      filter: brightness(1.3);
+    }
+    48% {
+      transform: scale(1, 0.004);
+      opacity: 1;
+      filter: brightness(3.2);
+    }
+    70% {
+      transform: scale(1, 0.004);
+      filter: brightness(3.2);
+    }
+    100% {
+      transform: scale(0, 0.004);
+      opacity: 0;
+      filter: brightness(3.4);
+    }
+  }
+
+  /* ── variant 3 · kinetic type ── */
+  .intro-kin {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .intro-kin .wd {
+    position: absolute;
+    display: flex;
+    gap: 0.02em;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    font-size: clamp(56px, 13vw, 170px);
+    color: hsl(var(--foreground));
+  }
+  .intro-kin .ch {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.9em);
+    font-variation-settings: 'wght' 200;
+  }
+  .intro-kin .wd.in .ch {
+    animation: intro-rise 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .intro-kin .wd.out {
+    animation: intro-leave 0.45s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+  }
+  .intro-kin .ac {
+    color: hsl(var(--primary));
+  }
+  .intro-kin .th {
+    font-weight: 200;
+  }
+  .intro-kin__bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 42vw;
+    left: -46vw;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.16),
+      hsl(var(--primary) / 0.5) 92%,
+      hsl(var(--primary))
+    );
+    box-shadow: 0 0 80px 20px hsl(var(--primary) / 0.18);
+  }
+  .intro-kin__bar.go {
+    animation: intro-wipe 1.05s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+  }
+  @keyframes intro-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(0.9em);
+      font-variation-settings: 'wght' 200;
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+      font-variation-settings: 'wght' 800;
+    }
+  }
+  @keyframes intro-leave {
+    to {
+      opacity: 0;
+      transform: translateY(-0.35em);
+      filter: blur(6px);
+    }
+  }
+  @keyframes intro-wipe {
+    to {
+      left: 104vw;
+    }
+  }
+
+  /* ── variant 4 · multi-agent orchestration ── */
+  .intro-agent {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+  .intro-agent__cap {
+    position: absolute;
+    top: 7%;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    text-align: center;
+    color: hsl(var(--primary));
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+  .intro-agent__cap.show {
+    opacity: 0.78;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-overlay {
+      display: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  ;(function () {
+    var overlay = document.getElementById('intro-overlay')
+    var stage = document.getElementById('intro-stage')
+    var panel = document.getElementById('intro-tweak')
+    if (!overlay || !stage) return
+
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+    var active = null
+    var exiting = false
+
+    function getVariant() {
+      try {
+        var v = localStorage.getItem('intro-variant') || '2'
+        return /^(1|2|3|4)$/.test(v) ? v : '2'
+      } catch (e) {
+        return '2'
+      }
+    }
+    function setVariant(v) {
+      try {
+        localStorage.setItem('intro-variant', v)
+      } catch (e) {}
+      highlight(v)
+    }
+    function highlight(v) {
+      if (!panel) return
+      var btns = panel.querySelectorAll('[data-variant]')
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.toggle('on', btns[i].getAttribute('data-variant') === v)
+      }
+    }
+    function stopActive() {
+      if (active && active.stop) {
+        try {
+          active.stop()
+        } catch (e) {}
+      }
+      active = null
+    }
+    function hideOverlay() {
+      stopActive()
+      overlay.classList.add('intro-idle')
+      overlay.classList.remove('intro-done')
+      stage.innerHTML = ''
+    }
+    function reveal() {
+      if (exiting) return
+      exiting = true
+      overlay.classList.add('intro-done')
+      setTimeout(hideOverlay, 950)
+    }
+    function crtExit(screen) {
+      // variant 2's own outro: CRT power-off collapse, then hide
+      if (exiting) return
+      exiting = true
+      if (screen) screen.classList.add('intro-crt--off')
+      setTimeout(hideOverlay, 560)
+    }
+    function play() {
+      stopActive()
+      exiting = false
+      stage.innerHTML = ''
+      overlay.classList.remove('intro-idle')
+      overlay.classList.remove('intro-done')
+      try {
+        sessionStorage.setItem('intro-seen', '1')
+      } catch (e) {}
+      var v = getVariant()
+      highlight(v)
+      if (v === '2') active = playTerminal(stage)
+      else if (v === '3') active = playKinetic(stage, reveal)
+      else if (v === '4') active = playMultiAgent(stage, reveal)
+      else active = playConstellation(stage, reveal)
+    }
+
+    // ── variant 1 · constellation ───────────────────────────────────────────
+    function playConstellation(stage, done) {
+      var canvas = document.createElement('canvas')
+      canvas.className = 'intro-canvas'
+      stage.appendChild(canvas)
+      var context = document.createElement('div')
+      context.className = 'intro-run'
+      var task = document.createElement('div')
+      task.className = 'intro-task'
+      task.textContent = 'task: compose joye.dev/home'
+      context.appendChild(task)
+      var toolsWrap = document.createElement('div')
+      toolsWrap.className = 'intro-tools'
+      var TOOLS = [
+        { call: 'agent.runtime()', shards: ['plan', 'loop'], pos: [50, 15] },
+        { call: 'mcp.filesystem()', shards: ['posts', 'projects'], pos: [22, 27] },
+        { call: 'mcp.github()', shards: ['OpenHarness', 'ship log'], pos: [78, 29] },
+        { call: 'memory.search()', shards: ['design taste', 'frontend'], pos: [22, 56] },
+        { call: 'examples.unitize()', shards: ['tool call', 'UI case'], pos: [78, 56] },
+        { call: 'merge_context()', shards: ['identity', 'JOYE'], pos: [50, 82] }
+      ]
+      for (var ti = 0; ti < TOOLS.length; ti++) {
+        var item = TOOLS[ti]
+        var tool = document.createElement('div')
+        tool.className = 'intro-tool'
+        tool.style.left = item.pos[0] + '%'
+        tool.style.top = item.pos[1] + '%'
+        tool.style.transitionDelay = (0.12 + ti * 0.08) + 's'
+        var head = document.createElement('div')
+        head.className = 'intro-tool__head'
+        var call = document.createElement('span')
+        call.className = 'intro-tool__call'
+        call.textContent = item.call
+        var status = document.createElement('span')
+        status.className = 'intro-tool__status'
+        status.textContent = 'ok'
+        head.appendChild(call)
+        head.appendChild(status)
+        tool.appendChild(head)
+        var shards = document.createElement('div')
+        shards.className = 'intro-shards'
+        for (var si = 0; si < item.shards.length; si++) {
+          var shard = document.createElement('span')
+          shard.className = 'intro-shard'
+          shard.textContent = item.shards[si]
+          shard.style.transitionDelay = (0.24 + ti * 0.07 + si * 0.08) + 's'
+          shards.appendChild(shard)
+        }
+        tool.appendChild(shards)
+        toolsWrap.appendChild(tool)
+      }
+      context.appendChild(toolsWrap)
+      var merge = document.createElement('div')
+      merge.className = 'intro-merge'
+      merge.textContent = 'merge: context shards → JOYE'
+      context.appendChild(merge)
+      stage.appendChild(context)
+      var enter = document.createElement('button')
+      enter.className = 'intro-enter'
+      enter.type = 'button'
+      enter.textContent = location.pathname.indexOf('/en') === 0 ? 'enter ~/joye →' : '进入 ~/joye →'
+      enter.setAttribute('aria-label', enter.textContent)
+      stage.appendChild(enter)
+      var trace = document.createElement('div')
+      trace.className = 'intro-trace'
+      trace.textContent = 'agent loop complete · context merged'
+      stage.appendChild(trace)
+      var ctx = canvas.getContext('2d')
+      var root = document.documentElement
+      var dark = root.classList.contains('dark')
+      var styles = getComputedStyle(root)
+      function parseHSL(v) {
+        var m = String(v).trim().match(/([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/)
+        return m ? { h: +m[1], s: +m[2], l: +m[3] } : { h: 200, s: 30, l: 50 }
+      }
+      var PRI = parseHSL(styles.getPropertyValue('--primary'))
+      var baseL = dark ? PRI.l : Math.min(PRI.l, 40)
+      var sat = dark ? PRI.s : Math.min(PRI.s + 18, 62)
+      var SPAN = dark ? 18 : 14
+      var linkA = dark ? 0.1 : 0.18
+      function dot(k, a) {
+        var l = Math.max(4, Math.min(96, baseL + (k - 0.5) * SPAN))
+        return 'hsl(' + PRI.h + ' ' + sat + '% ' + l + '% / ' + a + ')'
+      }
+      var linkColor = 'hsl(' + PRI.h + ' ' + sat + '% ' + baseL + '%'
+      var W = 0, H = 0, DPR = 1, particles = [], phase = 'gather', t0 = 0, raf = 0, stopped = false
+      var mouse = { x: -1e9, y: -1e9 }
+      var enterShown = false, exitingLocal = false, autoExit = 0, revealDelay = 0, scatterStart = 0
+      function showEnter() {
+        if (enterShown || exitingLocal || stopped) return
+        enterShown = true
+        context.classList.add('merge')
+        enter.classList.add('show')
+        trace.classList.add('show')
+        autoExit = setTimeout(beginExit, 12000)
+      }
+      function beginExit() {
+        if (exitingLocal || stopped) return
+        exitingLocal = true
+        phase = 'scatter'
+        scatterStart = 0
+        context.classList.add('leaving')
+        enter.classList.remove('show')
+        trace.classList.remove('show')
+        enter.disabled = true
+        clearTimeout(autoExit)
+        revealDelay = setTimeout(done, 850)
+      }
+      function onEnter(e) {
+        e.stopPropagation()
+        beginExit()
+      }
+      function vw() { return innerWidth || document.documentElement.clientWidth || 1280 }
+      function vh() { return innerHeight || document.documentElement.clientHeight || 800 }
+      function resize() {
+        DPR = Math.min(devicePixelRatio || 1, 2)
+        var w = vw(), h = vh()
+        W = canvas.width = Math.round(w * DPR)
+        H = canvas.height = Math.round(h * DPR)
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+      }
+      function sampleText(text) {
+        if (!W || !H) return []
+        var off = document.createElement('canvas')
+        off.width = W
+        off.height = H
+        var o = off.getContext('2d')
+        o.fillStyle = '#fff'
+        o.textBaseline = 'middle'
+        o.textAlign = 'left'
+        var tracking = 0.18
+        var size = Math.min(H * 0.4, W * 0.32)
+        function setFont() { o.font = '700 ' + size + 'px Satoshi, system-ui, sans-serif' }
+        setFont()
+        function advance() {
+          var w = 0
+          for (var i = 0; i < text.length; i++) w += o.measureText(text[i]).width + size * tracking
+          return w - size * tracking
+        }
+        var maxW = W * 0.72
+        if (advance() > maxW) { size *= maxW / advance(); setFont() }
+        var x = (W - advance()) / 2
+        var y = H * 0.47
+        for (var i = 0; i < text.length; i++) {
+          o.fillText(text[i], x, y)
+          x += o.measureText(text[i]).width + size * tracking
+        }
+        var data = o.getImageData(0, 0, W, H).data
+        var gap = Math.max(5, Math.round(7 * DPR))
+        var pts = []
+        for (var yy = 0; yy < H; yy += gap)
+          for (var xx = 0; xx < W; xx += gap)
+            if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy })
+        return pts
+      }
+      function build() {
+        var pts = sampleText('JOYE')
+        while (particles.length < pts.length)
+          particles.push({ x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, sx: 0, sy: 0, r: (Math.random() * 0.9 + 0.7) * DPR, tw: Math.random() * 6.28, delay: 0, drift: Math.random() * 6.28 })
+        particles.length = pts.length
+        pts.sort(function () { return Math.random() - 0.5 })
+        for (var i = 0; i < particles.length; i++) {
+          var source = TOOLS[i % TOOLS.length].pos
+          particles[i].tx = pts[i].x
+          particles[i].ty = pts[i].y
+          particles[i].sx = W * source[0] / 100 + (Math.random() - 0.5) * 150 * DPR
+          particles[i].sy = H * source[1] / 100 + (Math.random() - 0.5) * 76 * DPR
+          particles[i].delay = 0.9 + (i % TOOLS.length) * 0.16 + Math.random() * 0.85
+          if (!particles[i].drift) particles[i].drift = Math.random() * 6.28
+        }
+      }
+      function frame(ts) {
+        if (stopped) return
+        if (!t0) t0 = ts
+        var el = (ts - t0) / 1000
+        if (phase === 'scatter' && !scatterStart) scatterStart = ts
+        var scatterAge = scatterStart ? (ts - scatterStart) / 1000 : 0
+        ctx.clearRect(0, 0, W, H)
+        if (el > 0.12) context.classList.add('start')
+        if (el > 0.72) context.classList.add('invoke')
+        if (el > 1.55) context.classList.add('compose')
+        if (el > 2.95 && phase !== 'scatter') context.classList.add('merge')
+        if (el > 3.7 && phase === 'gather') phase = 'hold'
+        if (el > 4.35 && phase === 'hold') showEnter()
+        var ease = phase === 'gather' ? 0.045 : phase === 'hold' ? 0.11 : 0.018
+        if (phase !== 'scatter' && el > 0.72) {
+          var linkFade = Math.min(1, (el - 0.72) / 0.75)
+          if (el > 2.85) linkFade *= Math.max(0.18, 1 - (el - 2.85) / 1.2)
+          ctx.lineWidth = DPR * 0.7
+          for (var li = 0; li < TOOLS.length; li++) {
+            var src = TOOLS[li].pos
+            ctx.strokeStyle = linkColor + ' / ' + (0.085 * linkFade) + ')'
+            ctx.beginPath()
+            ctx.moveTo(W * src[0] / 100, H * src[1] / 100)
+            ctx.quadraticCurveTo(W / 2, H * 0.35, W / 2, H * 0.47)
+            ctx.stroke()
+          }
+        }
+        if (phase !== 'scatter') {
+          ctx.lineWidth = DPR * 0.6
+          for (var i = 0; i < particles.length; i += 2) {
+            var p = particles[i]
+            for (var j = i + 2; j < i + 10 && j < particles.length; j++) {
+              var q = particles[j]
+              var dx = p.x - q.x, dy = p.y - q.y, d2 = dx * dx + dy * dy, R = 26 * DPR
+              if (d2 < R * R) {
+                ctx.strokeStyle = linkColor + ' / ' + (linkA * (1 - d2 / (R * R))) + ')'
+                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke()
+              }
+            }
+          }
+        }
+        for (var k = 0; k < particles.length; k++) {
+          var pt = particles[k]
+          if (phase === 'scatter') {
+            var odx = (pt.x - W / 2) / Math.max(W, 1)
+            pt.vx += (Math.random() - 0.5) * 0.16 * DPR + odx * 0.09 * DPR
+            pt.vy += ((Math.random() - 0.5) * 0.08 - 0.11) * DPR
+          } else {
+            var pull = phase === 'hold' ? 1 : Math.max(0, Math.min(1, (el - pt.delay) / 2.05))
+            if (pull < 1) {
+              pt.vx += Math.sin(el * 0.9 + pt.drift) * 0.012 * DPR
+              pt.vy += Math.cos(el * 0.7 + pt.drift) * 0.012 * DPR
+            }
+            var localEase = ease * (0.2 + pull * 0.8)
+            pt.vx += (pt.tx - pt.x) * localEase * pull
+            pt.vy += (pt.ty - pt.y) * localEase * pull
+            var mdx = pt.x - mouse.x, mdy = pt.y - mouse.y, md2 = mdx * mdx + mdy * mdy, MR = 110 * DPR
+            if (md2 < MR * MR) { var f = (1 - md2 / (MR * MR)) * 4, d = Math.sqrt(md2) || 1; pt.vx += (mdx / d) * f; pt.vy += (mdy / d) * f }
+          }
+          var damp = phase === 'scatter' ? 0.91 : 0.87
+          pt.vx *= damp; pt.vy *= damp; pt.x += pt.vx; pt.y += pt.vy; pt.tw += 0.05
+          var near = (pt.x - pt.tx) * (pt.x - pt.tx) + (pt.y - pt.ty) * (pt.y - pt.ty) < (8 * DPR) * (8 * DPR)
+          var tw = (dark ? 0.6 : 0.8) + Math.sin(pt.tw) * (dark ? 0.22 : 0.15)
+          var fade = phase === 'scatter' ? Math.max(0, 1 - scatterAge / 1.45) : 1
+          var born = (phase === 'scatter' || phase === 'hold') ? 1 : Math.max(0, Math.min(1, (el - pt.delay + 0.28) / 0.55))
+          var a = phase === 'scatter' ? (dark ? 0.5 : 0.62) * fade : (near ? (dark ? 0.95 : 1) : dark ? 0.7 : 0.86) * tw
+          a *= born
+          ctx.beginPath()
+          ctx.fillStyle = dot(pt.x / W, Math.min(1, a))
+          ctx.arc(pt.x, pt.y, pt.r * (near ? 1.25 : 1) * (phase === 'scatter' ? 0.95 + scatterAge * 0.08 : 1), 0, 7)
+          ctx.fill()
+        }
+        raf = requestAnimationFrame(frame)
+      }
+      function onMove(e) { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR }
+      function onLeave() { mouse.x = -1e9; mouse.y = -1e9 }
+      function onResize() { if (!stopped) { resize(); build() } }
+      enter.addEventListener('click', onEnter)
+      addEventListener('mousemove', onMove)
+      addEventListener('mouseleave', onLeave)
+      addEventListener('resize', onResize)
+      resize(); build()
+      if (particles.length === 0) { done() }
+      else {
+        for (var i = 0; i < particles.length; i++) {
+          particles[i].x = particles[i].sx
+          particles[i].y = particles[i].sy
+          particles[i].vx = (Math.random() - 0.5) * DPR
+          particles[i].vy = (Math.random() - 0.5) * DPR
+        }
+        raf = requestAnimationFrame(frame)
+      }
+      return {
+        blockOverlayClick: true,
+        stop: function () {
+          stopped = true
+          clearTimeout(autoExit)
+          clearTimeout(revealDelay)
+          cancelAnimationFrame(raf)
+          enter.removeEventListener('click', onEnter)
+          removeEventListener('mousemove', onMove)
+          removeEventListener('mouseleave', onLeave)
+          removeEventListener('resize', onResize)
+        }
+      }
+    }
+
+    // ── variant 2 · fullscreen CRT boot ──────────────────────────────────────
+    function playTerminal(stage) {
+      var screen = document.createElement('div')
+      screen.className = 'intro-crt'
+      screen.innerHTML = '<div class="intro-crt__inner"></div><div class="intro-crt__vignette"></div>'
+      stage.appendChild(screen)
+      var out = screen.querySelector('.intro-crt__inner')
+      var timers = [], stopped = false
+      function sleep(ms) { return new Promise(function (r) { timers.push(setTimeout(r, ms)) }) }
+      function line(html, cls) { var d = document.createElement('div'); d.className = 'ln ' + (cls || ''); d.innerHTML = html; out.appendChild(d); return d }
+      function boot(ts, label) { return line('<span class="dim">[ ' + ts + ' ]</span> ' + label + ' <span class="ok">[  OK  ]</span>') }
+      function caret(prefix, cmd, sp) {
+        sp = sp || 32
+        var el = line('<span class="p">' + prefix + '</span> ')
+        var c = document.createElement('span'); c.className = 'cr'; el.appendChild(c)
+        var i = 0
+        return new Promise(function (resolve) {
+          function step() {
+            if (stopped) return resolve()
+            if (i >= cmd.length) { timers.push(setTimeout(function () { c.remove(); resolve() }, 220)); return }
+            c.parentNode.insertBefore(document.createTextNode(cmd[i]), c); i++
+            timers.push(setTimeout(step, sp))
+          }
+          step()
+        })
+      }
+      var ART = '   ___ ___  _   _ ___\n  |_  / _ \\| | | | __|\n   / / (_) | |_| | _|\n  /___\\___/ \\___/|___|'
+      ;(async function () {
+        await sleep(200); if (stopped) return
+        line('<span class="hd">JoyeOS 4.8.0</span> <span class="dim">(tty1)</span>')
+        line('&nbsp;'); await sleep(180)
+        boot('0.000000', 'Booting <span class="hd">joye.dev</span> kernel'); await sleep(85)
+        boot('0.013002', 'Loading design-system'); await sleep(80)
+        boot('0.041190', 'Mounting /home/joye'); await sleep(80)
+        boot('0.072551', 'Starting personality daemon (<span class="c">JoJo</span>)'); await sleep(80)
+        line('<span class="dim">[ 0.105324 ]</span> compiling <span class="dim">8 years of</span> frontend <span class="p">→</span> ai-agent'); await sleep(120)
+        boot('0.151002', 'Initializing multi-agent runtime'); await sleep(280); if (stopped) return
+        var a = line('', 'art'); a.textContent = ART; await sleep(200)
+        line('&nbsp;'); await sleep(140)
+        await caret('joye@dev:~$', 'whoami'); if (stopped) return
+        line('<span class="hd">Joye</span> <span class="dim">· Full-Stack &amp; AI Agent Developer · Melbourne 🇦🇺</span>'); await sleep(440)
+        await caret('joye@dev:~$', 'open ~/'); await sleep(180)
+        line('<span class="dim">[ launching interface ... ]</span>'); await sleep(360)
+        if (!stopped) crtExit(screen)
+      })()
+      return { stop: function () { stopped = true; for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]); timers = [] } }
+    }
+
+    // ── variant 3 · kinetic type ─────────────────────────────────────────────
+    function playKinetic(stage, done) {
+      var kin = document.createElement('div'); kin.className = 'intro-kin'
+      var bar = document.createElement('div'); bar.className = 'intro-kin__bar'
+      var seq = document.createElement('div'); seq.style.position = 'absolute'; seq.style.inset = '0'
+      seq.style.display = 'grid'; seq.style.placeItems = 'center'
+      kin.appendChild(bar); kin.appendChild(seq); stage.appendChild(kin)
+      var timers = [], stopped = false
+      function sleep(ms) { return new Promise(function (r) { timers.push(setTimeout(r, ms)) }) }
+      var WORDS = [
+        [{ t: 'FRONT' }, { t: 'END', c: 'ac' }],
+        [{ t: 'DESIGN' }],
+        [{ t: '×', c: 'th' }, { t: ' AI', c: 'ac' }],
+        [{ t: 'JOYE' }]
+      ]
+      function makeWord(parts) {
+        var w = document.createElement('div'); w.className = 'wd'
+        parts.forEach(function (p) {
+          var s = document.createElement('span'); if (p.c) s.className = p.c
+          for (var i = 0; i < p.t.length; i++) {
+            var c = document.createElement('span'); c.className = 'ch'
+            c.textContent = p.t[i] === ' ' ? ' ' : p.t[i]
+            c.style.animationDelay = i * 0.045 + 's'
+            s.appendChild(c)
+          }
+          w.appendChild(s)
+        })
+        return w
+      }
+      async function show(parts, hold, last) {
+        if (stopped) return null
+        var w = makeWord(parts); seq.appendChild(w)
+        bar.classList.remove('go'); void bar.offsetWidth; bar.classList.add('go')
+        await sleep(140); if (stopped) return w
+        w.classList.add('in')
+        await sleep(hold)
+        if (!last && !stopped) { w.classList.add('out'); await sleep(420); w.remove() }
+        return w
+      }
+      ;(async function () {
+        await sleep(220)
+        await show(WORDS[0], 720); await show(WORDS[1], 600); await show(WORDS[2], 680)
+        var j = await show(WORDS[3], 820, true); if (stopped) return
+        await sleep(160); if (j) j.classList.add('out'); await sleep(320)
+        if (!stopped) done()
+      })()
+      return { stop: function () { stopped = true; for (var i = 0; i < timers.length; i++) clearTimeout(timers[i]); timers = []; kin.remove() } }
+    }
+
+    // ── variant 4 · multi-agent orchestration ────────────────────────────────
+    function playMultiAgent(stage, done) {
+      var wrap = document.createElement('div'); wrap.className = 'intro-agent'
+      var canvas = document.createElement('canvas'); canvas.className = 'intro-canvas'
+      var cap = document.createElement('div'); cap.className = 'intro-agent__cap'; cap.textContent = 'multi-agent runtime'
+      wrap.appendChild(canvas); wrap.appendChild(cap); stage.appendChild(wrap)
+      var ctx = canvas.getContext('2d')
+      if (!ctx) { done(); return { stop: function () { wrap.remove() } } }
+
+      var root = document.documentElement
+      var styles = getComputedStyle(root)
+      var dark = root.classList.contains('dark')
+      function parseHSL(v) {
+        var m = String(v).trim().match(/([\d.]+)\s+([\d.]+)%\s+([\d.]+)%/)
+        return m ? { h: +m[1], s: +m[2], l: +m[3] } : { h: 200, s: 36, l: 56 }
+      }
+      var PRI = parseHSL(styles.getPropertyValue('--primary'))
+      var SAT = Math.min(90, PRI.s + 16)
+      function tone(l, a) { return 'hsl(' + PRI.h + ' ' + SAT + '% ' + l + '% / ' + a + ')' }
+      function textTone(a) { return dark ? 'rgba(250,249,248,' + a + ')' : 'rgba(24,30,36,' + a + ')' }
+
+      var W = 0, H = 0, DPR = 1, raf = 0, t0 = 0, stopped = false, converged = false, finished = false
+      var nodes = [], edges = [], messages = [], schedule = [], schedPtr = 0, parts = []
+      var ROLES = ['planner', 'router', 'search', 'code', 'memory', 'judge', 'tool', 'writer']
+
+      function vw() { return innerWidth || document.documentElement.clientWidth || 1280 }
+      function vh() { return innerHeight || document.documentElement.clientHeight || 800 }
+      function resize() {
+        DPR = Math.min(devicePixelRatio || 1, 2)
+        var w = vw(), h = vh()
+        W = canvas.width = Math.round(w * DPR)
+        H = canvas.height = Math.round(h * DPR)
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+      }
+      function buildGraph() {
+        nodes = []; edges = []
+        var cx = W / 2, cy = H * 0.45
+        var roles = W / DPR < 560 ? ['plan', 'route', 'code', 'memory', 'judge', 'write'] : ROLES
+        var R = Math.min(W, H) * (roles.length > 6 ? 0.3 : 0.33)
+        nodes.push({ x: cx, y: cy, label: 'orchestrator', hub: true, act: 0, appear: 0, r: 7 * DPR })
+        for (var i = 0; i < roles.length; i++) {
+          var a = -Math.PI / 2 + (i / roles.length) * Math.PI * 2
+          var jitter = Math.sin(i * 12.9) * R * 0.05
+          nodes.push({ x: cx + Math.cos(a) * (R + jitter), y: cy + Math.sin(a) * (R + jitter), label: roles[i], hub: false, act: 0, appear: 0.18 + i * 0.06, r: 5.5 * DPR })
+        }
+        for (var j = 1; j < nodes.length; j++) edges.push({ a: 0, b: j, appear: 0.4 + j * 0.05, lit: 0 })
+        for (var k = 1; k < nodes.length; k++) edges.push({ a: k, b: (k % roles.length) + 1, appear: 0.8 + k * 0.03, lit: 0 })
+        buildSchedule()
+      }
+      function buildSchedule() {
+        schedule = []; schedPtr = 0
+        for (var i = 1; i < nodes.length; i++) schedule.push({ t: 0.95 + i * 0.055, a: 0, b: i })
+        for (var j = 1; j < nodes.length; j++) schedule.push({ t: 1.5 + j * 0.05, a: j, b: (j % (nodes.length - 1)) + 1 })
+        for (var k = 1; k < nodes.length; k++) schedule.push({ t: 2.05 + k * 0.05, a: k, b: 0 })
+        schedule.sort(function (a, b) { return a.t - b.t })
+      }
+      function sampleJOYE() {
+        var off = document.createElement('canvas')
+        off.width = W; off.height = H
+        var o = off.getContext('2d')
+        o.fillStyle = '#fff'; o.textBaseline = 'middle'; o.textAlign = 'left'
+        var tracking = 0.18, size = Math.min(H * 0.4, W * 0.34)
+        function setFont() { o.font = '700 ' + size + 'px Satoshi, system-ui, sans-serif' }
+        setFont()
+        function advance() {
+          var w = 0
+          for (var i = 0; i < 4; i++) w += o.measureText('JOYE'[i]).width + size * tracking
+          return w - size * tracking
+        }
+        if (advance() > W * 0.74) { size *= (W * 0.74) / advance(); setFont() }
+        var x = (W - advance()) / 2, y = H * 0.45
+        for (var i = 0; i < 4; i++) { var ch = 'JOYE'[i]; o.fillText(ch, x, y); x += o.measureText(ch).width + size * tracking }
+        var data = o.getImageData(0, 0, W, H).data
+        var gap = Math.max(5, Math.round(7 * DPR))
+        var pts = []
+        for (var yy = 0; yy < H; yy += gap)
+          for (var xx = 0; xx < W; xx += gap)
+            if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy })
+        return pts
+      }
+      function spawnMessage(a, b) {
+        for (var i = 0; i < edges.length; i++) {
+          var e = edges[i]
+          if ((e.a === a && e.b === b) || (e.a === b && e.b === a)) e.lit = 1
+        }
+        messages.push({ a: a, b: b, t: 0, dur: 0.5 })
+      }
+      function converge() {
+        converged = true; cap.classList.remove('show')
+        var pts = sampleJOYE()
+        if (pts.length === 0) { finished = true; done(); return }
+        parts = []
+        for (var i = 0; i < pts.length; i++) {
+          var src = nodes[(Math.random() * nodes.length) | 0]
+          parts.push({ x: src.x, y: src.y, vx: 0, vy: 0, tx: pts[i].x, ty: pts[i].y, r: (Math.random() * 0.9 + 0.7) * DPR })
+        }
+      }
+      function frame(ts) {
+        if (stopped) return
+        if (!t0) t0 = ts
+        var el = (ts - t0) / 1000
+        ctx.clearRect(0, 0, W, H)
+        if (el > 1.4 && !converged) cap.classList.add('show')
+        if (el > 2.65 && !converged) converge()
+        if (converged && el > 3.8 && !finished) { finished = true; done() }
+
+        if (!converged) {
+          while (schedPtr < schedule.length && el >= schedule[schedPtr].t) { var s = schedule[schedPtr++]; spawnMessage(s.a, s.b) }
+          for (var i = 0; i < edges.length; i++) {
+            var edge = edges[i], ap = Math.max(0, Math.min(1, (el - edge.appear) / 0.5))
+            if (ap <= 0) continue
+            var A = nodes[edge.a], B = nodes[edge.b]
+            ctx.strokeStyle = tone(dark ? 68 : 46, (0.1 + edge.lit * 0.35) * ap)
+            ctx.lineWidth = (0.7 + edge.lit * 1.2) * DPR
+            ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.stroke()
+            edge.lit *= 0.92
+          }
+          for (var j = 0; j < messages.length; j++) {
+            var m = messages[j]
+            m.t += 0.016 / m.dur
+            var MA = nodes[m.a], MB = nodes[m.b], ease = m.t < 1 ? m.t * m.t * (3 - 2 * m.t) : 1
+            var mx = MA.x + (MB.x - MA.x) * ease, my = MA.y + (MB.y - MA.y) * ease
+            ctx.beginPath(); ctx.fillStyle = tone(dark ? 82 : 38, 0.95); ctx.shadowColor = tone(dark ? 76 : 45, 0.9); ctx.shadowBlur = 10 * DPR
+            ctx.arc(mx, my, 2.4 * DPR, 0, 7); ctx.fill(); ctx.shadowBlur = 0
+            if (m.t >= 1) MB.act = 1
+          }
+          messages = messages.filter(function (m) { return m.t < 1 })
+          for (var k = 0; k < nodes.length; k++) {
+            var n = nodes[k], nap = Math.max(0, Math.min(1, (el - n.appear) / 0.3))
+            if (nap <= 0) continue
+            n.act *= 0.94
+            var rr = n.r * nap * (1 + n.act * 0.5)
+            if (n.act > 0.02) { ctx.beginPath(); ctx.fillStyle = tone(dark ? 72 : 44, 0.12 * n.act); ctx.arc(n.x, n.y, rr * 3.4, 0, 7); ctx.fill() }
+            ctx.beginPath(); ctx.fillStyle = dark ? 'rgba(13, 20, 28, 0.9)' : 'rgba(255, 255, 255, 0.82)'; ctx.arc(n.x, n.y, rr, 0, 7); ctx.fill()
+            ctx.lineWidth = (n.hub ? 2 : 1.4) * DPR
+            ctx.strokeStyle = tone(n.hub ? (dark ? 72 : 43) : (dark ? 78 : 48), (0.55 + n.act * 0.45) * nap)
+            ctx.beginPath(); ctx.arc(n.x, n.y, rr, 0, 7); ctx.stroke()
+            ctx.font = (n.hub ? 12 : 11) * DPR + 'px JetBrains Mono, monospace'
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+            ctx.fillStyle = n.act > 0.3 ? tone(dark ? 84 : 35, nap) : textTone((0.48 + n.act * 0.28) * nap)
+            ctx.fillText(n.label, n.x, n.y + rr + 11 * DPR)
+          }
+        } else {
+          var since = el - 2.65
+          var nodeA = Math.max(0, 1 - since * 1.6)
+          if (nodeA > 0.02) {
+            for (var eix = 0; eix < edges.length; eix++) { var ge = edges[eix], GA = nodes[ge.a], GB = nodes[ge.b]; ctx.strokeStyle = tone(dark ? 68 : 46, 0.08 * nodeA); ctx.lineWidth = 0.7 * DPR; ctx.beginPath(); ctx.moveTo(GA.x, GA.y); ctx.lineTo(GB.x, GB.y); ctx.stroke() }
+            for (var nix = 0; nix < nodes.length; nix++) { var gn = nodes[nix]; ctx.beginPath(); ctx.fillStyle = tone(dark ? 72 : 43, 0.5 * nodeA); ctx.arc(gn.x, gn.y, gn.r, 0, 7); ctx.fill() }
+          }
+          for (var pix = 0; pix < parts.length; pix++) {
+            var p = parts[pix]
+            if (finished) { p.vx += (Math.random() - 0.5) * 0.6 * DPR; p.vy += ((Math.random() - 0.5) * 0.6 - 0.12) * DPR }
+            else { p.vx += (p.tx - p.x) * 0.12; p.vy += (p.ty - p.y) * 0.12 }
+            p.vx *= 0.84; p.vy *= 0.84; p.x += p.vx; p.y += p.vy
+            var shade = dark ? 74 + (p.x / W) * 10 : 42 + (p.x / W) * 12
+            ctx.beginPath(); ctx.fillStyle = tone(shade, dark ? 0.92 : 0.98); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill()
+          }
+        }
+        raf = requestAnimationFrame(frame)
+      }
+      function onResize() { if (!stopped) { resize(); if (!converged) buildGraph() } }
+      addEventListener('resize', onResize)
+      resize(); buildGraph(); raf = requestAnimationFrame(frame)
+      return {
+        stop: function () { stopped = true; cancelAnimationFrame(raf); removeEventListener('resize', onResize); wrap.remove() }
+      }
+    }
+
+    // ── wiring ───────────────────────────────────────────────────────────────
+    var skipBtn = document.getElementById('intro-skip')
+    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    overlay.addEventListener('click', function () {
+      if (active && active.blockOverlayClick) return
+      reveal()
+    })
+    var replayBtn = document.getElementById('intro-replay')
+    if (replayBtn) replayBtn.addEventListener('click', function () { play() })
+    if (panel) {
+      var btns = panel.querySelectorAll('[data-variant]')
+      for (var i = 0; i < btns.length; i++) {
+        ;(function (b) {
+          b.addEventListener('click', function () { setVariant(b.getAttribute('data-variant')); play() })
+        })(btns[i])
+      }
+    }
+    highlight(getVariant())
+
+    // auto-play once per session
+    var seen = false
+    try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
+    if (!seen && !reduce) {
+      var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
+      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(play)
+    } else {
+      overlay.classList.add('intro-idle')
+    }
+  })()
+</script>

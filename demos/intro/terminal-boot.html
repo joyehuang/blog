@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · joye.init()</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1419;        /* site dark background */
+    --fg:#faf9f8;        /* near-white foreground */
+    --muted:#9aa6b2;
+    --cyan:#7dd3fc;      /* dark-mode primary */
+    --steel:#659eb9;     /* light-mode primary */
+    --ok:#41d18a;
+    --line:rgba(125,211,252,.14);
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+    --sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+    overflow:hidden;display:grid;place-items:center;
+  }
+
+  /* ── ambient background ── */
+  .stage{position:fixed;inset:0;display:grid;place-items:center}
+  .glow{position:fixed;inset:-20%;pointer-events:none;
+    background:
+      radial-gradient(40% 50% at 50% 38%, rgba(125,211,252,.10), transparent 70%),
+      radial-gradient(60% 60% at 70% 80%, rgba(101,158,185,.08), transparent 70%);
+    filter:blur(2px)}
+  .scan{position:fixed;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px)}
+  .sweep{position:fixed;left:0;right:0;height:40vh;pointer-events:none;
+    background:linear-gradient(180deg,transparent,rgba(125,211,252,.06),transparent);
+    transform:translateY(-50vh);animation:sweep 5.5s linear infinite}
+  @keyframes sweep{to{transform:translateY(150vh)}}
+  .vignette{position:fixed;inset:0;pointer-events:none;
+    box-shadow:inset 0 0 220px 40px rgba(0,0,0,.65)}
+
+  /* ── terminal window ── */
+  .term{
+    width:min(680px,90vw);background:rgba(13,18,24,.78);
+    border:1px solid rgba(125,211,252,.18);border-radius:12px;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02) inset;
+    backdrop-filter:blur(8px);overflow:hidden;
+    transition:transform .9s cubic-bezier(.7,0,.2,1),opacity .9s ease,filter .9s ease;
+  }
+  .term.gone{transform:scale(1.12) translateY(-8px);opacity:0;filter:blur(10px)}
+  .chrome{display:flex;align-items:center;gap:8px;padding:11px 14px;
+    background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.05)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+  .chrome .ttl{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .body{padding:20px 22px 26px;font-family:var(--mono);font-size:14px;line-height:1.85;
+    min-height:300px}
+  .row{white-space:pre-wrap;word-break:break-word}
+  .prompt{color:var(--cyan)}
+  .ok{color:var(--ok)}
+  .dim{color:var(--muted)}
+  .bar{color:var(--steel)}
+  .art{color:var(--cyan);line-height:1.15;font-size:clamp(9px,2.1vw,15px);text-shadow:0 0 18px rgba(125,211,252,.35)}
+  .caret{display:inline-block;width:9px;height:1.05em;background:var(--cyan);
+    margin-left:2px;transform:translateY(2px);animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* ── hero reveal ── */
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease .15s}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;
+    border:1px solid rgba(255,255,255,.14);object-fit:cover;
+    background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));
+    box-shadow:0 0 40px rgba(125,211,252,.25)}
+  .name{font-family:var(--sans);font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .tag{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);
+    font-size:14px;color:var(--fg);text-decoration:none;transition:.2s}
+  .pill:hover{border-color:rgba(125,211,252,.4);box-shadow:0 0 0 4px rgba(125,211,252,.08)}
+  .ping{position:relative;width:9px;height:9px}
+  .ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+
+  /* per-element stagger for hero */
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}
+  .hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}
+  .hero.show .card>*:nth-child(4){animation-delay:.36s}
+  .hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  /* controls */
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.5);z-index:20}
+
+  @media (prefers-reduced-motion:reduce){
+    .sweep,.caret,.ping i:first-child{animation:none}
+  }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="sweep"></div>
+  <div class="scan"></div>
+  <div class="vignette"></div>
+
+  <div class="stage">
+    <div class="term" id="term">
+      <div class="chrome">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="ttl">joye@dev — ~/site — zsh</span>
+      </div>
+      <div class="body" id="out"></div>
+    </div>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye"
+           onerror="this.style.background='conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel))';this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="tag">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">这是入场动画演示 · 真实站点里只在首次访问播放</div>
+  <div class="ctl">
+    <button id="skip">跳过 →</button>
+    <button id="replay">重播 ↻</button>
+  </div>
+
+<script>
+const out = document.getElementById('out');
+const term = document.getElementById('term');
+const hero = document.getElementById('hero');
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+let timers = [];
+const sleep = ms => new Promise(r => timers.push(setTimeout(r, reduce ? ms*0.2 : ms)));
+
+const ART = String.raw`
+   ___ ___  _   _ ___
+  |_  / _ \| | | | __|
+   / / (_) | |_| | _|
+  /___\___/ \___/|___|`;
+
+function line(html='', cls=''){
+  const d=document.createElement('div');
+  d.className='row '+cls; d.innerHTML=html; out.appendChild(d); return d;
+}
+
+async function type(el, text, speed=26){
+  for(const ch of text){ el.append(ch); await sleep(speed); }
+}
+
+async function caretLine(prefix, cmd, speed=34){
+  const el = line(`<span class="prompt">${prefix}</span> `);
+  const c = document.createElement('span'); c.className='caret'; el.append(c);
+  for(const ch of cmd){ c.before(ch); await sleep(speed); }
+  await sleep(260); c.remove();
+}
+
+async function progress(label){
+  const el = line(`<span class="ok">[ ok ]</span> ${label}  <span class="bar"></span>`);
+  const bar = el.querySelector('.bar');
+  const blocks=['░░░░░░░░░░','▓▓░░░░░░░░','▓▓▓▓▓░░░░░','▓▓▓▓▓▓▓▓░░','▓▓▓▓▓▓▓▓▓▓'];
+  for(const b of blocks){ bar.textContent = b + (b.includes('░')?'':' 100%'); await sleep(90); }
+}
+
+async function run(){
+  out.innerHTML=''; term.classList.remove('gone'); hero.classList.remove('show');
+  await sleep(300);
+  await caretLine('$', './joye --init');
+  await sleep(120);
+  await progress('booting joye.dev');
+  await progress('loading design-system');
+  line(`<span class="ok">[ ok ]</span> mounting personality module: <span style="color:var(--cyan)">JoJo</span> 🤖`);
+  await sleep(160);
+  line(`<span class="ok">[ ok ]</span> compiling <span class="dim">8 years of</span> frontend <span class="prompt">→</span> ai-agent`);
+  await sleep(420);
+  await caretLine('$', 'whoami');
+  const art = line('', 'art'); art.textContent = ART;
+  await sleep(120);
+  line(`<span class="dim">Joye · Full-Stack & AI Agent Developer · Melbourne 🇦🇺</span>`);
+  await sleep(520);
+  await caretLine('$', 'open ~/');
+  await sleep(360);
+
+  // hand off to hero
+  term.classList.add('gone');
+  await sleep(420);
+  hero.classList.add('show');
+}
+
+function finish(){ // skip straight to hero
+  timers.forEach(clearTimeout); timers=[];
+  term.classList.add('gone'); hero.classList.add('show');
+}
+
+document.getElementById('skip').onclick = finish;
+document.getElementById('replay').onclick = ()=>{ timers.forEach(clearTimeout); timers=[]; run(); };
+run();
+</script>
+</body>
+</html>

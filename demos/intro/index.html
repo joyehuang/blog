@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Joye · 入场动画方案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1419;--fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(120% 90% at 50% 0%,#141c25,#0b0f14 65%);
+    color:var(--fg);font-family:var(--sans);padding:64px 24px 80px}
+  .wrap{max-width:1040px;margin:0 auto}
+  h1{font-size:clamp(28px,5vw,46px);font-weight:900;letter-spacing:-.03em;margin:0 0 8px}
+  .sub{color:var(--muted);font-family:var(--mono);font-size:14px;margin-bottom:42px}
+  .sub b{color:var(--cyan);font-weight:500}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+  a.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;
+    border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;
+    background:rgba(255,255,255,.02);transition:.25s;min-height:260px}
+  a.card:hover{border-color:rgba(125,211,252,.45);transform:translateY(-4px);
+    box-shadow:0 24px 60px -24px rgba(0,0,0,.7),0 0 0 1px rgba(125,211,252,.1)}
+  .thumb{height:150px;display:grid;place-items:center;position:relative;overflow:hidden;
+    border-bottom:1px solid rgba(255,255,255,.06)}
+  .t1{background:radial-gradient(60% 80% at 50% 40%,rgba(125,211,252,.12),transparent),#0d1218}
+  .t2{background:radial-gradient(60% 80% at 50% 50%,rgba(101,158,185,.18),transparent),#0b0f14}
+  .t3{background:linear-gradient(100deg,#0d1218,#101822)}
+  .thumb .mono{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+  .thumb .big{font-weight:900;font-size:40px;letter-spacing:-.03em;
+    background:linear-gradient(90deg,var(--steel),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .dots{position:absolute;inset:0;background-image:radial-gradient(rgba(125,211,252,.5) 1px,transparent 1px);
+    background-size:13px 13px;opacity:.35;mask:radial-gradient(60% 60% at 50% 50%,#000,transparent)}
+  .meta{padding:18px 20px 20px}
+  .tagk{font-family:var(--mono);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.14em}
+  .meta h3{margin:8px 0 6px;font-size:19px;font-weight:800}
+  .meta p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .play{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--fg);opacity:.7}
+  .note{margin-top:40px;color:var(--muted);font-size:13px;font-family:var(--mono);line-height:1.9;
+    border-top:1px solid rgba(255,255,255,.07);padding-top:22px}
+  .note b{color:var(--cyan);font-weight:500}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>入场动画 · 四个方向</h1>
+    <div class="sub">深色模式预览 · 点任意卡片 <b>全屏播放</b> · 真实站点里通过 Tweak 面板切换评审</div>
+
+    <div class="grid">
+      <a class="card" href="./terminal-boot.html">
+        <div class="thumb t1"><span class="mono">$ ./joye --init ▋</span></div>
+        <div class="meta">
+          <div class="tagk">最贴合你 · dev 气质</div>
+          <h3>joye.init() · 终端开机</h3>
+          <p>复用你已有的终端/CRT 身份：开机自检式逐行打字、ASCII 名字、扫描线，最后终端「化开」进入站点。这只可能是你的站。</p>
+          <div class="play">▶ 全屏播放</div>
+        </div>
+      </a>
+
+      <a class="card" href="./constellation.html">
+        <div class="thumb t2"><div class="dots"></div><span class="big">JOYE</span></div>
+        <div class="meta">
+          <div class="tagk">最出片 · 路人也 wow</div>
+          <h3>Constellation · 粒子聚合</h3>
+          <p>把入场改成一次 Agent run：接收任务、调用 MCP / Tool、生成内容碎片、合并成 JOYE；成形后点击进入，粒子向上自然消散。</p>
+          <div class="play">▶ 全屏播放</div>
+        </div>
+      </a>
+
+      <a class="card" href="./kinetic-type.html">
+        <div class="thumb t3"><span class="big" style="font-size:30px">FRONTEND × AI</span></div>
+        <div class="meta">
+          <div class="tagk">最设计师 · 编辑感</div>
+          <h3>Kinetic Type · 动态排版</h3>
+          <p>FRONTEND→DESIGN→×AI→JOYE 逐词擦入，变量字体随入场由细变粗，钢蓝光带横扫「刷」出文字。一眼「我是做设计出身的」。</p>
+          <div class="play">▶ 全屏播放</div>
+        </div>
+      </a>
+
+      <a class="card" href="./multi-agent.html">
+        <div class="thumb t2"><div class="dots"></div><span class="mono">orchestrator ◦ planner ◦ judge</span></div>
+        <div class="meta">
+          <div class="tagk">动画四 · 最对口</div>
+          <h3>Multi-Agent · 编排</h3>
+          <p>带标签的 agent 节点冒出、连边、消息沿边流动「协作」，收敛后炸成粒子拼出 JOYE。把你做 Multi-Agent 这件事本身变成片头。</p>
+          <div class="play">▶ 全屏播放</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="note">
+      <b>说明</b> · 这些是独立 demo，同时也都已接进真实站点的 IntroOverlay 变体，方便你全屏细看和站内评审。<br>
+      · 字体用了 Inter 顶替 Satoshi（本地 demo 加载不到站内字体），真接入时换回 Satoshi。<br>
+      · 头像引用了仓库里的真实 avatar.png（相对路径）。<br>
+      · 四个都做了：<b>跳过 / 重播</b> 控件、<b>prefers-reduced-motion</b> 降级（直接显示 hero）。<br>
+      · 真接入时会做成<b>每次会话只播一次</b>（sessionStorage），老访客不被打扰。
+    </div>
+  </div>
+</body>
+</html>

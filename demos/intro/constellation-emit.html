@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · Agent emits JOYE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1419;--fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;--ok:#41d18a;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:radial-gradient(120% 120% at 50% 32%,#121a22,#0a0e13 70%);color:var(--fg);
+    font-family:var(--sans);overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
+
+  .task{position:fixed;left:50%;top:7.5%;transform:translateX(-50%);font-family:var(--mono);
+    font-size:clamp(10px,1.2vw,13px);letter-spacing:.12em;color:rgba(125,211,252,.62);
+    opacity:0;transition:opacity .8s ease;white-space:nowrap;z-index:4}
+  .task.show{opacity:.62}
+  .step{position:fixed;left:50%;bottom:13%;transform:translateX(-50%);font-family:var(--mono);
+    font-size:11px;letter-spacing:.14em;color:var(--muted);opacity:0;transition:opacity .5s ease;
+    white-space:nowrap;z-index:4;text-transform:uppercase}
+  .step.show{opacity:.6}
+  .step b{color:var(--cyan);font-weight:500}
+
+  .enter{position:fixed;left:50%;top:calc(50% + 140px);transform:translate(-50%,10px);
+    opacity:0;pointer-events:none;z-index:18;font-family:var(--mono);font-size:13px;color:var(--fg);
+    background:rgba(255,255,255,.06);border:1px solid rgba(125,211,252,.34);border-radius:8px;
+    padding:10px 15px;cursor:pointer;backdrop-filter:blur(10px);transition:.35s ease}
+  .enter.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+  .enter:hover{background:rgba(125,211,252,.11);border-color:rgba(125,211,252,.65)}
+
+  /* hero */
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;border:1px solid rgba(255,255,255,.14);
+    object-fit:cover;background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));
+    box-shadow:0 0 50px rgba(125,211,252,.3)}
+  .name{font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .ital{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);font-size:14px;color:var(--fg);text-decoration:none}
+  .ping{position:relative;width:9px;height:9px}.ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}.hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}.hero.show .card>*:nth-child(4){animation-delay:.36s}
+  .hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.5);z-index:20}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="task" id="task">task: compose joye.dev/home</div>
+  <div class="step" id="step"></div>
+  <button class="enter" id="enter">进入 ~/joye →</button>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye" onerror="this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="ital">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">动画一（重做）· agent loop 当场产出粒子 → JOYE</div>
+  <div class="ctl"><button id="skip">跳过 →</button><button id="replay">重播 ↻</button></div>
+
+<script>
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+const taskEl=document.getElementById('task'), stepEl=document.getElementById('step');
+const enterEl=document.getElementById('enter'), hero=document.getElementById('hero');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+// skill → tool steps. Each step FIRES once and emits its band of JOYE particles.
+const STEPS=[
+  { skill:'frontend·design', tool:'fs.read(posts)',      pos:[19,26] },
+  { skill:'ai·agent',        tool:'github(OpenHarness)',  pos:[81,26] },
+  { skill:'full-stack',      tool:'mcp.fs(projects)',     pos:[15,62] },
+  { skill:'design·taste',    tool:'memory.search(taste)', pos:[85,62] },
+  { skill:'compose',         tool:'merge_context()',      pos:[50,84] },
+];
+const CORE=[50,13];
+
+let W,H,DPR,raf,t0=0,particles=[],nodes=[],core,phase='run',mouse={x:-1e9,y:-1e9},enterShown=false,exitAt=0;
+
+function vw(){return innerWidth||document.documentElement.clientWidth||1280}
+function vh(){return innerHeight||document.documentElement.clientHeight||800}
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(vw()*DPR);H=cv.height=Math.round(vh()*DPR);cv.style.width=vw()+'px';cv.style.height=vh()+'px';}
+addEventListener('mousemove',e=>{mouse.x=e.clientX*DPR;mouse.y=e.clientY*DPR});
+addEventListener('mouseleave',()=>{mouse.x=mouse.y=-1e9});
+
+function sampleJOYE(){
+  if(!W||!H) return [];
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const o=off.getContext('2d');o.fillStyle='#fff';o.textBaseline='middle';o.textAlign='left';
+  const tracking=0.18;let size=Math.min(H*0.42,W*0.34);
+  const setFont=()=>o.font=`700 ${size}px Inter, system-ui, sans-serif`;setFont();
+  const adv=()=>{let w=0;for(const ch of 'JOYE')w+=o.measureText(ch).width+size*tracking;return w-size*tracking};
+  if(adv()>W*0.74){size*=W*0.74/adv();setFont();}
+  let x=(W-adv())/2;const y=H*0.46;
+  for(const ch of 'JOYE'){o.fillText(ch,x,y);x+=o.measureText(ch).width+size*tracking;}
+  const d=o.getImageData(0,0,W,H).data;const gap=Math.max(5,Math.round(7*DPR));const pts=[];
+  for(let yy=0;yy<H;yy+=gap)for(let xx=0;xx<W;xx+=gap)if(d[(yy*W+xx)*4+3]>128)pts.push({x:xx,y:yy});
+  return pts;
+}
+
+function build(){
+  // nodes
+  core={x:W*CORE[0]/100,y:H*CORE[1]/100,act:0};
+  nodes=STEPS.map(s=>({x:W*s.pos[0]/100,y:H*s.pos[1]/100,act:0,fired:false,skill:s.skill,tool:s.tool}));
+  // partition JOYE into contiguous x-bands, one per step → builds left→right
+  const pts=sampleJOYE().sort((a,b)=>a.x-b.x);
+  const per=Math.ceil(pts.length/STEPS.length);
+  nodes.forEach((n,i)=>{ n.band=pts.slice(i*per,(i+1)*per); });
+  particles=[];
+}
+
+// when a step fires: light node, emit its band of particles FROM the node
+function fire(i){
+  const n=nodes[i]; if(!n||n.fired) return; n.fired=true; n.act=1; core.act=1;
+  stepEl.innerHTML=`step ${i+1}/${STEPS.length} · <b>${n.skill}</b> › ${n.tool}`;
+  stepEl.classList.add('show');
+  for(const t of n.band){
+    const ang=Math.random()*6.283, sp=(Math.random()*1.2+0.4)*DPR;
+    particles.push({
+      x:n.x+(Math.random()-.5)*14*DPR, y:n.y+(Math.random()-.5)*14*DPR,
+      vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, tx:t.x, ty:t.y,
+      r:(Math.random()*0.9+0.7)*DPR, born:performance.now(), src:i, tw:Math.random()*6.28
+    });
+  }
+}
+
+function color(p,a){const k=p.x/W;const r=Math.round(101+(125-101)*k),g=Math.round(158+(211-158)*k),b=Math.round(185+(252-185)*k);return `rgba(${r},${g},${b},${a})`;}
+
+const FIRE0=0.7, GAP=0.46;
+function frame(ts){
+  if(!t0)t0=ts;const el=(ts-t0)/1000;ctx.clearRect(0,0,W,H);
+  if(el>.25) taskEl.classList.add('show');
+
+  // schedule tool firings (the loop iterating)
+  if(phase==='run'){
+    for(let i=0;i<STEPS.length;i++) if(el>=FIRE0+i*GAP) fire(i);
+    const lastDone=FIRE0+(STEPS.length-1)*GAP+1.0;
+    if(el>lastDone && !enterShown) showEnter();
+  }
+
+  core.act*=0.93;
+
+  // emission streams: faint line node → its freshly-born particles
+  for(const p of particles){
+    const age=(ts-p.born)/1000;
+    if(age<0.42 && phase!=='exit'){
+      const n=nodes[p.src];
+      ctx.strokeStyle=`rgba(125,211,252,${0.16*(1-age/0.42)})`;ctx.lineWidth=DPR*0.6;
+      ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(p.x,p.y);ctx.stroke();
+    }
+  }
+
+  // particles seek their targets (or scatter on exit)
+  for(const p of particles){
+    if(phase==='exit'){
+      p.vx+=((Math.random()-.5)*.16 + (p.x-W/2)/W*.09)*DPR;
+      p.vy+=((Math.random()-.5)*.08 - .11)*DPR;
+    }else{
+      const ease=0.12;
+      p.vx+=(p.tx-p.x)*ease; p.vy+=(p.ty-p.y)*ease;
+      const mdx=p.x-mouse.x,mdy=p.y-mouse.y,md2=mdx*mdx+mdy*mdy,R=(110*DPR)**2;
+      if(md2<R){const f=(1-md2/R)*4,d=Math.sqrt(md2)||1;p.vx+=mdx/d*f;p.vy+=mdy/d*f;}
+    }
+    p.vx*=phase==='exit'?.91:.84; p.vy*=phase==='exit'?.91:.84;
+    p.x+=p.vx; p.y+=p.vy; p.tw+=0.05;
+    const near=(p.x-p.tx)**2+(p.y-p.ty)**2<(8*DPR)**2;
+    const tw=0.6+Math.sin(p.tw)*0.22;
+    const fade=phase==='exit'?Math.max(0,1-(ts-exitAt)/1300):1;
+    const a=(near?0.95:0.72)*tw*fade;
+    ctx.beginPath();ctx.fillStyle=color(p,Math.min(1,a));ctx.arc(p.x,p.y,p.r*(near?1.25:1),0,7);ctx.fill();
+  }
+
+  // draw the agent core + tool nodes (so you see WHO emitted)
+  if(phase!=='exit'){
+    drawNode(core, 'agent.runtime()', true);
+    nodes.forEach(n=>drawNode(n, n.tool, false, n.skill));
+    // core → active node link
+    nodes.forEach(n=>{ if(n.act>0.04){
+      ctx.strokeStyle=`rgba(125,211,252,${0.18*n.act})`;ctx.lineWidth=DPR*0.8;
+      ctx.beginPath();ctx.moveTo(core.x,core.y);ctx.lineTo(n.x,n.y);ctx.stroke();
+    }});
+    nodes.forEach(n=>n.act*=0.92);
+  }
+
+  if(phase==='exit' && ts-exitAt>900 && !hero.classList.contains('show')) hero.classList.add('show');
+  raf=requestAnimationFrame(frame);
+}
+
+function drawNode(n, label, isCore, skill){
+  const r=(isCore?7:5.5)*DPR*(1+n.act*0.5);
+  if(n.act>0.02){ctx.beginPath();ctx.fillStyle=`rgba(125,211,252,${0.14*n.act})`;ctx.arc(n.x,n.y,r*3.6,0,7);ctx.fill();}
+  ctx.beginPath();ctx.fillStyle='rgba(13,20,28,0.92)';ctx.arc(n.x,n.y,r,0,7);ctx.fill();
+  ctx.lineWidth=(isCore?2:1.4)*DPR;ctx.strokeStyle=`rgba(125,211,252,${0.5+n.act*0.5})`;
+  ctx.beginPath();ctx.arc(n.x,n.y,r,0,7);ctx.stroke();
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  if(skill){ctx.font=`${10*DPR}px ${'JetBrains Mono, monospace'}`;ctx.fillStyle=`rgba(125,211,252,${0.5+n.act*0.5})`;ctx.fillText(skill,n.x,n.y-r-9*DPR);}
+  ctx.font=`${(isCore?11:10)*DPR}px ${'JetBrains Mono, monospace'}`;
+  ctx.fillStyle=`rgba(${n.act>0.3?'200,235,255':'150,166,178'},${0.55+n.act*0.45})`;
+  ctx.fillText(label, n.x, n.y+r+10*DPR);
+  if(n.fired){ctx.fillStyle=`rgba(65,209,138,.9)`;ctx.font=`${9*DPR}px monospace`;ctx.fillText('ok',n.x+r+10*DPR,n.y);}
+}
+
+function showEnter(){ if(enterShown||phase==='exit')return; enterShown=true; stepEl.innerHTML='merge: context → <b>JOYE</b> · agent loop complete'; enterEl.classList.add('show'); }
+function enterSite(){ if(phase==='exit')return; phase='exit'; exitAt=performance.now(); enterEl.classList.remove('show'); stepEl.classList.remove('show'); taskEl.classList.remove('show'); }
+
+function start(){
+  cancelAnimationFrame(raf); resize(); build();
+  if(nodes[0] && nodes[0].band && nodes[0].band.length===0){ setTimeout(start,120); return; }
+  phase='run'; t0=0; enterShown=false; exitAt=0;
+  hero.classList.remove('show'); enterEl.classList.remove('show'); stepEl.classList.remove('show'); taskEl.classList.remove('show');
+  if(reduce){ hero.classList.add('show'); return; }
+  raf=requestAnimationFrame(frame);
+}
+function boot(){ if(document.fonts&&document.fonts.ready){Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,800))]).then(start);}else start(); }
+function skip(){ cancelAnimationFrame(raf); ctx.clearRect(0,0,W,H); enterEl.classList.remove('show'); stepEl.classList.remove('show'); taskEl.classList.remove('show'); hero.classList.add('show'); }
+
+enterEl.onclick=enterSite;
+document.getElementById('skip').onclick=skip;
+document.getElementById('replay').onclick=start;
+addEventListener('resize',()=>{ if(phase!=='exit'){ resize(); build(); } });
+boot();
+</script>
+</body>
+</html>
