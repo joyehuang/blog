@@ -1,0 +1,139 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "Satoshi",
+      "fontSize": "30px",
+      "fontWeight": "700",
+      "lineHeight": "36px",
+      "letterSpacing": "normal",
+      "color": "#FAFAFA",
+      "sampleText": "Joye"
+    },
+    {
+      "role": "heading",
+      "fontFamily": "Satoshi",
+      "fontSize": "20px",
+      "fontWeight": "600",
+      "lineHeight": "28px",
+      "letterSpacing": "normal",
+      "color": "#FAFAFA",
+      "sampleText": "About"
+    },
+    {
+      "role": "heading-2",
+      "fontFamily": "Satoshi",
+      "fontSize": "18px",
+      "fontWeight": "500",
+      "lineHeight": "28px",
+      "letterSpacing": "normal",
+      "color": "#FAFAFA",
+      "sampleText": "Adastra Labs (Shimo Docs)"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Satoshi",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#FAFAFA",
+      "sampleText": "Languages"
+    },
+    {
+      "role": "body",
+      "fontFamily": "Satoshi",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#FAFAFA",
+      "sampleText": "Melbourne, Australia"
+    },
+    {
+      "role": "code",
+      "fontFamily": "ui-monospace",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "20px",
+      "letterSpacing": "-0.3px",
+      "color": "#BCBCC2",
+      "sampleText": "$_"
+    },
+    {
+      "role": "label",
+      "fontFamily": "JetBrains Mono",
+      "fontSize": "11.5px",
+      "fontWeight": "400",
+      "lineHeight": "17.25px",
+      "letterSpacing": "0.46px",
+      "color": "#BCBCC2",
+      "sampleText": "// power user?"
+    }
+  ],
+  "spacing": {
+    "observed": [
+      2,
+      4,
+      6,
+      7,
+      8,
+      10,
+      12,
+      14,
+      16,
+      20,
+      28,
+      40
+    ],
+    "baseUnit": 4
+  },
+  "radius": [
+    "6px",
+    "8px",
+    "16px",
+    "999px",
+    "9999px"
+  ],
+  "shadows": [],
+  "buttons": [
+    {
+      "label": "Switch language 中",
+      "background": "#000000",
+      "color": "#FAFAFA",
+      "padding": "6px",
+      "borderRadius": "6px",
+      "border": "1px solid rgb(49, 49, 53)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "height": "20px"
+    },
+    {
+      "label": "button",
+      "background": "#1D1D20",
+      "color": "#BCBCC2",
+      "padding": "0px",
+      "borderRadius": "999px",
+      "border": "1px solid rgba(250, 250, 250, 0.18)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "height": "11px"
+    },
+    {
+      "label": "TypeScript",
+      "background": "#1D1D20",
+      "color": "#BCBCC2",
+      "padding": "4px 8px",
+      "borderRadius": "8px",
+      "border": "1px solid rgb(49, 49, 53)",
+      "boxShadow": "none",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "height": "30px"
+    }
+  ],
+  "cards": [],
+  "nav": null
+}
