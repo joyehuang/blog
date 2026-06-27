@@ -99,19 +99,21 @@ const latestCurated = sortCuratedEntries(
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  <main class='flex w-full flex-col items-center'>
+  <main class='flex w-full flex-col items-center' data-home-page>
     <section
       class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'
       id='content-header'
+      data-home-hero
     >
       <Image
         src={avatar}
         alt='profile'
         class='h-28 w-auto rounded-full border p-1'
         loading='eager'
+        data-home-hero-item
       />
 
-      <div class='flex flex-col items-center gap-y-4'>
+      <div class='flex flex-col items-center gap-y-4' data-home-hero-item>
         <h1 class='text-3xl font-bold'>{config.author}</h1>
         <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
           <Label title='Melbourne, Australia'>
@@ -123,7 +125,7 @@ const latestCurated = sortCuratedEntries(
         </div>
       </div>
 
-      <div class='flex flex-row gap-3'>
+      <div class='flex flex-row gap-3' data-home-hero-item>
         <a
           href='/en/contact'
           class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
@@ -142,6 +144,7 @@ const latestCurated = sortCuratedEntries(
     <div
       id='content'
       class='animate relative z-0 flex w-full min-w-0 max-w-full flex-col gap-y-10 md:w-4/5 lg:w-5/6'
+      data-home-content
     >
       <div class='-mt-2'>
         <Terminal />
@@ -301,3 +304,7 @@ const latestCurated = sortCuratedEntries(
     </div>
   </div>
 </PageLayout>
+
+<script>
+  import '../../scripts/home-animations'
+</script>

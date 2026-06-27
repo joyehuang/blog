@@ -18,26 +18,6 @@ const { title, skills } = Astro.props
 </div>
 
 <style>
-  @keyframes skill-fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .skill-title,
-  .skill-pill {
-    animation: skill-fade-in 320ms ease both;
-  }
-
-  .skill-pill {
-    animation-delay: calc(var(--skill-index, 0) * 28ms + 60ms);
-  }
-
   .skill-pill :global(button) {
     transition:
       transform 0.2s ease,
@@ -50,9 +30,8 @@ const { title, skills } = Astro.props
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .skill-title,
-    .skill-pill {
-      animation: none;
+    .skill-pill :global(button) {
+      transition: none;
     }
   }
 </style>
