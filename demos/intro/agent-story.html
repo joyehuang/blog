@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · an agent produces Joye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;--ok:#41d18a;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:#080b0f;color:var(--fg);font-family:var(--sans);overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
+
+  /* minimal story text — one line top, one line under the agent */
+  .task{position:fixed;left:50%;top:8.5%;transform:translateX(-50%);font-family:var(--mono);
+    font-size:clamp(10px,1.15vw,12.5px);letter-spacing:.26em;text-transform:lowercase;
+    color:rgba(125,211,252,.42);opacity:0;transition:opacity 1s ease;white-space:nowrap;z-index:4}
+  .task.show{opacity:1}
+  .verb{position:fixed;left:50%;top:calc(50% + 96px);transform:translate(-50%,6px);
+    font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:rgba(250,249,248,.5);
+    opacity:0;transition:opacity .5s ease,transform .5s ease;white-space:nowrap;z-index:4}
+  .verb.show{opacity:1;transform:translate(-50%,0)}
+  .verb b{color:var(--cyan);font-weight:500}
+
+  /* hero */
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;border:1px solid rgba(255,255,255,.14);
+    object-fit:cover;background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));box-shadow:0 0 50px rgba(125,211,252,.3)}
+  .name{font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .ital{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);font-size:14px;color:var(--fg);text-decoration:none}
+  .ping{position:relative;width:9px;height:9px}.ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}.hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}.hero.show .card>*:nth-child(4){animation-delay:.36s}
+  .hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.45);z-index:20}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="task" id="task">an agent is composing</div>
+  <div class="verb" id="verb"></div>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye" onerror="this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="ital">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">动画一（重做）· 一个 agent 生产出 Joye</div>
+  <div class="ctl"><button id="skip">跳过 →</button><button id="replay">重播 ↻</button></div>
+
+<script>
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+const taskEl=document.getElementById('task'), verbEl=document.getElementById('verb'), hero=document.getElementById('hero');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let W,H,DPR,raf,t0=0,parts=[],rings=[],mouse={x:-1e9,y:-1e9},phase='wake',doneAt=0,heroShown=false;
+let cx,cy,nuke=0; // nucleus brightness
+
+// soft round glow sprite (cheap bloom)
+const sprite=document.createElement('canvas');sprite.width=sprite.height=64;
+{const g=sprite.getContext('2d');const rad=g.createRadialGradient(32,32,0,32,32,32);
+ rad.addColorStop(0,'rgba(212,242,255,1)');rad.addColorStop(.22,'rgba(140,216,255,.65)');
+ rad.addColorStop(.55,'rgba(110,190,240,.18)');rad.addColorStop(1,'rgba(110,190,240,0)');
+ g.fillStyle=rad;g.fillRect(0,0,64,64);}
+
+// three think→produce waves; a skill whispered per wave
+const WAVES=[ {t:0.85,skill:'frontend·design'}, {t:1.5,skill:'ai·agent'}, {t:2.15,skill:'compose'} ];
+
+function vw(){return innerWidth||document.documentElement.clientWidth||1280}
+function vh(){return innerHeight||document.documentElement.clientHeight||800}
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(vw()*DPR);H=cv.height=Math.round(vh()*DPR);cv.style.width=vw()+'px';cv.style.height=vh()+'px';cx=W/2;cy=H*0.46;}
+addEventListener('mousemove',e=>{mouse.x=e.clientX*DPR;mouse.y=e.clientY*DPR});
+addEventListener('mouseleave',()=>{mouse.x=mouse.y=-1e9});
+
+function sampleJOYE(){
+  if(!W||!H)return[];
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const o=off.getContext('2d');o.fillStyle='#fff';o.textBaseline='middle';o.textAlign='left';
+  const tracking=0.18;let size=Math.min(H*0.4,W*0.32);
+  const setFont=()=>o.font=`700 ${size}px Inter, system-ui, sans-serif`;setFont();
+  const adv=()=>{let w=0;for(const ch of 'JOYE')w+=o.measureText(ch).width+size*tracking;return w-size*tracking};
+  if(adv()>W*0.72){size*=W*0.72/adv();setFont();}
+  let x=(W-adv())/2;const y=cy;
+  for(const ch of 'JOYE'){o.fillText(ch,x,y);x+=o.measureText(ch).width+size*tracking;}
+  const d=o.getImageData(0,0,W,H).data;const gap=Math.max(5,Math.round(6.5*DPR));const pts=[];
+  for(let yy=0;yy<H;yy+=gap)for(let xx=0;xx<W;xx+=gap)if(d[(yy*W+xx)*4+3]>140)pts.push({x:xx,y:yy});
+  return pts;
+}
+
+function build(){
+  const pts=sampleJOYE();
+  parts=pts.map(p=>({
+    tx:p.x,ty:p.y, x:cx,y:cy, vx:0,vy:0,
+    wave:(Math.random()*WAVES.length)|0, emitted:false,
+    r:(Math.random()*0.8+0.7)*DPR, tw:Math.random()*6.28, seed:Math.random()
+  }));
+  rings=[];
+}
+
+function emit(p){
+  const ang=Math.random()*6.283, sp=(Math.random()*2.4+1.2)*DPR;
+  p.x=cx+(Math.random()-.5)*10*DPR; p.y=cy+(Math.random()-.5)*10*DPR;
+  p.vx=Math.cos(ang)*sp; p.vy=Math.sin(ang)*sp; p.emitted=true;
+}
+
+function frame(ts){
+  if(!t0)t0=ts;const el=(ts-t0)/1000;
+
+  // trail-fade clear (motion streaks + keeps bg dark)
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='rgba(8,11,15,0.34)';ctx.fillRect(0,0,W,H);
+
+  if(el>.15) taskEl.classList.add('show');
+
+  // fire waves
+  if(phase==='wake'||phase==='produce'){
+    for(let i=0;i<WAVES.length;i++){
+      if(el>=WAVES[i].t && !WAVES[i].fired){
+        WAVES[i].fired=true; phase='produce'; nuke=1;
+        rings.push({born:ts});
+        verbEl.innerHTML=`<b>${WAVES[i].skill}</b>`; verbEl.classList.add('show');
+        for(const p of parts) if(p.wave===i && !p.emitted) emit(p);
+      }
+    }
+    const last=WAVES[WAVES.length-1];
+    if(last.fired && el>last.t+1.0 && phase==='produce'){ phase='hold'; verbEl.innerHTML='<b>joye</b>'; }
+  }
+  if(phase==='hold' && el> (WAVES[WAVES.length-1].t+1.7) && !doneAt){ doneAt=ts; }
+  if(doneAt && ts-doneAt>700 && !heroShown){ heroShown=true; hero.classList.add('show'); }
+
+  nuke*=0.94;
+  ctx.globalCompositeOperation='lighter';
+
+  // expanding pulse rings (the agent "exhaling")
+  for(const ring of rings){
+    const age=(ts-ring.born)/1000; if(age>1.1) continue;
+    const rr=age*Math.max(W,H)*0.34, a=(1-age/1.1)*0.5;
+    ctx.strokeStyle=`rgba(125,211,252,${a})`; ctx.lineWidth=DPR*1.2;
+    ctx.beginPath(); ctx.arc(cx,cy,rr,0,7); ctx.stroke();
+  }
+
+  // the agent nucleus — a breathing core of light (the protagonist)
+  if(phase!=='hold' || el < WAVES[WAVES.length-1].t+1.6){
+    const breathe=1+Math.sin(el*3.2)*0.12;
+    const coreS=(46+nuke*70)*DPR*breathe;
+    ctx.globalAlpha=0.9; ctx.drawImage(sprite,cx-coreS/2,cy-coreS/2,coreS,coreS);
+    ctx.globalAlpha=1; ctx.drawImage(sprite,cx-12*DPR,cy-12*DPR,24*DPR,24*DPR);
+  }
+
+  // particles produced by the agent → fly out → become JOYE
+  for(const p of parts){
+    if(!p.emitted) continue;
+    const ease=0.10;
+    p.vx+=(p.tx-p.x)*ease; p.vy+=(p.ty-p.y)*ease;
+    const mdx=p.x-mouse.x,mdy=p.y-mouse.y,md2=mdx*mdx+mdy*mdy,R=(105*DPR)**2;
+    if(md2<R){const f=(1-md2/R)*4,d=Math.sqrt(md2)||1;p.vx+=mdx/d*f;p.vy+=mdy/d*f;}
+    p.vx*=0.82; p.vy*=0.82; p.x+=p.vx; p.y+=p.vy; p.tw+=0.05;
+    const near=(p.x-p.tx)**2+(p.y-p.ty)**2<(7*DPR)**2;
+    const tw=0.7+Math.sin(p.tw+p.seed*6)*0.3;
+    const a=(near?0.95:0.8)*tw;
+    const s=p.r*(near?5.5:7.5); // glow sprite size
+    ctx.globalAlpha=Math.min(1,a);
+    ctx.drawImage(sprite,p.x-s/2,p.y-s/2,s,s);
+  }
+  ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  raf=requestAnimationFrame(frame);
+}
+
+function start(){
+  cancelAnimationFrame(raf); resize(); build();
+  if(parts.length===0){ setTimeout(start,120); return; }
+  WAVES.forEach(w=>w.fired=false);
+  phase='wake'; t0=0; doneAt=0; heroShown=false; nuke=0;
+  ctx.clearRect(0,0,W,H);
+  hero.classList.remove('show'); taskEl.classList.remove('show'); verbEl.classList.remove('show'); verbEl.innerHTML='';
+  if(reduce){ hero.classList.add('show'); return; }
+  raf=requestAnimationFrame(frame);
+}
+function boot(){ if(document.fonts&&document.fonts.ready){Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,800))]).then(start);}else start(); }
+function skip(){ cancelAnimationFrame(raf); ctx.clearRect(0,0,W,H); taskEl.classList.remove('show'); verbEl.classList.remove('show'); hero.classList.add('show'); }
+
+document.getElementById('skip').onclick=skip;
+document.getElementById('replay').onclick=start;
+addEventListener('resize',()=>{ if(!heroShown){ resize(); build(); } });
+boot();
+</script>
+</body>
+</html>
