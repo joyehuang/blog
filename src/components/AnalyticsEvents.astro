@@ -1,0 +1,21 @@
+<script>
+  import { track } from '@vercel/analytics'
+
+  document.addEventListener('click', (event) => {
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-analytics-event]')
+        : null
+
+    if (!target) return
+
+    const eventName = target.dataset.analyticsEvent
+    if (!eventName) return
+
+    track(eventName, {
+      href: target instanceof HTMLAnchorElement ? target.href : null,
+      section: target.dataset.analyticsSection ?? null,
+      target: target.dataset.analyticsTarget ?? target.textContent?.trim().slice(0, 80) ?? null
+    })
+  })
+</script>

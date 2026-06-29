@@ -1,3 +1,4 @@
+import { track } from '@vercel/analytics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -5,7 +6,9 @@ import { commands, completeInput } from './commands'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath } from './fs/path'
 import type { FsNode } from './fs/types'
+
 import './terminal.css'
+
 import type { HistoryEntry, OutputLine, Tone } from './types'
 
 type Props = {
@@ -84,7 +87,9 @@ function MatrixRain() {
     window.addEventListener('resize', resize)
 
     const chars =
-      'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789$#%&*+-/<>{}[]'.split('')
+      'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ0123456789$#%&*+-/<>{}[]'.split(
+        ''
+      )
     let raf = 0
     const tick = () => {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)'
@@ -163,11 +168,20 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
     }
   }, [])
 
-  const expand = useCallback(() => {
-    persistCollapsed(false)
-    // focus input after transition settles
-    setTimeout(() => inputRef.current?.focus(), 220)
-  }, [persistCollapsed])
+  const expand = useCallback(
+    (method = 'shell_click') => {
+      track('home_terminal_open', {
+        method,
+        section: 'terminal',
+        target: 'terminal_shell'
+      })
+
+      persistCollapsed(false)
+      // focus input after transition settles
+      setTimeout(() => inputRef.current?.focus(), 220)
+    },
+    [persistCollapsed]
+  )
 
   const collapse = useCallback(() => {
     persistCollapsed(true)
@@ -249,6 +263,12 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
 
       const parts = trimmed.split(/\s+/)
       const name = parts[0].toLowerCase()
+      track('home_terminal_command', {
+        command: name,
+        section: 'terminal',
+        target: 'terminal_shell'
+      })
+
       const args = parts.slice(1)
       const spec = commands[name]
       if (!spec) {
@@ -274,11 +294,7 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
           appendEntry({ kind: 'stream', id, lines: [], done: false })
         },
         appendStream: (id: string, line: OutputLine) => {
-          updateStream(id, (e) =>
-            e.kind === 'stream'
-              ? { ...e, lines: [...e.lines, line] }
-              : e
-          )
+          updateStream(id, (e) => (e.kind === 'stream' ? { ...e, lines: [...e.lines, line] } : e))
         },
         endStream: (id: string) => {
           updateStream(id, (e) => (e.kind === 'stream' ? { ...e, done: true } : e))
@@ -304,7 +320,13 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
   useEffect(() => {
     appendEntry({
       kind: 'output',
-      lines: [{ kind: 'text', tone: 'muted', text: "type 'help' to get started · 'whoami' for the short version" }]
+      lines: [
+        {
+          kind: 'text',
+          tone: 'muted',
+          text: "type 'help' to get started · 'whoami' for the short version"
+        }
+      ]
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -321,14 +343,20 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
       const inField =
-        target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       if (e.key === '`' && !inField) {
         e.preventDefault()
-        if (collapsed) expand()
+        if (collapsed) expand('keyboard_backtick')
         else inputRef.current?.focus()
         bodyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
-      if (e.key === 'Escape' && !collapsed && document.activeElement === inputRef.current && !input) {
+      if (
+        e.key === 'Escape' &&
+        !collapsed &&
+        document.activeElement === inputRef.current &&
+        !input
+      ) {
         e.preventDefault()
         collapse()
       }
@@ -403,7 +431,7 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
   return (
     <div
       className={`wt-shell ${collapsed ? 'wt-shell--collapsed' : ''}`}
-      onClick={collapsed ? expand : focusInput}
+      onClick={collapsed ? () => expand('shell_click') : focusInput}
       role={collapsed ? 'button' : undefined}
       aria-expanded={!collapsed}
       tabIndex={collapsed ? 0 : undefined}
@@ -412,7 +440,7 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
-                expand()
+                expand('keyboard_activate')
               }
             }
           : undefined
@@ -449,7 +477,7 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
             className='wt-light wt-light--g'
             onClick={(e) => {
               stopPropagation(e)
-              if (collapsed) expand()
+              if (collapsed) expand('window_control')
             }}
             aria-label={collapsed ? 'open terminal' : 'expand'}
             tabIndex={-1}
@@ -462,13 +490,19 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
             <span className='wt-caret wt-caret--idle' aria-hidden />
           </div>
         ) : (
-          <div className='wt-title'>{promptUser}@{promptHost} — terminal</div>
+          <div className='wt-title'>
+            {promptUser}@{promptHost} — terminal
+          </div>
         )}
         <div className='wt-hint'>
           {collapsed ? (
-            <>click or <span className='wt-kbd'>`</span> to open</>
+            <>
+              click or <span className='wt-kbd'>`</span> to open
+            </>
           ) : (
-            <>press <span className='wt-kbd'>`</span> to focus</>
+            <>
+              press <span className='wt-kbd'>`</span> to focus
+            </>
           )}
         </div>
       </div>
@@ -477,7 +511,8 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
         <div className='wt-banner'>
           <span className='wt-banner-title'>wterm v0.1 · joye.sh</span>
           <span className='wt-banner-sub'>
-            an interactive shell into this site — try <code>help</code>, <code>chat</code>, <code>ls blog</code>.
+            an interactive shell into this site — try <code>help</code>, <code>chat</code>,{' '}
+            <code>ls blog</code>.
           </span>
         </div>
 
@@ -501,9 +536,7 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
           return (
             <div key={entry.id} className='wt-entry'>
               {entry.lines.map((l, j) => renderLine(l, `${entry.id}-${j}`))}
-              {!entry.done && i === entries.length - 1 && (
-                <span className='wt-thinking'>···</span>
-              )}
+              {!entry.done && i === entries.length - 1 && <span className='wt-thinking'>···</span>}
             </div>
           )
         })}
@@ -515,7 +548,8 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
             <span className={`wt-caret ${focused ? '' : 'wt-caret--idle'}`} aria-hidden />
             {!input && !focused && (
               <span className='wt-tone-muted wt-input-hint'>
-                click or press <span className='wt-kbd'>`</span> then type <span className='wt-tone-primary'>help</span>
+                click or press <span className='wt-kbd'>`</span> then type{' '}
+                <span className='wt-tone-primary'>help</span>
               </span>
             )}
           </span>

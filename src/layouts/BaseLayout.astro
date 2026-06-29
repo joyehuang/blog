@@ -5,6 +5,7 @@ import SpeedInsights from '@vercel/speed-insights/astro'
 
 import { Footer } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
+import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
 import BaseHead from '@/components/BaseHead.astro'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
 import Header from '@/components/Header.astro'
@@ -58,6 +59,7 @@ const fs = await buildSiteFs()
     </div>
     <DevModeHost client:only='react' fs={fs} />
     <Analytics />
+    <AnalyticsEvents />
     <SpeedInsights />
     <ViewCounter />
 
