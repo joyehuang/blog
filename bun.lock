@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "astro-theme-pure",
+      "name": "joye-blog",
       "dependencies": {
         "@astrojs/check": "^0.9.4",
         "@astrojs/react": "^5.0.2",
