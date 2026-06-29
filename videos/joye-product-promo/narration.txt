@@ -1,0 +1,11 @@
+Joye's site doesn't ask you to scroll.
+It lets you talk to it.
+
+Explore AI agent work, product builds, research notes, and open-source projects from a Melbourne full-stack builder.
+
+Twelve posts.
+Eleven notes.
+Twelve projects.
+And an interactive C L I.
+
+Start at joyehuang dot me.
