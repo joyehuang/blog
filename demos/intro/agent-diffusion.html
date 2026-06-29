@@ -70,7 +70,7 @@
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 const hud=document.getElementById('hud'),barEl=document.getElementById('bar'),hero=document.getElementById('hero');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-let W,H,DPR,raf,t0=0,parts=[],rings=[],mouse={x:-1e9,y:-1e9},d=0,dTarget=0,stepShown=-1,doneAt=0,heroShown=false;
+let W,H,DPR,raf,t0=0,parts=[],pulse=0,mouse={x:-1e9,y:-1e9},d=0,dTarget=0,stepShown=-1,doneAt=0,heroShown=false;
 
 // soft glow sprite
 const sprite=document.createElement('canvas');sprite.width=sprite.height=64;
@@ -81,8 +81,8 @@ const sprite=document.createElement('canvas');sprite.width=sprite.height=64;
 // denoise schedule: noise → ... → form. Each entry is a refinement step.
 const STEPS=[ {t:0.55,d:0.14}, {t:1.05,d:0.32}, {t:1.55,d:0.52}, {t:2.05,d:0.72}, {t:2.5,d:0.88}, {t:2.95,d:1.0} ];
 
-function vw(){return innerWidth||document.documentElement.clientWidth||1280}
-function vh(){return innerHeight||document.documentElement.clientHeight||800}
+function vw(){var w=innerWidth||document.documentElement.clientWidth||0;return w>20?w:1280}
+function vh(){var h=innerHeight||document.documentElement.clientHeight||0;return h>20?h:800}
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(vw()*DPR);H=cv.height=Math.round(vh()*DPR);cv.style.width=vw()+'px';cv.style.height=vh()+'px';}
 addEventListener('mousemove',e=>{mouse.x=e.clientX*DPR;mouse.y=e.clientY*DPR});
 addEventListener('mouseleave',()=>{mouse.x=mouse.y=-1e9});
@@ -108,7 +108,7 @@ function build(){
   parts=pts.map(p=>{
     const ang=Math.random()*6.283, mag=Math.pow(Math.random(),0.6)*R;
     return { tx:p.x,ty:p.y, ox:Math.cos(ang)*mag, oy:Math.sin(ang)*mag,
-      x:p.x,y:p.y, ph:Math.random()*6.28, fr:0.6+Math.random()*1.4,
+      x:p.x+Math.cos(ang)*mag, y:p.y+Math.sin(ang)*mag, ph:Math.random()*6.28, fr:0.6+Math.random()*1.4,
       r:(Math.random()*0.8+0.7)*DPR, seed:Math.random() };
   });
 }
@@ -125,38 +125,39 @@ function frame(ts){
   let step=-1;
   for(let i=0;i<STEPS.length;i++) if(el>=STEPS[i].t){ dTarget=STEPS[i].d; step=i; }
   d+=(dTarget-d)*0.13;
-  if(step!==stepShown){ stepShown=step; renderHud(step); if(step>=0) rings.push({born:ts}); }
+  if(step!==stepShown){ stepShown=step; renderHud(step); if(step>=0) pulse=1; }
   if(d>0.985 && !doneAt && el>STEPS[STEPS.length-1].t+0.5){ doneAt=ts; }
   if(doneAt && ts-doneAt>800 && !heroShown){ heroShown=true; hero.classList.add('show'); }
 
   const noiseK=Math.pow(1-d,2);          // how much noise remains
+  pulse*=0.86;                            // per-step refine surge decays
   ctx.globalCompositeOperation='lighter';
 
-  // refine pulse — a wavefront ripples out on each denoise step (process, shown not told)
-  const ccx=W/2, ccy=H*0.46;
-  for(const ring of rings){
-    const age=(ts-ring.born)/1000; if(age>1.25) continue;
-    const rr=age*Math.max(W,H)*0.4, al=(1-age/1.25)*0.26;
-    ctx.strokeStyle=`rgba(125,211,252,${al})`; ctx.lineWidth=DPR*1.1;
-    ctx.beginPath(); ctx.arc(ccx,ccy,rr,0,7); ctx.stroke();
+  for(const p of parts){
+    const ax=p.tx+p.ox*noiseK, ay=p.ty+p.oy*noiseK;   // anchor walks noise → target as d grows
+    p.x+=(ax-p.x)*(0.18+pulse*0.5); p.y+=(ay-p.y)*(0.18+pulse*0.5);  // track it; pulse tightens each step
+    if(d>0.55){const mdx=p.x-mouse.x,mdy=p.y-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(105*DPR)**2;
+      if(m2<RR){const f=(1-m2/RR)*24*DPR,dd=Math.sqrt(m2)||1;p.x+=mdx/dd*f;p.y+=mdy/dd*f;}}
+    // turbulent shimmer while noisy (a flow field, rendered as displacement) = the agent "computing"; →0 when resolved
+    const turb=noiseK*34*DPR;
+    const rx=p.x+Math.sin(p.y*0.012+el*1.7+p.seed*6.28)*turb;
+    const ry=p.y+Math.cos(p.x*0.012-el*1.4+p.seed*4)*turb;
+    const tw=0.55+Math.sin(p.tw=(p.tw||0)+0.05)*0.2;
+    const a=(0.30+d*0.6)*tw*(1+pulse*1.1);            // brightness surges on each refine step
+    const s=p.r*(7.5-d*4.6)*(1+pulse*0.5);            // soft when noisy → tight dot; pops on each step
+    ctx.globalAlpha=Math.min(1,a);
+    ctx.drawImage(sprite,rx-s/2,ry-s/2,s,s);
   }
 
-  for(const p of parts){
-    // anchor walks from noise-home toward the JOYE target as d grows
-    const ax=p.tx+p.ox*noiseK, ay=p.ty+p.oy*noiseK;
-    // shimmer: large while noisy, ~0 once denoised
-    const jit=(0.5+0.5*Math.sin(el*p.fr*3+p.ph))*noiseK*46*DPR;
-    let gx=ax+Math.cos(el*p.fr+p.seed*9)*jit, gy=ay+Math.sin(el*p.fr*1.1+p.seed*9)*jit;
-    // gentle spring so it reads as settling each step
-    p.x+=(gx-p.x)*0.5; p.y+=(gy-p.y)*0.5;
-    // mouse repel once mostly formed
-    if(d>0.6){const mdx=p.x-mouse.x,mdy=p.y-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(105*DPR)**2;
-      if(m2<RR){const f=(1-m2/RR)*5,dd=Math.sqrt(m2)||1;p.x+=mdx/dd*f;p.y+=mdy/dd*f;}}
-    const tw=0.55+Math.sin(p.tw=(p.tw||0)+0.05)*0.2;
-    const a=(0.34+d*0.62)*tw;            // dim/noisy early, bright when resolved
-    const s=p.r*(7.5-d*4.6);             // big soft glow when noisy → tight crisp dot when resolved
-    ctx.globalAlpha=Math.min(1,a);
-    ctx.drawImage(sprite,p.x-s/2,p.y-s/2,s,s);
+  // structure mesh — faint links weave between neighbouring particles as JOYE resolves
+  if(d>0.5){
+    const R2=(16*DPR)**2;
+    ctx.strokeStyle=`rgba(125,211,252,${(d-0.5)*0.42})`; ctx.lineWidth=DPR*0.5;
+    ctx.beginPath();
+    for(let i=0;i<parts.length;i++){ const p=parts[i];
+      for(let j=i+1;j<=i+2 && j<parts.length;j++){ const q=parts[j];
+        const dx=p.x-q.x,dy=p.y-q.y; if(dx*dx+dy*dy<R2){ ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); } } }
+    ctx.stroke();
   }
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   raf=requestAnimationFrame(frame);
@@ -170,7 +171,7 @@ function renderHud(step){
 function start(){
   cancelAnimationFrame(raf);resize();build();
   if(parts.length===0){setTimeout(start,120);return;}
-  d=0;dTarget=0;stepShown=-2;t0=0;doneAt=0;heroShown=false;rings=[];
+  d=0;dTarget=0;stepShown=-2;t0=0;doneAt=0;heroShown=false;pulse=0;
   ctx.clearRect(0,0,W,H);hud.classList.remove('show');hero.classList.remove('show');
   if(reduce){hero.classList.add('show');return;}
   raf=requestAnimationFrame(frame);
