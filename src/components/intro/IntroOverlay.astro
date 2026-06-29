@@ -353,7 +353,14 @@ import avatar from 'src/assets/avatar.png'
       if (d > 0.985 && !doneAt && el > STEPS[STEPS.length - 1].t + 0.5) doneAt = ts
       if (doneAt && ts - doneAt > 700 && !landed) land()
       var dim = doneAt ? Math.min(1, (ts - doneAt) / 900) : 0
-      var breathe = 1 + Math.sin(el * 0.85) * 0.3 * dim   // slow breathing glow once landed (~7s)
+      // slow breath when landed: scattered+dim → gathered+bright (held ~2s) → scattered+dim (~8s)
+      var bt = (el * 0.125) % 1, bc
+      if (bt < 0.34) bc = bt / 0.34
+      else if (bt < 0.6) bc = 1
+      else bc = Math.max(0, 1 - (bt - 0.6) / 0.34)
+      bc = bc * bc * (3 - 2 * bc)
+      var breathScatter = (1 - bc) * 0.05 * dim
+      var bf = 1 - dim + dim * (0.4 + bc)
       updateStages()
       if (doneAt) hud.style.opacity = String(1 - dim)
 
@@ -363,19 +370,20 @@ import avatar from 'src/assets/avatar.png'
 
       for (var k = 0; k < parts.length; k++) {
         var p = parts[k]
-        var ax = p.tx + p.ox * noiseK, ay = p.ty + p.oy * noiseK
+        var sK = noiseK + breathScatter
+        var ax = p.tx + p.ox * sK, ay = p.ty + p.oy * sK
         p.x += (ax - p.x) * (0.18 + pulse * 0.5); p.y += (ay - p.y) * (0.18 + pulse * 0.5)
         // hover — disperse away from the cursor + enlarge + light up; spring back when it leaves
         var hb = 0
         if (d > 0.5) {
-          var mdx = p.x - mouse.x, mdy = p.y - mouse.y, m2 = mdx * mdx + mdy * mdy, RR = (42 * DPR) * (42 * DPR)
-          if (m2 < RR) { hb = 1 - m2 / RR; var dd = Math.sqrt(m2) || 1, f = hb * 12 * DPR; p.x += mdx / dd * f; p.y += mdy / dd * f }
+          var mdx = p.x - mouse.x, mdy = p.y - mouse.y, m2 = mdx * mdx + mdy * mdy, RR = (21 * DPR) * (21 * DPR)
+          if (m2 < RR) { hb = 1 - m2 / RR; var dd = Math.sqrt(m2) || 1, f = hb * 8 * DPR; p.x += mdx / dd * f; p.y += mdy / dd * f }
         }
         var turb = noiseK * 34 * DPR
         var rx = p.x + Math.sin(p.y * 0.012 + el * 1.7 + p.seed * 6.28) * turb
         var ry = p.y + Math.cos(p.x * 0.012 - el * 1.4 + p.seed * 4) * turb
         var tw = 0.55 + Math.sin(p.tw = (p.tw || 0) + 0.04) * 0.2 * (1 - dim * 0.92)
-        var a = (0.30 + d * 0.6) * tw * (1 + pulse * 1.1) * (1 - dim * 0.4) * breathe * (1 + hb * 2.4)   // recede + slow breathe when landed; hover lights it up
+        var a = (0.30 + d * 0.6) * tw * (1 + pulse * 1.1) * bf * (1 + hb * 2.4)   // breathe (dim↔bright) when landed; hover lights it up
         var s = p.r * (7.5 - d * 4.6) * (1 + pulse * 0.5 + hb * 1.8)         // + bigger glow under hover
         ctx.globalAlpha = Math.min(1, a)
         ctx.drawImage(sprite, rx - s / 2, ry - s / 2, s, s)
