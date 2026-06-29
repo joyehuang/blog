@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets'
 import { getCollection } from 'astro:content'
+import { formatTalkDateCN, sortTalks } from '@/lib/talks'
 import avatar from 'src/assets/avatar.png'
 
 import { Quote } from 'astro-pure/advanced'
@@ -15,7 +16,6 @@ import SkillLayout from '@/components/home/SkillLayout.astro'
 import JoJo from '@/components/mascot/JoJo'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
-import { formatTalkDateCN, sortTalks } from '@/lib/talks'
 
 export const prerender = true
 
@@ -111,7 +111,15 @@ const agentHackathonLink =
           <Label title='Melbourne, Australia'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
-          <Label title='GitHub' as='a' href='https://github.com/joyehuang' target='_blank'>
+          <Label
+            title='GitHub'
+            as='a'
+            href='https://github.com/joyehuang'
+            target='_blank'
+            data-analytics-event='home_github_click'
+            data-analytics-section='profile_header'
+            data-analytics-target='profile'
+          >
             <Icon name='github' class='size-5' slot='icon' />
           </Label>
         </div>
@@ -122,6 +130,9 @@ const agentHackathonLink =
         <a
           href='/contact'
           class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
+          data-analytics-event='home_cta_click'
+          data-analytics-section='hero'
+          data-analytics-target='contact'
         >
           <span class='relative flex items-center justify-center'>
             <span
@@ -144,12 +155,20 @@ const agentHackathonLink =
       <Section title='About'>
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
-          墨尔本大学在读，目前在 Adastra Labs（石墨文档海外）参与 Playyy.ai，
-          同时在特赞 Tezign 做 atypica（商业研究 Multi-Agent），并在 fAIshion.ai 与 Goshu Tech
-          做 AI 全栈与剪辑 Agent。 在意 LLM 的底层机制，也在意产品能不能真正跑起来。 Build fast,
-          learn faster — 平时弹琴、拉大提琴、玩摄影。
+          墨尔本大学在读，目前在 Adastra Labs（石墨文档海外）参与 Playyy.ai， 同时在特赞 Tezign 做
+          atypica（商业研究 Multi-Agent），并在 fAIshion.ai 与 Goshu Tech 做 AI 全栈与剪辑 Agent。
+          在意 LLM 的底层机制，也在意产品能不能真正跑起来。 Build fast, learn faster —
+          平时弹琴、拉大提琴、玩摄影。
         </p>
-        <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
+        <Button
+          title='More about me'
+          class='w-fit self-end'
+          href='/about'
+          style='ahead'
+          data-analytics-event='home_cta_click'
+          data-analytics-section='about'
+          data-analytics-target='more_about'
+        />
       </Section>
       {
         allPostsByDate.length > 0 && (
@@ -161,7 +180,15 @@ const agentHackathonLink =
                 </li>
               ))}
             </ul>
-            <Button title='More blogs' class='w-fit self-end' href='/blog' style='ahead' />
+            <Button
+              title='More blogs'
+              class='w-fit self-end'
+              href='/blog'
+              style='ahead'
+              data-analytics-event='home_cta_click'
+              data-analytics-section='blog'
+              data-analytics-target='more_blogs'
+            />
           </Section>
         )
       }
@@ -212,7 +239,15 @@ const agentHackathonLink =
                 </li>
               ))}
             </ul>
-            <Button title='More notes' class='w-fit self-end' href='/archive' style='ahead' />
+            <Button
+              title='More notes'
+              class='w-fit self-end'
+              href='/archive'
+              style='ahead'
+              data-analytics-event='home_cta_click'
+              data-analytics-section='notes'
+              data-analytics-target='more_notes'
+            />
           </Section>
         )
       }
@@ -221,15 +256,28 @@ const agentHackathonLink =
         latestTalk && (
           <Section title='Talks'>
             <p class='text-muted-foreground'>
-              群里每周一次的线上交流会，轮流分享技术、求职和 AI 行业 —— 每期的内容与幻灯片都公开沉淀在这里。
+              群里每周一次的线上交流会，轮流分享技术、求职和 AI 行业 ——
+              每期的内容与幻灯片都公开沉淀在这里。
             </p>
             <LinkCard
               heading={latestTalk.data.title}
               subheading={latestTalk.data.subtitle ?? ''}
               date={`最新一期 · ${formatTalkDateCN(latestTalk.data.date)}`}
               href='/talks'
+              target='_self'
+              data-analytics-event='home_cta_click'
+              data-analytics-section='talks'
+              data-analytics-target='latest_talk'
             />
-            <Button title='全部分享' class='w-fit self-end' href='/talks' style='ahead' />
+            <Button
+              title='全部分享'
+              class='w-fit self-end'
+              href='/talks'
+              style='ahead'
+              data-analytics-event='home_cta_click'
+              data-analytics-section='talks'
+              data-analytics-target='all_talks'
+            />
           </Section>
         )
       }
@@ -239,6 +287,9 @@ const agentHackathonLink =
           heading='Adastra Labs（石墨文档海外）'
           subheading='AI 全栈工程师'
           href='https://playyy.ai/'
+          data-analytics-event='home_external_click'
+          data-analytics-section='experience'
+          data-analytics-target='playyy'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>参与 Playyy.ai —— AI 图像生成与品牌设计平台的产品与工程研发</li>
@@ -248,12 +299,22 @@ const agentHackathonLink =
           heading='上海特赞 Tezign'
           subheading='AIGC 研发部门全栈实习生'
           href='https://atypica.ai/'
+          data-analytics-event='home_external_click'
+          data-analytics-section='experience'
+          data-analytics-target='atypica'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>参与 atypica.ai —— 面向商业研究场景的 Multi-Agent 系统</li>
           </ul>
         </LinkCard>
-        <LinkCard heading='AIXCut' subheading='AI 全栈研发' href='https://aixcut.cn/'>
+        <LinkCard
+          heading='AIXCut'
+          subheading='AI 全栈研发'
+          href='https://aixcut.cn/'
+          data-analytics-event='home_external_click'
+          data-analytics-section='experience'
+          data-analytics-target='aixcut'
+        >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>参与 AI 视频剪辑 Agent 的设计与工程化落地</li>
           </ul>
@@ -262,6 +323,9 @@ const agentHackathonLink =
           heading='fAIshion.ai'
           subheading='AI 全栈工程师（远程）'
           href='https://www.faishion.ai/'
+          data-analytics-event='home_external_click'
+          data-analytics-section='experience'
+          data-analytics-target='faishion'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>AI 虚拟试衣与服装搭配平台的全栈开发与模型集成</li>
@@ -276,6 +340,9 @@ const agentHackathonLink =
               subheading={repo.description}
               date={`⭐ ${repo.stars}`}
               href={`https://github.com/joyehuang/${repo.name}`}
+              data-analytics-event='home_github_click'
+              data-analytics-section='open_source'
+              data-analytics-target={repo.name}
             />
           ))
         }
@@ -376,6 +443,9 @@ const agentHackathonLink =
         data-agent-popout-close
         class='absolute end-2 top-2 z-10 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
         aria-label='关闭 Agent 比赛弹窗'
+        data-analytics-event='home_agent_activity_click'
+        data-analytics-section='agent_popout'
+        data-analytics-target='close'
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -425,6 +495,9 @@ const agentHackathonLink =
               target='_blank'
               rel='noopener noreferrer'
               class='group inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background no-underline transition-transform hover:-translate-y-0.5'
+              data-analytics-event='home_agent_activity_click'
+              data-analytics-section='agent_popout'
+              data-analytics-target='feishu_link'
             >
               去看群比赛
               <svg
@@ -448,6 +521,9 @@ const agentHackathonLink =
               type='button'
               data-agent-popout-minimize
               class='rounded-full border bg-background px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              data-analytics-event='home_agent_activity_click'
+              data-analytics-section='agent_popout'
+              data-analytics-target='minimize'
             >
               收进角落
             </button>
@@ -461,6 +537,9 @@ const agentHackathonLink =
       data-agent-popout-pill
       class='agent-popout-pill hidden items-center gap-2 rounded-full border bg-background/95 px-3 py-2 text-sm font-medium shadow-lg backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-xl'
       aria-label='展开第一届 Joye 粉丝 Agent 比赛弹窗'
+      data-analytics-event='home_agent_activity_click'
+      data-analytics-section='agent_popout'
+      data-analytics-target='pill_open'
     >
       <span class='relative flex size-2'>
         <span

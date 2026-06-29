@@ -8,6 +8,7 @@ interface Props {
   subheading?: string
   date?: string
   target?: string
+  [key: string]: unknown
 }
 
 const {
@@ -16,7 +17,8 @@ const {
   heading,
   subheading,
   date,
-  target = '_blank'
+  target = '_blank',
+  ...props
 } = Astro.props
 ---
 
@@ -24,6 +26,7 @@ const {
   href={href}
   target={target}
   rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+  {...props}
   class={cn(
     'not-prose block relative rounded-2xl border bg-muted px-5 py-3 transition-all hover:border-foreground/25 hover:shadow-sm no-underline',
     className
