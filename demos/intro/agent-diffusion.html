@@ -50,9 +50,7 @@
 <body>
   <canvas id="c"></canvas>
   <div class="hud" id="hud">
-    <div class="lab" id="lab">joye-agent · sampling from noise</div>
     <div class="bar" id="bar"></div>
-    <div class="cnt" id="cnt"></div>
   </div>
 
   <div class="hero" id="hero">
@@ -70,9 +68,9 @@
 
 <script>
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const hud=document.getElementById('hud'),labEl=document.getElementById('lab'),barEl=document.getElementById('bar'),cntEl=document.getElementById('cnt'),hero=document.getElementById('hero');
+const hud=document.getElementById('hud'),barEl=document.getElementById('bar'),hero=document.getElementById('hero');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-let W,H,DPR,raf,t0=0,parts=[],mouse={x:-1e9,y:-1e9},d=0,dTarget=0,stepShown=-1,doneAt=0,heroShown=false;
+let W,H,DPR,raf,t0=0,parts=[],rings=[],mouse={x:-1e9,y:-1e9},d=0,dTarget=0,stepShown=-1,doneAt=0,heroShown=false;
 
 // soft glow sprite
 const sprite=document.createElement('canvas');sprite.width=sprite.height=64;
@@ -127,12 +125,22 @@ function frame(ts){
   let step=-1;
   for(let i=0;i<STEPS.length;i++) if(el>=STEPS[i].t){ dTarget=STEPS[i].d; step=i; }
   d+=(dTarget-d)*0.13;
-  if(step!==stepShown){ stepShown=step; renderHud(step); }
-  if(d>0.985 && !doneAt && el>STEPS[STEPS.length-1].t+0.5){ doneAt=ts; labEl.textContent='joye · sampled'; }
+  if(step!==stepShown){ stepShown=step; renderHud(step); if(step>=0) rings.push({born:ts}); }
+  if(d>0.985 && !doneAt && el>STEPS[STEPS.length-1].t+0.5){ doneAt=ts; }
   if(doneAt && ts-doneAt>800 && !heroShown){ heroShown=true; hero.classList.add('show'); }
 
   const noiseK=Math.pow(1-d,2);          // how much noise remains
   ctx.globalCompositeOperation='lighter';
+
+  // refine pulse — a wavefront ripples out on each denoise step (process, shown not told)
+  const ccx=W/2, ccy=H*0.46;
+  for(const ring of rings){
+    const age=(ts-ring.born)/1000; if(age>1.25) continue;
+    const rr=age*Math.max(W,H)*0.4, al=(1-age/1.25)*0.26;
+    ctx.strokeStyle=`rgba(125,211,252,${al})`; ctx.lineWidth=DPR*1.1;
+    ctx.beginPath(); ctx.arc(ccx,ccy,rr,0,7); ctx.stroke();
+  }
+
   for(const p of parts){
     // anchor walks from noise-home toward the JOYE target as d grows
     const ax=p.tx+p.ox*noiseK, ay=p.ty+p.oy*noiseK;
@@ -157,15 +165,12 @@ function frame(ts){
 function renderHud(step){
   barEl.innerHTML='';
   for(let i=0;i<STEPS.length;i++){const pip=document.createElement('span');pip.className='pip'+(i<=step?' on':'');barEl.appendChild(pip);}
-  if(step<0){ labEl.textContent='joye-agent · sampling from noise'; cntEl.textContent=''; }
-  else if(step<STEPS.length-1){ labEl.textContent='denoising'; cntEl.textContent=`step ${step+1} / ${STEPS.length}`; }
-  else { cntEl.textContent=`step ${STEPS.length} / ${STEPS.length}`; }
 }
 
 function start(){
   cancelAnimationFrame(raf);resize();build();
   if(parts.length===0){setTimeout(start,120);return;}
-  d=0;dTarget=0;stepShown=-2;t0=0;doneAt=0;heroShown=false;
+  d=0;dTarget=0;stepShown=-2;t0=0;doneAt=0;heroShown=false;rings=[];
   ctx.clearRect(0,0,W,H);hud.classList.remove('show');hero.classList.remove('show');
   if(reduce){hero.classList.add('show');return;}
   raf=requestAnimationFrame(frame);
