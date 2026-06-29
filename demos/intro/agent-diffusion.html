@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · agent denoises Joye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;--ok:#41d18a;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{height:100%;margin:0}
+  body{background:#07090d;color:var(--fg);font-family:var(--sans);overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
+
+  .hud{position:fixed;left:50%;top:8.5%;transform:translateX(-50%);text-align:center;z-index:4;
+    font-family:var(--mono);opacity:0;transition:opacity .9s ease;white-space:nowrap}
+  .hud.show{opacity:1}
+  .hud .pipe{display:flex;align-items:center;justify-content:center}
+  .hud .stage{display:flex;align-items:center;gap:7px;opacity:.36;transition:opacity .45s ease}
+  .hud .stage.on{opacity:1}
+  .hud .stage.done{opacity:.64}
+  .hud .stage i{width:7px;height:7px;border-radius:50%;background:rgba(125,211,252,.28);transition:.45s ease}
+  .hud .stage.on i{background:var(--cyan);box-shadow:0 0 12px rgba(125,211,252,.95)}
+  .hud .stage.done i{background:rgba(125,211,252,.7)}
+  .hud .stage span{font-size:11px;letter-spacing:.2em;color:var(--cyan)}
+  .hud .seg{width:44px;height:1px;margin:0 12px;background:rgba(125,211,252,.16);position:relative}
+  .hud .seg b{position:absolute;inset:0 auto 0 0;width:0;background:var(--cyan);box-shadow:0 0 8px rgba(125,211,252,.7)}
+
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;border:1px solid rgba(255,255,255,.14);object-fit:cover;background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));box-shadow:0 0 50px rgba(125,211,252,.3)}
+  .name{font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .ital{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);font-size:14px;color:var(--fg);text-decoration:none}
+  .ping{position:relative;width:9px;height:9px}.ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}@keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}.hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}.hero.show .card>*:nth-child(4){animation-delay:.36s}.hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.45);z-index:20}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="hud" id="hud">
+    <div class="pipe">
+      <div class="stage"><i></i><span>sample</span></div>
+      <div class="seg"><b></b></div>
+      <div class="stage"><i></i><span>refine</span></div>
+      <div class="seg"><b></b></div>
+      <div class="stage"><i></i><span>decode</span></div>
+    </div>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye" onerror="this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="ital">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">动画一（重做）· 一个 agent 把 Joye 从噪声里去噪生成</div>
+  <div class="ctl"><button id="skip">跳过 →</button><button id="replay">重播 ↻</button></div>
+
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),hero=document.getElementById('hero');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let W,H,DPR,raf,t0=0,parts=[],pulse=0,mouse={x:-1e9,y:-1e9},d=0,dTarget=0,stepShown=-1,doneAt=0,heroShown=false;
+
+// soft glow sprite
+const sprite=document.createElement('canvas');sprite.width=sprite.height=64;
+{const g=sprite.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);
+ r.addColorStop(0,'rgba(214,243,255,1)');r.addColorStop(.25,'rgba(138,214,255,.6)');r.addColorStop(.6,'rgba(110,190,240,.14)');r.addColorStop(1,'rgba(110,190,240,0)');
+ g.fillStyle=r;g.fillRect(0,0,64,64);}
+
+// denoise schedule: noise → ... → form. Each entry is a refinement step.
+const STEPS=[ {t:0.55,d:0.14}, {t:1.05,d:0.32}, {t:1.55,d:0.52}, {t:2.05,d:0.72}, {t:2.5,d:0.88}, {t:2.95,d:1.0} ];
+
+function vw(){var w=innerWidth||document.documentElement.clientWidth||0;return w>20?w:1280}
+function vh(){var h=innerHeight||document.documentElement.clientHeight||0;return h>20?h:800}
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=Math.round(vw()*DPR);H=cv.height=Math.round(vh()*DPR);cv.style.width=vw()+'px';cv.style.height=vh()+'px';}
+addEventListener('mousemove',e=>{mouse.x=e.clientX*DPR;mouse.y=e.clientY*DPR});
+addEventListener('mouseleave',()=>{mouse.x=mouse.y=-1e9});
+
+function sampleJOYE(){
+  if(!W||!H)return[];
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const o=off.getContext('2d');o.fillStyle='#fff';o.textBaseline='middle';o.textAlign='left';
+  const tracking=0.18;let size=Math.min(H*0.4,W*0.32);
+  const setFont=()=>o.font=`700 ${size}px Inter, system-ui, sans-serif`;setFont();
+  const adv=()=>{let w=0;for(const ch of 'JOYE')w+=o.measureText(ch).width+size*tracking;return w-size*tracking};
+  if(adv()>W*0.72){size*=W*0.72/adv();setFont();}
+  let x=(W-adv())/2;const y=H*0.46;
+  for(const ch of 'JOYE'){o.fillText(ch,x,y);x+=o.measureText(ch).width+size*tracking;}
+  const dd=o.getImageData(0,0,W,H).data;const gap=Math.max(5,Math.round(6.5*DPR));const pts=[];
+  for(let yy=0;yy<H;yy+=gap)for(let xx=0;xx<W;xx+=gap)if(dd[(yy*W+xx)*4+3]>140)pts.push({x:xx,y:yy});
+  return pts;
+}
+
+function build(){
+  const pts=sampleJOYE();
+  const R=Math.min(W,H)*0.62; // noise radius — the JOYE signal is buried this far out
+  parts=pts.map(p=>{
+    const ang=Math.random()*6.283, mag=Math.pow(Math.random(),0.6)*R;
+    return { tx:p.x,ty:p.y, ox:Math.cos(ang)*mag, oy:Math.sin(ang)*mag,
+      x:p.x+Math.cos(ang)*mag, y:p.y+Math.sin(ang)*mag, ph:Math.random()*6.28, fr:0.6+Math.random()*1.4,
+      r:(Math.random()*0.8+0.7)*DPR, seed:Math.random() };
+  });
+}
+
+function frame(ts){
+  if(!t0)t0=ts;const el=(ts-t0)/1000;
+
+  // trail-fade clear (motion + dark bg)
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='rgba(7,9,13,0.32)';ctx.fillRect(0,0,W,H);
+  if(el>.1) hud.classList.add('show');
+
+  // advance the denoise steps (discrete iterations → real process)
+  let step=-1;
+  for(let i=0;i<STEPS.length;i++) if(el>=STEPS[i].t){ dTarget=STEPS[i].d; step=i; }
+  d+=(dTarget-d)*0.13;
+  if(step!==stepShown){ stepShown=step; if(step>=0) pulse=1; }
+  if(d>0.985 && !doneAt && el>STEPS[STEPS.length-1].t+0.5){ doneAt=ts; }
+  if(doneAt && ts-doneAt>800 && !heroShown){ heroShown=true; hero.classList.add('show'); }
+  const dim = doneAt ? Math.min(1,(ts-doneAt)/900) : 0;   // particles recede as the avatar emerges
+  updateStages();
+  if(doneAt) hud.style.opacity = String(1-dim);            // fade the stage pipeline out with the reveal
+
+  const noiseK=Math.pow(1-d,2);          // how much noise remains
+  pulse*=0.86;                            // per-step refine surge decays
+  ctx.globalCompositeOperation='lighter';
+
+  for(const p of parts){
+    const ax=p.tx+p.ox*noiseK, ay=p.ty+p.oy*noiseK;   // anchor walks noise → target as d grows
+    p.x+=(ax-p.x)*(0.18+pulse*0.5); p.y+=(ay-p.y)*(0.18+pulse*0.5);  // track it; pulse tightens each step
+    // turbulent shimmer while noisy (a flow field, rendered as displacement) = the agent "computing"; →0 when resolved
+    // hover — particles disperse (扩散) away from the cursor + enlarge + light up; spring back when it leaves
+    let hb=0;
+    if(d>0.5){const mdx=p.x-mouse.x,mdy=p.y-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(118*DPR)**2;
+      if(m2<RR){ hb=1-m2/RR; const dd=Math.sqrt(m2)||1, f=hb*26*DPR; p.x+=mdx/dd*f; p.y+=mdy/dd*f; }}
+    const turb=noiseK*34*DPR;
+    const rx=p.x+Math.sin(p.y*0.012+el*1.7+p.seed*6.28)*turb;
+    const ry=p.y+Math.cos(p.x*0.012-el*1.4+p.seed*4)*turb;
+    const tw=0.55+Math.sin(p.tw=(p.tw||0)+0.04)*0.2*(1-dim*0.92);   // calm the flicker as the avatar emerges → steady
+    const a=(0.30+d*0.6)*tw*(1+pulse*1.1)*(1-dim*0.72)*(1+hb*1.6);  // recede on reveal; glow under hover
+    const s=p.r*(7.5-d*4.6)*(1+pulse*0.5+hb*1.0);                   // dots enlarge under hover
+    ctx.globalAlpha=Math.min(1,a);
+    ctx.drawImage(sprite,rx-s/2,ry-s/2,s,s);
+  }
+
+  // structure mesh — faint links weave between neighbouring particles as JOYE resolves
+  if(d>0.5){
+    const R2=(16*DPR)**2;
+    ctx.strokeStyle=`rgba(125,211,252,${(d-0.5)*0.42})`; ctx.lineWidth=DPR*0.5;
+    ctx.beginPath();
+    for(let i=0;i<parts.length;i++){ const p=parts[i];
+      for(let j=i+1;j<=i+2 && j<parts.length;j++){ const q=parts[j];
+        const dx=p.x-q.x,dy=p.y-q.y; if(dx*dx+dy*dy<R2){ ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); } } }
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  raf=requestAnimationFrame(frame);
+}
+
+// 3 agent stages mapped onto the denoise progress: sample → refine → decode
+let STAGE_EL=null, SEG_EL=null;
+function updateStages(){
+  if(!STAGE_EL){ STAGE_EL=hud.querySelectorAll('.stage'); SEG_EL=hud.querySelectorAll('.seg b'); }
+  if(!STAGE_EL.length) return;
+  const cur = d<0.30 ? 0 : d<0.82 ? 1 : 2;
+  for(let i=0;i<STAGE_EL.length;i++){ STAGE_EL[i].classList.toggle('on',i===cur); STAGE_EL[i].classList.toggle('done',i<cur); }
+  if(SEG_EL[0]) SEG_EL[0].style.width=(d<0.30 ? d/0.30 : 1)*100+'%';
+  if(SEG_EL[1]) SEG_EL[1].style.width=(d<0.30 ? 0 : d<0.82 ? (d-0.30)/0.52 : 1)*100+'%';
+}
+
+function start(){
+  cancelAnimationFrame(raf);resize();build();
+  if(parts.length===0){setTimeout(start,120);return;}
+  d=0;dTarget=0;stepShown=-2;t0=0;doneAt=0;heroShown=false;pulse=0;
+  ctx.clearRect(0,0,W,H);hud.classList.remove('show');hud.style.opacity='';hero.classList.remove('show');
+  if(reduce){hero.classList.add('show');return;}
+  raf=requestAnimationFrame(frame);
+}
+function boot(){if(document.fonts&&document.fonts.ready){Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,800))]).then(start);}else start();}
+function skip(){cancelAnimationFrame(raf);ctx.clearRect(0,0,W,H);hud.classList.remove('show');hero.classList.add('show');}
+
+document.getElementById('skip').onclick=skip;
+document.getElementById('replay').onclick=start;
+addEventListener('resize',()=>{if(!heroShown){resize();build();}});
+boot();
+</script>
+</body>
+</html>

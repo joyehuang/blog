@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intro · Constellation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1419;--fg:#faf9f8;--muted:#9aa6b2;--cyan:#7dd3fc;--steel:#659eb9;--ok:#41d18a;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    --sans:'Inter','Satoshi',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:radial-gradient(120% 120% at 50% 30%,#121a22,#0b0f14 70%);color:var(--fg);
+    font-family:var(--sans);overflow:hidden}
+  canvas{position:fixed;inset:0;display:block}
+
+  .tag{position:fixed;left:0;right:0;top:62%;text-align:center;font-family:var(--mono);
+    font-size:14px;letter-spacing:.18em;color:var(--cyan);opacity:0;text-transform:uppercase}
+  .tag.show{animation:fade .9s ease forwards}
+  @keyframes fade{to{opacity:.9}}
+  .context{position:fixed;inset:0;pointer-events:none;overflow:hidden;font-family:var(--mono);z-index:3}
+  .task{position:absolute;top:8%;left:50%;opacity:0;transform:translate(-50%,12px);
+    color:rgba(125,211,252,.56);font-size:clamp(10px,1.2vw,13px);letter-spacing:.08em;
+    text-shadow:0 0 18px rgba(125,211,252,.16);transition:opacity .9s ease,transform 1.2s cubic-bezier(.16,1,.3,1);
+    white-space:nowrap}
+  .context.start .task{opacity:.56;transform:translate(-50%,0)}
+  .tool{position:absolute;width:clamp(132px,16vw,212px);max-width:42vw;opacity:0;
+    transform:translate(-50%,10px) scale(.98);padding:8px 10px;color:var(--muted);
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;
+    box-shadow:0 14px 36px -24px rgba(0,0,0,.8);backdrop-filter:blur(8px);
+    transition:opacity .65s ease,transform .8s cubic-bezier(.16,1,.3,1),filter .5s ease,border-color .5s ease}
+  .context.invoke .tool{opacity:.58;transform:translate(-50%,0) scale(1)}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(250,249,248,.75);
+    font-size:11px;white-space:nowrap}
+  .call{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .status{color:rgba(125,211,252,.8);font-size:10px}
+  .shards{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .shard{opacity:0;transform:translateY(6px);color:rgba(125,211,252,.74);font-size:10px;line-height:1;
+    padding:4px 6px;border-radius:6px;background:rgba(125,211,252,.08);border:1px solid rgba(125,211,252,.14);
+    transition:opacity .55s ease,transform .55s ease}
+  .context.compose .shard{opacity:.72;transform:translateY(0)}
+  .context.merge .tool{opacity:.2;transform:translate(-50%,-10px) scale(.97);filter:blur(.5px)}
+  .merge{position:absolute;left:50%;top:65%;opacity:0;transform:translate(-50%,10px);
+    color:rgba(125,211,252,.62);font-size:11px;letter-spacing:.08em;white-space:nowrap;
+    transition:opacity .7s ease,transform .7s ease}
+  .context.merge .merge{opacity:.58;transform:translate(-50%,0)}
+  .context.leaving .task,.context.leaving .tool,.context.leaving .merge{
+    opacity:0;transform:translate(-50%,-34px) scale(.94);filter:blur(2px)}
+  @media (max-width:700px){
+    .task,.merge{max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
+    .tool{width:138px;max-width:44vw;padding:7px 8px}
+    .head{gap:8px;font-size:10px}
+    .shard{font-size:9px;padding:3px 5px}
+    .merge{top:56%}
+  }
+  .enter{position:fixed;left:50%;top:calc(50% + 150px);transform:translate(-50%,10px);
+    opacity:0;pointer-events:none;z-index:18;font-family:var(--mono);font-size:13px;
+    color:var(--fg);background:rgba(255,255,255,.06);border:1px solid rgba(125,211,252,.34);
+    border-radius:8px;padding:10px 15px;cursor:pointer;backdrop-filter:blur(10px);
+    box-shadow:0 14px 36px -18px rgba(250,249,248,.38),inset 0 1px 0 rgba(250,249,248,.08);transition:.35s ease}
+  .enter.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+  .enter:hover{background:rgba(125,211,252,.11);border-color:rgba(125,211,252,.65);box-shadow:0 18px 48px -20px rgba(125,211,252,.75)}
+  .trace{position:fixed;left:50%;top:calc(50% + 210px);z-index:18;transform:translate(-50%,8px);
+    opacity:0;pointer-events:none;color:var(--muted);font-family:var(--mono);font-size:10px;
+    letter-spacing:.08em;text-align:center;white-space:nowrap;transition:.55s ease}
+  .trace.show{opacity:.46;transform:translate(-50%,0)}
+
+  /* hero reveal */
+  .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
+  .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
+  .card{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .avatar{width:112px;height:112px;border-radius:50%;padding:4px;
+    border:1px solid rgba(255,255,255,.14);object-fit:cover;
+    background:conic-gradient(from 210deg,var(--steel),var(--cyan),var(--steel));
+    box-shadow:0 0 50px rgba(125,211,252,.3)}
+  .name{font-weight:800;font-size:34px;letter-spacing:-.02em;margin:0}
+  .meta{color:var(--muted);font-family:var(--mono);font-size:13px;display:flex;gap:14px}
+  .ital{color:var(--cyan);font-style:italic;font-size:15px}
+  .pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);font-size:14px;
+    color:var(--fg);text-decoration:none;transition:.2s}
+  .pill:hover{border-color:rgba(125,211,252,.4);box-shadow:0 0 0 4px rgba(125,211,252,.08)}
+  .ping{position:relative;width:9px;height:9px}
+  .ping i{position:absolute;inset:0;border-radius:50%;background:var(--ok)}
+  .ping i:first-child{animation:ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+  .card>*{opacity:0;transform:translateY(14px)}
+  .hero.show .card>*{animation:up .7s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero.show .card>*:nth-child(1){animation-delay:.05s}
+  .hero.show .card>*:nth-child(2){animation-delay:.16s}
+  .hero.show .card>*:nth-child(3){animation-delay:.26s}
+  .hero.show .card>*:nth-child(4){animation-delay:.36s}
+  .hero.show .card>*:nth-child(5){animation-delay:.46s}
+  @keyframes up{to{opacity:1;transform:none}}
+
+  .ctl{position:fixed;bottom:18px;right:18px;display:flex;gap:10px;z-index:20;font-family:var(--mono);font-size:12px}
+  .ctl button{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid rgba(255,255,255,.1);
+    padding:7px 12px;border-radius:8px;cursor:pointer;transition:.2s}
+  .ctl button:hover{color:var(--fg);border-color:rgba(125,211,252,.4)}
+  .hint{position:fixed;bottom:20px;left:20px;font-family:var(--mono);font-size:12px;color:rgba(154,166,178,.5);z-index:20}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="context" id="context"></div>
+  <div class="tag" id="tag">agent runtime · tool loop · content merge</div>
+  <button class="enter" id="enter">进入 ~/joye →</button>
+  <div class="trace" id="trace">agent loop complete · context merged</div>
+
+  <div class="hero" id="hero">
+    <div class="card">
+      <img class="avatar" src="../../src/assets/avatar.png" alt="Joye"
+           onerror="this.removeAttribute('src')" />
+      <h1 class="name">Joye</h1>
+      <div class="meta"><span>📍 Melbourne, Australia</span><span>· GitHub</span></div>
+      <div class="ital">“Stay hungry, stay foolish.”</div>
+      <a class="pill" href="javascript:void 0"><span class="ping"><i></i><i></i></span> Connect Me!</a>
+    </div>
+  </div>
+
+  <div class="hint">这是入场动画演示 · 成形后可互动，点击进入 ~/joye</div>
+  <div class="ctl"><button id="skip">跳过 →</button><button id="replay">重播 ↻</button></div>
+
+<script>
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const context = document.getElementById('context');
+const tag = document.getElementById('tag');
+const enter = document.getElementById('enter');
+const trace = document.getElementById('trace');
+const hero = document.getElementById('hero');
+const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+let W,H,DPR, particles=[], mouse={x:-1e9,y:-1e9}, phase='gather', raf, t0, scatterAt=0, enterShown=false, autoExit=0;
+
+const TOOLS=[
+  { call:'agent.runtime()', shards:['plan','loop'], pos:[50,15] },
+  { call:'mcp.filesystem()', shards:['posts','projects'], pos:[22,27] },
+  { call:'mcp.github()', shards:['OpenHarness','ship log'], pos:[78,29] },
+  { call:'memory.search()', shards:['design taste','frontend'], pos:[22,56] },
+  { call:'examples.unitize()', shards:['tool call','UI case'], pos:[78,56] },
+  { call:'merge_context()', shards:['identity','JOYE'], pos:[50,82] }
+];
+const task=document.createElement('div');
+task.className='task';
+task.textContent='task: compose joye.dev/home';
+context.appendChild(task);
+TOOLS.forEach((item,i)=>{
+  const tool=document.createElement('div');
+  tool.className='tool';
+  tool.style.left=item.pos[0]+'%';
+  tool.style.top=item.pos[1]+'%';
+  tool.style.transitionDelay=(.12+i*.08)+'s';
+  const head=document.createElement('div');
+  head.className='head';
+  const call=document.createElement('span');
+  call.className='call';
+  call.textContent=item.call;
+  const status=document.createElement('span');
+  status.className='status';
+  status.textContent='ok';
+  head.append(call,status);
+  tool.appendChild(head);
+  const shards=document.createElement('div');
+  shards.className='shards';
+  item.shards.forEach((text,j)=>{
+    const shard=document.createElement('span');
+    shard.className='shard';
+    shard.textContent=text;
+    shard.style.transitionDelay=(.24+i*.07+j*.08)+'s';
+    shards.appendChild(shard);
+  });
+  tool.appendChild(shards);
+  context.appendChild(tool);
+});
+const merge=document.createElement('div');
+merge.className='merge';
+merge.textContent='merge: context shards → JOYE';
+context.appendChild(merge);
+
+function vw(){ return innerWidth || document.documentElement.clientWidth || 1280; }
+function vh(){ return innerHeight || document.documentElement.clientHeight || 800; }
+function resize(){
+  DPR = Math.min(devicePixelRatio||1, 2);
+  const w=vw(), h=vh();
+  W = cv.width = w*DPR; H = cv.height = h*DPR;
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+}
+addEventListener('resize', ()=>{ resize(); buildTargets(); });
+addEventListener('mousemove', e=>{ mouse.x=e.clientX*DPR; mouse.y=e.clientY*DPR; });
+addEventListener('mouseleave', ()=>{ mouse.x=mouse.y=-1e9; });
+
+// sample the word "JOYE" into target points (manual letter-spacing for legibility)
+function sampleText(text){
+  if(!W || !H) return [];
+  const off = document.createElement('canvas');
+  const o = off.getContext('2d');
+  off.width = W; off.height = H;
+  o.fillStyle = '#fff';
+  o.textBaseline = 'middle';
+  o.textAlign = 'left';
+
+  const tracking = 0.18;                 // extra space between letters (× font size)
+  let size = Math.min(H * 0.42, W * 0.34);
+  const setFont = () => o.font = `700 ${size}px Inter, system-ui, sans-serif`;
+  setFont();
+  const advance = () => {
+    let w = 0; for (const ch of text) w += o.measureText(ch).width + size * tracking;
+    return w - size * tracking;
+  };
+  const maxW = W * 0.74;
+  if (advance() > maxW) { size *= maxW / advance(); setFont(); }
+
+  let x = (W - advance()) / 2;
+  const y = H * 0.46;
+  for (const ch of text) {
+    o.fillText(ch, x, y);
+    x += o.measureText(ch).width + size * tracking;
+  }
+
+  const data = o.getImageData(0, 0, W, H).data;
+  const gap = Math.max(5, Math.round(7 * DPR));   // sparser → letters breathe
+  const pts = [];
+  for (let yy = 0; yy < H; yy += gap)
+    for (let xx = 0; xx < W; xx += gap)
+      if (data[(yy * W + xx) * 4 + 3] > 128) pts.push({ x: xx, y: yy });
+  return pts;
+}
+
+function buildTargets(){
+  const pts = sampleText('JOYE');
+  // grow/shrink the particle pool to match
+  while(particles.length < pts.length){
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H,
+      vx:0, vy:0, tx:0, ty:0, sx:0, sy:0,
+      r: (Math.random()*0.9+0.7)*DPR,
+      hue: Math.random(), tw: Math.random()*Math.PI*2,
+      delay:0, drift:Math.random()*Math.PI*2
+    });
+  }
+  particles.length = pts.length;
+  // assign nearest-ish targets (shuffle for organic look)
+  pts.sort(()=> Math.random()-0.5);
+  particles.forEach((p,i)=>{
+    const source = TOOLS[i % TOOLS.length].pos;
+    p.tx=pts[i].x; p.ty=pts[i].y;
+    p.sx=W*source[0]/100+(Math.random()-.5)*150*DPR;
+    p.sy=H*source[1]/100+(Math.random()-.5)*76*DPR;
+    p.delay=.9+(i%TOOLS.length)*.16+Math.random()*.85;
+  });
+}
+
+function color(p, a){
+  // steel -> cyan gradient by x position
+  const k = p.x / W;
+  const r = Math.round(101 + (125-101)*k);
+  const g = Math.round(158 + (211-158)*k);
+  const b = Math.round(185 + (252-185)*k);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function frame(ts){
+  if(!t0) t0=ts;
+  const el = (ts - t0)/1000;
+  ctx.clearRect(0,0,W,H);
+
+  // phase transitions
+  if(el>.12) context.classList.add('start');
+  if(el>.72) context.classList.add('invoke');
+  if(el>1.55) context.classList.add('compose');
+  if(el>2.95 && phase!=='scatter') context.classList.add('merge');
+  if(phase==='gather' && el>3.7) phase='hold';
+  if(phase==='hold' && el>4.35) showEnter();
+  if(phase==='scatter' && !scatterAt) scatterAt = ts;
+  const scatterAge = scatterAt ? (ts-scatterAt)/1000 : 0;
+  if(phase==='scatter' && ts-scatterAt>900 && !hero.classList.contains('show')){
+    hero.classList.add('show');
+  }
+
+  const ease = phase==='gather' ? 0.045 : phase==='hold' ? 0.11 : 0.018;
+  if(phase!=='scatter' && el>.72){
+    let linkFade = Math.min(1, (el-.72)/.75);
+    if(el>2.85) linkFade *= Math.max(.18, 1-(el-2.85)/1.2);
+    ctx.lineWidth = DPR*.7;
+    for(const tool of TOOLS){
+      const [x,y]=tool.pos;
+      ctx.strokeStyle = `rgba(125,211,252,${.085*linkFade})`;
+      ctx.beginPath();
+      ctx.moveTo(W*x/100,H*y/100);
+      ctx.quadraticCurveTo(W/2,H*.35,W/2,H*.47);
+      ctx.stroke();
+    }
+  }
+
+  // constellation links (only while formed-ish)
+  if(phase==='gather' || phase==='hold'){
+    ctx.lineWidth = DPR*0.6;
+    for(let i=0;i<particles.length;i+=2){
+      const p=particles[i];
+      for(let j=i+2;j<i+10 && j<particles.length;j++){
+        const q=particles[j];
+        const dx=p.x-q.x, dy=p.y-q.y; const d2=dx*dx+dy*dy;
+        if(d2 < (26*DPR)**2){
+          ctx.strokeStyle = `rgba(125,211,252,${0.10*(1-d2/((26*DPR)**2))})`;
+          ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y); ctx.stroke();
+        }
+      }
+    }
+  }
+
+  for(const p of particles){
+    // target seeking
+    if(phase==='scatter'){
+      const odx=(p.x-W/2)/Math.max(W,1);
+      p.vx += (Math.random()-0.5)*0.16*DPR + odx*.09*DPR;
+      p.vy += ((Math.random()-0.5)*0.08 - 0.11)*DPR;
+    }else{
+      const pull = phase==='hold' ? 1 : Math.max(0, Math.min(1, (el-p.delay)/2.05));
+      if(pull<1){ p.vx += Math.sin(el*.9+p.drift)*.012*DPR; p.vy += Math.cos(el*.7+p.drift)*.012*DPR; }
+      const localEase = ease * (.2 + pull*.8);
+      p.vx += (p.tx - p.x)*localEase*pull;
+      p.vy += (p.ty - p.y)*localEase*pull;
+    }
+    // mouse repel
+    const mdx=p.x-mouse.x, mdy=p.y-mouse.y, md2=mdx*mdx+mdy*mdy;
+    const R=(110*DPR)**2;
+    if(md2<R){ const f=(1-md2/R)*4; const d=Math.sqrt(md2)||1; p.vx+=mdx/d*f; p.vy+=mdy/d*f; }
+
+    const damp = phase==='scatter' ? .91 : .87;
+    p.vx*=damp; p.vy*=damp;
+    p.x+=p.vx; p.y+=p.vy;
+    p.tw+=0.05;
+
+    const near = (p.x-p.tx)**2+(p.y-p.ty)**2 < (8*DPR)**2;
+    const tw = 0.55 + Math.sin(p.tw)*0.25;
+    const fade = phase==='scatter' ? Math.max(0, 1 - scatterAge/1.45) : 1;
+    const born = (phase==='scatter' || phase==='hold') ? 1 : Math.max(0, Math.min(1, (el-p.delay+.28)/.55));
+    const a = phase==='scatter' ? 0.6 * fade
+            : (near ? 0.95 : 0.7) * tw * born;
+    ctx.beginPath();
+    ctx.fillStyle = color(p, Math.min(1,a));
+    ctx.arc(p.x,p.y, p.r*(near?1.25:1)*(phase==='scatter' ? .95 + scatterAge*.08 : 1), 0, 7);
+    ctx.fill();
+  }
+
+  // glow pass
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalCompositeOperation='source-over';
+
+  if(el>1.6 && !tag.classList.contains('show') && phase!=='scatter') tag.classList.add('show');
+  if(phase==='scatter') tag.classList.remove('show');
+
+  raf = requestAnimationFrame(frame);
+}
+
+function showEnter(){
+  if(enterShown || phase==='scatter') return;
+  enterShown = true;
+  context.classList.add('merge');
+  enter.classList.add('show');
+  trace.classList.add('show');
+  clearTimeout(autoExit);
+  autoExit = setTimeout(enterSite, 12000);
+}
+
+function enterSite(){
+  if(phase==='scatter') return;
+  phase='scatter';
+  scatterAt=0;
+  context.classList.add('leaving');
+  enter.classList.remove('show');
+  trace.classList.remove('show');
+  clearTimeout(autoExit);
+}
+
+function start(){
+  cancelAnimationFrame(raf);
+  resize(); particles=[]; buildTargets();
+  if(particles.length === 0){ setTimeout(start, 120); return; } // viewport not ready yet
+  particles.forEach(p=>{ p.x=p.sx; p.y=p.sy; p.vx=(Math.random()-.5)*DPR; p.vy=(Math.random()-.5)*DPR; });
+  phase='gather'; t0=0; scatterAt=0; enterShown=false; clearTimeout(autoExit);
+  hero.classList.remove('show'); tag.classList.remove('show'); enter.classList.remove('show'); trace.classList.remove('show');
+  context.classList.remove('start','invoke','compose','merge','leaving');
+  if(reduce){ hero.classList.add('show'); return; }
+  raf=requestAnimationFrame(frame);
+}
+function boot(){
+  // sample text only once the real font is ready, so "JOYE" has the right shape
+  if(document.fonts && document.fonts.ready){
+    Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,800))]).then(start);
+  } else start();
+}
+
+function skip(){ cancelAnimationFrame(raf); clearTimeout(autoExit); ctx.clearRect(0,0,W,H); tag.classList.remove('show'); enter.classList.remove('show'); trace.classList.remove('show'); context.classList.remove('start','invoke','compose','merge','leaving'); hero.classList.add('show'); }
+
+enter.onclick = enterSite;
+document.getElementById('skip').onclick = skip;
+document.getElementById('replay').onclick = start;
+boot();
+</script>
+</body>
+</html>
