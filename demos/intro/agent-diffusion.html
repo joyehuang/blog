@@ -151,16 +151,16 @@ function frame(ts){
     const ax=p.tx+p.ox*noiseK, ay=p.ty+p.oy*noiseK;   // anchor walks noise → target as d grows
     p.x+=(ax-p.x)*(0.18+pulse*0.5); p.y+=(ay-p.y)*(0.18+pulse*0.5);  // track it; pulse tightens each step
     // turbulent shimmer while noisy (a flow field, rendered as displacement) = the agent "computing"; →0 when resolved
-    const turb=noiseK*34*DPR;
-    let rx=p.x+Math.sin(p.y*0.012+el*1.7+p.seed*6.28)*turb;
-    let ry=p.y+Math.cos(p.x*0.012-el*1.4+p.seed*4)*turb;
-    // hover lens — magnify + brighten the patch under the cursor (放大 + 光亮)
+    // hover — particles disperse (扩散) away from the cursor + enlarge + light up; spring back when it leaves
     let hb=0;
-    if(d>0.5){const mdx=rx-mouse.x,mdy=ry-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(135*DPR)**2;
-      if(m2<RR){ hb=1-m2/RR; const mag=hb*0.6; rx+=mdx*mag; ry+=mdy*mag; }}  // push outward from cursor = zoom
-    const tw=0.55+Math.sin(p.tw=(p.tw||0)+0.05)*0.2;
-    const a=(0.30+d*0.6)*tw*(1+pulse*1.1)*(1-dim*0.72)*(1+hb*1.7);  // recede on reveal; glow under hover
-    const s=p.r*(7.5-d*4.6)*(1+pulse*0.5+hb*1.25);                  // dots enlarge under the lens
+    if(d>0.5){const mdx=p.x-mouse.x,mdy=p.y-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(118*DPR)**2;
+      if(m2<RR){ hb=1-m2/RR; const dd=Math.sqrt(m2)||1, f=hb*26*DPR; p.x+=mdx/dd*f; p.y+=mdy/dd*f; }}
+    const turb=noiseK*34*DPR;
+    const rx=p.x+Math.sin(p.y*0.012+el*1.7+p.seed*6.28)*turb;
+    const ry=p.y+Math.cos(p.x*0.012-el*1.4+p.seed*4)*turb;
+    const tw=0.55+Math.sin(p.tw=(p.tw||0)+0.04)*0.2*(1-dim*0.92);   // calm the flicker as the avatar emerges → steady
+    const a=(0.30+d*0.6)*tw*(1+pulse*1.1)*(1-dim*0.72)*(1+hb*1.6);  // recede on reveal; glow under hover
+    const s=p.r*(7.5-d*4.6)*(1+pulse*0.5+hb*1.0);                   // dots enlarge under hover
     ctx.globalAlpha=Math.min(1,a);
     ctx.drawImage(sprite,rx-s/2,ry-s/2,s,s);
   }
