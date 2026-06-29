@@ -19,11 +19,16 @@
   .hud{position:fixed;left:50%;top:8.5%;transform:translateX(-50%);text-align:center;z-index:4;
     font-family:var(--mono);opacity:0;transition:opacity .9s ease;white-space:nowrap}
   .hud.show{opacity:1}
-  .hud .lab{font-size:clamp(10px,1.15vw,12.5px);letter-spacing:.26em;color:rgba(125,211,252,.5);text-transform:lowercase}
-  .hud .bar{margin-top:10px;display:flex;gap:6px;justify-content:center;align-items:center}
-  .hud .pip{width:22px;height:3px;border-radius:2px;background:rgba(125,211,252,.16);transition:background .3s ease,box-shadow .3s ease}
-  .hud .pip.on{background:var(--cyan);box-shadow:0 0 10px rgba(125,211,252,.8)}
-  .hud .cnt{margin-top:8px;font-size:10px;letter-spacing:.18em;color:rgba(154,166,178,.6)}
+  .hud .pipe{display:flex;align-items:center;justify-content:center}
+  .hud .stage{display:flex;align-items:center;gap:7px;opacity:.36;transition:opacity .45s ease}
+  .hud .stage.on{opacity:1}
+  .hud .stage.done{opacity:.64}
+  .hud .stage i{width:7px;height:7px;border-radius:50%;background:rgba(125,211,252,.28);transition:.45s ease}
+  .hud .stage.on i{background:var(--cyan);box-shadow:0 0 12px rgba(125,211,252,.95)}
+  .hud .stage.done i{background:rgba(125,211,252,.7)}
+  .hud .stage span{font-size:11px;letter-spacing:.2em;color:var(--cyan)}
+  .hud .seg{width:44px;height:1px;margin:0 12px;background:rgba(125,211,252,.16);position:relative}
+  .hud .seg b{position:absolute;inset:0 auto 0 0;width:0;background:var(--cyan);box-shadow:0 0 8px rgba(125,211,252,.7)}
 
   .hero{position:fixed;inset:0;display:grid;place-items:center;opacity:0;pointer-events:none}
   .hero.show{opacity:1;pointer-events:auto;transition:opacity 1s ease}
@@ -50,7 +55,13 @@
 <body>
   <canvas id="c"></canvas>
   <div class="hud" id="hud">
-    <div class="bar" id="bar"></div>
+    <div class="pipe">
+      <div class="stage"><i></i><span>sample</span></div>
+      <div class="seg"><b></b></div>
+      <div class="stage"><i></i><span>refine</span></div>
+      <div class="seg"><b></b></div>
+      <div class="stage"><i></i><span>decode</span></div>
+    </div>
   </div>
 
   <div class="hero" id="hero">
@@ -68,7 +79,7 @@
 
 <script>
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const hud=document.getElementById('hud'),barEl=document.getElementById('bar'),hero=document.getElementById('hero');
+const hud=document.getElementById('hud'),hero=document.getElementById('hero');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 let W,H,DPR,raf,t0=0,parts=[],pulse=0,mouse={x:-1e9,y:-1e9},d=0,dTarget=0,stepShown=-1,doneAt=0,heroShown=false;
 
@@ -125,9 +136,12 @@ function frame(ts){
   let step=-1;
   for(let i=0;i<STEPS.length;i++) if(el>=STEPS[i].t){ dTarget=STEPS[i].d; step=i; }
   d+=(dTarget-d)*0.13;
-  if(step!==stepShown){ stepShown=step; renderHud(step); if(step>=0) pulse=1; }
+  if(step!==stepShown){ stepShown=step; if(step>=0) pulse=1; }
   if(d>0.985 && !doneAt && el>STEPS[STEPS.length-1].t+0.5){ doneAt=ts; }
   if(doneAt && ts-doneAt>800 && !heroShown){ heroShown=true; hero.classList.add('show'); }
+  const dim = doneAt ? Math.min(1,(ts-doneAt)/900) : 0;   // particles recede as the avatar emerges
+  updateStages();
+  if(doneAt) hud.style.opacity = String(1-dim);            // fade the stage pipeline out with the reveal
 
   const noiseK=Math.pow(1-d,2);          // how much noise remains
   pulse*=0.86;                            // per-step refine surge decays
@@ -136,15 +150,16 @@ function frame(ts){
   for(const p of parts){
     const ax=p.tx+p.ox*noiseK, ay=p.ty+p.oy*noiseK;   // anchor walks noise → target as d grows
     p.x+=(ax-p.x)*(0.18+pulse*0.5); p.y+=(ay-p.y)*(0.18+pulse*0.5);  // track it; pulse tightens each step
-    if(d>0.55){const mdx=p.x-mouse.x,mdy=p.y-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(105*DPR)**2;
-      if(m2<RR){const f=(1-m2/RR)*24*DPR,dd=Math.sqrt(m2)||1;p.x+=mdx/dd*f;p.y+=mdy/dd*f;}}
     // turbulent shimmer while noisy (a flow field, rendered as displacement) = the agent "computing"; →0 when resolved
     const turb=noiseK*34*DPR;
     const rx=p.x+Math.sin(p.y*0.012+el*1.7+p.seed*6.28)*turb;
     const ry=p.y+Math.cos(p.x*0.012-el*1.4+p.seed*4)*turb;
+    // hover spotlight — only the patch under the cursor lights up
+    let hb=0;
+    if(d>0.5){const mdx=rx-mouse.x,mdy=ry-mouse.y,m2=mdx*mdx+mdy*mdy,RR=(120*DPR)**2; if(m2<RR) hb=1-m2/RR;}
     const tw=0.55+Math.sin(p.tw=(p.tw||0)+0.05)*0.2;
-    const a=(0.30+d*0.6)*tw*(1+pulse*1.1);            // brightness surges on each refine step
-    const s=p.r*(7.5-d*4.6)*(1+pulse*0.5);            // soft when noisy → tight dot; pops on each step
+    const a=(0.30+d*0.6)*tw*(1+pulse*1.1)*(1-dim*0.72)*(1+hb*1.9);  // recede on reveal; glow under hover
+    const s=p.r*(7.5-d*4.6)*(1+pulse*0.5+hb*0.7);
     ctx.globalAlpha=Math.min(1,a);
     ctx.drawImage(sprite,rx-s/2,ry-s/2,s,s);
   }
@@ -163,16 +178,22 @@ function frame(ts){
   raf=requestAnimationFrame(frame);
 }
 
-function renderHud(step){
-  barEl.innerHTML='';
-  for(let i=0;i<STEPS.length;i++){const pip=document.createElement('span');pip.className='pip'+(i<=step?' on':'');barEl.appendChild(pip);}
+// 3 agent stages mapped onto the denoise progress: sample → refine → decode
+let STAGE_EL=null, SEG_EL=null;
+function updateStages(){
+  if(!STAGE_EL){ STAGE_EL=hud.querySelectorAll('.stage'); SEG_EL=hud.querySelectorAll('.seg b'); }
+  if(!STAGE_EL.length) return;
+  const cur = d<0.30 ? 0 : d<0.82 ? 1 : 2;
+  for(let i=0;i<STAGE_EL.length;i++){ STAGE_EL[i].classList.toggle('on',i===cur); STAGE_EL[i].classList.toggle('done',i<cur); }
+  if(SEG_EL[0]) SEG_EL[0].style.width=(d<0.30 ? d/0.30 : 1)*100+'%';
+  if(SEG_EL[1]) SEG_EL[1].style.width=(d<0.30 ? 0 : d<0.82 ? (d-0.30)/0.52 : 1)*100+'%';
 }
 
 function start(){
   cancelAnimationFrame(raf);resize();build();
   if(parts.length===0){setTimeout(start,120);return;}
   d=0;dTarget=0;stepShown=-2;t0=0;doneAt=0;heroShown=false;pulse=0;
-  ctx.clearRect(0,0,W,H);hud.classList.remove('show');hero.classList.remove('show');
+  ctx.clearRect(0,0,W,H);hud.classList.remove('show');hud.style.opacity='';hero.classList.remove('show');
   if(reduce){hero.classList.add('show');return;}
   raf=requestAnimationFrame(frame);
 }
