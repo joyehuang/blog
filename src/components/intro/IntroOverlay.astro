@@ -353,11 +353,13 @@ import avatar from 'src/assets/avatar.png'
       if (d > 0.985 && !doneAt && el > STEPS[STEPS.length - 1].t + 0.5) doneAt = ts
       if (doneAt && ts - doneAt > 700 && !landed) land()
       var dim = doneAt ? Math.min(1, (ts - doneAt) / 900) : 0
-      // slow breath when landed: scattered+dim → gathered+bright (held ~2s) → scattered+dim (~8s)
-      var bt = (el * 0.125) % 1, bc
-      if (bt < 0.34) bc = bt / 0.34
-      else if (bt < 0.6) bc = 1
-      else bc = Math.max(0, 1 - (bt - 0.6) / 0.34)
+      // slow breath, phased from the resolve moment so the first bright hold isn't truncated (~9s cycle)
+      var bphase = doneAt ? (((ts - doneAt) / 9000) % 1) : 0
+      var bc
+      if (bphase < 0.34) bc = 1                                // hold at brightest (~3s)
+      else if (bphase < 0.54) bc = 1 - (bphase - 0.34) / 0.2   // exhale → dim + scatter
+      else if (bphase < 0.62) bc = 0                           // brief dark
+      else bc = (bphase - 0.62) / 0.38                         // inhale → bright + gather
       bc = bc * bc * (3 - 2 * bc)
       var breathScatter = (1 - bc) * 0.05 * dim
       var bf = 1 - dim + dim * (0.4 + bc)
