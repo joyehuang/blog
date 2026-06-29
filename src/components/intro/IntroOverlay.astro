@@ -40,7 +40,10 @@ import avatar from 'src/assets/avatar.png'
   <button id='intro-skip' class='intro-skip' type='button' aria-label='跳过入场动画'>跳过 →</button>
 </div>
 
-{/* Synchronous gate: drop the overlay before first paint for repeat visits / reduced motion. */}
+<button id='intro-replay' class='intro-replay' type='button' aria-label='重播入场动画'>↻ 重播入场</button>
+<noscript><style>.intro-overlay{display:none}</style></noscript>
+
+{/* Synchronous gate: hide the overlay before first paint for repeat visits / reduced motion (kept in DOM so 重播 can re-run it). */}
 <script is:inline>
   ;(function () {
     try {
@@ -49,7 +52,7 @@ import avatar from 'src/assets/avatar.png'
         (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
       if (skip) {
         var el = document.getElementById('intro-overlay')
-        if (el) el.remove()
+        if (el) el.classList.add('intro-idle')
       }
     } catch (e) {}
   })()
@@ -68,6 +71,33 @@ import avatar from 'src/assets/avatar.png'
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.95s ease;
+  }
+  .intro-overlay.intro-idle {
+    display: none;
+  }
+  /* persistent replay control — lives on the page, themed to match it */
+  .intro-replay {
+    position: fixed;
+    left: 18px;
+    bottom: 18px;
+    z-index: 50;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: hsl(var(--muted-foreground) / 0.7);
+    background: hsl(var(--card) / 0.5);
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    opacity: 0.55;
+    backdrop-filter: blur(6px);
+    transition: 0.25s;
+  }
+  .intro-replay:hover {
+    opacity: 1;
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.5);
   }
   #intro-canvas {
     position: absolute;
@@ -221,11 +251,6 @@ import avatar from 'src/assets/avatar.png'
     0%, 100% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0); }
     50% { box-shadow: 0 0 22px -4px rgba(125, 211, 252, 0.55); }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .intro-overlay {
-      display: none;
-    }
-  }
 </style>
 
 <script is:inline>
@@ -234,7 +259,6 @@ import avatar from 'src/assets/avatar.png'
     var canvas = document.getElementById('intro-canvas')
     var hud = document.getElementById('intro-hud')
     if (!overlay || !canvas) return
-    try { sessionStorage.setItem('intro-seen', '1') } catch (e) {}
 
     var ctx = canvas.getContext('2d')
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -379,12 +403,16 @@ import avatar from 'src/assets/avatar.png'
       landed = true
       if (card) card.classList.add('show')
     }
-    function reveal() {                       // visitor chose to enter → fade to real homepage
+    function reveal() {                       // visitor chose to enter → fade to real homepage (kept in DOM for 重播)
       if (revealing) return
       revealing = true
       if (card) card.classList.remove('show')
       overlay.classList.add('intro-done')
-      setTimeout(function () { cancelAnimationFrame(raf); overlay.remove() }, 1000)
+      setTimeout(function () {
+        cancelAnimationFrame(raf)
+        overlay.classList.add('intro-idle')
+        overlay.classList.remove('intro-done')
+      }, 1000)
     }
 
     function start() {
@@ -392,20 +420,34 @@ import avatar from 'src/assets/avatar.png'
       if (parts.length === 0) { setTimeout(start, 120); return }
       raf = requestAnimationFrame(frame)
     }
+    function play() {                         // (re)run the intro from noise — first visit + 重播
+      cancelAnimationFrame(raf)
+      d = 0; dTarget = 0; pulse = 0; stepShown = -1; doneAt = 0; t0 = 0
+      revealing = false; landed = false
+      if (card) card.classList.remove('show')
+      hud.style.opacity = ''; hud.classList.remove('show')
+      overlay.classList.remove('intro-idle'); overlay.classList.remove('intro-done')
+      try { sessionStorage.setItem('intro-seen', '1') } catch (e) {}
+      start()
+    }
 
-    addEventListener('resize', function () { if (!revealing) { resize(); build() } })
+    addEventListener('resize', function () { if (!revealing && !overlay.classList.contains('intro-idle')) { resize(); build() } })
     var skipBtn = document.getElementById('intro-skip')
     if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
     var enterBtn = document.getElementById('intro-enter')
     if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
     var avEl = document.getElementById('intro-av')
     if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    var replayBtn = document.getElementById('intro-replay')
+    if (replayBtn) replayBtn.addEventListener('click', play)
 
-    if (reduce) {
-      overlay.remove()
-    } else {
+    var seen = false
+    try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
+    if (!seen && !reduce) {
       var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
-      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(start)
+      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(play)
+    } else {
+      overlay.classList.add('intro-idle')   // hidden on repeat visits; 重播 re-runs it
     }
   })()
 </script>
