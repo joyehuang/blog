@@ -10,13 +10,14 @@
  *   - Plays once per browser session (sessionStorage `intro-seen`).
  *   - Skippable (button, or click anywhere). Disabled under prefers-reduced-motion.
  *   - Hover while it's up disperses + lights up that patch of particles.
- *   - Dark overlay (the diffusion aesthetic); fades out to the real page.
+ *   - Follows the site theme (`.dark` on <html>): dark glow field or light ink field.
  *
  * Scripts use `is:inline` so the runtime-created <canvas> is styled by the
  * `is:global` block (Astro scoped styles don't reach nodes made at runtime).
  *
- * After the name resolves it holds on a landing card (avatar + 进入 button);
- * the page is only revealed when the visitor chooses to enter.
+ * After the name resolves, the word lifts up to make room for the landing card
+ * (avatar + 进入 button). The card auto-enters after a short hold — the buttons
+ * only let the visitor enter (or skip) sooner; nothing is gated on a click.
  */
 import avatar from 'src/assets/avatar.png'
 ---
@@ -60,12 +61,29 @@ import avatar from 'src/assets/avatar.png'
 
 <style is:global>
   .intro-overlay {
+    /* theme knobs — dark is the default; .intro-light swaps them (JS mirrors these) */
+    --iac: 125, 211, 252; /* accent rgb triplet */
+    --i-fg: #faf9f8;
+    --i-bg: #06090d;
+    --i-btn: #dbeefb;
+    --i-mut: rgba(154, 166, 178, 0.7);
+    --i-line: rgba(255, 255, 255, 0.12);
+    --i-fill: rgba(255, 255, 255, 0.04);
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: #06090d;
+    background: var(--i-bg);
     overflow: hidden;
     opacity: 1;
+  }
+  .intro-overlay.intro-light {
+    --iac: 30, 90, 160;
+    --i-fg: #16181c;
+    --i-bg: #f6f8fb;
+    --i-btn: #1d4e89;
+    --i-mut: rgba(90, 101, 114, 0.8);
+    --i-line: rgba(15, 23, 42, 0.14);
+    --i-fill: rgba(15, 23, 42, 0.04);
   }
   .intro-overlay.intro-done {
     opacity: 0;
@@ -143,34 +161,34 @@ import avatar from 'src/assets/avatar.png'
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: rgba(125, 211, 252, 0.28);
+    background: rgba(var(--iac), 0.28);
     transition: 0.45s ease;
   }
   .intro-stage.on i {
-    background: #7dd3fc;
-    box-shadow: 0 0 12px rgba(125, 211, 252, 0.95);
+    background: rgb(var(--iac));
+    box-shadow: 0 0 12px rgba(var(--iac), 0.95);
   }
   .intro-stage.done i {
-    background: rgba(125, 211, 252, 0.7);
+    background: rgba(var(--iac), 0.7);
   }
   .intro-stage span {
     font-size: 11px;
     letter-spacing: 0.2em;
-    color: #7dd3fc;
+    color: rgb(var(--iac));
   }
   .intro-seg {
     width: 44px;
     height: 1px;
     margin: 0 12px;
-    background: rgba(125, 211, 252, 0.16);
+    background: rgba(var(--iac), 0.16);
     position: relative;
   }
   .intro-seg b {
     position: absolute;
     inset: 0 auto 0 0;
     width: 0;
-    background: #7dd3fc;
-    box-shadow: 0 0 8px rgba(125, 211, 252, 0.7);
+    background: rgb(var(--iac));
+    box-shadow: 0 0 8px rgba(var(--iac), 0.7);
   }
   .intro-skip {
     position: absolute;
@@ -179,17 +197,17 @@ import avatar from 'src/assets/avatar.png'
     z-index: 2;
     font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
     font-size: 12px;
-    color: rgba(154, 166, 178, 0.7);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--i-mut);
+    background: var(--i-fill);
+    border: 1px solid var(--i-line);
     border-radius: 8px;
     padding: 7px 12px;
     cursor: pointer;
     transition: 0.2s;
   }
   .intro-skip:hover {
-    color: #faf9f8;
-    border-color: rgba(125, 211, 252, 0.5);
+    color: var(--i-fg);
+    border-color: rgba(var(--iac), 0.5);
   }
   /* landing card — avatar + enter, held until the visitor chooses */
   .intro-card {
@@ -219,23 +237,23 @@ import avatar from 'src/assets/avatar.png'
     padding: 4px;
     object-fit: cover;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: #0b1016;
-    box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.1), 0 0 60px rgba(125, 211, 252, 0.35);
+    border: 1px solid var(--i-line);
+    background: var(--i-bg);
+    box-shadow: 0 0 0 4px rgba(var(--iac), 0.1), 0 0 60px rgba(var(--iac), 0.35);
   }
   .intro-nm {
     font-family: 'Satoshi', system-ui, sans-serif;
     font-weight: 800;
     font-size: 30px;
     letter-spacing: -0.02em;
-    color: #faf9f8;
+    color: var(--i-fg);
   }
   .intro-enter {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 13px;
-    color: #dbeefb;
-    background: rgba(125, 211, 252, 0.06);
-    border: 1px solid rgba(125, 211, 252, 0.4);
+    color: var(--i-btn);
+    background: rgba(var(--iac), 0.06);
+    border: 1px solid rgba(var(--iac), 0.4);
     border-radius: 10px;
     padding: 11px 18px;
     cursor: pointer;
@@ -243,13 +261,13 @@ import avatar from 'src/assets/avatar.png'
     animation: intro-breathe 2.4s ease-in-out infinite;
   }
   .intro-enter:hover {
-    background: rgba(125, 211, 252, 0.14);
-    border-color: rgba(125, 211, 252, 0.8);
-    box-shadow: 0 0 28px -6px rgba(125, 211, 252, 0.8);
+    background: rgba(var(--iac), 0.14);
+    border-color: rgba(var(--iac), 0.8);
+    box-shadow: 0 0 28px -6px rgba(var(--iac), 0.8);
   }
   @keyframes intro-breathe {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0); }
-    50% { box-shadow: 0 0 22px -4px rgba(125, 211, 252, 0.55); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--iac), 0); }
+    50% { box-shadow: 0 0 22px -4px rgba(var(--iac), 0.55); }
   }
 </style>
 
@@ -265,23 +283,41 @@ import avatar from 'src/assets/avatar.png'
 
     var W = 0, H = 0, DPR = 1, parts = [], pulse = 0, d = 0, dTarget = 0
     var stepShown = -1, doneAt = 0, raf = 0, t0 = 0, revealing = false, landed = false
+    var landedAt = 0, autoTimer = 0, light = false
     var mouse = { x: -1e9, y: -1e9 }
     var STAGE_EL = null, SEG_EL = null
     var card = document.getElementById('intro-card')
 
-    // soft glow sprite (cheap bloom)
+    var AUTO_ENTER_MS = 3000                  // hold on the landing card, then walk in
+    var LAND_S = 0.44, LAND_Y = 0.175        // landed word: scale + vertical center (× H)
+
+    function vaTrack(target, method) {
+      try {
+        if (window.va) window.va('event', { name: 'home_intro_action', data: { section: 'intro', target: target, method: method || 'click' } })
+      } catch (e) {}
+    }
+
+    // soft glow sprite (cheap bloom); repainted per theme
     var sprite = document.createElement('canvas')
     sprite.width = sprite.height = 64
-    ;(function () {
+    function paintSprite() {
       var g = sprite.getContext('2d')
+      g.clearRect(0, 0, 64, 64)
       var r = g.createRadialGradient(32, 32, 0, 32, 32, 32)
-      r.addColorStop(0, 'rgba(214,243,255,1)')
-      r.addColorStop(0.25, 'rgba(138,214,255,.6)')
-      r.addColorStop(0.6, 'rgba(110,190,240,.14)')
-      r.addColorStop(1, 'rgba(110,190,240,0)')
+      if (light) {
+        r.addColorStop(0, 'rgba(22,60,110,1)')
+        r.addColorStop(0.25, 'rgba(30,90,160,.55)')
+        r.addColorStop(0.6, 'rgba(30,90,160,.12)')
+        r.addColorStop(1, 'rgba(30,90,160,0)')
+      } else {
+        r.addColorStop(0, 'rgba(214,243,255,1)')
+        r.addColorStop(0.25, 'rgba(138,214,255,.6)')
+        r.addColorStop(0.6, 'rgba(110,190,240,.14)')
+        r.addColorStop(1, 'rgba(110,190,240,0)')
+      }
       g.fillStyle = r
       g.fillRect(0, 0, 64, 64)
-    })()
+    }
 
     // denoise schedule: noise → ... → resolved
     var STEPS = [
@@ -343,7 +379,8 @@ import avatar from 'src/assets/avatar.png'
       if (!t0) t0 = ts
       var el = (ts - t0) / 1000
       ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(6,9,13,0.32)'; ctx.fillRect(0, 0, W, H)   // trail-fade
+      ctx.fillStyle = light ? 'rgba(246,248,251,0.36)' : 'rgba(6,9,13,0.32)'   // trail-fade
+      ctx.fillRect(0, 0, W, H)
       if (el > 0.1) hud.classList.add('show')
 
       var step = -1
@@ -351,7 +388,7 @@ import avatar from 'src/assets/avatar.png'
       d += (dTarget - d) * 0.13
       if (step !== stepShown) { stepShown = step; if (step >= 0) pulse = 1 }
       if (d > 0.985 && !doneAt && el > STEPS[STEPS.length - 1].t + 0.5) doneAt = ts
-      if (doneAt && ts - doneAt > 700 && !landed) land()
+      if (doneAt && ts - doneAt > 700 && !landed) land(ts)
       var dim = doneAt ? Math.min(1, (ts - doneAt) / 900) : 0
       // slow breath, phased from the resolve moment so the first bright hold isn't truncated (~9s cycle)
       var bphase = doneAt ? (((ts - doneAt) / 9000) % 1) : 0
@@ -368,12 +405,19 @@ import avatar from 'src/assets/avatar.png'
 
       var noiseK = Math.pow(1 - d, 2)
       pulse *= 0.86
-      ctx.globalCompositeOperation = 'lighter'
+      ctx.globalCompositeOperation = light ? 'source-over' : 'lighter'
+
+      // once landed, the word lifts + shrinks to clear space for the card
+      var landE = 0
+      if (landedAt) { var lk = Math.min(1, (ts - landedAt) / 1100); landE = lk * lk * (3 - 2 * lk) }
+      var sf = 1 - (1 - LAND_S) * landE
+      var cx = W / 2, wy = H * 0.46, lyOff = (H * LAND_Y - wy) * landE
 
       for (var k = 0; k < parts.length; k++) {
         var p = parts[k]
-        var sK = noiseK + breathScatter
-        var ax = p.tx + p.ox * sK, ay = p.ty + p.oy * sK
+        var sK = noiseK + breathScatter * sf
+        var etx = cx + (p.tx - cx) * sf, ety = wy + (p.ty - wy) * sf + lyOff
+        var ax = etx + p.ox * sK, ay = ety + p.oy * sK
         p.x += (ax - p.x) * (0.18 + pulse * 0.5); p.y += (ay - p.y) * (0.18 + pulse * 0.5)
         // hover — disperse away from the cursor + enlarge + light up; spring back when it leaves
         var hb = 0
@@ -386,15 +430,15 @@ import avatar from 'src/assets/avatar.png'
         var ry = p.y + Math.cos(p.x * 0.012 - el * 1.4 + p.seed * 4) * turb
         var tw = 0.55 + Math.sin(p.tw = (p.tw || 0) + 0.04) * 0.2 * (1 - dim * 0.92)
         var a = (0.30 + d * 0.6) * tw * (1 + pulse * 1.1) * bf * (1 + hb * 2.4)   // breathe (dim↔bright) when landed; hover lights it up
-        var s = p.r * (7.5 - d * 4.6) * (1 + pulse * 0.5 + hb * 1.8)         // + bigger glow under hover
+        var s = p.r * (7.5 - d * 4.6) * (1 + pulse * 0.5 + hb * 1.8) * (1 - 0.34 * landE)   // + bigger glow under hover; tighter once lifted
         ctx.globalAlpha = Math.min(1, a)
         ctx.drawImage(sprite, rx - s / 2, ry - s / 2, s, s)
       }
 
       // structure mesh — faint links weave between neighbours as JOYE resolves
       if (d > 0.5) {
-        var R2 = (16 * DPR) * (16 * DPR)
-        ctx.strokeStyle = 'rgba(125,211,252,' + (d - 0.5) * 0.42 + ')'; ctx.lineWidth = DPR * 0.5
+        var R2 = (16 * DPR) * (16 * DPR) * sf * sf
+        ctx.strokeStyle = 'rgba(' + (light ? '30,90,160' : '125,211,252') + ',' + (d - 0.5) * 0.42 + ')'; ctx.lineWidth = DPR * 0.5
         ctx.beginPath()
         for (var i2 = 0; i2 < parts.length; i2++) {
           var pp = parts[i2]
@@ -409,16 +453,22 @@ import avatar from 'src/assets/avatar.png'
       raf = requestAnimationFrame(frame)
     }
 
-    function land() {                        // hold on the avatar + 进入 button
+    function land(ts) {                      // hold on the avatar + 进入 button, then walk in on its own
       if (landed) return
       landed = true
-      if (card) card.classList.add('show')
+      landedAt = ts
+      if (card) { card.classList.add('show'); card.setAttribute('aria-hidden', 'false') }
+      autoTimer = setTimeout(function () {
+        if (!revealing) { vaTrack('auto_enter', 'auto'); reveal() }
+      }, AUTO_ENTER_MS)
     }
-    function reveal() {                       // visitor chose to enter → fade to real homepage (kept in DOM for 重播)
+    function reveal() {                       // enter (chosen or automatic) → fade to real homepage (kept in DOM for 重播)
       if (revealing) return
       revealing = true
-      if (card) card.classList.remove('show')
+      clearTimeout(autoTimer)
+      if (card) { card.classList.remove('show'); card.setAttribute('aria-hidden', 'true') }
       overlay.classList.add('intro-done')
+      overlay.setAttribute('aria-hidden', 'true')
       setTimeout(function () {
         cancelAnimationFrame(raf)
         overlay.classList.add('intro-idle')
@@ -433,24 +483,29 @@ import avatar from 'src/assets/avatar.png'
     }
     function play() {                         // (re)run the intro from noise — first visit + 重播
       cancelAnimationFrame(raf)
+      clearTimeout(autoTimer)
       d = 0; dTarget = 0; pulse = 0; stepShown = -1; doneAt = 0; t0 = 0
-      revealing = false; landed = false
-      if (card) card.classList.remove('show')
+      revealing = false; landed = false; landedAt = 0
+      light = !document.documentElement.classList.contains('dark')
+      overlay.classList.toggle('intro-light', light)
+      paintSprite()
+      if (card) { card.classList.remove('show'); card.setAttribute('aria-hidden', 'true') }
       hud.style.opacity = ''; hud.classList.remove('show')
       overlay.classList.remove('intro-idle'); overlay.classList.remove('intro-done')
+      overlay.setAttribute('aria-hidden', 'false')
       try { sessionStorage.setItem('intro-seen', '1') } catch (e) {}
       start()
     }
 
     addEventListener('resize', function () { if (!revealing && !overlay.classList.contains('intro-idle')) { resize(); build() } })
     var skipBtn = document.getElementById('intro-skip')
-    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); vaTrack('skip'); reveal() })
     var enterBtn = document.getElementById('intro-enter')
-    if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); vaTrack('enter'); reveal() })
     var avEl = document.getElementById('intro-av')
-    if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); vaTrack('avatar'); reveal() })
     var replayBtn = document.getElementById('intro-replay')
-    if (replayBtn) replayBtn.addEventListener('click', play)
+    if (replayBtn) replayBtn.addEventListener('click', function () { vaTrack('replay'); play() })
 
     var seen = false
     try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
