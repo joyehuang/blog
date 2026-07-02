@@ -265,6 +265,8 @@ import avatar from 'src/assets/avatar.png'
 
     var W = 0, H = 0, DPR = 1, parts = [], pulse = 0, d = 0, dTarget = 0
     var stepShown = -1, doneAt = 0, raf = 0, t0 = 0, revealing = false, landed = false
+    var playSource = 'first_visit'
+    var introStartedAt = 0, ctaShownAt = 0, playTracked = false, interactionCount = 0, lastInteractionAt = 0, abandonTracked = false
     var mouse = { x: -1e9, y: -1e9 }
     var STAGE_EL = null, SEG_EL = null
     var card = document.getElementById('intro-card')
@@ -379,7 +381,7 @@ import avatar from 'src/assets/avatar.png'
         var hb = 0
         if (d > 0.5) {
           var mdx = p.x - mouse.x, mdy = p.y - mouse.y, m2 = mdx * mdx + mdy * mdy, RR = (21 * DPR) * (21 * DPR)
-          if (m2 < RR) { hb = 1 - m2 / RR; var dd = Math.sqrt(m2) || 1, f = hb * 8 * DPR; p.x += mdx / dd * f; p.y += mdy / dd * f }
+          if (m2 < RR) { hb = 1 - m2 / RR; markInteraction(); var dd = Math.sqrt(m2) || 1, f = hb * 8 * DPR; p.x += mdx / dd * f; p.y += mdy / dd * f }
         }
         var turb = noiseK * 34 * DPR
         var rx = p.x + Math.sin(p.y * 0.012 + el * 1.7 + p.seed * 6.28) * turb
@@ -413,6 +415,8 @@ import avatar from 'src/assets/avatar.png'
       if (landed) return
       landed = true
       if (card) card.classList.add('show')
+      ctaShownAt = performance.now()
+      trackIntro('intro_cta_view', 'enter', { time_to_cta_ms: elapsedMs() })
     }
     function reveal() {                       // visitor chose to enter → fade to real homepage (kept in DOM for 重播)
       if (revealing) return
@@ -431,32 +435,78 @@ import avatar from 'src/assets/avatar.png'
       if (parts.length === 0) { setTimeout(start, 120); return }
       raf = requestAnimationFrame(frame)
     }
-    function play() {                         // (re)run the intro from noise — first visit + 重播
+    function elapsedMs() {
+      return introStartedAt ? Math.round(performance.now() - introStartedAt) : null
+    }
+    function markInteraction() {
+      var now = performance.now()
+      if (!lastInteractionAt || now - lastInteractionAt > 500) interactionCount++
+      lastInteractionAt = now
+      if (playTracked) return
+      playTracked = true
+      trackIntro('intro_play', 'particle_hover', { duration_ms: elapsedMs(), percent: Math.round(d * 100), interactions: interactionCount })
+    }
+    function exitProperties() {
+      return {
+        duration_ms: elapsedMs(),
+        time_to_cta_ms: ctaShownAt ? Math.round(ctaShownAt - introStartedAt) : null,
+        played: playTracked,
+        interactions: interactionCount
+      }
+    }
+    function trackIntro(eventName, target, properties) {
+      var detail = {
+        eventName: eventName,
+        properties: {
+          surface: 'intro_overlay',
+          target: target,
+          source: playSource,
+          ...(properties || {})
+        }
+      }
+      if (window.__trackSiteAnalytics) {
+        window.__trackSiteAnalytics(detail)
+        return
+      }
+      window.__siteAnalyticsQueue = window.__siteAnalyticsQueue || []
+      window.__siteAnalyticsQueue.push(detail)
+      document.dispatchEvent(new CustomEvent('site:analytics', { detail: detail }))
+    }
+
+    function play(source) {                   // (re)run the intro from noise — first visit + 重播
       cancelAnimationFrame(raf)
       d = 0; dTarget = 0; pulse = 0; stepShown = -1; doneAt = 0; t0 = 0
       revealing = false; landed = false
+      introStartedAt = performance.now(); ctaShownAt = 0; playTracked = false; interactionCount = 0; lastInteractionAt = 0; abandonTracked = false
+      playSource = source || 'replay'
       if (card) card.classList.remove('show')
       hud.style.opacity = ''; hud.classList.remove('show')
       overlay.classList.remove('intro-idle'); overlay.classList.remove('intro-done')
       try { sessionStorage.setItem('intro-seen', '1') } catch (e) {}
+      trackIntro('intro_start', 'animation')
       start()
     }
 
     addEventListener('resize', function () { if (!revealing && !overlay.classList.contains('intro-idle')) { resize(); build() } })
+    addEventListener('pagehide', function () {
+      if (!introStartedAt || revealing || overlay.classList.contains('intro-idle') || abandonTracked) return
+      abandonTracked = true
+      trackIntro('intro_abandon', 'pagehide', exitProperties())
+    })
     var skipBtn = document.getElementById('intro-skip')
-    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); trackIntro('intro_skip', 'skip', exitProperties()); reveal() })
     var enterBtn = document.getElementById('intro-enter')
-    if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); trackIntro('intro_cta_click', 'enter', exitProperties()); reveal() })
     var avEl = document.getElementById('intro-av')
-    if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
+    if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); trackIntro('intro_cta_click', 'avatar', exitProperties()); reveal() })
     var replayBtn = document.getElementById('intro-replay')
-    if (replayBtn) replayBtn.addEventListener('click', play)
+    if (replayBtn) replayBtn.addEventListener('click', function () { playSource = 'replay'; trackIntro('intro_replay', 'replay'); play('replay') })
 
     var seen = false
     try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
     if (!seen && !reduce) {
       var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
-      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(play)
+      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(function () { play('first_visit') })
     } else {
       overlay.classList.add('intro-idle')   // hidden on repeat visits; 重播 re-runs it
     }

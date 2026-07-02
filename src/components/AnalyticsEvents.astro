@@ -6,6 +6,27 @@
     type AnalyticsProperties
   } from '@/lib/analytics'
 
+  type AnalyticsDetail = { eventName?: unknown; properties?: unknown }
+
+  const analyticsWindow = window as typeof window & {
+    __siteAnalyticsQueue?: AnalyticsDetail[]
+    __trackSiteAnalytics?: (detail: AnalyticsDetail) => void
+  }
+
+  function trackCustomEvent(detail: AnalyticsDetail | null) {
+    if (!detail || typeof detail.eventName !== 'string') return
+
+    trackSiteEvent(
+      detail.eventName,
+      (detail.properties && typeof detail.properties === 'object'
+        ? detail.properties
+        : {}) as AnalyticsProperties
+    )
+  }
+
+  analyticsWindow.__trackSiteAnalytics = trackCustomEvent
+  analyticsWindow.__siteAnalyticsQueue?.splice(0).forEach(trackCustomEvent)
+
   document.addEventListener('click', (event) => {
     const target =
       event.target instanceof Element
@@ -64,5 +85,10 @@
 
     if (!target) return
     trackReveal(target, 'focus')
+  })
+
+  document.addEventListener('site:analytics', (event) => {
+    if (!(event instanceof CustomEvent)) return
+    trackCustomEvent(event.detail as AnalyticsDetail | null)
   })
 </script>
