@@ -267,6 +267,35 @@ Required properties:
 Use this alongside Pages to understand whether English traffic is natural or
 driven by users switching from Chinese pages.
 
+### `intro_enter`
+
+Visitor leaves the home intro overlay (the interactive agent-swarm entrance)
+and reveals the page. Fired once per intro run, at exit.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `action`: `enter` | `skip` | `avatar` — which control ended the intro
+- `word`: goal word shown at exit, for example `JOYE`
+- `duration_ms`: time from intro start to exit
+- `interactions`: count of pointer presses + chip clicks during the run
+- `morphs`: count of goal-word morphs during the run
+
+Use this to see whether visitors actually play with the intro (interactions,
+morphs, dwell time) or skip it immediately.
+
+### `intro_replay`
+
+Visitor re-runs the intro via the persistent 重播 button.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+
+Use this to gauge whether the intro is worth revisiting.
+
 ## Legacy Events
 
 These events exist in older analytics data and may appear in historical Vercel

@@ -1,22 +1,26 @@
 ---
 /**
- * IntroOverlay — home-page entrance animation.
+ * IntroOverlay — home-page entrance: an interactive agent swarm.
  *
- * An agent generates "JOYE" by diffusion: a field of noise denoises in
- * discrete steps (a 3-stage pipeline: sample → refine → decode) until the
- * name resolves, then the overlay fades to reveal the real homepage beneath.
+ * Every particle is an agent; the swarm's shared goal is to spell a word.
+ * The visitor can perturb the system any way they like — the swarm always
+ * self-organizes back. The narrative IS the mechanic: goal-directed agents
+ * that re-plan and converge, with a HUD reporting swarm status live.
  *
- * Behaviour:
+ * Interactions (the toy):
+ *   - drag        → stir: particles inherit cursor velocity, fluid-like
+ *   - press+hold  → gravity vortex: swarm gets pulled into a swirl, snaps back
+ *   - click/tap   → shockwave ring with radial impulse
+ *   - double-click / word chips → morph the swarm to another goal word
+ *   - idle 5s     → a scout agent wanders in and stirs the field
+ *
+ * Choreography is GSAP-driven (boot timeline, morph waves, shockwave rings,
+ * UI staggers, exit burst); the physics sim runs on gsap.ticker.
+ *
+ * Behaviour parity with the previous intro:
  *   - Plays once per browser session (sessionStorage `intro-seen`).
- *   - Skippable (button, or click anywhere). Disabled under prefers-reduced-motion.
- *   - Hover while it's up disperses + lights up that patch of particles.
- *   - Dark overlay (the diffusion aesthetic); fades out to the real page.
- *
- * Scripts use `is:inline` so the runtime-created <canvas> is styled by the
- * `is:global` block (Astro scoped styles don't reach nodes made at runtime).
- *
- * After the name resolves it holds on a landing card (avatar + 进入 button);
- * the page is only revealed when the visitor chooses to enter.
+ *   - Skippable; disabled under prefers-reduced-motion; 重播 button re-runs it.
+ *   - Page is only revealed when the visitor chooses to enter.
  */
 import avatar from 'src/assets/avatar.png'
 ---
@@ -24,18 +28,17 @@ import avatar from 'src/assets/avatar.png'
 <div id='intro-overlay' class='intro-overlay' aria-hidden='true'>
   <canvas id='intro-canvas'></canvas>
   <div class='intro-hud' id='intro-hud'>
-    <div class='intro-pipe'>
-      <div class='intro-stage'><i></i><span>sample</span></div>
-      <div class='intro-seg'><b></b></div>
-      <div class='intro-stage'><i></i><span>refine</span></div>
-      <div class='intro-seg'><b></b></div>
-      <div class='intro-stage'><i></i><span>decode</span></div>
-    </div>
+    <i class='intro-hud-dot'></i>
+    <span id='intro-hud-text'>swarm · booting…</span>
   </div>
-  <div class='intro-card' id='intro-card' aria-hidden='true'>
-    <img class='intro-av' id='intro-av' src={avatar.src} alt='Joye' width='112' height='112' />
-    <div class='intro-nm'>Joye</div>
-    <button class='intro-enter' id='intro-enter' type='button'>进入 ~/joye →</button>
+  <div class='intro-ui' id='intro-ui'>
+    <div class='intro-chips' id='intro-chips' role='group' aria-label='swarm goals'></div>
+    <div class='intro-card' id='intro-card'>
+      <img class='intro-av' id='intro-av' src={avatar.src} alt='Joye' width='92' height='92' />
+      <div class='intro-nm'>Joye</div>
+      <button class='intro-enter' id='intro-enter' type='button'>进入 ~/joye →</button>
+    </div>
+    <div class='intro-hint' id='intro-hint'>拖动 搅动 · 按住 引力 · 单击 冲击波 · 双击 换词</div>
   </div>
   <button id='intro-skip' class='intro-skip' type='button' aria-label='跳过入场动画'>跳过 →</button>
 </div>
@@ -66,14 +69,174 @@ import avatar from 'src/assets/avatar.png'
     background: #06090d;
     overflow: hidden;
     opacity: 1;
+    cursor: none;
+    touch-action: none;
   }
-  .intro-overlay.intro-done {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.95s ease;
+  .intro-overlay button {
+    cursor: pointer;
   }
   .intro-overlay.intro-idle {
     display: none;
+  }
+  #intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* swarm status line — the narrative readout */
+  .intro-hud {
+    position: absolute;
+    left: 50%;
+    top: 7.5%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: rgba(125, 211, 252, 0.85);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .intro-hud-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+    animation: intro-blink 1.1s ease-in-out infinite;
+  }
+  .intro-hud.ok .intro-hud-dot {
+    background: #34d399;
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.9);
+    animation: none;
+  }
+  @keyframes intro-blink {
+    50% { opacity: 0.35; }
+  }
+  /* bottom stack: goal chips → identity card → gesture hint */
+  .intro-ui {
+    position: absolute;
+    left: 50%;
+    bottom: 6.5vh;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .intro-chips {
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .intro-chip {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: rgba(190, 215, 235, 0.72);
+    background: rgba(125, 211, 252, 0.05);
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    border-radius: 999px;
+    padding: 7px 14px;
+    transition: border-color 0.25s, color 0.25s, background 0.25s, box-shadow 0.25s, transform 0.25s;
+  }
+  .intro-chip:hover {
+    border-color: rgba(125, 211, 252, 0.6);
+    color: #eaf6ff;
+    transform: translateY(-2px);
+  }
+  .intro-chip.on {
+    background: rgba(125, 211, 252, 0.16);
+    border-color: rgba(125, 211, 252, 0.75);
+    color: #fff;
+    box-shadow: 0 0 18px -4px rgba(125, 211, 252, 0.5);
+  }
+  .intro-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 9px 13px 9px 9px;
+    border-radius: 999px;
+    background: rgba(10, 15, 22, 0.6);
+    border: 1px solid rgba(125, 211, 252, 0.16);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 40px -12px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    visibility: hidden;
+  }
+  .intro-av {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    background: #0b1016;
+    box-shadow: 0 0 24px -4px rgba(125, 211, 252, 0.45);
+  }
+  .intro-nm {
+    font-family: 'Satoshi', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    color: #faf9f8;
+    padding-right: 3px;
+  }
+  .intro-enter {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12.5px;
+    color: #dbeefb;
+    background: rgba(125, 211, 252, 0.08);
+    border: 1px solid rgba(125, 211, 252, 0.4);
+    border-radius: 999px;
+    padding: 9px 16px;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    animation: intro-breathe 2.4s ease-in-out infinite;
+  }
+  .intro-enter:hover {
+    background: rgba(125, 211, 252, 0.16);
+    border-color: rgba(125, 211, 252, 0.8);
+    box-shadow: 0 0 28px -6px rgba(125, 211, 252, 0.8);
+  }
+  @keyframes intro-breathe {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0); }
+    50% { box-shadow: 0 0 22px -4px rgba(125, 211, 252, 0.55); }
+  }
+  .intro-hint {
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: rgba(154, 166, 178, 0.55);
+    opacity: 0;
+    visibility: hidden;
+  }
+  .intro-skip {
+    position: absolute;
+    bottom: 22px;
+    right: 22px;
+    z-index: 3;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    color: rgba(154, 166, 178, 0.7);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 7px 12px;
+    transition: color 0.2s, border-color 0.2s;
+    opacity: 0;
+    visibility: hidden;
+  }
+  .intro-skip:hover {
+    color: #faf9f8;
+    border-color: rgba(125, 211, 252, 0.5);
   }
   /* persistent replay control — lives on the page, themed to match it */
   .intro-replay {
@@ -99,198 +262,140 @@ import avatar from 'src/assets/avatar.png'
     color: hsl(var(--foreground));
     border-color: hsl(var(--primary) / 0.5);
   }
-  #intro-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  /* 3-stage agent pipeline */
-  .intro-hud {
-    position: fixed;
-    left: 50%;
-    top: 8.5%;
-    transform: translateX(-50%);
-    z-index: 2;
-    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-    opacity: 0;
-    transition: opacity 0.9s ease;
-    white-space: nowrap;
-  }
-  .intro-hud.show {
-    opacity: 1;
-  }
-  .intro-pipe {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .intro-stage {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    opacity: 0.36;
-    transition: opacity 0.45s ease;
-  }
-  .intro-stage.on {
-    opacity: 1;
-  }
-  .intro-stage.done {
-    opacity: 0.64;
-  }
-  .intro-stage i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: rgba(125, 211, 252, 0.28);
-    transition: 0.45s ease;
-  }
-  .intro-stage.on i {
-    background: #7dd3fc;
-    box-shadow: 0 0 12px rgba(125, 211, 252, 0.95);
-  }
-  .intro-stage.done i {
-    background: rgba(125, 211, 252, 0.7);
-  }
-  .intro-stage span {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: #7dd3fc;
-  }
-  .intro-seg {
-    width: 44px;
-    height: 1px;
-    margin: 0 12px;
-    background: rgba(125, 211, 252, 0.16);
-    position: relative;
-  }
-  .intro-seg b {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 0;
-    background: #7dd3fc;
-    box-shadow: 0 0 8px rgba(125, 211, 252, 0.7);
-  }
-  .intro-skip {
-    position: absolute;
-    bottom: 22px;
-    right: 22px;
-    z-index: 2;
-    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-    font-size: 12px;
-    color: rgba(154, 166, 178, 0.7);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    padding: 7px 12px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .intro-skip:hover {
-    color: #faf9f8;
-    border-color: rgba(125, 211, 252, 0.5);
-  }
-  /* landing card — avatar + enter, held until the visitor chooses */
-  .intro-card {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -44%);
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    text-align: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .intro-card.show {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translate(-50%, -50%);
-  }
-  .intro-av {
-    width: 108px;
-    height: 108px;
-    border-radius: 50%;
-    padding: 4px;
-    object-fit: cover;
-    cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: #0b1016;
-    box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.1), 0 0 60px rgba(125, 211, 252, 0.35);
-  }
-  .intro-nm {
-    font-family: 'Satoshi', system-ui, sans-serif;
-    font-weight: 800;
-    font-size: 30px;
-    letter-spacing: -0.02em;
-    color: #faf9f8;
-  }
-  .intro-enter {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 13px;
-    color: #dbeefb;
-    background: rgba(125, 211, 252, 0.06);
-    border: 1px solid rgba(125, 211, 252, 0.4);
-    border-radius: 10px;
-    padding: 11px 18px;
-    cursor: pointer;
-    transition: 0.25s;
-    animation: intro-breathe 2.4s ease-in-out infinite;
-  }
-  .intro-enter:hover {
-    background: rgba(125, 211, 252, 0.14);
-    border-color: rgba(125, 211, 252, 0.8);
-    box-shadow: 0 0 28px -6px rgba(125, 211, 252, 0.8);
-  }
-  @keyframes intro-breathe {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0); }
-    50% { box-shadow: 0 0 22px -4px rgba(125, 211, 252, 0.55); }
+  @media (max-width: 640px) {
+    .intro-hud {
+      font-size: 9.5px;
+      letter-spacing: 0.1em;
+    }
+    .intro-chips {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .intro-hint {
+      font-size: 10px;
+      max-width: 86vw;
+      text-align: center;
+    }
   }
 </style>
 
-<script is:inline>
-  ;(function () {
-    var overlay = document.getElementById('intro-overlay')
-    var canvas = document.getElementById('intro-canvas')
-    var hud = document.getElementById('intro-hud')
-    if (!overlay || !canvas) return
+<script>
+  import { gsap } from 'gsap'
+  import { trackSiteEvent } from '@/lib/analytics'
 
-    var ctx = canvas.getContext('2d')
-    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+  type Pt = { x: number; y: number }
+  type Particle = {
+    x: number
+    y: number
+    vx: number
+    vy: number
+    tx: number
+    ty: number
+    ntx: number
+    nty: number
+    wake: number
+    stiff: number
+    r: number
+    seed: number
+    hue: number
+    tw: number
+    mDelay: number
+    switched: boolean
+  }
+  type Ring = { x: number; y: number; r: number; alpha: number; w: number }
+  type Scout = { x: number; y: number; vx: number; vy: number; a: number; tx: number; ty: number }
 
-    var W = 0, H = 0, DPR = 1, parts = [], pulse = 0, d = 0, dTarget = 0
-    var stepShown = -1, doneAt = 0, raf = 0, t0 = 0, revealing = false, landed = false
-    var mouse = { x: -1e9, y: -1e9 }
-    var STAGE_EL = null, SEG_EL = null
-    var card = document.getElementById('intro-card')
+  function initIntro() {
+    const el = (id: string) => document.getElementById(id)
+    const overlayEl = el('intro-overlay')
+    const canvasEl = el('intro-canvas')
+    const hudEl = el('intro-hud')
+    const hudTextEl = el('intro-hud-text')
+    const chipsWrapEl = el('intro-chips')
+    const cardEl = el('intro-card')
+    const hintEl = el('intro-hint')
+    const skipEl = el('intro-skip')
+    const enterEl = el('intro-enter')
+    const avatarEl = el('intro-av')
+    const replayEl = el('intro-replay')
+    if (!overlayEl || !hudEl || !hudTextEl || !chipsWrapEl || !cardEl || !hintEl) return
+    if (!skipEl || !enterEl || !avatarEl || !replayEl) return
+    if (!(canvasEl instanceof HTMLCanvasElement)) return
+    const context = canvasEl.getContext('2d')
+    if (!context) return
+    // narrowed aliases — const bindings keep their narrowed type inside closures
+    const overlay = overlayEl
+    const canvas = canvasEl
+    const ctx = context
+    const hud = hudEl
+    const hudText = hudTextEl
+    const chipsEl = chipsWrapEl
+    const card = cardEl
+    const hint = hintEl
+    const skipBtn = skipEl
+    const enterBtn = enterEl
+    const avEl = avatarEl
+    const replayBtn = replayEl
 
-    // soft glow sprite (cheap bloom)
-    var sprite = document.createElement('canvas')
-    sprite.width = sprite.height = 64
-    ;(function () {
-      var g = sprite.getContext('2d')
-      var r = g.createRadialGradient(32, 32, 0, 32, 32, 32)
-      r.addColorStop(0, 'rgba(214,243,255,1)')
-      r.addColorStop(0.25, 'rgba(138,214,255,.6)')
-      r.addColorStop(0.6, 'rgba(110,190,240,.14)')
-      r.addColorStop(1, 'rgba(110,190,240,0)')
-      g.fillStyle = r
-      g.fillRect(0, 0, 64, 64)
-    })()
+    const isEn = location.pathname === '/en' || location.pathname.startsWith('/en/')
+    const WORDS = isEn ? ['JOYE', 'HELLO', 'AGENT', 'BUILD'] : ['JOYE', '你好', 'AGENT', 'BUILD']
+    if (isEn) {
+      enterBtn.textContent = 'enter ~/joye →'
+      skipBtn.textContent = 'skip →'
+      hint.textContent = 'drag to stir · hold to attract · click to pulse · double-click to morph'
+      replayBtn.textContent = '↻ replay intro'
+    }
 
-    // denoise schedule: noise → ... → resolved
-    var STEPS = [
-      { t: 0.55, d: 0.14 }, { t: 1.05, d: 0.32 }, { t: 1.55, d: 0.52 },
-      { t: 2.05, d: 0.72 }, { t: 2.5, d: 0.88 }, { t: 2.95, d: 1.0 }
-    ]
+    // ---- glow sprites (cheap bloom): cyan majority + violet accents -------
+    function makeSprite(inner: string, mid: string, outer: string) {
+      const c = document.createElement('canvas')
+      c.width = c.height = 64
+      const g = c.getContext('2d')
+      if (g) {
+        const r = g.createRadialGradient(32, 32, 0, 32, 32, 32)
+        r.addColorStop(0, inner)
+        r.addColorStop(0.25, mid)
+        r.addColorStop(0.6, outer)
+        r.addColorStop(1, 'rgba(0,0,0,0)')
+        g.fillStyle = r
+        g.fillRect(0, 0, 64, 64)
+      }
+      return c
+    }
+    const spriteA = makeSprite('rgba(214,243,255,1)', 'rgba(138,214,255,.6)', 'rgba(110,190,240,.14)')
+    const spriteB = makeSprite('rgba(240,232,255,1)', 'rgba(196,181,253,.55)', 'rgba(167,139,250,.13)')
 
-    function vw() { var w = innerWidth || document.documentElement.clientWidth || 0; return w > 20 ? w : 1280 }
-    function vh() { var h = innerHeight || document.documentElement.clientHeight || 0; return h > 20 ? h : 800 }
+    // ---- state -------------------------------------------------------------
+    let W = 0
+    let H = 0
+    let DPR = 1
+    let parts: Particle[] = []
+    let N = 0
+    let rings: Ring[] = []
+    let scout: Scout | null = null
+    let state: 'idle' | 'boot' | 'play' | 'exit' = 'idle'
+    let wordIdx = 0
+    let playT0 = 0
+    let interactions = 0
+    let morphs = 0
+    let convergence = 1e9
+    let hudTick = 0
+    let lastHud = ''
+    let lastInput = 0
+    let bootTl: gsap.core.Timeline | null = null
+    const form = { v: 0 } // 0 = scattered, 1 = spring toward goal at full strength
+    const hold = { v: 0 } // press-and-hold gravity power
+    const morph = { t: 1 } // morph wave progress; particles retarget when t passes their delay
+    const ptr = { x: -1e9, y: -1e9, vx: 0, vy: 0, down: false, downT: 0, moved: 0, active: false }
+
+    function vw() {
+      const w = innerWidth || document.documentElement.clientWidth || 0
+      return w > 20 ? w : 1280
+    }
+    function vh() {
+      const h = innerHeight || document.documentElement.clientHeight || 0
+      return h > 20 ? h : 800
+    }
     function resize() {
       DPR = Math.min(devicePixelRatio || 1, 2)
       W = canvas.width = Math.round(vw() * DPR)
@@ -298,167 +403,564 @@ import avatar from 'src/assets/avatar.png'
       canvas.style.width = vw() + 'px'
       canvas.style.height = vh() + 'px'
     }
-    addEventListener('mousemove', function (e) { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR })
-    addEventListener('mouseleave', function () { mouse.x = mouse.y = -1e9 })
 
-    function sampleJOYE() {
+    // ---- word sampling -----------------------------------------------------
+    function sampleWord(text: string): Pt[] {
       if (!W || !H) return []
-      var off = document.createElement('canvas'); off.width = W; off.height = H
-      var o = off.getContext('2d')
-      o.fillStyle = '#fff'; o.textBaseline = 'middle'; o.textAlign = 'left'
-      var tracking = 0.18, size = Math.min(H * 0.4, W * 0.32)
-      var setFont = function () { o.font = '700 ' + size + 'px Satoshi, system-ui, sans-serif' }
+      const off = document.createElement('canvas')
+      off.width = W
+      off.height = H
+      const o = off.getContext('2d')
+      if (!o) return []
+      const cjk = /[㐀-鿿]/.test(text)
+      const tracking = cjk ? 0.08 : 0.16
+      let size = Math.min(H * (cjk ? 0.34 : 0.4), W * 0.3)
+      const setFont = () => {
+        o.font = '700 ' + size + 'px Satoshi, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif'
+      }
       setFont()
-      var adv = function () { var w = 0; for (var i = 0; i < 4; i++) w += o.measureText('JOYE'[i]).width + size * tracking; return w - size * tracking }
-      if (adv() > W * 0.72) { size *= W * 0.72 / adv(); setFont() }
-      var x = (W - adv()) / 2, y = H * 0.46
-      for (var i = 0; i < 4; i++) { var ch = 'JOYE'[i]; o.fillText(ch, x, y); x += o.measureText(ch).width + size * tracking }
-      var data = o.getImageData(0, 0, W, H).data, gap = Math.max(5, Math.round(6.5 * DPR)), pts = []
-      for (var yy = 0; yy < H; yy += gap) for (var xx = 0; xx < W; xx += gap) if (data[(yy * W + xx) * 4 + 3] > 140) pts.push({ x: xx, y: yy })
+      const adv = () => {
+        let w = 0
+        for (const ch of text) w += o.measureText(ch).width + size * tracking
+        return w - size * tracking
+      }
+      if (adv() > W * 0.78) {
+        size *= (W * 0.78) / adv()
+        setFont()
+      }
+      let x = (W - adv()) / 2
+      const y = H * 0.42
+      o.fillStyle = '#fff'
+      o.textBaseline = 'middle'
+      for (const ch of text) {
+        o.fillText(ch, x, y)
+        x += o.measureText(ch).width + size * tracking
+      }
+      const data = o.getImageData(0, 0, W, H).data
+      const gap = Math.max(4, Math.round(6 * DPR))
+      const pts: Pt[] = []
+      for (let yy = 0; yy < H; yy += gap)
+        for (let xx = 0; xx < W; xx += gap) if (data[(yy * W + xx) * 4 + 3] > 140) pts.push({ x: xx, y: yy })
       return pts
     }
 
+    // Assign goal points to agents. With an origin, stage a morph wave that
+    // radiates from it (per-particle retarget delays) instead of snapping.
+    function assignTargets(pts: Pt[], origin?: Pt) {
+      if (!pts.length || !parts.length) return
+      const jit = 3 * DPR
+      let maxD = 1
+      if (origin) for (const p of parts) maxD = Math.max(maxD, Math.hypot(p.tx - origin.x, p.ty - origin.y))
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i]
+        const src = pts[Math.floor((i * pts.length) / parts.length) % pts.length]
+        const nx = src.x + (Math.random() - 0.5) * jit
+        const ny = src.y + (Math.random() - 0.5) * jit
+        if (origin) {
+          p.ntx = nx
+          p.nty = ny
+          p.switched = false
+          p.mDelay = (Math.hypot(p.tx - origin.x, p.ty - origin.y) / maxD) * 0.7
+        } else {
+          p.tx = nx
+          p.ty = ny
+        }
+      }
+    }
+
     function build() {
-      var pts = sampleJOYE(), R = Math.min(W, H) * 0.62
-      parts = pts.map(function (p) {
-        var ang = Math.random() * 6.283, mag = Math.pow(Math.random(), 0.6) * R
-        return {
-          tx: p.x, ty: p.y, ox: Math.cos(ang) * mag, oy: Math.sin(ang) * mag,
-          x: p.x + Math.cos(ang) * mag, y: p.y + Math.sin(ang) * mag,
-          ph: Math.random() * 6.28, fr: 0.6 + Math.random() * 1.4, r: (Math.random() * 0.8 + 0.7) * DPR, seed: Math.random()
+      const pts = sampleWord(WORDS[wordIdx])
+      N = Math.min(2200, Math.max(500, pts.length))
+      const R = Math.hypot(W, H) * 0.55
+      parts = []
+      for (let i = 0; i < N; i++) {
+        const ang = Math.random() * Math.PI * 2
+        const mag = R * (0.55 + Math.random() * 0.55)
+        const sp = (2.2 + Math.random() * 2.4) * DPR
+        parts.push({
+          x: W / 2 + Math.cos(ang) * mag,
+          y: H * 0.42 + Math.sin(ang) * mag,
+          vx: -Math.sin(ang) * sp, // tangential → the swarm spirals in
+          vy: Math.cos(ang) * sp,
+          tx: 0,
+          ty: 0,
+          ntx: 0,
+          nty: 0,
+          wake: Math.random(),
+          stiff: 0.7 + Math.random() * 0.6,
+          r: (0.7 + Math.random() * 0.8) * DPR,
+          seed: Math.random() * 6.283,
+          hue: Math.random() < 0.14 ? 1 : 0,
+          tw: Math.random() * 6.28,
+          mDelay: 0,
+          switched: true
+        })
+      }
+      assignTargets(pts)
+    }
+
+    // ---- interactions --------------------------------------------------------
+    function shockwave(x: number, y: number, power: number) {
+      const rg: Ring = { x, y, r: 6 * DPR, alpha: 0.9 * power, w: 2.4 * DPR }
+      rings.push(rg)
+      gsap.to(rg, {
+        r: Math.min(W, H) * 0.5,
+        alpha: 0,
+        w: 0.6 * DPR,
+        duration: 0.9,
+        ease: 'expo.out',
+        onComplete: () => {
+          rings = rings.filter((r) => r !== rg)
         }
       })
     }
 
-    function updateStages() {
-      if (!STAGE_EL) { STAGE_EL = hud.querySelectorAll('.intro-stage'); SEG_EL = hud.querySelectorAll('.intro-seg b') }
-      if (!STAGE_EL.length) return
-      var cur = d < 0.30 ? 0 : d < 0.82 ? 1 : 2
-      for (var i = 0; i < STAGE_EL.length; i++) { STAGE_EL[i].classList.toggle('on', i === cur); STAGE_EL[i].classList.toggle('done', i < cur) }
-      if (SEG_EL[0]) SEG_EL[0].style.width = (d < 0.30 ? d / 0.30 : 1) * 100 + '%'
-      if (SEG_EL[1]) SEG_EL[1].style.width = (d < 0.30 ? 0 : d < 0.82 ? (d - 0.30) / 0.52 : 1) * 100 + '%'
+    function morphTo(idx: number, ox?: number, oy?: number) {
+      if (state !== 'play' || idx === wordIdx) return
+      const pts = sampleWord(WORDS[idx])
+      if (!pts.length) return
+      wordIdx = idx
+      morphs++
+      assignTargets(pts, { x: ox ?? W / 2, y: oy ?? H * 0.42 })
+      morph.t = 0
+      gsap.to(morph, { t: 1, duration: 1.05, ease: 'power2.inOut', overwrite: true })
+      syncChips()
+      updateHud(true)
     }
 
-    function frame(ts) {
-      if (!t0) t0 = ts
-      var el = (ts - t0) / 1000
-      ctx.globalCompositeOperation = 'source-over'
-      ctx.fillStyle = 'rgba(6,9,13,0.32)'; ctx.fillRect(0, 0, W, H)   // trail-fade
-      if (el > 0.1) hud.classList.add('show')
+    function buildChips() {
+      chipsEl.innerHTML = ''
+      WORDS.forEach((w, i) => {
+        const b = document.createElement('button')
+        b.type = 'button'
+        b.className = 'intro-chip' + (i === wordIdx ? ' on' : '')
+        b.textContent = w
+        b.addEventListener('click', (e) => {
+          e.stopPropagation()
+          interactions++
+          onInput()
+          morphTo(i)
+        })
+        chipsEl.appendChild(b)
+      })
+    }
+    function syncChips() {
+      const kids = chipsEl.children
+      for (let i = 0; i < kids.length; i++) kids[i].classList.toggle('on', i === wordIdx)
+    }
 
-      var step = -1
-      for (var i = 0; i < STEPS.length; i++) if (el >= STEPS[i].t) { dTarget = STEPS[i].d; step = i }
-      d += (dTarget - d) * 0.13
-      if (step !== stepShown) { stepShown = step; if (step >= 0) pulse = 1 }
-      if (d > 0.985 && !doneAt && el > STEPS[STEPS.length - 1].t + 0.5) doneAt = ts
-      if (doneAt && ts - doneAt > 700 && !landed) land()
-      var dim = doneAt ? Math.min(1, (ts - doneAt) / 900) : 0
-      // slow breath, phased from the resolve moment so the first bright hold isn't truncated (~9s cycle)
-      var bphase = doneAt ? (((ts - doneAt) / 9000) % 1) : 0
-      var bc
-      if (bphase < 0.34) bc = 1                                // hold at brightest (~3s)
-      else if (bphase < 0.54) bc = 1 - (bphase - 0.34) / 0.2   // exhale → dim + scatter
-      else if (bphase < 0.62) bc = 0                           // brief dark
-      else bc = (bphase - 0.62) / 0.38                         // inhale → bright + gather
-      bc = bc * bc * (3 - 2 * bc)
-      var breathScatter = (1 - bc) * 0.05 * dim
-      var bf = 1 - dim + dim * (0.4 + bc)
-      updateStages()
-      if (doneAt) hud.style.opacity = String(1 - dim)
-
-      var noiseK = Math.pow(1 - d, 2)
-      pulse *= 0.86
-      ctx.globalCompositeOperation = 'lighter'
-
-      for (var k = 0; k < parts.length; k++) {
-        var p = parts[k]
-        var sK = noiseK + breathScatter
-        var ax = p.tx + p.ox * sK, ay = p.ty + p.oy * sK
-        p.x += (ax - p.x) * (0.18 + pulse * 0.5); p.y += (ay - p.y) * (0.18 + pulse * 0.5)
-        // hover — disperse away from the cursor + enlarge + light up; spring back when it leaves
-        var hb = 0
-        if (d > 0.5) {
-          var mdx = p.x - mouse.x, mdy = p.y - mouse.y, m2 = mdx * mdx + mdy * mdy, RR = (21 * DPR) * (21 * DPR)
-          if (m2 < RR) { hb = 1 - m2 / RR; var dd = Math.sqrt(m2) || 1, f = hb * 8 * DPR; p.x += mdx / dd * f; p.y += mdy / dd * f }
-        }
-        var turb = noiseK * 34 * DPR
-        var rx = p.x + Math.sin(p.y * 0.012 + el * 1.7 + p.seed * 6.28) * turb
-        var ry = p.y + Math.cos(p.x * 0.012 - el * 1.4 + p.seed * 4) * turb
-        var tw = 0.55 + Math.sin(p.tw = (p.tw || 0) + 0.04) * 0.2 * (1 - dim * 0.92)
-        var a = (0.30 + d * 0.6) * tw * (1 + pulse * 1.1) * bf * (1 + hb * 2.4)   // breathe (dim↔bright) when landed; hover lights it up
-        var s = p.r * (7.5 - d * 4.6) * (1 + pulse * 0.5 + hb * 1.8)         // + bigger glow under hover
-        ctx.globalAlpha = Math.min(1, a)
-        ctx.drawImage(sprite, rx - s / 2, ry - s / 2, s, s)
+    // ---- scout: an autonomous agent that wanders in when the visitor idles ----
+    function pickWaypoint(s: Scout) {
+      s.tx = W * (0.2 + Math.random() * 0.6)
+      s.ty = H * (0.22 + Math.random() * 0.45)
+    }
+    function spawnScout() {
+      const ang = Math.random() * 6.283
+      const s: Scout = {
+        x: W / 2 + Math.cos(ang) * W * 0.45,
+        y: H * 0.42 + Math.sin(ang) * H * 0.35,
+        vx: 0,
+        vy: 0,
+        a: 0,
+        tx: 0,
+        ty: 0
       }
+      pickWaypoint(s)
+      scout = s
+      gsap.to(s, { a: 1, duration: 0.9, ease: 'power2.out' })
+    }
+    function dismissScout() {
+      const s = scout
+      if (!s) return
+      gsap.to(s, {
+        a: 0,
+        duration: 0.45,
+        overwrite: true,
+        onComplete: () => {
+          if (scout === s) scout = null
+        }
+      })
+    }
+    function stepScout(s: Scout, dt: number) {
+      const dx = s.tx - s.x
+      const dy = s.ty - s.y
+      const dd = Math.hypot(dx, dy) || 1
+      if (dd < 30 * DPR) pickWaypoint(s)
+      s.vx += (dx / dd) * 0.11 * DPR * dt
+      s.vy += (dy / dd) * 0.11 * DPR * dt
+      const damp = Math.pow(0.965, dt)
+      s.vx *= damp
+      s.vy *= damp
+      s.x += s.vx * dt
+      s.y += s.vy * dt
+    }
 
-      // structure mesh — faint links weave between neighbours as JOYE resolves
-      if (d > 0.5) {
-        var R2 = (16 * DPR) * (16 * DPR)
-        ctx.strokeStyle = 'rgba(125,211,252,' + (d - 0.5) * 0.42 + ')'; ctx.lineWidth = DPR * 0.5
+    function onInput() {
+      lastInput = performance.now()
+      if (scout) dismissScout()
+    }
+
+    // ---- HUD -----------------------------------------------------------------
+    function updateHud(force: boolean) {
+      const settled = convergence < 8 * DPR
+      const status = state === 'boot' ? 'assembling…' : settled ? 'converged ✓' : 're-organizing…'
+      const txt = 'swarm/' + N + ' · goal ' + WORDS[wordIdx] + ' · ' + status
+      if (force || txt !== lastHud) {
+        hudText.textContent = txt
+        lastHud = txt
+        hud.classList.toggle('ok', state === 'play' && settled)
+      }
+    }
+
+    // ---- frame ---------------------------------------------------------------
+    function frame(_t: number, deltaMs: number) {
+      const dt = Math.min(Math.max(deltaMs / 16.667, 0.25), 2.5)
+      const now = performance.now()
+      const time = now / 1000
+
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.fillStyle = 'rgba(6,9,13,0.30)' // trail fade
+      ctx.fillRect(0, 0, W, H)
+
+      ptr.vx *= Math.pow(0.82, dt)
+      ptr.vy *= Math.pow(0.82, dt)
+
+      if (state === 'play' && !scout && now - lastInput > 5200 && !document.hidden) spawnScout()
+      if (scout) stepScout(scout, dt)
+
+      const holdK = hold.v
+      let dispSum = 0
+      let dispCnt = 0
+
+      ctx.globalCompositeOperation = 'lighter'
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i]
+        // morph wave passes this agent → it re-plans toward the new goal
+        if (!p.switched && morph.t >= p.mDelay) {
+          p.switched = true
+          p.tx = p.ntx
+          p.ty = p.nty
+          p.vx += (Math.random() - 0.5) * 3 * DPR
+          p.vy -= (0.6 + Math.random()) * 1.4 * DPR
+        }
+        const fw = Math.min(1, Math.max(0, (form.v - p.wake * 0.6) / 0.4))
+        if (state !== 'exit') {
+          const k = 0.028 * p.stiff * fw
+          p.vx += (p.tx - p.x) * k * dt
+          p.vy += (p.ty - p.y) * k * dt
+        }
+        const wob = (1 - fw) * 1.4 + 0.12
+        p.vx += Math.sin(time * 1.3 + p.seed + p.y * 0.006) * 0.05 * wob * DPR * dt
+        p.vy += Math.cos(time * 1.1 + p.seed * 2 + p.x * 0.006) * 0.05 * wob * DPR * dt
+
+        let lit = 0
+        if (ptr.active && state !== 'exit') {
+          const dx = p.x - ptr.x
+          const dy = p.y - ptr.y
+          const d2 = dx * dx + dy * dy
+          const SR = 130 * DPR
+          if (d2 < SR * SR) {
+            const dd = Math.sqrt(d2) || 1
+            const fall = 1 - dd / SR
+            p.vx += ptr.vx * fall * 0.26 * dt // stir: inherit cursor velocity
+            p.vy += ptr.vy * fall * 0.26 * dt
+            lit = Math.max(lit, fall * Math.min(1, Math.hypot(ptr.vx, ptr.vy) / (14 * DPR)))
+          }
+          if (holdK > 0.01) {
+            const AR = 320 * DPR
+            if (d2 < AR * AR) {
+              const dd = Math.sqrt(d2) || 1
+              const fall = 1 - dd / AR
+              const pull = holdK * fall * 0.9 * DPR
+              p.vx += (-dx / dd) * pull * dt + (-dy / dd) * pull * 0.85 * dt // pull + swirl
+              p.vy += (-dy / dd) * pull * dt + (dx / dd) * pull * 0.85 * dt
+              lit = Math.max(lit, holdK * fall * 0.9)
+            }
+          }
+        }
+        for (let ri = 0; ri < rings.length; ri++) {
+          const rg = rings[ri]
+          const dx = p.x - rg.x
+          const dy = p.y - rg.y
+          const dd = Math.hypot(dx, dy) || 1
+          const prox = 1 - Math.abs(dd - rg.r) / (46 * DPR)
+          if (prox > 0) {
+            const f = prox * rg.alpha * 2.6 * DPR
+            p.vx += (dx / dd) * f * dt
+            p.vy += (dy / dd) * f * dt
+            lit = Math.max(lit, prox * rg.alpha)
+          }
+        }
+        if (scout && scout.a > 0.05) {
+          const dx = p.x - scout.x
+          const dy = p.y - scout.y
+          const d2 = dx * dx + dy * dy
+          const SR = 90 * DPR
+          if (d2 < SR * SR) {
+            const dd = Math.sqrt(d2) || 1
+            const fall = (1 - dd / SR) * scout.a
+            p.vx += ((dx / dd) * 0.5 * DPR + scout.vx * 0.2) * fall * dt
+            p.vy += ((dy / dd) * 0.5 * DPR + scout.vy * 0.2) * fall * dt
+            lit = Math.max(lit, fall * 0.5)
+          }
+        }
+
+        const damp = Math.pow(0.9, dt)
+        p.vx *= damp
+        p.vy *= damp
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+
+        if ((i & 7) === 0) {
+          dispSum += Math.abs(p.x - p.tx) + Math.abs(p.y - p.ty)
+          dispCnt++
+        }
+
+        p.tw += 0.035 * dt
+        const speedGlow = Math.min(1.1, (p.vx * p.vx + p.vy * p.vy) / (26 * DPR * DPR))
+        const twk = 0.72 + Math.sin(p.tw) * 0.28
+        const a = (0.16 + fw * 0.5) * twk + speedGlow * 0.5 + lit * 0.55
+        const s = p.r * (3.2 + (1 - fw) * 3.4 + speedGlow * 2.2 + lit * 2.6)
+        ctx.globalAlpha = Math.min(1, a)
+        ctx.drawImage(p.hue ? spriteB : spriteA, p.x - s / 2, p.y - s / 2, s, s)
+      }
+      convergence = dispCnt ? dispSum / dispCnt : 1e9
+
+      // structure mesh — faint links weave between neighbours once converged
+      const settle = convergence < 7 * DPR ? 1 : Math.max(0, 1 - (convergence - 7 * DPR) / (30 * DPR))
+      if (settle > 0.05 && form.v > 0.8) {
+        const R2 = 16 * DPR * (16 * DPR)
+        ctx.strokeStyle = 'rgba(125,211,252,' + (0.32 * settle).toFixed(3) + ')'
+        ctx.lineWidth = DPR * 0.5
         ctx.beginPath()
-        for (var i2 = 0; i2 < parts.length; i2++) {
-          var pp = parts[i2]
-          for (var j = i2 + 1; j <= i2 + 2 && j < parts.length; j++) {
-            var q = parts[j], dx = pp.x - q.x, dy = pp.y - q.y
-            if (dx * dx + dy * dy < R2) { ctx.moveTo(pp.x, pp.y); ctx.lineTo(q.x, q.y) }
+        for (let i = 0; i < parts.length; i++) {
+          const pp = parts[i]
+          for (let j = i + 1; j <= i + 2 && j < parts.length; j++) {
+            const q = parts[j]
+            const dx = pp.x - q.x
+            const dy = pp.y - q.y
+            if (dx * dx + dy * dy < R2) {
+              ctx.moveTo(pp.x, pp.y)
+              ctx.lineTo(q.x, q.y)
+            }
           }
         }
         ctx.stroke()
       }
-      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'
-      raf = requestAnimationFrame(frame)
+
+      for (const rg of rings) {
+        ctx.globalAlpha = Math.min(1, rg.alpha)
+        ctx.strokeStyle = 'rgba(160,225,255,1)'
+        ctx.lineWidth = rg.w
+        ctx.beginPath()
+        ctx.arc(rg.x, rg.y, rg.r, 0, 6.283)
+        ctx.stroke()
+      }
+
+      if (scout && scout.a > 0.02) {
+        ctx.globalAlpha = 0.9 * scout.a
+        const ss = 11 * DPR
+        ctx.drawImage(spriteB, scout.x - ss / 2, scout.y - ss / 2, ss, ss)
+        ctx.globalAlpha = 0.5 * scout.a
+        ctx.strokeStyle = 'rgba(196,181,253,0.9)'
+        ctx.lineWidth = DPR
+        ctx.beginPath()
+        ctx.arc(scout.x, scout.y, 7 * DPR, 0, 6.283)
+        ctx.stroke()
+      }
+
+      // custom cursor: a ring that swells while charging the vortex
+      if (ptr.active && state !== 'exit' && ptr.x > -1e8) {
+        const cr = (11 + hold.v * 22) * DPR
+        ctx.globalAlpha = 0.85
+        ctx.strokeStyle = 'rgba(190,235,255,0.9)'
+        ctx.lineWidth = 1.2 * DPR
+        ctx.beginPath()
+        ctx.arc(ptr.x, ptr.y, cr, 0, 6.283)
+        ctx.stroke()
+        ctx.fillStyle = 'rgba(214,243,255,0.9)'
+        ctx.beginPath()
+        ctx.arc(ptr.x, ptr.y, 1.6 * DPR, 0, 6.283)
+        ctx.fill()
+      }
+
+      ctx.globalAlpha = 1
+      ctx.globalCompositeOperation = 'source-over'
+      if (++hudTick % 12 === 0) updateHud(false)
+    }
+    const tick = (_time: number, deltaTime: number) => frame(_time, deltaTime)
+
+    // ---- lifecycle -------------------------------------------------------------
+    function play() {
+      gsap.killTweensOf([form, hold, morph])
+      if (bootTl) bootTl.kill()
+      rings = []
+      scout = null
+      state = 'boot'
+      wordIdx = 0
+      form.v = 0
+      hold.v = 0
+      morph.t = 1
+      interactions = 0
+      morphs = 0
+      playT0 = performance.now()
+      lastInput = playT0
+      convergence = 1e9
+      overlay.classList.remove('intro-idle')
+      gsap.set(overlay, { opacity: 1 })
+      resize()
+      build()
+      buildChips()
+      ctx.fillStyle = '#06090d'
+      ctx.fillRect(0, 0, W, H)
+      gsap.ticker.remove(tick)
+      gsap.ticker.add(tick)
+      const ui = [chipsEl, card, hint, skipBtn]
+      gsap.set(ui, { autoAlpha: 0, y: 14 })
+      gsap.set(hud, { autoAlpha: 0, y: -10 })
+      updateHud(true)
+      bootTl = gsap
+        .timeline()
+        .to(form, { v: 1, duration: 2.4, ease: 'power2.inOut' }, 0.2)
+        .to(hud, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 0.7)
+        .add(() => {
+          state = 'play'
+          lastInput = performance.now() // scout idle-timer counts from playable, not from boot start
+          updateHud(true)
+        }, 1.7)
+        .to(ui, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'back.out(1.6)', stagger: 0.09 }, 2.0)
+      try {
+        sessionStorage.setItem('intro-seen', '1')
+      } catch {
+        /* private mode */
+      }
     }
 
-    function land() {                        // hold on the avatar + 进入 button
-      if (landed) return
-      landed = true
-      if (card) card.classList.add('show')
-    }
-    function reveal() {                       // visitor chose to enter → fade to real homepage (kept in DOM for 重播)
-      if (revealing) return
-      revealing = true
-      if (card) card.classList.remove('show')
-      overlay.classList.add('intro-done')
-      setTimeout(function () {
-        cancelAnimationFrame(raf)
-        overlay.classList.add('intro-idle')
-        overlay.classList.remove('intro-done')
-      }, 1000)
+    function reveal(action: string) {
+      if (state === 'exit' || state === 'idle') return
+      state = 'exit'
+      if (bootTl) bootTl.kill()
+      trackSiteEvent('intro_enter', {
+        action,
+        word: WORDS[wordIdx],
+        duration_ms: Math.round(performance.now() - playT0),
+        interactions,
+        morphs
+      })
+      const cx = W / 2
+      const cy = H * 0.42
+      for (const p of parts) {
+        const dx = p.x - cx
+        const dy = p.y - cy
+        const dd = Math.hypot(dx, dy) || 1
+        const kick = (9 + Math.random() * 10) * DPR
+        p.vx += (dx / dd) * kick
+        p.vy += (dy / dd) * kick * 0.9 - 2 * DPR * Math.random()
+      }
+      shockwave(cx, cy, 1)
+      gsap
+        .timeline({
+          onComplete: () => {
+            gsap.ticker.remove(tick)
+            overlay.classList.add('intro-idle')
+            scout = null
+          }
+        })
+        .to([hint, chipsEl, card, hud, skipBtn], { autoAlpha: 0, y: 10, duration: 0.3, ease: 'power1.in', stagger: 0.04 }, 0)
+        .to(overlay, { opacity: 0, duration: 0.9, ease: 'power2.in' }, 0.28)
     }
 
-    function start() {
-      resize(); build()
-      if (parts.length === 0) { setTimeout(start, 120); return }
-      raf = requestAnimationFrame(frame)
-    }
-    function play() {                         // (re)run the intro from noise — first visit + 重播
-      cancelAnimationFrame(raf)
-      d = 0; dTarget = 0; pulse = 0; stepShown = -1; doneAt = 0; t0 = 0
-      revealing = false; landed = false
-      if (card) card.classList.remove('show')
-      hud.style.opacity = ''; hud.classList.remove('show')
-      overlay.classList.remove('intro-idle'); overlay.classList.remove('intro-done')
-      try { sessionStorage.setItem('intro-seen', '1') } catch (e) {}
-      start()
-    }
+    // ---- input wiring ------------------------------------------------------------
+    const isUi = (e: Event) => e.target instanceof Element && !!e.target.closest('button')
+    overlay.addEventListener('pointermove', (e) => {
+      const nx = e.clientX * DPR
+      const ny = e.clientY * DPR
+      if (ptr.active) {
+        const dx = nx - ptr.x
+        const dy = ny - ptr.y
+        ptr.vx = ptr.vx * 0.55 + dx * 0.45
+        ptr.vy = ptr.vy * 0.55 + dy * 0.45
+        ptr.moved += Math.hypot(dx, dy)
+      }
+      ptr.x = nx
+      ptr.y = ny
+      ptr.active = true
+      onInput()
+    })
+    overlay.addEventListener('pointerdown', (e) => {
+      ptr.x = e.clientX * DPR
+      ptr.y = e.clientY * DPR
+      ptr.active = true
+      onInput()
+      if (isUi(e)) return
+      ptr.down = true
+      ptr.downT = performance.now()
+      ptr.moved = 0
+      interactions++
+      gsap.to(hold, { v: 1, duration: 0.7, delay: 0.14, ease: 'power2.out', overwrite: true })
+    })
+    addEventListener('pointerup', (e) => {
+      if (!ptr.down) return
+      ptr.down = false
+      const held = hold.v
+      gsap.to(hold, { v: 0, duration: 0.35, ease: 'power3.out', overwrite: true })
+      if (state !== 'play') return
+      const quick = performance.now() - ptr.downT < 230 && ptr.moved < 9 * DPR
+      if (quick) shockwave(e.clientX * DPR, e.clientY * DPR, 1)
+      else if (held > 0.3) shockwave(ptr.x, ptr.y, 0.45) // vortex release pop
+    })
+    overlay.addEventListener('pointerleave', () => {
+      ptr.active = false
+      ptr.x = ptr.y = -1e9
+    })
+    overlay.addEventListener('dblclick', (e) => {
+      if (isUi(e)) return
+      interactions++
+      morphTo((wordIdx + 1) % WORDS.length, e.clientX * DPR, e.clientY * DPR)
+    })
 
-    addEventListener('resize', function () { if (!revealing && !overlay.classList.contains('intro-idle')) { resize(); build() } })
-    var skipBtn = document.getElementById('intro-skip')
-    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
-    var enterBtn = document.getElementById('intro-enter')
-    if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
-    var avEl = document.getElementById('intro-av')
-    if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); reveal() })
-    var replayBtn = document.getElementById('intro-replay')
-    if (replayBtn) replayBtn.addEventListener('click', play)
+    skipBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      reveal('skip')
+    })
+    enterBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      reveal('enter')
+    })
+    avEl.addEventListener('click', (e) => {
+      e.stopPropagation()
+      reveal('avatar')
+    })
+    replayBtn.addEventListener('click', () => {
+      trackSiteEvent('intro_replay', {})
+      play()
+    })
 
-    var seen = false
-    try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
+    addEventListener('resize', () => {
+      if (state === 'idle' || state === 'exit') return
+      resize()
+      const pts = sampleWord(WORDS[wordIdx])
+      if (pts.length) assignTargets(pts)
+    })
+
+    // ---- boot gate -----------------------------------------------------------
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    let seen = false
+    try {
+      seen = sessionStorage.getItem('intro-seen') === '1'
+    } catch {
+      /* private mode */
+    }
     if (!seen && !reduce) {
-      var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
-      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(play)
+      const fontReady = document.fonts ? document.fonts.load('700 120px "Satoshi"') : null
+      Promise.race([
+        Promise.resolve(fontReady).catch(() => {}),
+        new Promise((r) => setTimeout(r, 700))
+      ]).then(play)
     } else {
-      overlay.classList.add('intro-idle')   // hidden on repeat visits; 重播 re-runs it
+      overlay.classList.add('intro-idle')
     }
-  })()
+  }
+
+  initIntro()
 </script>
