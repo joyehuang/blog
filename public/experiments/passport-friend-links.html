@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>友情链接 · 护照风格样式提案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f4efe3;
+    --ink: #2b2418;
+    --navy: #1a2740;
+    --gold: #c9a24b;
+    --stamp-red: #a8322d;
+    --stamp-teal: #2c6e6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: #0e0e12;
+    color: #eee;
+    padding: 3rem 1.5rem 6rem;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
+  }
+  .subtitle {
+    text-align: center;
+    color: #999;
+    font-size: 0.9rem;
+    margin-bottom: 3.5rem;
+  }
+  section.style-block {
+    max-width: 980px;
+    margin: 0 auto 5rem;
+  }
+  .style-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.75rem;
+  }
+  .style-header .num {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--gold);
+    font-size: 0.85rem;
+  }
+  .style-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 500;
+  }
+  .style-header .tag {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #888;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.1rem;
+  }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    color: #fff;
+  }
+
+  /* ---------- 1. VISA STAMP ---------- */
+  .stamp-card {
+    position: relative;
+    background: var(--paper);
+    border-radius: 4px;
+    padding: 1.1rem;
+    color: var(--ink);
+    text-decoration: none;
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+  .stamp-card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    opacity: 0.15;
+    pointer-events: none;
+  }
+  .stamp-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 58px;
+    height: 58px;
+    border: 2px solid var(--stamp-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-14deg);
+    color: var(--stamp-red);
+    font-family: 'Special Elite', monospace;
+    font-size: 0.5rem;
+    text-align: center;
+    line-height: 1.1;
+    opacity: 0.75;
+    mix-blend-mode: multiply;
+  }
+  .stamp-card .avatar { border: 2px solid var(--ink); }
+  .stamp-name {
+    font-family: 'Special Elite', monospace;
+    font-size: 1rem;
+    margin: 0 0 0.15rem;
+  }
+  .stamp-intro {
+    font-size: 0.78rem;
+    opacity: 0.75;
+    margin: 0;
+  }
+
+  /* ---------- 2. BOARDING PASS ---------- */
+  .ticket-card {
+    position: relative;
+    display: flex;
+    text-decoration: none;
+    color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  }
+  .ticket-main {
+    flex: 1;
+    background: var(--navy);
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    position: relative;
+  }
+  .ticket-stub {
+    width: 64px;
+    background: #14203a;
+    border-left: 2px dashed rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    position: relative;
+  }
+  .ticket-stub::before, .ticket-stub::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    width: 16px;
+    height: 16px;
+    background: #0e0e12;
+    border-radius: 50%;
+  }
+  .ticket-stub::before { top: -8px; }
+  .ticket-stub::after { bottom: -8px; }
+  .ticket-name { margin: 0 0 0.1rem; font-weight: 600; font-size: 0.95rem; }
+  .ticket-intro { margin: 0; font-size: 0.72rem; color: rgba(255,255,255,0.55); font-family: 'JetBrains Mono', monospace; }
+  .ticket-mrz {
+    position: absolute;
+    bottom: 6px;
+    left: 1.1rem;
+    right: 66px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: rgba(201,162,75,0.5);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* ---------- 3. PASSPORT BIO PAGE ---------- */
+  .bio-card {
+    position: relative;
+    background: linear-gradient(180deg, #efe8d6, #e6ddc6);
+    border: 1px solid #cfc4a0;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #3a3222;
+    text-decoration: none;
+    display: block;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3), inset 0 0 40px rgba(120,100,50,0.08);
+  }
+  .bio-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    background-image: repeating-linear-gradient(45deg, rgba(120,100,50,0.035) 0 2px, transparent 2px 6px);
+    pointer-events: none;
+  }
+  .bio-top { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.6rem; }
+  .bio-photo {
+    width: 46px; height: 46px; border-radius: 3px;
+    border: 1px solid #a89a6f;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff;
+  }
+  .bio-name { margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.03em; }
+  .bio-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.55; }
+  .bio-intro { font-size: 0.78rem; margin: 0 0 0.6rem; opacity: 0.8; }
+  .bio-mrz {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    color: #6b5f3f;
+    border-top: 1px dashed #b7a877;
+    padding-top: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* ---------- 4. HOLOGRAPHIC SECURITY CARD ---------- */
+  .holo-card {
+    position: relative;
+    background: linear-gradient(135deg, #0b1226, #131b33 60%, #0b1226);
+    border-radius: 12px;
+    padding: 1.1rem;
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    overflow: hidden;
+    border: 1px solid rgba(201,162,75,0.35);
+  }
+  .holo-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -20%;
+    width: 60%;
+    height: 200%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.18), rgba(120,220,255,0.12), transparent);
+    transform: rotate(20deg);
+    transition: transform 0.6s ease;
+  }
+  .holo-card:hover::after { transform: rotate(20deg) translateX(220px); }
+  .holo-card .avatar { border: 1px solid var(--gold); }
+  .holo-name { margin: 0 0 0.15rem; font-weight: 600; font-size: 0.95rem; }
+  .holo-intro { margin: 0; font-size: 0.75rem; color: rgba(255,255,255,0.55); }
+  .holo-chip {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  /* ---------- 5. INK STAMP COLLECTION (loose overlap) ---------- */
+  .inkgrid-wrap {
+    position: relative;
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 2.2rem 1.6rem;
+    background-image:
+      radial-gradient(rgba(43,36,24,0.05) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .inkgrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem 1.8rem;
+    justify-content: center;
+  }
+  .ink-card {
+    width: 150px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .ink-circle {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    opacity: 0.85;
+    mix-blend-mode: multiply;
+  }
+  .ink-circle::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+  .ink-avatar-inner {
+    width: 54px; height: 54px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff; font-size: 1.1rem;
+  }
+  .ink-name { font-family: 'Special Elite', monospace; font-size: 0.85rem; margin: 0 0 0.15rem; }
+  .ink-intro { font-size: 0.68rem; color: #6b5f3f; margin: 0; }
+</style>
+</head>
+<body>
+
+<h1>护照风格友情链接 · 5 种方案预览</h1>
+<p class="subtitle">灵感来源 vercel.com/passport &nbsp;·&nbsp; 分支 experiment/passport-friend-links &nbsp;·&nbsp; 静态 Demo，不影响正式构建</p>
+
+<!-- 1 -->
+<section class="style-block">
+  <div class="style-header">
+    <span class="num">01</span>
+    <h2>签证印章卡 Visa Stamp</h2>
+    <span class="tag">纸感 · 圆形火漆印章 · 打字机字体</span>
+  </div>
+  <div class="grid" id="stamp-grid"></div>
+</section>
+
+<!-- 2 -->
+<section class="style-block">
+  <div class="style-header">
+    <span class="num">02</span>
+    <h2>登机牌 / 车票 Boarding Pass</h2>
+    <span class="tag">撕票口 · MRZ 编码条 · 深藏青</span>
+  </div>
+  <div class="grid" id="ticket-grid"></div>
+</section>
+
+<!-- 3 -->
+<section class="style-block">
+  <div class="style-header">
+    <span class="num">03</span>
+    <h2>护照资料页 Bio Data Page</h2>
+    <span class="tag">米黄安全纹 · 双行机读码</span>
+  </div>
+  <div class="grid" id="bio-grid"></div>
+</section>
+
+<!-- 4 -->
+<section class="style-block">
+  <div class="style-header">
+    <span class="num">04</span>
+    <h2>全息安全卡 Holographic</h2>
+    <span class="tag">镭射扫光 · 金色描边 · 悬浮触发</span>
+  </div>
+  <div class="grid" id="holo-grid"></div>
+</section>
+
+<!-- 5 -->
+<section class="style-block">
+  <div class="style-header">
+    <span class="num">05</span>
+    <h2>入境章合集 Ink Stamp Collection</h2>
+    <span class="tag">散落圆章 · 复古纸张 · 随机色</span>
+  </div>
+  <div class="inkgrid-wrap">
+    <div class="inkgrid" id="ink-grid"></div>
+  </div>
+</section>
+
+<script>
+  const friends = [
+    { name: 'Momoko', intro: '独立游戏开发者', color: '#a8322d', code: 'JP · TOKYO' },
+    { name: 'Windchant', intro: '前端 & 生成艺术', color: '#2c6e6b', code: 'CN · CHENGDU' },
+    { name: 'Lena', intro: '写作与摄影', color: '#4a5a8f', code: 'DE · BERLIN' },
+    { name: 'Kairo', intro: '开源维护者', color: '#8a5a2c', code: 'SG · CENTRAL' },
+    { name: 'Yui', intro: '产品设计师', color: '#7a3a6e', code: 'JP · OSAKA' },
+    { name: 'Theo', intro: '数据可视化', color: '#2c5a8a', code: 'FR · PARIS' }
+  ];
+  const initials = (n) => n.slice(0, 1).toUpperCase();
+  const mrz = (name) => {
+    const clean = name.toUpperCase().replace(/[^A-Z]/g, '');
+    return `P<BLOG${clean}<<FRIEND<<<<<<<<<<<<<<<<<<<<<<\n${Math.random().toString(36).slice(2,10).toUpperCase()}<<${clean}<<<<<<<<<<<<<<<<<<<<<<<<<<<<`;
+  };
+
+  document.getElementById('stamp-grid').innerHTML = friends.map(f => `
+    <a class="stamp-card" href="#">
+      <span class="avatar" style="background:${f.color}">${initials(f.name)}</span>
+      <span>
+        <p class="stamp-name">${f.name}</p>
+        <p class="stamp-intro">${f.intro}</p>
+      </span>
+      <span class="stamp-badge">ENTRY<br/>VERIFIED</span>
+    </a>
+  `).join('');
+
+  document.getElementById('ticket-grid').innerHTML = friends.map(f => `
+    <a class="ticket-card" href="#">
+      <span class="ticket-main">
+        <span class="avatar" style="background:${f.color}">${initials(f.name)}</span>
+        <span>
+          <p class="ticket-name">${f.name}</p>
+          <p class="ticket-intro">${f.intro}</p>
+        </span>
+        <span class="ticket-mrz">${mrz(f.name).split('\n')[0]}</span>
+      </span>
+      <span class="ticket-stub">${f.code}</span>
+    </a>
+  `).join('');
+
+  document.getElementById('bio-grid').innerHTML = friends.map(f => `
+    <a class="bio-card" href="#">
+      <span class="bio-top">
+        <span class="bio-photo" style="background:${f.color}">${initials(f.name)}</span>
+        <span>
+          <p class="bio-name">${f.name}</p>
+          <span class="bio-label">FRIEND OF THIS BLOG</span>
+        </span>
+      </span>
+      <p class="bio-intro">${f.intro}</p>
+      <div class="bio-mrz">${mrz(f.name).split('\n')[0]}<br/>${mrz(f.name).split('\n')[1]}</div>
+    </a>
+  `).join('');
+
+  document.getElementById('holo-grid').innerHTML = friends.map(f => `
+    <a class="holo-card" href="#">
+      <span class="avatar" style="background:${f.color}">${initials(f.name)}</span>
+      <span>
+        <p class="holo-name">${f.name}</p>
+        <p class="holo-intro">${f.intro}</p>
+      </span>
+      <span class="holo-chip">${f.code}</span>
+    </a>
+  `).join('');
+
+  document.getElementById('ink-grid').innerHTML = friends.map(f => `
+    <a class="ink-card" href="#">
+      <span class="ink-circle" style="color:${f.color}">
+        <span class="ink-avatar-inner" style="background:${f.color}">${initials(f.name)}</span>
+      </span>
+      <p class="ink-name">${f.name}</p>
+      <p class="ink-intro">${f.intro}</p>
+    </a>
+  `).join('');
+</script>
+
+</body>
+</html>
