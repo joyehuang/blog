@@ -97,6 +97,18 @@ Properties:
 
 Use this to measure outbound interest in work/project links.
 
+### `home_intro_action`
+
+User exits (or replays) the home intro animation overlay.
+
+Properties:
+
+- `section`: `intro`
+- `target`: `skip` | `enter` | `avatar` | `auto_enter` | `replay`
+- `method`: `click` | `auto`
+
+Every intro playthrough ends with exactly one of `skip`, `enter`, `avatar`, or `auto_enter`, so skip rate = `skip / (skip + enter + avatar + auto_enter)`. Use this to decide whether the intro is worth its cost as a gate in front of the homepage.
+
 ## Planned Events
 
 These are not implemented yet. Add them when article and content analytics are instrumented.
