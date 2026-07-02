@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Joye's Passport · 友链护照本 v2 概念稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 复刻站点主题 token(app.css)===== */
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 3.9%;
+    --primary: 200 29% 45%;
+    --primary-foreground: 0 0% 92.5%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --border: 240 5.9% 90%;
+    /* passport palette — light: 纸本护照 */
+    --pp-paper: 43 38% 93%;
+    --pp-paper-deep: 43 30% 87%;
+    --pp-ink: 32 30% 18%;
+    --pp-stamp: 4 55% 42%;
+    --pp-stamp-2: 178 43% 30%;
+    --pp-foil: 41 45% 48%;
+    --pp-line: 32 20% 60%;
+  }
+  html.dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --primary: 195 95% 85%;
+    --primary-foreground: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%;
+    /* passport palette — dark: 夜航护照,墨蓝纸 + 荧光印泥 */
+    --pp-paper: 222 35% 12%;
+    --pp-paper-deep: 222 38% 9%;
+    --pp-ink: 200 40% 88%;
+    --pp-stamp: 4 65% 62%;
+    --pp-stamp-2: 178 55% 55%;
+    --pp-foil: 45 70% 62%;
+    --pp-line: 220 20% 40%;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    padding: 2.5rem 1rem 6rem;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  .topbar {
+    max-width: 860px;
+    margin: 0 auto 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .topbar h1 { font-size: 1.2rem; font-weight: 600; margin: 0; }
+  .topbar .hint { font-size: 0.75rem; color: hsl(var(--muted-foreground)); }
+  #themeToggle {
+    margin-left: auto;
+    cursor: pointer;
+    border: 1px solid hsl(var(--border));
+    background: transparent;
+    color: hsl(var(--foreground));
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  /* ===================== 护照本 ===================== */
+  .passport {
+    max-width: 860px;
+    margin: 0 auto;
+    border-radius: 14px;
+    background:
+      linear-gradient(160deg, hsl(var(--pp-paper)), hsl(var(--pp-paper-deep)));
+    border: 1px solid hsl(var(--pp-line) / 0.45);
+    box-shadow:
+      0 20px 50px hsl(var(--foreground) / 0.12),
+      inset 0 0 60px hsl(var(--pp-ink) / 0.05);
+    overflow: hidden;
+    position: relative;
+  }
+  /* 安全底纹:细扭索纹(guilloché 的廉价近似) */
+  .passport::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      repeating-radial-gradient(circle at 15% 20%, transparent 0 9px, hsl(var(--pp-ink) / 0.025) 9px 10px),
+      repeating-radial-gradient(circle at 85% 80%, transparent 0 9px, hsl(var(--pp-ink) / 0.025) 9px 10px);
+  }
+
+  .passport-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.1rem 1.5rem 0.9rem;
+    border-bottom: 1.5px solid hsl(var(--pp-foil) / 0.55);
+    position: relative;
+  }
+  .passport-head .emblem {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid hsl(var(--pp-foil));
+    display: grid;
+    place-items: center;
+    color: hsl(var(--pp-foil));
+    font-family: 'Special Elite', monospace;
+    font-size: 0.95rem;
+  }
+  .passport-head .title-block { line-height: 1.25; }
+  .passport-head .t1 {
+    font-family: 'Special Elite', monospace;
+    letter-spacing: 0.28em;
+    font-size: 0.82rem;
+    color: hsl(var(--pp-foil));
+  }
+  .passport-head .t2 { font-size: 0.68rem; letter-spacing: 0.14em; color: hsl(var(--pp-ink) / 0.6); }
+  .passport-head .page-no {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--pp-ink) / 0.55);
+    letter-spacing: 0.12em;
+  }
+
+  /* ===== 签证页(翻页容器)===== */
+  .visa-pages { position: relative; min-height: 430px; }
+  .visa-page {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    padding: 1.3rem 1.5rem 1.5rem;
+    position: relative;
+  }
+  .visa-page.active { display: grid; animation: pageIn 0.35s ease; }
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateX(14px) rotateY(4deg); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ===== 融合卡:签证章 × 登机牌 ===== */
+  .visa {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: hsl(var(--pp-ink));
+    border: 1px solid hsl(var(--pp-line) / 0.5);
+    border-radius: 6px;
+    background: hsl(var(--pp-paper));
+    padding: 0.85rem 0.9rem 0.6rem;
+    overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .visa:hover {
+    transform: translateY(-3px) rotate(-0.4deg);
+    box-shadow: 0 10px 24px hsl(var(--foreground) / 0.14);
+  }
+  /* 左缘打孔票边 */
+  .visa::before {
+    content: '';
+    position: absolute;
+    left: 3px; top: 0; bottom: 0;
+    width: 0;
+    border-left: 2px dotted hsl(var(--pp-line) / 0.6);
+  }
+  .visa-top { display: flex; gap: 0.7rem; align-items: flex-start; padding-left: 0.5rem; }
+  .visa-avatar {
+    width: 44px; height: 44px;
+    border-radius: 4px;
+    border: 1px solid hsl(var(--pp-line) / 0.7);
+    background: #fff;
+    object-fit: cover;
+    filter: sepia(0.18) contrast(0.96);
+  }
+  html.dark .visa-avatar { filter: brightness(0.92) contrast(1.02); background: hsl(var(--pp-paper-deep)); }
+  .visa-id { min-width: 0; flex: 1; }
+  .visa-name {
+    font-family: 'Special Elite', monospace;
+    font-size: 0.92rem;
+    margin: 0 0 0.1rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .visa-name .label { color: hsl(var(--pp-stamp)); }
+  .visa-intro {
+    margin: 0;
+    font-size: 0.72rem;
+    color: hsl(var(--pp-ink) / 0.66);
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  /* 手写批注(note) */
+  .visa-note {
+    font-family: 'Caveat', cursive;
+    font-size: 0.95rem;
+    color: hsl(var(--pp-stamp-2));
+    margin: 0.45rem 0 0.35rem;
+    padding-left: 0.5rem;
+    transform: rotate(-0.6deg);
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  /* MRZ 机读行 */
+  .visa-mrz {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    color: hsl(var(--pp-ink) / 0.42);
+    border-top: 1px dashed hsl(var(--pp-line) / 0.55);
+    padding: 0.35rem 0 0 0.5rem;
+    white-space: nowrap; overflow: hidden;
+  }
+  /* 入境章:盖在右上角 */
+  .visa-seal {
+    position: absolute;
+    top: 0.4rem; right: 0.4rem;
+    width: 62px; height: 62px;
+    color: hsl(var(--pp-stamp));
+    opacity: 0.68;
+    transform: rotate(10deg);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  html.dark .visa-seal { mix-blend-mode: screen; opacity: 0.55; }
+  .visa:nth-child(3n) .visa-seal { color: hsl(var(--pp-stamp-2)); transform: rotate(-8deg); }
+  .visa:nth-child(3n+1) .visa-seal { transform: rotate(14deg) translateY(2px); }
+
+  /* ===== 翻页控件 ===== */
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0 1.5rem 1.2rem;
+    position: relative;
+  }
+  .pager button {
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    background: transparent;
+    border: 1px solid hsl(var(--pp-line) / 0.6);
+    color: hsl(var(--pp-ink) / 0.75);
+    border-radius: 4px;
+    padding: 0.3rem 0.9rem;
+  }
+  .pager button:disabled { opacity: 0.3; cursor: default; }
+  .pager .dots { display: flex; gap: 0.4rem; }
+  .pager .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    border: 1px solid hsl(var(--pp-foil));
+    background: transparent;
+    padding: 0; cursor: pointer;
+  }
+  .pager .dot.active { background: hsl(var(--pp-foil)); }
+
+  /* ===================== 申请柜台 ===================== */
+  .counter {
+    max-width: 860px;
+    margin: 3rem auto 0;
+  }
+  .counter h2 { font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; }
+  .counter .sub { font-size: 0.78rem; color: hsl(var(--muted-foreground)); margin-bottom: 1rem; }
+  .counter-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    align-items: start;
+  }
+  @media (max-width: 720px) { .counter-body { grid-template-columns: 1fr; } }
+
+  .apply-form {
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: hsl(var(--background));
+  }
+  .apply-form label { font-size: 0.68rem; letter-spacing: 0.08em; color: hsl(var(--muted-foreground)); }
+  .apply-form input {
+    width: 100%;
+    border: 1px solid hsl(var(--border));
+    background: transparent;
+    color: hsl(var(--foreground));
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.85rem;
+    font-family: inherit;
+  }
+  .apply-form button {
+    margin-top: 0.4rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 0.55rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* agent 审核终端 */
+  .agent-log {
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    background: hsl(var(--foreground) / 0.04);
+    padding: 0.9rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    line-height: 1.9;
+    min-height: 180px;
+    color: hsl(var(--muted-foreground));
+  }
+  .agent-log .ok { color: hsl(var(--pp-stamp-2)); }
+  .agent-log .head { color: hsl(var(--primary)); }
+
+  /* ===== 盖章成功动画 ===== */
+  .stamp-stage {
+    position: relative;
+    margin-top: 1rem;
+    display: none;
+    justify-content: center;
+  }
+  .stamp-stage.show { display: flex; }
+  .new-visa { max-width: 340px; width: 100%; }
+  .approve-seal {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 110px; height: 110px;
+    color: hsl(var(--pp-stamp));
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  html.dark .approve-seal { mix-blend-mode: screen; }
+  .stamp-stage.stamped .approve-seal {
+    animation: slam 0.5s cubic-bezier(0.2, 1.6, 0.35, 1) forwards;
+  }
+  @keyframes slam {
+    0% { opacity: 0; transform: translate(-50%, -60%) rotate(-25deg) scale(2.6); }
+    62% { opacity: 0.9; transform: translate(-50%, -50%) rotate(-14deg) scale(0.94); }
+    78% { transform: translate(-50%, -50%) rotate(-14deg) scale(1.05); }
+    100% { opacity: 0.82; transform: translate(-50%, -50%) rotate(-14deg) scale(1); }
+  }
+  .stamp-stage.stamped .new-visa { animation: shake 0.35s ease 0.28s; }
+  @keyframes shake {
+    0%, 100% { transform: none; }
+    30% { transform: translateY(2px) rotate(0.5deg); }
+    60% { transform: translateY(-1px) rotate(-0.3deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Joye's Passport — 友链护照本 v2</h1>
+  <span class="hint">签证章 × 登机牌融合 · 翻页应对增长 · 真实 14 条数据</span>
+  <button id="themeToggle">☾ Dark</button>
+</div>
+
+<!-- ========== 护照本 ========== -->
+<div class="passport">
+  <div class="passport-head">
+    <span class="emblem">J</span>
+    <span class="title-block">
+      <div class="t1">PASSPORT · 友情链接</div>
+      <div class="t2">ISSUED BY JOYEHUANG.ME · TYPE F (FRIEND)</div>
+    </span>
+    <span class="page-no" id="pageNo">VISAS · PAGE 1</span>
+  </div>
+  <div class="visa-pages" id="visaPages"></div>
+  <div class="pager">
+    <button id="prevBtn">‹ PREV</button>
+    <span class="dots" id="dots"></span>
+    <button id="nextBtn">NEXT ›</button>
+  </div>
+</div>
+
+<!-- ========== 申请柜台(自动化流程演示) ========== -->
+<div class="counter">
+  <h2>入境柜台 · 友链申请自动化(交互演示)</h2>
+  <p class="sub">填四个字段 → Agent 自动核验(站点存活 / 头像可取 / 是否回链)→ 通过后盖章入册。下面是全流程 mock,点提交试试。</p>
+  <div class="counter-body">
+    <form class="apply-form" id="applyForm">
+      <label>NAME / 站点名</label>
+      <input id="fName" value="Demo Friend" />
+      <label>LINK / 站点地址</label>
+      <input id="fLink" value="https://example.dev" />
+      <label>AVATAR / 头像地址</label>
+      <input id="fAvatar" value="https://github.com/github.png" />
+      <label>INTRO / 一句话介绍</label>
+      <input id="fIntro" value="在 AI 时代认真写博客" />
+      <button type="submit">递交申请 SUBMIT →</button>
+    </form>
+    <div class="agent-log" id="agentLog">
+      <span class="head">$ passport-officer --stand-by</span><br />
+      等待申请…
+    </div>
+  </div>
+
+  <div class="stamp-stage" id="stampStage">
+    <a class="visa new-visa" href="#" id="newVisa"></a>
+    <svg class="approve-seal" viewBox="0 0 110 110">
+      <circle cx="55" cy="55" r="50" fill="none" stroke="currentColor" stroke-width="3" />
+      <circle cx="55" cy="55" r="40" fill="none" stroke="currentColor" stroke-width="1.2" />
+      <path id="sealArcTop" d="M 55 55 m -33 0 a 33 33 0 1 1 66 0" fill="none" />
+      <text font-size="10.5" font-family="'Special Elite', monospace" fill="currentColor" letter-spacing="2.5">
+        <textPath href="#sealArcTop" startOffset="8%">FRIENDSHIP GRANTED</textPath>
+      </text>
+      <text x="55" y="52" text-anchor="middle" font-size="13" font-family="'Special Elite', monospace" fill="currentColor">APPROVED</text>
+      <text x="55" y="68" text-anchor="middle" font-size="8" font-family="'JetBrains Mono', monospace" fill="currentColor" id="sealDate"></text>
+    </svg>
+  </div>
+</div>
+
+<script>
+  // ---- 真实数据(public/links.json 的 friend-links) ----
+  const FRIENDS = [
+    {"name":"Cxin Blog","intro":"AI Native","link":"https://cxin.vercel.app/","avatar":"https://cxin.vercel.app/favicon/android-chrome-512x512.png","since":"2026-06-25","met":"互换友链","note":"AI Native，把思考和实践沉淀在个人站里。"},
+    {"name":"Cooing's Blog","intro":"像素复古 Astro 个人站模板","link":"https://blog.cooingcode.space","avatar":"https://blog.cooingcode.space/avatar.svg","since":"2026-06-06","met":"互换友链","note":"像素复古风的 Astro 个人站，适合沉淀长文、笔记、日志和项目。"},
+    {"name":"Joshua Chen Personal Blog","intro":"AI Agent & Full-Stack Developer","link":"https://blog.joshua2008.top","avatar":"https://blog.joshua2008.top/favicon/apple-touch-icon.png","since":"2026-06-06","met":"互换友链","note":"天津理工大学在读，正在学习 LLM 和 Agent 开发。"},
+    {"name":"Arden's blog","intro":"A beginner in the AI era","link":"https://ardenj.pages.dev/","avatar":"https://ardenj.pages.dev/images/portrait.png","since":"2026-04-29","met":"互换友链","note":"AI 时代的初学者，也在认真把站点搭起来。"},
+    {"name":"董璐瑶","intro":"AI 产品经理","link":"https://llingqi77-tech.github.io/cv/","avatar":"https://github.com/llingqi77-tech.png","since":"2026-04-28","met":"互换友链","note":"AI PM，把简历也做成了站点。"},
+    {"name":"大耳朵图图","label":"大奶龙涂涂","intro":"用 AI 和摄影，让世界更温暖","link":"https://bigeartutu.beauty/","avatar":"https://unavatar.io/x/tutu971844","since":"2026-04-28","met":"互换友链","note":"把 AI 和摄影揉在一起的写作者。"},
+    {"name":"Lime's Blog","intro":"whirling in rags","link":"https://limening.vercel.app/","avatar":"https://limening.vercel.app/img/base/avatar.jpg","since":"2026-04-28","met":"互换友链","note":"灵气和颗粒感都还在的写作者。"},
+    {"name":"Queen's DevLog","intro":"分享有意思/有用内容","link":"https://blog.forhermajesty.com/","avatar":"https://blog.forhermajesty.com/upload/Queen-Logo-1973.jpg","since":"2026-04-28","met":"互换友链","note":"把「分享有意思的内容」当成一件认真的事来做。"},
+    {"name":"Evan Lin","intro":"AI builder","link":"https://evanlin.site/","avatar":"https://evanlin.site/profile.jpg","since":"2026-04-27","met":"互换友链","note":"也在 AI 这条路上的同行者。"},
+    {"name":"Crayon","intro":"苔花如米小，也学牡丹开","link":"https://kyc001.github.io/","avatar":"https://github.com/kyc001.png","since":"2026-04-27","met":"互换友链","note":"名字取自袁枚的诗，刚开始写但很认真的人。"},
+    {"name":"YinFeng's Blog","intro":"windchant.online","link":"http://www.windchant.online/","avatar":"https://www.windchant.online/favicon/favicon.ico","since":"2026-04-27","met":"互换友链","note":"Windchant 这个域名我记了很久。"},
+    {"name":"翁小雄","label":"我的奶龙 mentor","intro":"wengxiaoxiong.com","link":"https://www.wengxiaoxiong.com/","avatar":"https://github.com/wengxiaoxiong.png","since":"2026-04-19","met":"互换友链","note":"Builder 的另一面——站点上有他自己造的产品和思考。"},
+    {"name":"一清三白","intro":"克己慎独 守心明性","link":"https://sanbaiblog.cn/","avatar":"https://s21.ax1x.com/2025/01/05/pE9CfDU.jpg","since":"2025-11-04","met":"互换友链","note":"本站第一位友链，文字和站名一样安静。"},
+    {"name":"Yaya Jiang","intro":"ML @ UCSD, EMNLP 2024","link":"https://yayajjiang.github.io/","avatar":"https://github.com/yayajjiang.png","since":"2026-05-06","met":"互换友链","note":"UCSD ML 硕士，在做文本分类的弱监督学习。"}
+  ];
+
+  const PER_PAGE = 6;
+  const mrz = (f) => {
+    const clean = f.name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12).padEnd(12, '<');
+    const host = (() => { try { return new URL(f.link).host.toUpperCase().replace(/[^A-Z0-9]/g, '<').slice(0, 16); } catch { return 'UNKNOWN<HOST'; } })();
+    const date = (f.since || '').replace(/-/g, '');
+    return `V<JOYE${clean}<<${host}<<${date}<<<<<<`;
+  };
+  const sealSvg = (dateStr) => `
+    <svg class="visa-seal" viewBox="0 0 62 62" aria-hidden="true">
+      <circle cx="31" cy="31" r="28" fill="none" stroke="currentColor" stroke-width="2" />
+      <circle cx="31" cy="31" r="22" fill="none" stroke="currentColor" stroke-width="0.8" />
+      <text x="31" y="29" text-anchor="middle" font-size="7.5" font-family="'Special Elite', monospace" fill="currentColor">ENTRY</text>
+      <text x="31" y="38" text-anchor="middle" font-size="5.2" font-family="'JetBrains Mono', monospace" fill="currentColor">${dateStr || ''}</text>
+    </svg>`;
+  const visaHtml = (f) => `
+    ${sealSvg(f.since)}
+    <span class="visa-top">
+      <img class="visa-avatar" src="${f.avatar}" alt="" loading="lazy" onerror="this.style.visibility='hidden'" />
+      <span class="visa-id">
+        <p class="visa-name">${f.label ? `<span class="label">${f.label}</span>` : f.name}</p>
+        <p class="visa-intro">${f.intro}</p>
+      </span>
+    </span>
+    <p class="visa-note">${f.note || ''}</p>
+    <div class="visa-mrz">${mrz(f)}</div>`;
+
+  // ---- 渲染翻页 ----
+  const sorted = [...FRIENDS].sort((a, b) => (a.since || '').localeCompare(b.since || ''));
+  const pages = [];
+  for (let i = 0; i < sorted.length; i += PER_PAGE) pages.push(sorted.slice(i, i + PER_PAGE));
+  const pagesEl = document.getElementById('visaPages');
+  const dotsEl = document.getElementById('dots');
+  pagesEl.innerHTML = pages.map((pg, i) => `
+    <div class="visa-page${i === 0 ? ' active' : ''}" data-page="${i}">
+      ${pg.map((f) => `<a class="visa" href="${f.link}" target="_blank" rel="noopener">${visaHtml(f)}</a>`).join('')}
+    </div>`).join('');
+  dotsEl.innerHTML = pages.map((_, i) => `<button class="dot${i === 0 ? ' active' : ''}" data-goto="${i}" aria-label="Page ${i + 1}"></button>`).join('');
+
+  let cur = 0;
+  const flip = (to) => {
+    cur = Math.max(0, Math.min(pages.length - 1, to));
+    document.querySelectorAll('.visa-page').forEach((p, i) => p.classList.toggle('active', i === cur));
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    document.getElementById('pageNo').textContent = `VISAS · PAGE ${cur + 1} / ${pages.length}`;
+    document.getElementById('prevBtn').disabled = cur === 0;
+    document.getElementById('nextBtn').disabled = cur === pages.length - 1;
+  };
+  document.getElementById('prevBtn').onclick = () => flip(cur - 1);
+  document.getElementById('nextBtn').onclick = () => flip(cur + 1);
+  dotsEl.onclick = (e) => { const d = e.target.closest('[data-goto]'); if (d) flip(+d.dataset.goto); };
+  flip(0);
+
+  // ---- 主题切换 ----
+  const toggle = document.getElementById('themeToggle');
+  toggle.onclick = () => {
+    const dark = document.documentElement.classList.toggle('dark');
+    toggle.textContent = dark ? '☀ Light' : '☾ Dark';
+  };
+
+  // ---- 申请柜台 mock ----
+  const log = document.getElementById('agentLog');
+  const stage = document.getElementById('stampStage');
+  const steps = (link, avatar) => [
+    ['head', `$ passport-officer --review ${link}`],
+    ['', 'GET ' + link + ' … <span class="ok">200 OK</span>'],
+    ['', 'GET ' + avatar + ' … <span class="ok">image ✓</span>'],
+    ['', 'scanning homepage for backlink joyehuang.me … <span class="ok">found ✓</span>'],
+    ['', 'opening PR: append entry to public/links.json … <span class="ok">merged ✓</span>'],
+    ['ok', '>> VISA APPROVED · stamping …']
+  ];
+  document.getElementById('applyForm').onsubmit = (e) => {
+    e.preventDefault();
+    const f = {
+      name: document.getElementById('fName').value,
+      link: document.getElementById('fLink').value,
+      avatar: document.getElementById('fAvatar').value,
+      intro: document.getElementById('fIntro').value,
+      since: new Date().toISOString().slice(0, 10),
+      note: '刚刚落章的新朋友。'
+    };
+    stage.classList.remove('show', 'stamped');
+    log.innerHTML = '';
+    let i = 0;
+    const tick = () => {
+      if (i < steps(f.link, f.avatar).length) {
+        const [cls, text] = steps(f.link, f.avatar)[i++];
+        log.innerHTML += `<span class="${cls}">${text}</span><br />`;
+        setTimeout(tick, 550);
+      } else {
+        document.getElementById('newVisa').innerHTML = visaHtml(f);
+        document.getElementById('newVisa').href = f.link;
+        document.getElementById('sealDate').textContent = f.since;
+        stage.classList.add('show');
+        requestAnimationFrame(() => requestAnimationFrame(() => stage.classList.add('stamped')));
+      }
+    };
+    tick();
+  };
+</script>
+
+</body>
+</html>
