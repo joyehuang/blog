@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>友链风格对比稿 v3 · 四个新方向</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 站点主题 token(复刻 app.css)===== */
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 3.9%;
+    --primary: 200 29% 45%;
+    --primary-foreground: 0 0% 92.5%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --border: 240 5.9% 90%;
+    --paper: 43 36% 94%;
+    --paper-deep: 43 28% 88%;
+    --ink: 32 30% 20%;
+    --red-ink: 4 55% 44%;
+    --teal-ink: 178 43% 30%;
+    --board-bg: 220 12% 16%;
+    --board-text: 45 90% 68%;
+    --board-dim: 220 8% 55%;
+  }
+  html.dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --primary: 195 95% 85%;
+    --primary-foreground: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%;
+    --paper: 222 30% 13%;
+    --paper-deep: 222 34% 10%;
+    --ink: 200 35% 86%;
+    --red-ink: 4 65% 64%;
+    --teal-ink: 178 50% 58%;
+    --board-bg: 220 16% 9%;
+    --board-text: 45 95% 70%;
+    --board-dim: 220 8% 45%;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, 'PingFang SC', sans-serif;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    padding: 2.5rem 1.2rem 6rem;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .topbar {
+    max-width: 920px;
+    margin: 0 auto 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .topbar h1 { font-size: 1.15rem; font-weight: 600; margin: 0; }
+  .topbar .hint { font-size: 0.75rem; color: hsl(var(--muted-foreground)); }
+  #themeToggle {
+    margin-left: auto;
+    cursor: pointer;
+    border: 1px solid hsl(var(--border));
+    background: transparent;
+    color: hsl(var(--foreground));
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  section.concept { max-width: 920px; margin: 0 auto 4.5rem; }
+  .concept-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    border-bottom: 1px solid hsl(var(--border));
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .concept-head .num { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: hsl(var(--primary)); }
+  .concept-head h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .concept-head .scale {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ============================================================
+     A. 集邮册 STAMP ALBUM
+     ============================================================ */
+  .album {
+    background: linear-gradient(165deg, hsl(var(--paper)), hsl(var(--paper-deep)));
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 1.6rem;
+    background-image: repeating-linear-gradient(0deg, transparent 0 27px, hsl(var(--ink) / 0.05) 27px 28px);
+  }
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 1.1rem;
+  }
+  .stamp-wrap { position: relative; text-decoration: none; display: block; transition: transform 0.18s ease; }
+  .stamp-wrap:hover { transform: translateY(-4px) rotate(-1deg); z-index: 2; }
+  .stamp-wrap:nth-child(2n) { transform: rotate(0.8deg); }
+  .stamp-wrap:nth-child(3n) { transform: rotate(-0.7deg); }
+  .stamp-wrap:nth-child(2n):hover, .stamp-wrap:nth-child(3n):hover { transform: translateY(-4px) rotate(0deg); }
+  .stamp {
+    display: block;
+    background: hsl(var(--background));
+    padding: 9px;
+    /* 邮票齿孔:整面打孔 + 实心内容区,mask 相加后只剩边缘一圈孔 */
+    -webkit-mask:
+      radial-gradient(circle 4px, transparent 97%, #000 100%) -9px -9px / 18px 18px,
+      linear-gradient(#000 0 0) content-box;
+    mask:
+      radial-gradient(circle 4px, transparent 97%, #000 100%) -9px -9px / 18px 18px,
+      linear-gradient(#000 0 0) content-box;
+    filter: drop-shadow(0 3px 6px hsl(var(--foreground) / 0.18));
+  }
+  .stamp-inner {
+    display: block;
+    border: 1px solid hsl(var(--ink) / 0.35);
+    padding: 6px 6px 5px;
+    background: hsl(var(--paper));
+    text-align: center;
+  }
+  .stamp-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+    filter: sepia(0.25) saturate(0.9);
+    background: hsl(var(--paper-deep));
+  }
+  html.dark .stamp-img { filter: brightness(0.9) saturate(0.85); }
+  .stamp-name {
+    font-family: 'Special Elite', 'PingFang SC', monospace;
+    font-size: 0.62rem;
+    color: hsl(var(--ink));
+    margin: 5px 0 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .stamp-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    color: hsl(var(--ink) / 0.55);
+    letter-spacing: 0.08em;
+  }
+  /* 邮戳:部分邮票盖一个圆形波纹戳 */
+  .postmark {
+    position: absolute;
+    top: -10px; right: -12px;
+    width: 58px; height: 58px;
+    pointer-events: none;
+    color: hsl(var(--ink) / 0.55);
+    mix-blend-mode: multiply;
+  }
+  html.dark .postmark { mix-blend-mode: screen; color: hsl(var(--ink) / 0.5); }
+
+  /* ============================================================
+     B. 航站楼信息屏 DEPARTURES BOARD
+     ============================================================ */
+  .board {
+    background: hsl(var(--board-bg));
+    border-radius: 12px;
+    padding: 1.2rem 1.3rem 1.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    box-shadow: inset 0 0 40px hsl(0 0% 0% / 0.35);
+    overflow-x: auto;
+  }
+  .board-title {
+    display: flex;
+    justify-content: space-between;
+    color: hsl(var(--board-text));
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid hsl(var(--board-dim) / 0.35);
+    margin-bottom: 0.4rem;
+    min-width: 620px;
+  }
+  .board-row {
+    display: grid;
+    grid-template-columns: 84px 1fr 1.2fr 64px 92px;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.42rem 0.2rem;
+    text-decoration: none;
+    border-bottom: 1px solid hsl(var(--board-dim) / 0.16);
+    min-width: 620px;
+    transition: background 0.15s ease;
+  }
+  .board-row:hover { background: hsl(var(--board-text) / 0.07); }
+  .board-row.head {
+    color: hsl(var(--board-dim));
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    border-bottom: 1px solid hsl(var(--board-dim) / 0.4);
+  }
+  .b-time { color: hsl(var(--board-text)); font-size: 0.72rem; }
+  .b-name {
+    color: hsl(0 0% 96%);
+    font-size: 0.78rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    white-space: nowrap; overflow: hidden;
+  }
+  html:not(.dark) .board .b-name { color: hsl(0 0% 98%); }
+  .b-name img {
+    width: 20px; height: 20px; border-radius: 3px; object-fit: cover;
+    background: hsl(var(--board-dim) / 0.3);
+  }
+  .b-dest { color: hsl(var(--board-dim)); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .b-gate { color: hsl(var(--board-text) / 0.85); font-size: 0.7rem; }
+  .b-status {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: hsl(145 55% 55%);
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+  .b-status::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: hsl(145 55% 50%);
+    box-shadow: 0 0 6px hsl(145 55% 50% / 0.8);
+  }
+  /* 翻牌入场:整行轻微下翻一次,错峰 */
+  @media (prefers-reduced-motion: no-preference) {
+    .board-row.flap { animation: flapIn 0.45s ease backwards; }
+    @keyframes flapIn {
+      from { opacity: 0; transform: rotateX(-55deg); }
+      to { opacity: 1; transform: rotateX(0); }
+    }
+  }
+  .board-foot {
+    margin-top: 0.7rem;
+    color: hsl(var(--board-dim));
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-align: right;
+  }
+
+  /* ============================================================
+     C. 图书馆借书卡 LIBRARY CARDS
+     ============================================================ */
+  .library {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.1rem;
+  }
+  .lib-card {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    background:
+      linear-gradient(hsl(var(--paper)), hsl(var(--paper)));
+    border: 1px solid hsl(var(--ink) / 0.2);
+    border-radius: 3px;
+    padding: 0.8rem 0.9rem 0.7rem 2rem;
+    color: hsl(var(--ink));
+    /* 横格线 */
+    background-image: repeating-linear-gradient(0deg, transparent 0 25px, hsl(var(--teal-ink) / 0.28) 25px 26px);
+    background-position: 0 44px;
+    box-shadow: 0 2px 5px hsl(var(--foreground) / 0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+  }
+  .lib-card:hover { transform: translateY(-3px); box-shadow: 0 8px 18px hsl(var(--foreground) / 0.15); }
+  /* 左侧红色竖线(借书卡经典元素) */
+  .lib-card::before {
+    content: '';
+    position: absolute;
+    left: 1.3rem; top: 0; bottom: 0;
+    border-left: 1.5px solid hsl(var(--red-ink) / 0.55);
+  }
+  .lib-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 0.35rem;
+  }
+  .lib-head img {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid hsl(var(--ink) / 0.25);
+    background: hsl(var(--paper-deep));
+  }
+  .lib-name {
+    font-family: 'Special Elite', 'PingFang SC', monospace;
+    font-size: 0.88rem;
+    margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lib-call {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.56rem;
+    color: hsl(var(--ink) / 0.5);
+    letter-spacing: 0.08em;
+  }
+  .lib-line {
+    font-size: 0.74rem;
+    line-height: 26px;
+    height: 26px;
+    color: hsl(var(--ink) / 0.8);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lib-line .caveat { font-family: 'Caveat', cursive; font-size: 1rem; color: hsl(var(--teal-ink)); }
+  /* 日期章 */
+  .lib-datestamp {
+    position: absolute;
+    right: 0.7rem; top: 0.65rem;
+    font-family: 'Special Elite', monospace;
+    font-size: 0.6rem;
+    color: hsl(var(--red-ink));
+    border: 1.5px solid hsl(var(--red-ink) / 0.7);
+    border-radius: 3px;
+    padding: 0.12rem 0.35rem;
+    transform: rotate(-4deg);
+    opacity: 0.85;
+    letter-spacing: 0.05em;
+    background: hsl(var(--paper) / 0.6);
+  }
+  .lib-card:nth-child(2n) .lib-datestamp { transform: rotate(3deg); }
+
+  /* ============================================================
+     D. 明信片墙 POSTCARDS
+     ============================================================ */
+  .postwall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.3rem;
+  }
+  .postcard {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 0.7rem;
+    text-decoration: none;
+    background: linear-gradient(170deg, hsl(var(--paper)), hsl(var(--paper-deep)));
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    padding: 0.9rem;
+    min-height: 150px;
+    color: hsl(var(--ink));
+    box-shadow: 0 3px 8px hsl(var(--foreground) / 0.1);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .postcard:nth-child(2n) { transform: rotate(0.6deg); }
+  .postcard:nth-child(3n) { transform: rotate(-0.5deg); }
+  .postcard:hover { transform: translateY(-4px) rotate(0deg); box-shadow: 0 10px 22px hsl(var(--foreground) / 0.16); z-index: 2; }
+  /* 中缝分隔线 */
+  .postcard::before {
+    content: '';
+    position: absolute;
+    left: 53%; top: 12%; bottom: 12%;
+    border-left: 1px solid hsl(var(--ink) / 0.25);
+  }
+  .pc-left { display: flex; flex-direction: column; justify-content: space-between; padding-right: 0.5rem; }
+  .pc-msg {
+    font-family: 'Caveat', cursive;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    color: hsl(var(--teal-ink));
+    transform: rotate(-0.5deg);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .pc-from {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: hsl(var(--ink) / 0.5);
+    letter-spacing: 0.06em;
+    margin-top: 0.5rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pc-right { position: relative; padding-left: 0.6rem; display: flex; flex-direction: column; }
+  /* 右上角邮票(头像) */
+  .pc-stamp {
+    display: block;
+    align-self: flex-end;
+    width: 52px;
+    background: hsl(var(--background));
+    padding: 5px;
+    -webkit-mask:
+      radial-gradient(circle 2.5px, transparent 97%, #000 100%) -5px -5px / 10px 10px,
+      linear-gradient(#000 0 0) content-box;
+    mask:
+      radial-gradient(circle 2.5px, transparent 97%, #000 100%) -5px -5px / 10px 10px,
+      linear-gradient(#000 0 0) content-box;
+  }
+  .pc-stamp img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; filter: sepia(0.2); background: hsl(var(--paper-deep)); }
+  html.dark .pc-stamp img { filter: brightness(0.9); }
+  /* 邮戳压在邮票上 */
+  .pc-postmark {
+    position: absolute;
+    top: -6px; right: 30px;
+    width: 52px; height: 52px;
+    color: hsl(var(--ink) / 0.5);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  html.dark .pc-postmark { mix-blend-mode: screen; }
+  .pc-addr {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 0.2rem;
+  }
+  .pc-addr .line {
+    border-bottom: 1px solid hsl(var(--ink) / 0.3);
+    font-family: 'Special Elite', 'PingFang SC', monospace;
+    font-size: 0.68rem;
+    color: hsl(var(--ink) / 0.85);
+    padding-bottom: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pc-addr .line.dim { color: hsl(var(--ink) / 0.45); font-size: 0.6rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>友链风格对比稿 v3 · 四个新方向</h1>
+  <span class="hint">全部使用真实 14 条数据 · 均考虑增长扩展</span>
+  <button id="themeToggle">☾ Dark</button>
+</div>
+
+<section class="concept">
+  <div class="concept-head">
+    <span class="num">A</span>
+    <h2>集邮册 Stamp Album</h2>
+    <span class="scale">扩展性:纯网格,100+ 也不挤;可按年份分册</span>
+  </div>
+  <div class="album"><div class="album-grid" id="albumGrid"></div></div>
+</section>
+
+<section class="concept">
+  <div class="concept-head">
+    <span class="num">B</span>
+    <h2>航站楼信息屏 Departures Board</h2>
+    <span class="scale">扩展性:最强,本质是表格,一屏 20 行轻松;与站点终端气质最合</span>
+  </div>
+  <div class="board">
+    <div class="board-title"><span>FRIENDSHIP TERMINAL</span><span>DEPARTURES 出发</span></div>
+    <div class="board-row head">
+      <span>SINCE</span><span>FRIEND</span><span>DESTINATION</span><span>GATE</span><span>STATUS</span>
+    </div>
+    <div id="boardRows"></div>
+    <div class="board-foot">ALL CONNECTIONS OPERATED BY JOYEHUANG.ME</div>
+  </div>
+</section>
+
+<section class="concept">
+  <div class="concept-head">
+    <span class="num">C</span>
+    <h2>图书馆借书卡 Library Cards</h2>
+    <span class="scale">扩展性:网格自适应;每张卡信息量大(intro + note 都放得下)</span>
+  </div>
+  <div class="library" id="libraryGrid"></div>
+</section>
+
+<section class="concept">
+  <div class="concept-head">
+    <span class="num">D</span>
+    <h2>明信片墙 Postcards</h2>
+    <span class="scale">扩展性:中等,卡片较大,适合 20 个以内;note 手写体是主角</span>
+  </div>
+  <div class="postwall" id="postWall"></div>
+</section>
+
+<script>
+  const FRIENDS = [
+    {"name":"Cxin Blog","intro":"AI Native","link":"https://cxin.vercel.app/","avatar":"https://cxin.vercel.app/favicon/android-chrome-512x512.png","since":"2026-06-25","met":"互换友链","note":"AI Native，把思考和实践沉淀在个人站里。"},
+    {"name":"Cooing's Blog","intro":"像素复古 Astro 个人站模板","link":"https://blog.cooingcode.space","avatar":"https://blog.cooingcode.space/avatar.svg","since":"2026-06-06","met":"互换友链","note":"像素复古风的 Astro 个人站，适合沉淀长文、笔记、日志和项目。"},
+    {"name":"Joshua Chen","intro":"AI Agent & Full-Stack Developer","link":"https://blog.joshua2008.top","avatar":"https://blog.joshua2008.top/favicon/apple-touch-icon.png","since":"2026-06-06","met":"互换友链","note":"天津理工大学在读，正在学习 LLM 和 Agent 开发。"},
+    {"name":"Arden's blog","intro":"A beginner in the AI era","link":"https://ardenj.pages.dev/","avatar":"https://ardenj.pages.dev/images/portrait.png","since":"2026-04-29","met":"互换友链","note":"AI 时代的初学者，也在认真把站点搭起来。"},
+    {"name":"董璐瑶","intro":"AI 产品经理","link":"https://llingqi77-tech.github.io/cv/","avatar":"https://github.com/llingqi77-tech.png","since":"2026-04-28","met":"互换友链","note":"AI PM，把简历也做成了站点。"},
+    {"name":"大耳朵图图","label":"大奶龙涂涂","intro":"用 AI 和摄影，让世界更温暖","link":"https://bigeartutu.beauty/","avatar":"https://unavatar.io/x/tutu971844","since":"2026-04-28","met":"互换友链","note":"把 AI 和摄影揉在一起的写作者。"},
+    {"name":"Lime's Blog","intro":"whirling in rags","link":"https://limening.vercel.app/","avatar":"https://limening.vercel.app/img/base/avatar.jpg","since":"2026-04-28","met":"互换友链","note":"灵气和颗粒感都还在的写作者。"},
+    {"name":"Queen's DevLog","intro":"分享有意思/有用内容","link":"https://blog.forhermajesty.com/","avatar":"https://blog.forhermajesty.com/upload/Queen-Logo-1973.jpg","since":"2026-04-28","met":"互换友链","note":"把「分享有意思的内容」当成一件认真的事来做。"},
+    {"name":"Evan Lin","intro":"AI builder","link":"https://evanlin.site/","avatar":"https://evanlin.site/profile.jpg","since":"2026-04-27","met":"互换友链","note":"也在 AI 这条路上的同行者。"},
+    {"name":"Crayon","intro":"苔花如米小，也学牡丹开","link":"https://kyc001.github.io/","avatar":"https://github.com/kyc001.png","since":"2026-04-27","met":"互换友链","note":"名字取自袁枚的诗，刚开始写但很认真的人。"},
+    {"name":"YinFeng's Blog","intro":"windchant.online","link":"http://www.windchant.online/","avatar":"https://www.windchant.online/favicon/favicon.ico","since":"2026-04-27","met":"互换友链","note":"Windchant 这个域名我记了很久。"},
+    {"name":"翁小雄","label":"我的奶龙 mentor","intro":"wengxiaoxiong.com","link":"https://www.wengxiaoxiong.com/","avatar":"https://github.com/wengxiaoxiong.png","since":"2026-04-19","met":"互换友链","note":"Builder 的另一面——站点上有他自己造的产品和思考。"},
+    {"name":"一清三白","intro":"克己慎独 守心明性","link":"https://sanbaiblog.cn/","avatar":"https://s21.ax1x.com/2025/01/05/pE9CfDU.jpg","since":"2025-11-04","met":"互换友链","note":"本站第一位友链，文字和站名一样安静。"},
+    {"name":"Yaya Jiang","intro":"ML @ UCSD, EMNLP 2024","link":"https://yayajjiang.github.io/","avatar":"https://github.com/yayajjiang.png","since":"2026-05-06","met":"互换友链","note":"UCSD ML 硕士，在做文本分类的弱监督学习。"}
+  ];
+  const sorted = [...FRIENDS].sort((a, b) => (a.since || '').localeCompare(b.since || ''));
+  const host = (l) => { try { return new URL(l).host; } catch { return l; } };
+  const img = (f, cls) => `<img class="${cls || ''}" src="${f.avatar}" alt="" loading="lazy" onerror="this.style.visibility='hidden'" />`;
+  // 圆形邮戳 SVG(纯 circle + text,不用 textPath,避免渲染差异)
+  const postmark = (cls, dateStr) => `
+    <svg class="${cls}" viewBox="0 0 58 58" aria-hidden="true">
+      <circle cx="29" cy="29" r="26" fill="none" stroke="currentColor" stroke-width="1.4" />
+      <circle cx="29" cy="29" r="20" fill="none" stroke="currentColor" stroke-width="0.7" />
+      <text x="29" y="27" text-anchor="middle" font-size="6.5" font-family="'Special Elite', monospace" fill="currentColor">JOYE</text>
+      <text x="29" y="35" text-anchor="middle" font-size="5" font-family="'JetBrains Mono', monospace" fill="currentColor">${dateStr}</text>
+      <path d="M 6 40 q 6 3 12 0 t 12 0 t 12 0 t 12 0" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.7" />
+    </svg>`;
+
+  // ---- A. 集邮册 ----
+  document.getElementById('albumGrid').innerHTML = sorted.map((f, i) => `
+    <a class="stamp-wrap" href="${f.link}" target="_blank" rel="noopener" title="${f.intro}">
+      <span class="stamp"><span class="stamp-inner">
+        ${img(f, 'stamp-img')}
+        <p class="stamp-name">${f.label || f.name}</p>
+        <span class="stamp-value">${(f.since || '').slice(0, 7)} · 8¢</span>
+      </span></span>
+      ${i % 3 === 1 ? postmark('postmark', (f.since || '').slice(0, 10)) : ''}
+    </a>`).join('');
+
+  // ---- B. 航站楼信息屏 ----
+  document.getElementById('boardRows').innerHTML = [...sorted].reverse().map((f, i) => `
+    <a class="board-row flap" href="${f.link}" target="_blank" rel="noopener" style="animation-delay: ${i * 45}ms">
+      <span class="b-time">${(f.since || '').slice(2)}</span>
+      <span class="b-name">${img(f)}${f.label || f.name}</span>
+      <span class="b-dest">${host(f.link)}</span>
+      <span class="b-gate">F${String(sorted.length - i).padStart(2, '0')}</span>
+      <span class="b-status">LINKED</span>
+    </a>`).join('');
+
+  // ---- C. 图书馆借书卡 ----
+  document.getElementById('libraryGrid').innerHTML = sorted.map((f, i) => `
+    <a class="lib-card" href="${f.link}" target="_blank" rel="noopener">
+      <span class="lib-datestamp">${f.since || ''}</span>
+      <span class="lib-head">
+        ${img(f)}
+        <span>
+          <p class="lib-name">${f.label || f.name}</p>
+          <span class="lib-call">NO. F-${String(i + 1).padStart(3, '0')} · ${f.met || ''}</span>
+        </span>
+      </span>
+      <div class="lib-line">${f.intro}</div>
+      <div class="lib-line"><span class="caveat">${f.note || ''}</span></div>
+      <div class="lib-line" style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:hsl(var(--ink)/0.45)">${host(f.link)}</div>
+    </a>`).join('');
+
+  // ---- D. 明信片墙 ----
+  document.getElementById('postWall').innerHTML = sorted.map((f) => `
+    <a class="postcard" href="${f.link}" target="_blank" rel="noopener">
+      <span class="pc-left">
+        <span class="pc-msg">${f.note || f.intro}</span>
+        <span class="pc-from">FROM ${host(f.link)}</span>
+      </span>
+      <span class="pc-right">
+        <span class="pc-stamp">${img(f)}</span>
+        ${postmark('pc-postmark', (f.since || '').slice(0, 7))}
+        <span class="pc-addr">
+          <span class="line">TO: ${f.label || f.name}</span>
+          <span class="line dim">VIA JOYEHUANG.ME · ${f.since || ''}</span>
+        </span>
+      </span>
+    </a>`).join('');
+
+  // ---- 主题切换 ----
+  const toggle = document.getElementById('themeToggle');
+  toggle.onclick = () => {
+    const dark = document.documentElement.classList.toggle('dark');
+    toggle.textContent = dark ? '☀ Light' : '☾ Dark';
+  };
+</script>
+
+</body>
+</html>
