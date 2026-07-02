@@ -1,5 +1,7 @@
 ---
 interface Action {
+  analyticsEvent?: string
+  analyticsProps?: Record<string, string | number>
   href: string
   label: string
   external?: boolean
@@ -39,6 +41,13 @@ const ariaLabel = Astro.props.ariaLabel ?? title
             href={action.href}
             target={action.external ? '_blank' : undefined}
             rel={action.external ? 'noopener' : undefined}
+            data-analytics-event={action.analyticsEvent}
+            {...Object.fromEntries(
+              Object.entries(action.analyticsProps ?? {}).map(([key, value]) => [
+                `data-analytics-${key.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)}`,
+                value
+              ])
+            )}
           >
             {action.label}
           </a>

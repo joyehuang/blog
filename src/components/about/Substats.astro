@@ -98,6 +98,9 @@ await Promise.all(stats.map(fetchCount))
         href={link}
         target='_blank'
         rel='noopener noreferrer'
+        data-analytics-event={platform === 'GitHub' ? 'github_link_click' : undefined}
+        data-analytics-surface={platform === 'GitHub' ? 'about_social' : undefined}
+        data-analytics-target={platform === 'GitHub' ? 'profile' : undefined}
       >
         <div class='flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 transition-all hover:border-border hover:bg-muted'>
           {icon && (

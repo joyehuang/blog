@@ -112,7 +112,15 @@ const latestNotes = (await getCollection('archiveEn'))
           <Label title='Melbourne, Australia'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
-          <Label title='GitHub' as='a' href='https://github.com/joyehuang' target='_blank'>
+          <Label
+            title='GitHub'
+            as='a'
+            href='https://github.com/joyehuang'
+            target='_blank'
+            data-analytics-event='github_link_click'
+            data-analytics-surface='home_profile'
+            data-analytics-target='profile'
+          >
             <Icon name='github' class='size-5' slot='icon' />
           </Label>
         </div>
@@ -223,6 +231,11 @@ const latestNotes = (await getCollection('archiveEn'))
           heading='Adastra Labs (Shimo Docs)'
           subheading='AI Full-Stack Engineer'
           href='https://playyy.ai/'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_experience'
+          data-analytics-section='experience'
+          data-analytics-project='playyy'
+          data-analytics-link-type='site'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>Building Playyy.ai — an AI image generation and brand design platform</li>
@@ -232,12 +245,26 @@ const latestNotes = (await getCollection('archiveEn'))
           heading='Tezign (Shanghai)'
           subheading='Full-Stack Intern, AIGC R&D'
           href='https://atypica.ai/'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_experience'
+          data-analytics-section='experience'
+          data-analytics-project='atypica'
+          data-analytics-link-type='site'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>Building atypica.ai — a multi-agent system for commercial research</li>
           </ul>
         </LinkCard>
-        <LinkCard heading='AIXCut' subheading='AI Full-Stack Engineer' href='https://aixcut.cn/'>
+        <LinkCard
+          heading='AIXCut'
+          subheading='AI Full-Stack Engineer'
+          href='https://aixcut.cn/'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_experience'
+          data-analytics-section='experience'
+          data-analytics-project='aixcut'
+          data-analytics-link-type='site'
+        >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>Designing and shipping an AI video-editing agent</li>
           </ul>
@@ -246,6 +273,11 @@ const latestNotes = (await getCollection('archiveEn'))
           heading='fAIshion.ai'
           subheading='AI Full-Stack Engineer (Remote)'
           href='https://www.faishion.ai/'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_experience'
+          data-analytics-section='experience'
+          data-analytics-project='faishion'
+          data-analytics-link-type='site'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
             <li>Full-stack development and model integration for an AI virtual try-on and outfit-matching platform</li>
@@ -260,6 +292,10 @@ const latestNotes = (await getCollection('archiveEn'))
               subheading={repo.description}
               date={`⭐ ${repo.stars}`}
               href={`https://github.com/joyehuang/${repo.name}`}
+              data-analytics-event='github_link_click'
+              data-analytics-surface='home_open_source'
+              data-analytics-target='repo'
+              data-analytics-repo={repo.name}
             />
           ))
         }

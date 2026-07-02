@@ -138,6 +138,9 @@ const formattedTotal = total.toLocaleString('en-US')
         href={`https://github.com/${username}`}
         target='_blank'
         rel='noreferrer'
+        data-analytics-event='github_link_click'
+        data-analytics-surface='projects'
+        data-analytics-target='profile'
       >
         @{username}
       </a>

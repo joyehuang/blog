@@ -49,7 +49,13 @@ const takeawayHtml = (title: string, desc?: string) =>
           <b class='waline-comment-count' data-path='/talks'></b> 条留言
         </a>
       </div>
-      <a class='tk-join' href='/contact'>想来参加？→</a>
+      <a
+        class='tk-join'
+        href='/contact'
+        data-analytics-event='talk_join_intent'
+        data-analytics-surface='talks_hero'
+        data-analytics-target='contact'
+      >想来参加？→</a>
     </div>
   </section>
 
@@ -96,7 +102,13 @@ const takeawayHtml = (title: string, desc?: string) =>
                   <span class='tk-preview-brand'>
                     分享人 Joye · joyehuang.me · AI Agent &amp; Full-Stack Dev
                   </span>
-                  <a class='tk-preview-cta' href='/contact'>
+                  <a
+                    class='tk-preview-cta'
+                    href='/contact'
+                    data-analytics-event='talk_join_intent'
+                    data-analytics-surface='talks_preview'
+                    data-analytics-target='contact'
+                  >
                     想来参加？→
                   </a>
                 </div>
@@ -214,12 +226,25 @@ const takeawayHtml = (title: string, desc?: string) =>
                       href={d.video.url ?? `https://www.bilibili.com/video/${d.video.bvid}`}
                       target='_blank'
                       rel='noopener'
+                      data-analytics-event='talk_resource_click'
+                      data-analytics-surface='talks_feed'
+                      data-analytics-episode={d.episode}
+                      data-analytics-resource='video'
                     >
                       看录屏回放 →
                     </a>
                   )}
                   {d.deckUrl && (
-                    <a class='tk-cta tk-cta-ghost' href={d.deckUrl} target='_blank' rel='noopener'>
+                    <a
+                      class='tk-cta tk-cta-ghost'
+                      href={d.deckUrl}
+                      target='_blank'
+                      rel='noopener'
+                      data-analytics-event='talk_resource_click'
+                      data-analytics-surface='talks_feed'
+                      data-analytics-episode={d.episode}
+                      data-analytics-resource='deck'
+                    >
                       打开这期幻灯片 →
                     </a>
                   )}
@@ -242,7 +267,13 @@ const takeawayHtml = (title: string, desc?: string) =>
           <span class='tk-ep tk-ep-ghost'>下一期</span>
           <span class='tk-rail-date'>待定</span>
         </div>
-        <a class='tk-upcoming-row' href='/contact'>
+        <a
+          class='tk-upcoming-row'
+          href='/contact'
+          data-analytics-event='talk_join_intent'
+          data-analytics-surface='talks_upcoming'
+          data-analytics-target='contact'
+        >
           <span class='tk-node tk-node-ghost' aria-hidden='true'></span>
           <span class='tk-upcoming-tag'>下一期 · 待定</span>
           <span class='tk-upcoming-main'>

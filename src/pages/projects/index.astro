@@ -30,8 +30,10 @@ const headings = [
 
   <h2 id='open-source'>Open Source</h2>
   <ProjectSection
+    analyticsSection='open_source'
     project={[
       {
+        id: 'learn_open_harness',
         name: 'Learn-Open-Harness',
         description:
           'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent。',
@@ -40,6 +42,7 @@ const headings = [
         ]
       },
       {
+        id: 'minimind_notes',
         name: 'minimind-notes',
         description: '从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验。',
         links: [
@@ -51,13 +54,17 @@ const headings = [
 
   <h2 id='programs'>Programs</h2>
   <ProjectSection
+    analyticsSection='programs'
     project={[
       {
+        id: 'agent_competition',
+        analyticsEvent: 'agent_competition_click',
         name: '第一届 Joye 粉丝 Agent 比赛',
         description: '暑假一起做点东西。参赛、围观、聊天、找队友都欢迎，对 Agent 感兴趣就来玩。',
         links: [{ type: 'doc', href: agentHackathonLink }]
       },
       {
+        id: 'atypica',
         name: 'Atypica',
         description:
           'AI消费者研究平台，负责开发Interview Agent进行AI Persona访谈调研。',
@@ -66,6 +73,7 @@ const headings = [
         ]
       },
       {
+        id: 'aixcut',
         name: 'AIXCut',
         description: 'AI 视频剪辑 Agent，参与设计与工程化落地。',
         links: [
@@ -73,6 +81,7 @@ const headings = [
         ]
       },
       {
+        id: 'prepwise',
         name: 'PrepWise',
         description:
           'Prepwise 是我打造的一个AI面试陪练工具，通过语音模拟真实面试，帮你自信开口、即时提升。',
@@ -82,6 +91,7 @@ const headings = [
         ]
       },
       {
+        id: 'qq_bot',
         name: 'QQ Bot',
         description:
           'QQ群打卡机器人，自动管理群内打卡记录和提醒。',
@@ -115,8 +125,10 @@ const headings = [
   <h2 id='learnings'>Learnings</h2>
   <ProjectSection
     class='my-2'
+    analyticsSection='learnings'
     project={[
       {
+        id: 'ucb_cs61a',
         name: 'UCB CS61A',
         description: '我自己学习61a的代码',
         links: [{ type: 'github', href: 'https://github.com/joyehuang/interview-prep' }]
@@ -126,8 +138,10 @@ const headings = [
 
   <h2 id='theme'>Theme</h2>
   <ProjectSection
+    analyticsSection='theme'
     project={[
       {
+        id: 'astro_theme_pure',
         name: '🍭 Astro-theme-pure',
         description: 'A simple, clean but powerful blog theme build by astro.',
         links: [
@@ -166,8 +180,8 @@ const headings = [
   <p>Please leave a message or contact me proactively after sponsorship.</p>
   <Sponsorship
     methods={[
-      { name: 'WeChat', icon: 'wechat-pay', image: wechat },
-      { name: 'Alipay', icon: 'alipay', image: alipay }
+      { name: 'WeChat', icon: 'wechat-pay', image: wechat, methodName: 'wechat_pay' },
+      { name: 'Alipay', icon: 'alipay', image: alipay, methodName: 'alipay' }
     ]}
   />
   <p>Thanks to the following sponsors:</p>

@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { trackSiteEvent } from '@/lib/analytics'
+
+import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath, getNode } from './fs/path'
@@ -254,6 +257,12 @@ export default function DevMode({
       const name = parts[0].toLowerCase()
       const args = parts.slice(1)
       const spec = commands[name]
+      trackSiteEvent('terminal_command', {
+        command: name,
+        surface: 'terminal',
+        target: 'terminal_shell',
+        ...classifyTerminalCommand(name, args, fs, cwd, Boolean(spec))
+      })
       if (!spec) {
         appendEntry({
           kind: 'output',

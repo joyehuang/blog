@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { trackSiteEvent } from '@/lib/analytics'
+
 import DevMode from './DevMode'
 import type { FsNode } from './fs/types'
 
@@ -26,7 +28,14 @@ function isEditable(target: EventTarget | null): boolean {
 export default function DevModeHost({ fs }: { fs: FsNode }) {
   const [mode, setMode] = useState<Mode>('human')
 
-  const enter = useCallback(() => setMode('dev'), [])
+  const enter = useCallback((method: string) => {
+    trackSiteEvent('terminal_open', {
+      method,
+      surface: 'dev_mode',
+      target: 'terminal_shell'
+    })
+    setMode('dev')
+  }, [])
   const exit = useCallback(() => setMode('human'), [])
 
   // global `\`` hotkey — only fires when nothing editable is focused
@@ -38,7 +47,7 @@ export default function DevModeHost({ fs }: { fs: FsNode }) {
       // while already in dev mode, the overlay's own input owns the backtick
       if (mode === 'dev') return
       e.preventDefault()
-      enter()
+      enter('keyboard_backtick')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -47,7 +56,7 @@ export default function DevModeHost({ fs }: { fs: FsNode }) {
   // custom events from non-React callers (Header button, future callers)
   useEffect(() => {
     const onToggle = () => setMode((m) => (m === 'dev' ? 'human' : 'dev'))
-    const onEnter = () => setMode('dev')
+    const onEnter = () => enter('window_control')
     const onExit = () => setMode('human')
     window.addEventListener('joye:toggle-dev', onToggle)
     window.addEventListener('joye:enter-dev', onEnter)
@@ -57,7 +66,7 @@ export default function DevModeHost({ fs }: { fs: FsNode }) {
       window.removeEventListener('joye:enter-dev', onEnter)
       window.removeEventListener('joye:exit-dev', onExit)
     }
-  }, [])
+  }, [enter])
 
   // keep the Header's button icon in sync so non-React code can read
   // the current mode without importing this component
