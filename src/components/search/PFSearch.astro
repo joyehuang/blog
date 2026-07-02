@@ -18,8 +18,8 @@ const isLocalDev = import.meta.env.DEV
             spellcheck='false'
             aria-label='Search posts and notes'
           />
-          <div id='local-search-status' class='local-search-status' aria-live='polite'></div>
-          <ol id='local-search-results' class='local-search-results'></ol>
+          <div id='local-search-status' class='local-search-status' aria-live='polite' />
+          <ol id='local-search-results' class='local-search-results' />
         </div>
       ) : (
         <div id='site-search' />
@@ -30,7 +30,7 @@ const isLocalDev = import.meta.env.DEV
 
 <script>
   type LocalSearchResult = {
-    collection: 'blog' | 'archive'
+    collection: 'blog' | 'notes'
     title: string
     description?: string
     url: string
@@ -102,10 +102,9 @@ const isLocalDev = import.meta.env.DEV
         status.textContent = 'Searching...'
 
         try {
-          const response = await fetch(
-            `/api/search.json?q=${encodeURIComponent(query)}&limit=10`,
-            { signal: activeRequest.signal }
-          )
+          const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}&limit=10`, {
+            signal: activeRequest.signal
+          })
           if (!response.ok) throw new Error(`HTTP ${response.status}`)
           const payload = (await response.json()) as { results: LocalSearchResult[] }
           renderResults(payload.results)

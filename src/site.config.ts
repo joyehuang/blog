@@ -1,4 +1,4 @@
-import type { CardListData, Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
+import type { Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
 
 export const theme: ThemeUserConfig = {
   // === Basic configuration ===
@@ -48,7 +48,7 @@ export const theme: ThemeUserConfig = {
   header: {
     menu: [
       { title: 'Blog', link: '/blog' },
-      { title: 'Notes', link: '/archive' },
+      { title: 'Notes', link: '/notes' },
       { title: 'Talks', link: '/talks' },
       { title: 'Projects', link: '/projects' },
       { title: 'Links', link: '/links' },
@@ -59,19 +59,12 @@ export const theme: ThemeUserConfig = {
 
   /** Configure the footer of your site. */
   footer: {
-    links: [
-      // Privacy Policy link
-      {
-        title: 'Site Policy',
-        link: '/terms/list',
-        pos: 2 // position set to 2 will be appended to copyright line
-      }
-    ],
+    links: [],
     /** Enable displaying a “Astro & Pure theme powered” link in your site’s footer. */
     credits: true,
     /** Optional details about the social media accounts for this site. */
     social: {
-      github: 'https://github.com/joyehuang',
+      github: 'https://github.com/joyehuang'
       // linkedin: 'https://www.linkedin.com/in/joyehuang/'
     }
   },
@@ -95,13 +88,11 @@ export const integ: IntegrationUserConfig = {
       { date: '2025-07-04', content: '友链页面就绪，等第一位朋友。' },
       {
         date: '2025-11-04',
-        content:
-          '收到首位友链：<a href="https://sanbaiblog.cn/" target="_blank">一清三白</a>。'
+        content: '收到首位友链：<a href="https://sanbaiblog.cn/" target="_blank">一清三白</a>。'
       },
       {
         date: '2026-04-19',
-        content:
-          '添加 <a href="https://www.wengxiaoxiong.com/" target="_blank">翁小雄</a>。'
+        content: '添加 <a href="https://www.wengxiaoxiong.com/" target="_blank">翁小雄</a>。'
       },
       {
         date: '2026-04-27',
@@ -120,8 +111,7 @@ export const integ: IntegrationUserConfig = {
       },
       {
         date: '2026-06-25',
-        content:
-          '添加 <a href="https://cxin.vercel.app/" target="_blank">Cxin Blog</a>。'
+        content: '添加 <a href="https://cxin.vercel.app/" target="_blank">Cxin Blog</a>。'
       }
     ],
     // Yourself link info
@@ -166,28 +156,6 @@ export const integ: IntegrationUserConfig = {
       comment: true
     }
   }
-}
-
-export const terms: CardListData = {
-  title: 'Terms content',
-  list: [
-    {
-      title: 'Privacy Policy',
-      link: '/terms/privacy-policy'
-    },
-    {
-      title: 'Terms and Conditions',
-      link: '/terms/terms-and-conditions'
-    },
-    {
-      title: 'Copyright',
-      link: '/terms/copyright'
-    },
-    {
-      title: 'Disclaimer',
-      link: '/terms/disclaimer'
-    }
-  ]
 }
 
 const config = { ...theme, integ } as Config

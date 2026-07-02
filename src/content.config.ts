@@ -40,7 +40,7 @@ const blogSchema = ({ image }: SchemaContext) =>
     comment: z.boolean().default(true)
   })
 
-const archiveSchema = z.object({
+const notesSchema = z.object({
   // Required
   title: z.string(),
   date: z.coerce.date(),
@@ -48,17 +48,17 @@ const archiveSchema = z.object({
   description: z.string().optional(),
   updatedDate: z.coerce.date().optional(),
   tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
-  // Type of archive entry: note, snippet, draft, idea, research, etc.
+  // Type of note entry: note, snippet, draft, idea, research, etc.
   type: z.enum(['note', 'snippet', 'draft', 'idea', 'research', 'reference']).default('note'),
-  // Status: in-progress, incomplete, ready, archived
+  // Status: in-progress, incomplete/needs-more, ready, archived
   status: z.enum(['in-progress', 'incomplete', 'ready', 'archived']).default('in-progress'),
   draft: z.boolean().default(false),
   // For English mirrors: the Chinese entry's id (e.g. `0326-foo`). Drives en routing + hreflang.
   language: z.string().optional(),
   translationKey: z.string().optional(),
-  // Relationships - connect archive entries to blog posts and other archives
+  // Relationships - connect note entries to blog posts and other notes
   relatedBlog: z.array(z.string()).optional(),
-  relatedArchive: z.array(z.string()).optional(),
+  relatedNote: z.array(z.string()).optional(),
   // External source or reference URL
   source: z.string().url().optional()
 })
@@ -76,14 +76,14 @@ const blogEn = defineCollection({
   schema: blogSchema
 })
 
-const archive = defineCollection({
-  loader: glob({ base: './src/content/archive', pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}'] }),
-  schema: archiveSchema
+const notes = defineCollection({
+  loader: glob({ base: './src/content/notes', pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}'] }),
+  schema: notesSchema
 })
 
-const archiveEn = defineCollection({
-  loader: glob({ base: './src/content/archive', pattern: '**/*.en.{md,mdx}' }),
-  schema: archiveSchema
+const notesEn = defineCollection({
+  loader: glob({ base: './src/content/notes', pattern: '**/*.en.{md,mdx}' }),
+  schema: notesSchema
 })
 
 const curated = defineCollection({
@@ -103,7 +103,7 @@ const curated = defineCollection({
       status: z.enum(['curated', 'digested']).default('curated'),
       difficulty: z.enum(['intro', 'intermediate', 'deep']).optional(),
       relatedBlog: z.array(z.string()).optional(),
-      relatedArchive: z.array(z.string()).optional(),
+      relatedNote: z.array(z.string()).optional(),
       heroImage: z
         .object({
           src: image(),
@@ -156,4 +156,4 @@ const talks = defineCollection({
   schema: talksSchema
 })
 
-export const collections = { blog, blogEn, archive, archiveEn, curated, talks }
+export const collections = { blog, blogEn, notes, notesEn, curated, talks }

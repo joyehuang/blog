@@ -14,7 +14,7 @@ tags:
   - llm
   - prompt
   - performance
-relatedArchive:
+relatedNote:
   - 0526-prompt-caching-engineering
 draft: false
 ---

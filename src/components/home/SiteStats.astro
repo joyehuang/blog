@@ -1,9 +1,9 @@
 ---
 import { getCollection } from 'astro:content'
+import { siteStats } from '@/data/site-stats'
 import config from 'virtual:config'
 
 import Section from './Section.astro'
-import { siteStats } from '@/data/site-stats'
 
 interface Props {
   lang?: 'zh' | 'en'
@@ -13,7 +13,7 @@ const { lang = 'zh' } = Astro.props as Props
 
 const [blogPosts, notes] = await Promise.all([
   getCollection('blog', ({ data }) => !data.draft),
-  getCollection('archive', ({ data }) => !data.draft)
+  getCollection('notes', ({ data }) => !data.draft)
 ])
 
 // Live total page views from Waline (/api/stats endpoint on the waline server).

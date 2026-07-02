@@ -6,8 +6,8 @@ import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 const COLLECTIONS = {
   blog: 'blog',
   blog_en: 'blogEn',
-  notes: 'archive',
-  notes_en: 'archiveEn',
+  notes: 'notes',
+  notes_en: 'notesEn',
   curated: 'curated',
   talks: 'talks'
 } as const
@@ -114,8 +114,8 @@ function canonicalUrl(collection: PublicCollection, entry: KnowledgeEntry): stri
   const encoded = encodeURI(routeId)
   if (collection === 'blog') return `https://joyehuang.me/blog/${encoded}`
   if (collection === 'blog_en') return `https://joyehuang.me/en/blog/${encoded}`
-  if (collection === 'notes') return `https://joyehuang.me/archive/${encoded}`
-  if (collection === 'notes_en') return `https://joyehuang.me/en/archive/${encoded}`
+  if (collection === 'notes') return `https://joyehuang.me/notes/${encoded}`
+  if (collection === 'notes_en') return `https://joyehuang.me/en/notes/${encoded}`
   if (collection === 'curated') return `https://joyehuang.me/curated#${encodeURIComponent(routeId)}`
   return `https://joyehuang.me/talks#${encodeURIComponent(routeId)}`
 }

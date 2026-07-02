@@ -32,7 +32,7 @@ export type FsCollectionEntry = {
 export type BuildArgs = {
   blog: FsCollectionEntry[]
   blogEn: FsCollectionEntry[]
-  /** archive collection — surfaced as `/notes` in the FS. */
+  /** notes collection — surfaced as `/notes` in the FS. */
   notes: FsCollectionEntry[]
   notesEn: FsCollectionEntry[]
   curated: FsCollectionEntry[]
@@ -53,9 +53,9 @@ export function buildManifest({ blog, blogEn, notes, notesEn, curated, talks }: 
       { type: 'file', name: 'about', description: 'bio', content: ABOUT_TEXT },
       { type: 'file', name: 'now', description: 'currently working on', content: NOW_TEXT },
       buildPostsDir('blog', 'recent blog posts', blog, '/blog'),
-      buildPostsDir('notes', 'short-form notes', notes, '/archive'),
+      buildPostsDir('notes', 'short-form notes', notes, '/notes'),
       buildPostsDir('blog_en', 'English blog mirrors', blogEn, '/en/blog'),
-      buildPostsDir('notes_en', 'English short-form note mirrors', notesEn, '/en/archive'),
+      buildPostsDir('notes_en', 'English short-form note mirrors', notesEn, '/en/notes'),
       buildPostsDir('curated', 'curated external readings and digests', curated, '/curated'),
       buildPostsDir('talks', 'weekly sharing sessions', talks, '/talks'),
       buildContactDir(),
