@@ -8,7 +8,10 @@ import { cn } from 'astro-pure/utils'
 
 interface Props {
   class?: string
+  analyticsSection?: string
   project: {
+    id?: string
+    analyticsEvent?: 'agent_competition_click' | 'project_link_click'
     image?: string
     name: string
     description: string
@@ -18,7 +21,7 @@ interface Props {
     }[]
   }[]
 }
-const { class: className, project, ...props } = Astro.props
+const { analyticsSection, class: className, project, ...props } = Astro.props
 const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/assets/projects/*.{jpeg,jpg,png,gif}'
 )
@@ -27,6 +30,34 @@ const projectIconSet: Record<string, iconsType> = {
   site: 'earth',
   doc: 'document',
   release: 'package'
+}
+
+const projectId = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+
+const analyticsAttrs = (
+  project: Props['project'][number],
+  link: Props['project'][number]['links'][number]
+) => {
+  const eventName = project.analyticsEvent ?? 'project_link_click'
+  if (eventName === 'agent_competition_click') {
+    return {
+      'data-analytics-event': 'agent_competition_click',
+      'data-analytics-surface': 'projects',
+      'data-analytics-action': 'external_link'
+    }
+  }
+
+  return {
+    'data-analytics-event': 'project_link_click',
+    'data-analytics-surface': 'projects',
+    'data-analytics-section': analyticsSection,
+    'data-analytics-project': project.id ?? projectId(project.name),
+    'data-analytics-link-type': link.type
+  }
 }
 ---
 
@@ -71,6 +102,8 @@ const projectIconSet: Record<string, iconsType> = {
                 class='project-title font-medium text-foreground no-underline transition-colors'
                 href={project.links[0].href}
                 target='_blank'
+                rel='noopener noreferrer'
+                {...analyticsAttrs(project, project.links[0])}
               >
                 {project.name}
               </a>
@@ -86,6 +119,8 @@ const projectIconSet: Record<string, iconsType> = {
                       class='rounded-full bg-muted p-1 text-muted-foreground transition-colors sm:p-1.5'
                       aria-label={link.type}
                       target='_blank'
+                      rel='noopener noreferrer'
+                      {...analyticsAttrs(project, link)}
                     >
                       <Icon class='size-5' name={icon} />
                     </a>

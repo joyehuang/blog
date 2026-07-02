@@ -72,6 +72,7 @@ import TalkSlideFigure from '@/components/blog/TalkSlideFigure.astro'
   label='配图 1'
   caption='工程的“对象”一直在向外扩：Prompt → Context → Harness → Loop。'
   href='/talks/2026-from-interview-to-agent.html'
+  analyticsEpisode={1}
 />
 
 一句话：**词 → 上下文 → 环境 → 机制。** 名词在变，但它做的事是同一件——围着那个不变的模型核心，一层层向外搭一个**系统**。换句话说，这条名词演进史，本身就是一部「系统不断向外扩」的历史。
@@ -155,6 +156,7 @@ import TalkSlideFigure from '@/components/blog/TalkSlideFigure.astro'
   label='配图 2'
   caption='体力活交给 agent：你只接收筛过的那部分。'
   href='/talks/2026-from-interview-to-agent.html'
+  analyticsEpisode={1}
 />
 
 这里有个容易踩的坑：直接让 LLM「推荐几篇论文」，它很可能编出根本不存在的标题和链接。更稳的做法，是给它接上**真实可信的工具**——比如调用 arXiv 的 skill（本质是 web extract，直接从源站抓取），拿回来的就是真链接、真元数据，而不是模型脑补的。拿到候选之后，再加一步**核实校验**：让 agent 逐条确认链接可达、标题和摘要对得上，再进入筛选和摘要。
@@ -173,6 +175,7 @@ import TalkSlideFigure from '@/components/blog/TalkSlideFigure.astro'
   label='配图 3'
   caption='一个常驻 agent，把你所有 App 变成指挥入口。'
   href='/talks/2026-from-interview-to-agent.html'
+  analyticsEpisode={1}
 />
 
 一个跑在你机器上的常驻「网关」，把你已经在用的 App 变成指挥它的入口；它有**持久记忆**、上百个**技能**，还带「**心跳**」——会自己定时醒来，帮你跟进邮件和日程。
@@ -225,6 +228,7 @@ import TalkSlideFigure from '@/components/blog/TalkSlideFigure.astro'
   label='配图 4'
   caption='把学习痕迹公开，变成一个循环。'
   href='/talks/2026-from-interview-to-agent.html'
+  analyticsEpisode={1}
 />
 
 先做个小东西，你一定会撞上真实问题，把它沉淀成文章 / skills / 笔记，然后公开——博客、视频、自媒体都行，再简单点，发到社群里也算。公开之后，要么收到反馈、要么直接开始下一个，又回到起点。

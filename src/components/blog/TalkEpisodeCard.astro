@@ -13,7 +13,19 @@ const videoHref = 'https://www.bilibili.com/video/BV1sQJN6rE1D'
   description='这篇文章是这期分享的文字版。如果你想看原始分享记录、幻灯片或录屏，可以从这里跳过去。'
   actions={[
     { label: '看分享会记录', href: talkHref, primary: true },
-    { label: '打开幻灯片', href: deckHref, external: true },
-    { label: '看录屏', href: videoHref, external: true }
+    {
+      label: '打开幻灯片',
+      href: deckHref,
+      external: true,
+      analyticsEvent: 'talk_resource_click',
+      analyticsProps: { surface: 'article_callout', episode: 1, resource: 'deck' }
+    },
+    {
+      label: '看录屏',
+      href: videoHref,
+      external: true,
+      analyticsEvent: 'talk_resource_click',
+      analyticsProps: { surface: 'article_callout', episode: 1, resource: 'video' }
+    }
   ]}
 />

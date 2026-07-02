@@ -1,7 +1,9 @@
-import { track } from '@vercel/analytics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { trackSiteEvent } from '@/lib/analytics'
+
+import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath } from './fs/path'
@@ -170,9 +172,9 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
 
   const expand = useCallback(
     (method = 'shell_click') => {
-      track('home_terminal_open', {
+      trackSiteEvent('terminal_open', {
         method,
-        section: 'terminal',
+        surface: 'home_terminal',
         target: 'terminal_shell'
       })
 
@@ -263,14 +265,15 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
 
       const parts = trimmed.split(/\s+/)
       const name = parts[0].toLowerCase()
-      track('home_terminal_command', {
-        command: name,
-        section: 'terminal',
-        target: 'terminal_shell'
-      })
-
       const args = parts.slice(1)
       const spec = commands[name]
+      trackSiteEvent('terminal_command', {
+        command: name,
+        surface: 'terminal',
+        target: 'terminal_shell',
+        ...classifyTerminalCommand(name, args, fs, cwd, Boolean(spec))
+      })
+
       if (!spec) {
         appendEntry({
           kind: 'output',

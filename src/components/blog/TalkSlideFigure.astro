@@ -5,15 +5,27 @@ interface Props {
   caption?: string
   href?: string
   label?: string
+  analyticsEpisode?: number
+  analyticsResource?: 'deck' | 'slide'
 }
 
-const { alt, caption, href, label, src } = Astro.props
+const { alt, analyticsEpisode, analyticsResource = 'slide', caption, href, label, src } = Astro.props
 ---
 
 <figure class='talk-slide-figure not-prose'>
   {
     href ? (
-      <a class='talk-slide-frame' href={href} target='_blank' rel='noopener' aria-label={caption ?? alt}>
+      <a
+        class='talk-slide-frame'
+        href={href}
+        target='_blank'
+        rel='noopener'
+        aria-label={caption ?? alt}
+        data-analytics-event='talk_resource_click'
+        data-analytics-surface='article_slide'
+        data-analytics-episode={analyticsEpisode}
+        data-analytics-resource={analyticsResource}
+      >
         <img src={src} alt={alt} loading='lazy' />
       </a>
     ) : (

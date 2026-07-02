@@ -9,6 +9,7 @@ interface Props {
     name: string
     hint: string
     image: ImageMetadata
+    methodName: 'wechat' | 'qq_group'
     note?: string
   }[]
 }
@@ -20,7 +21,14 @@ const { class: className, items, ...props } = Astro.props
   {
     items.map((item) => (
       <div class='contact-card flex flex-col items-center gap-3'>
-        <div class='contact-card-frame relative w-60 max-w-full overflow-hidden rounded-xl border bg-white'>
+        <div
+          class='contact-card-frame relative w-60 max-w-full overflow-hidden rounded-xl border bg-white'
+          tabindex='0'
+          data-analytics-reveal-event='contact_method_reveal'
+          data-analytics-surface='contact_page'
+          data-analytics-method-name={item.methodName}
+          data-analytics-action='reveal'
+        >
           <div class='contact-card-cover absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-muted/60 px-4 text-center text-muted-foreground transition-opacity'>
             <span class='text-base font-medium text-foreground'>{item.name}</span>
             <span class='text-xs'>{item.hint}</span>

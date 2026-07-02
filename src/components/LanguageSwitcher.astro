@@ -21,6 +21,8 @@ const label = lang === 'en' ? '中' : 'EN'
 </button>
 
 <script>
+  import { trackSiteEvent } from '@/lib/analytics'
+
   function targetPathname(pathname: string, current: 'zh' | 'en'): string {
     if (current === 'en') {
       if (pathname === '/en' || pathname === '/en/') return '/'
@@ -37,6 +39,12 @@ const label = lang === 'en' ? '中' : 'EN'
     if (!btn) return
     const current = (btn.dataset.lang === 'en' ? 'en' : 'zh') as 'zh' | 'en'
     const next = targetPathname(window.location.pathname, current)
+    trackSiteEvent('language_switch_click', {
+      page: window.location.pathname,
+      from_locale: current,
+      to_locale: current === 'en' ? 'zh' : 'en',
+      target_path: next
+    })
     window.location.href = next + window.location.search + window.location.hash
   })
 </script>

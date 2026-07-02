@@ -113,6 +113,7 @@ const searchHref = localizedPath('/search', lang)
 </script>
 <script>
   import { setTheme, showToast } from 'astro-pure/utils'
+  import { trackSiteEvent } from '@/lib/analytics'
 
   class Header extends HTMLElement {
     private toggleMenuBtn: HTMLElement | null = null
@@ -159,6 +160,13 @@ const searchHref = localizedPath('/search', lang)
       })
 
       this.querySelector('#toggleDevMode')?.addEventListener('click', () => {
+        if (document.documentElement.dataset.mode !== 'dev') {
+          trackSiteEvent('terminal_open', {
+            method: 'window_control',
+            surface: 'dev_mode',
+            target: 'terminal_shell'
+          })
+        }
         window.dispatchEvent(new CustomEvent('joye:toggle-dev'))
       })
 

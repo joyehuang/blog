@@ -104,7 +104,7 @@ Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_terminal`
+- `surface`: `home_terminal` | `dev_mode`
 - `method`: `shell_click` | `keyboard_backtick` | `keyboard_activate` | `window_control`
 - `target`: `terminal_shell`
 
@@ -229,7 +229,7 @@ User clicks a resource attached to a Talk.
 Required properties:
 
 - `locale`: `zh` | `en`
-- `page`: `/talks`
+- `page`: current pathname
 - `surface`: `talks_feed` | `article_callout` | `article_slide`
 - `episode`: talk episode number when available
 - `resource`: `deck` | `video` | `record` | `slide`
@@ -269,8 +269,9 @@ driven by users switching from Chinese pages.
 
 ## Legacy Events
 
-These events exist in older code/data. Do not add new instrumentation with these
-names unless maintaining backward compatibility during a migration.
+These events exist in older analytics data and may appear in historical Vercel
+dashboards. Do not add new instrumentation with these names unless maintaining
+backward compatibility during a migration.
 
 ### `home_terminal_open`
 
@@ -327,16 +328,7 @@ Prefer `project_link_click` with `surface: home_experience`.
 
 ## Implementation Status
 
-Implemented at the time this contract was written:
-
-- `home_terminal_open`
-- `home_terminal_command`
-- `home_github_click`
-- `home_agent_activity_click`
-- `home_cta_click`
-- `home_external_click`
-
-Target events still need implementation or migration:
+Implemented in current code:
 
 - `terminal_open`
 - `terminal_command`
@@ -349,6 +341,15 @@ Target events still need implementation or migration:
 - `talk_resource_click`
 - `talk_join_intent`
 - `language_switch_click`
+
+Legacy events retained only for historical data interpretation:
+
+- `home_terminal_open`
+- `home_terminal_command`
+- `home_github_click`
+- `home_agent_activity_click`
+- `home_cta_click`
+- `home_external_click`
 
 ## Adding Or Changing Events
 

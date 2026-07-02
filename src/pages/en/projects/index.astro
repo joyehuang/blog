@@ -30,8 +30,10 @@ const headings = [
 
   <h2 id='open-source'>Open Source</h2>
   <ProjectSection
+    analyticsSection='open_source'
     project={[
       {
+        id: 'learn_open_harness',
         name: 'Learn-Open-Harness',
         description:
           'A zero-to-hero interactive tutorial for OpenHarness — Agent Loop, Tools, Memory, Multi-Agent.',
@@ -40,6 +42,7 @@ const headings = [
         ]
       },
       {
+        id: 'minimind_notes',
         name: 'minimind-notes',
         description:
           'Building an LLM from scratch — principles and comparative experiments across Transformer, Pretraining, and SFT.',
@@ -52,8 +55,10 @@ const headings = [
 
   <h2 id='programs'>Programs</h2>
   <ProjectSection
+    analyticsSection='programs'
     project={[
       {
+        id: 'atypica',
         name: 'Atypica',
         description:
           'An AI consumer-research platform. I work on the Interview Agent that conducts research through AI personas.',
@@ -62,6 +67,7 @@ const headings = [
         ]
       },
       {
+        id: 'aixcut',
         name: 'AIXCut',
         description: 'An AI video-editing agent — involved in design and engineering rollout.',
         links: [
@@ -69,6 +75,7 @@ const headings = [
         ]
       },
       {
+        id: 'prepwise',
         name: 'PrepWise',
         description:
           'An AI interview-practice tool I built. Simulates real interviews via voice to help you speak with confidence and improve on the spot.',
@@ -78,6 +85,7 @@ const headings = [
         ]
       },
       {
+        id: 'qq_bot',
         name: 'QQ Bot',
         description:
           'A QQ group check-in bot that automatically manages records and reminders.',
@@ -91,8 +99,10 @@ const headings = [
   <h2 id='learnings'>Learnings</h2>
   <ProjectSection
     class='my-2'
+    analyticsSection='learnings'
     project={[
       {
+        id: 'ucb_cs61a',
         name: 'UCB CS61A',
         description: 'My own code for working through CS61A.',
         links: [{ type: 'github', href: 'https://github.com/joyehuang/interview-prep' }]
@@ -102,8 +112,10 @@ const headings = [
 
   <h2 id='theme'>Theme</h2>
   <ProjectSection
+    analyticsSection='theme'
     project={[
       {
+        id: 'astro_theme_pure',
         name: '🍭 Astro-theme-pure',
         description: 'A simple, clean but powerful blog theme built with Astro.',
         links: [
@@ -122,8 +134,8 @@ const headings = [
   <p>Please leave a message or reach out after sponsoring.</p>
   <Sponsorship
     methods={[
-      { name: 'WeChat', icon: 'wechat-pay', image: wechat },
-      { name: 'Alipay', icon: 'alipay', image: alipay }
+      { name: 'WeChat', icon: 'wechat-pay', image: wechat, methodName: 'wechat_pay' },
+      { name: 'Alipay', icon: 'alipay', image: alipay, methodName: 'alipay' }
     ]}
   />
   <p>Thanks to the following sponsors:</p>

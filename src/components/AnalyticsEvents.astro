@@ -1,5 +1,10 @@
 <script>
-  import { track } from '@vercel/analytics'
+  import {
+    normalizeHref,
+    propertiesFromDataset,
+    trackSiteEvent,
+    type AnalyticsProperties
+  } from '@/lib/analytics'
 
   document.addEventListener('click', (event) => {
     const target =
@@ -12,10 +17,52 @@
     const eventName = target.dataset.analyticsEvent
     if (!eventName) return
 
-    track(eventName, {
-      href: target instanceof HTMLAnchorElement ? target.href : null,
-      section: target.dataset.analyticsSection ?? null,
-      target: target.dataset.analyticsTarget ?? target.textContent?.trim().slice(0, 80) ?? null
+    trackSiteEvent(eventName, {
+      href: normalizeHref(target),
+      target: target.dataset.analyticsTarget ?? target.textContent?.trim().slice(0, 80) ?? null,
+      ...propertiesFromDataset(target)
     })
+  })
+
+  const revealed = new Set<string>()
+
+  function trackReveal(target: HTMLElement, method: 'hover' | 'focus') {
+    const eventName = target.dataset.analyticsRevealEvent
+    if (!eventName) return
+
+    const properties: AnalyticsProperties = {
+      href: normalizeHref(target),
+      method,
+      target: target.dataset.analyticsTarget ?? null,
+      ...propertiesFromDataset(target)
+    }
+    if (eventName === 'article_contact_reveal' && !properties.article_slug) {
+      properties.article_slug = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() ?? '')
+    }
+    const key = `${eventName}:${location.pathname}:${JSON.stringify(properties)}`
+    if (revealed.has(key)) return
+    revealed.add(key)
+    trackSiteEvent(eventName, properties)
+  }
+
+  document.addEventListener('pointerover', (event) => {
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-analytics-reveal-event]')
+        : null
+
+    if (!target) return
+    if (event.relatedTarget instanceof Node && target.contains(event.relatedTarget)) return
+    trackReveal(target, 'hover')
+  })
+
+  document.addEventListener('focusin', (event) => {
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-analytics-reveal-event]')
+        : null
+
+    if (!target) return
+    trackReveal(target, 'focus')
   })
 </script>
