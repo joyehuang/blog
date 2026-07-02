@@ -1,133 +1,363 @@
 # Analytics Events
 
-This file is the tracking contract for the site. Keep event names stable so Vercel Analytics data stays comparable over time.
+This file is the tracking contract for the site. Check it before adding,
+renaming, or changing Vercel Analytics events.
 
-## Principles
+The site uses Vercel Analytics only. Do not add another analytics provider
+unless the project explicitly decides to do that later.
 
-- Use one event for one user intent, not one event for every implementation detail.
-- Prefer `snake_case` event names.
-- Name events as `surface_object_action` when possible.
-- Put context in properties such as `section`, `target`, `method`, `href`, `slug`, and `percent`.
-- Do not send personal data such as email, IP address, display name, or free-form user input.
-- Keep property values flat: strings, numbers, booleans, or `null`.
+## Tracking Boundary
+
+Use Vercel Analytics Pages for routing questions:
+
+- Which pages get traffic.
+- Whether `/blog`, `/talks`, `/projects`, `/contact`, `/en/*`, or individual
+  article pages are visited.
+- Whether English pages have natural traffic.
+
+Use Vercel Analytics Events only for behavior Pages cannot answer:
+
+- In-page interactions that do not necessarily route.
+- External exits such as GitHub, project sites, decks, videos, and docs.
+- Reveals, hovers, or focus states that expose contact or sponsorship info.
+- Terminal commands and terminal-driven navigation.
+- Activity-specific intent such as Agent competition clicks or Talk join intent.
+
+Do not track ordinary internal navigation as an event if the destination pageview
+already answers the question. Examples to avoid:
+
+- `more_blogs_click`
+- `more_talks_click`
+- `blog_card_click`
+- `tag_click`
+- `back_click`
+- Generic header nav clicks
+
+The rule of thumb:
+
+- Pages answer "where did the visitor go?"
+- Events answer "what did the visitor do that pageviews cannot see?"
+
+## Naming Rules
+
+- Use `snake_case`.
+- Prefer names that describe a stable user intent, not current UI text.
+- Do not include the page name unless the behavior is truly page-specific.
+- Avoid generic names such as `button_click`, `cta_click`, or `link_click`.
+- Keep event names stable after deploy. If meaning changes, create a new event.
+- Put variable context in properties, not in the event name.
+
+Good:
+
+- `terminal_open`
+- `terminal_command`
+- `github_link_click`
+- `agent_competition_click`
+- `contact_method_reveal`
+
+Bad:
+
+- `home_cta_click`
+- `more_blogs_click`
+- `click_green_button`
+- `talks_page_button_click`
 
 ## Common Properties
 
-| Property  | Meaning                                                          | Examples                                                         |
-| --------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `section` | Page area or content group where the event happened.             | `profile_header`, `terminal`, `open_source`, `agent_popout`      |
-| `target`  | Specific clicked or interacted object.                           | `profile`, `terminal_shell`, `feishu_link`, `Learn-Open-Harness` |
-| `href`    | Link destination when the target is an anchor.                   | `https://github.com/joyehuang`                                   |
-| `method`  | Interaction method when relevant.                                | `shell_click`, `keyboard_backtick`, `keyboard_activate`          |
-| `command` | Terminal command name only, without arguments.                   | `help`, `chat`, `ls`                                             |
-| `slug`    | Content identifier for articles, notes, talks, or archive items. | `20260517---agentonboardingguide`                                |
-| `percent` | Progress threshold for reading or scroll events.                 | `50`, `75`, `90`                                                 |
+Keep properties flat: strings, numbers, booleans, or `null`. Do not send
+personal data such as email addresses, IP addresses, display names, full command
+input, comment text, search text, or free-form user input.
 
-## Current Events
+| Property | Meaning | Examples |
+| --- | --- | --- |
+| `locale` | Current site locale. | `zh`, `en` |
+| `page` | Current pathname. | `/`, `/en`, `/contact`, `/talks` |
+| `surface` | UI area where the interaction happened. | `home_profile`, `agent_popout`, `projects`, `article_inline` |
+| `section` | Content section when useful. | `open_source`, `programs`, `sponsorship` |
+| `target` | Specific interacted object. | `profile`, `repo`, `wechat`, `pill` |
+| `action` | Interaction action. | `click`, `reveal`, `close`, `minimize`, `external_link` |
+| `method` | Interaction method. | `shell_click`, `keyboard_backtick`, `hover`, `focus` |
+| `href` | Destination for anchors. | `https://github.com/joyehuang` |
+| `destination_type` | Normalized destination kind. | `internal`, `external`, `github`, `mailto`, `doc`, `video` |
+| `command` | Terminal command name only. | `help`, `open`, `mail`, `connect` |
+| `command_result` | Safe terminal outcome bucket. | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
+| `repo` | Repository name for GitHub clicks. | `Learn-Open-Harness`, `interview-prep` |
+| `project` | Project identifier for project clicks. | `atypica`, `aixcut`, `prepwise` |
+| `link_type` | Project link type. | `site`, `github`, `doc`, `release` |
+| `method_name` | Contact or payment method. | `wechat`, `qq_group`, `wechat_pay`, `alipay` |
+| `article_slug` | Article identifier for article-scoped events. | `20260517---agentonboardingguide` |
+| `episode` | Talk episode number. | `1`, `2` |
+| `resource` | Talk or article resource type. | `deck`, `video`, `record`, `slide` |
+
+Use `null` for unavailable optional properties rather than inventing placeholders.
+
+## Target Event Contract
+
+These are the intended events for the site. Some may not be implemented yet.
+When implementing them, update the "Implementation Status" section below.
+
+### `terminal_open`
+
+User opens the interactive terminal.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `home_terminal`
+- `method`: `shell_click` | `keyboard_backtick` | `keyboard_activate` | `window_control`
+- `target`: `terminal_shell`
+
+Use this to measure whether the terminal is a real interactive entry point or
+only a visual element.
+
+### `terminal_command`
+
+User runs a command in the terminal.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `terminal`
+- `target`: `terminal_shell`
+- `command`: command name only, for example `help`, `open`, `mail`, `connect`
+- `command_result`: safe bucket, not raw command text
+- `destination_type`: optional destination bucket for commands that open something
+
+Never send full raw terminal input because it may contain user-written text.
+
+### `github_link_click`
+
+User clicks a GitHub destination from any meaningful surface.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `home_profile` | `home_open_source` | `about_social` | `projects` | `terminal_contact` | `footer`
+- `target`: `profile` | `repo`
+- `repo`: repo name when `target` is `repo`, otherwise `null`
+- `href`: GitHub URL
+
+Use this to understand whether visitors continue from the site to GitHub, and
+from which surface.
+
+### `agent_competition_click`
+
+User interacts with the Agent competition surface.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `agent_popout` | `agent_pill` | `projects`
+- `action`: `external_link` | `close` | `minimize` | `pill_open`
+- `href`: Feishu/doc URL for external link actions, otherwise `null`
+
+Use this to compare real activity interest with dismissals.
+
+### `contact_method_reveal`
+
+User reveals contact information on the Contact page.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/contact` | `/en/contact`
+- `surface`: `contact_page`
+- `method_name`: `wechat` | `qq_group`
+- `action`: `reveal`
+- `method`: `hover` | `focus`
+
+Fire once per method per pageview. Do not fire repeatedly on every mouse move.
+
+### `article_contact_reveal`
+
+User reveals inline WeChat contact information inside an article.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current article pathname
+- `surface`: `article_inline`
+- `article_slug`: article identifier
+- `method_name`: `wechat`
+- `action`: `reveal`
+- `method`: `hover` | `focus`
+
+This is a stronger consulting/contact intent signal than a generic Contact page
+view because it happens inside article context.
+
+### `sponsorship_method_reveal`
+
+User reveals a sponsorship QR code on the Projects page.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/projects` | `/en/projects`
+- `surface`: `sponsorship`
+- `method_name`: `wechat_pay` | `alipay`
+- `action`: `reveal`
+- `method`: `hover` | `focus`
+
+Fire once per method per pageview.
+
+### `project_link_click`
+
+User clicks a project destination from the Projects page or homepage experience
+section.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `home_experience` | `projects`
+- `section`: `experience` | `open_source` | `programs` | `learnings` | `theme`
+- `project`: stable project identifier
+- `link_type`: `site` | `github` | `doc` | `release`
+- `href`: destination URL
+
+Do not also fire `github_link_click` for the same click unless there is an
+explicit need to duplicate the signal. Prefer one event per user action.
+
+### `talk_resource_click`
+
+User clicks a resource attached to a Talk.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/talks`
+- `surface`: `talks_feed` | `article_callout` | `article_slide`
+- `episode`: talk episode number when available
+- `resource`: `deck` | `video` | `record` | `slide`
+- `href`: destination URL
+
+Use this because Pages can show `/talks` traffic, but cannot show whether people
+opened the deck or watched the recording.
+
+### `talk_join_intent`
+
+User clicks a Talk-specific "join" or "participate" entry point.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `talks_hero` | `talks_preview` | `talks_upcoming`
+- `target`: `contact`
+- `href`: contact URL
+
+This is allowed even though it routes to Contact because the source intent
+("join the talks") is lost in a plain Contact pageview.
+
+### `language_switch_click`
+
+User switches site language.
+
+Required properties:
+
+- `page`: current pathname before navigation
+- `from_locale`: `zh` | `en`
+- `to_locale`: `zh` | `en`
+- `target_path`: destination pathname
+
+Use this alongside Pages to understand whether English traffic is natural or
+driven by users switching from Chinese pages.
+
+## Legacy Events
+
+These events exist in older code/data. Do not add new instrumentation with these
+names unless maintaining backward compatibility during a migration.
 
 ### `home_terminal_open`
 
-User opens the interactive terminal on the home page.
+Legacy name for `terminal_open`.
 
-Properties:
+Current properties:
 
 - `section`: `terminal`
 - `target`: `terminal_shell`
 - `method`: `shell_click` | `keyboard_backtick` | `keyboard_activate` | `window_control`
 
-Use this to measure whether the terminal is a real interactive entry point or only a visual element.
-
 ### `home_terminal_command`
 
-User runs a command in the home page terminal.
+Legacy name for `terminal_command`.
 
-Properties:
+Current properties:
 
 - `section`: `terminal`
 - `target`: `terminal_shell`
-- `command`: command name only, for example `help`, `chat`, `ls`
-
-Do not send full raw commands because they may contain user-written text.
+- `command`: command name only
 
 ### `home_github_click`
 
-User clicks a GitHub destination from the home page.
+Legacy name for `github_link_click` when the click starts from the homepage.
 
-Properties:
+Current properties:
 
 - `section`: `profile_header` | `open_source`
 - `target`: `profile` or repository name
 - `href`: GitHub URL
 
-Use this to compare top profile GitHub intent with project-specific GitHub intent.
-
 ### `home_agent_activity_click`
 
-User interacts with the Agent activity popout on the home page.
+Legacy name for `agent_competition_click` on the homepage popout.
 
-Properties:
+Current properties:
 
 - `section`: `agent_popout`
 - `target`: `feishu_link` | `pill_open` | `minimize` | `close`
 - `href`: Feishu link when clicking the activity link
 
-Use this to evaluate whether the popout drives activity interest or mostly gets dismissed.
-
 ### `home_cta_click`
 
-User clicks a primary internal home page CTA.
+Deprecated.
 
-Properties:
-
-- `section`: `hero` | `about` | `blog` | `notes` | `talks`
-- `target`: `contact` | `more_about` | `more_blogs` | `more_notes` | `latest_talk` | `all_talks`
-- `href`: internal URL
-
-Use this to understand which internal paths the home page sends readers toward.
+This event mixed ordinary internal navigation with real intent signals. Do not
+extend it. Pages already answer most of what it tried to measure.
 
 ### `home_external_click`
 
-User clicks an external experience/project destination from the home page.
+Legacy name for homepage project/work outbound clicks.
 
-Properties:
+Prefer `project_link_click` with `surface: home_experience`.
 
-- `section`: `experience`
-- `target`: `playyy` | `atypica` | `aixcut` | `faishion`
-- `href`: external URL
+## Implementation Status
 
-Use this to measure outbound interest in work/project links.
+Implemented at the time this contract was written:
 
-## Planned Events
+- `home_terminal_open`
+- `home_terminal_command`
+- `home_github_click`
+- `home_agent_activity_click`
+- `home_cta_click`
+- `home_external_click`
 
-These are not implemented yet. Add them when article and content analytics are instrumented.
+Target events still need implementation or migration:
 
-### `article_read_progress`
+- `terminal_open`
+- `terminal_command`
+- `github_link_click`
+- `agent_competition_click`
+- `contact_method_reveal`
+- `article_contact_reveal`
+- `sponsorship_method_reveal`
+- `project_link_click`
+- `talk_resource_click`
+- `talk_join_intent`
+- `language_switch_click`
 
-User reaches a reading progress threshold on an article.
+## Adding Or Changing Events
 
-Properties:
-
-- `slug`: article identifier
-- `percent`: `50` | `75` | `90`
-
-Use this for read-depth and completion-rate analysis.
-
-### `article_external_link_click`
-
-User clicks an external link inside an article.
-
-Properties:
-
-- `slug`: article identifier
-- `section`: optional content section or heading id
-- `target`: normalized link label or domain
-- `href`: external URL
-
-Use this to learn which references and outbound resources readers care about.
-
-## Adding A New Event
-
-1. Add the event to this file first.
-2. Reuse existing properties before inventing new ones.
-3. Keep the event name stable after deploy. If the meaning changes, create a new event.
-4. Verify in production with DevTools Network by checking for `/_vercel/insights/event`.
+1. Start from the tracking boundary above. If Pages answer the question, do not
+   add an event.
+2. Add or update the event in this file before changing code.
+3. Reuse existing properties before inventing new ones.
+4. Keep event names stable after deploy. If the meaning changes, create a new
+   event and mark the old one as legacy.
+5. Avoid high-cardinality or personal fields. Do not send raw user input.
+6. Verify in production with DevTools Network by checking for
+   `/_vercel/insights/event`.
