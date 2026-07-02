@@ -12,7 +12,7 @@ tags:
   - reference
 type: research
 status: ready
-relatedArchive:
+relatedNote:
   - 0326-jina-embeddings-api-deep-dive
 # source removed — synthesized knowledge from LLM discussion
 draft: false
@@ -222,7 +222,7 @@ Reranker 往往采用 cross-encoder 或近似的 late-interaction 思路，会�
 ## 相关链接 / 来源
 
 - Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_bfcbbc2f-d30d-44f3-85ac-fb7d88b5803e>
-- 相关 archive：<./0326-jina-embeddings-api-deep-dive>
+- 相关 note：<./0326-jina-embeddings-api-deep-dive>
 
 ## 备注
 

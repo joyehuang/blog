@@ -10,14 +10,14 @@ tags:
   - software engineering
   - workflow
 type: research
-status: ready
+status: incomplete
 source: https://openai.com/zh-Hans-CN/index/harness-engineering/
 draft: false
 ---
 
 ## 核心内容
 
-这条 archive 卡片记录的是一篇我觉得非常重要的工程实践文章：
+这条 note记录的是一篇我觉得非常重要的工程实践文章：
 
 - OpenAI 官方文章：<https://openai.com/zh-Hans-CN/index/harness-engineering/>
 - Gemini 辅助精读总结：<https://gemini.google.com/share/e447cc0560fa>

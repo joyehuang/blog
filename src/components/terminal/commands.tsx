@@ -1,14 +1,10 @@
 import { SOCIAL_LINKS } from './fs/content'
 import { displayPath, getNode, parentOf, prettyPath, resolvePath } from './fs/path'
 import type { DirNode, FsNode } from './fs/types'
-import type {
-  CommandRegistry,
-  CompletionContext,
-  OutputLine
-} from './types'
+import type { CommandRegistry, CompletionContext, OutputLine } from './types'
 
 type SearchApiResult = {
-  collection: 'blog' | 'archive'
+  collection: 'blog' | 'notes'
   title: string
   description?: string
   url: string
@@ -88,7 +84,11 @@ export const commands: CommandRegistry = {
           )
         })),
         { kind: 'spacer' },
-        { kind: 'text', tone: 'muted', text: 'shortcuts: ↑/↓ history · tab complete · ⌃L clear · ` focus' }
+        {
+          kind: 'text',
+          tone: 'muted',
+          text: 'shortcuts: ↑/↓ history · tab complete · ⌃L clear · ` focus'
+        }
       ])
     }
   },
@@ -109,7 +109,11 @@ export const commands: CommandRegistry = {
         },
         { kind: 'text', tone: 'muted', text: '  ↳ 2nd-year CS @ University of Melbourne' },
         { kind: 'text', tone: 'muted', text: '  ↳ AIGC full-stack intern @ Tezign' },
-        { kind: 'text', tone: 'muted', text: '  ↳ stays hungry, stays foolish · plays piano + cello' },
+        {
+          kind: 'text',
+          tone: 'muted',
+          text: '  ↳ stays hungry, stays foolish · plays piano + cello'
+        },
         { kind: 'spacer' },
         { kind: 'text', tone: 'muted', text: 'next: try `ls`, `cat about`, or `cd /blog`' }
       ])
@@ -270,7 +274,7 @@ export const commands: CommandRegistry = {
       const target = resolvePath(cwd, args[0])
       const node = getNode(fs, target)
       if (!node) {
-        if (/^\/(blog|archive|search|projects|links|about|contact)(\/|$)/.test(args[0])) {
+        if (/^\/(blog|notes|search|projects|links|about|contact)(\/|$)/.test(args[0])) {
           push([{ kind: 'text', tone: 'muted', text: `navigating ${args[0]} …` }])
           setTimeout(() => navigate(args[0]), 200)
           return
@@ -566,7 +570,9 @@ export const commands: CommandRegistry = {
         ])
         return
       }
-      push([{ kind: 'text', tone: 'err', text: 'Permission denied (you are not in the sudoers file).' }])
+      push([
+        { kind: 'text', tone: 'err', text: 'Permission denied (you are not in the sudoers file).' }
+      ])
     }
   }
 }
@@ -624,16 +630,11 @@ function commonPrefix(items: string[]): string {
  *   - an array  → ambiguous, show as suggestions
  *   - null      → nothing to do
  */
-export function completeInput(
-  input: string,
-  ctx: CompletionContext
-): string | string[] | null {
+export function completeInput(input: string, ctx: CompletionContext): string | string[] | null {
   const hasSpace = /\s/.test(input)
   if (!hasSpace) {
     const head = input.trimStart()
-    const candidates = commandNames.filter(
-      (n) => n.startsWith(head) && !commands[n].hidden
-    )
+    const candidates = commandNames.filter((n) => n.startsWith(head) && !commands[n].hidden)
     if (candidates.length === 0) return null
     if (candidates.length === 1) return candidates[0] + ' '
     const lcp = commonPrefix(candidates)

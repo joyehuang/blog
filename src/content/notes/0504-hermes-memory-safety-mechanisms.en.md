@@ -10,7 +10,7 @@ tags:
   - software engineering
   - concurrency
 type: research
-status: ready
+status: incomplete
 # source removed — synthesized knowledge from LLM discussion
 # this card documents hermes-agent memory internals; see src/hermes/memory/
 draft: false

@@ -72,7 +72,7 @@ const openSource = await Promise.all(
 )
 
 const MAX_NOTES = 4
-const archiveTypeLabels: Record<string, string> = {
+const noteTypeLabels: Record<string, string> = {
   note: '笔记',
   snippet: '片段',
   draft: '草稿',
@@ -80,7 +80,7 @@ const archiveTypeLabels: Record<string, string> = {
   research: '研究',
   reference: '参考'
 }
-const allNotes = (await getCollection('archive')).filter((e) => !e.data.draft)
+const allNotes = (await getCollection('notes')).filter((e) => !e.data.draft)
 const latestNotes = allNotes
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, MAX_NOTES)
@@ -203,11 +203,11 @@ const agentHackathonLink =
                 <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
                   <a
                     class='group/link w-full flex flex-col sm:flex-row transition-all hover:text-primary'
-                    href={`/archive/${note.id}`}
+                    href={`/notes/${note.id}`}
                     data-astro-prefetch
                   >
                     <span class='min-w-[95px] py-1 text-xs text-muted-foreground'>
-                      {archiveTypeLabels[note.data.type] || note.data.type}
+                      {noteTypeLabels[note.data.type] || note.data.type}
                     </span>
                     <div class='z-10 flex-grow'>
                       <div class='flex justify-between'>
@@ -244,7 +244,7 @@ const agentHackathonLink =
             <Button
               title='More notes'
               class='w-fit self-end'
-              href='/archive'
+              href='/notes'
               style='ahead'
               data-analytics-event='home_cta_click'
               data-analytics-section='notes'

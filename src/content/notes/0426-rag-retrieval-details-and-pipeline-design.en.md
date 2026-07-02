@@ -12,7 +12,7 @@ tags:
   - reference
 type: research
 status: ready
-relatedArchive:
+relatedNote:
   - 0326-jina-embeddings-api-deep-dive
 # source removed — synthesized knowledge from LLM discussion
 draft: false
@@ -224,7 +224,7 @@ In other words, what makes RAG genuinely stable usually isn't some single magic 
 ## Related links / sources
 
 - The original Grok thread (actually read and reviewed this time): <https://grok.com/share/c2hhcmQtMw_bfcbbc2f-d30d-44f3-85ac-fb7d88b5803e>
-- Related archive: </en/archive/0326-jina-embeddings-api-deep-dive>
+- Related note: </en/notes/0326-jina-embeddings-api-deep-dive>
 
 ## Notes
 

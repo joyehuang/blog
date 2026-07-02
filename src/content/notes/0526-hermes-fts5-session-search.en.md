@@ -15,7 +15,7 @@ tags:
 type: research
 status: ready
 source: https://github.com/nousresearch/hermes-agent
-relatedArchive:
+relatedNote:
   - 0504-hermes-memory-safety-mechanisms
 draft: false
 language: en
@@ -123,7 +123,7 @@ This is the most elegant design decision: **memory writes are persisted immediat
 - **The frozen snapshot** (`_system_prompt_snapshot`) → used for system-prompt injection, unchanging within the session
 - **The live entries** (`self.entries`) → used for the return value of tool calls, reflecting the latest state in real time
 
-**Safety mechanisms** (see `/en/archive/0504-hermes-memory-safety-mechanisms` for details):
+**Safety mechanisms** (see `/en/notes/0504-hermes-memory-safety-mechanisms` for details):
 1. Injection scanning: regex for 13 threat patterns + invisible-Unicode detection
 2. File locking: `fcntl.flock` (Unix) / `msvcrt` (Windows) via a separate `.lock` file
 3. Re-read under lock: re-read the on-disk state under the lock before writing, to prevent lost updates
@@ -346,7 +346,7 @@ These five layers aren't mutually exclusive — they **work together**:
 
 ## Relationship to the other memory cards
 
-The earlier `/en/archive/0504-hermes-memory-safety-mechanisms` analyzed, from a **security angle**, the six safety mechanisms of L1's `memory_tool.py` in detail (injection scanning, file locks, re-read under lock, capacity rejection, atomic writes, substring matching).
+The earlier `/en/notes/0504-hermes-memory-safety-mechanisms` analyzed, from a **security angle**, the six safety mechanisms of L1's `memory_tool.py` in detail (injection scanning, file locks, re-read under lock, capacity rejection, atomic writes, substring matching).
 
 This card covers, from an **architecture angle**, all four layers of the entire memory system and their interactions, including:
 - L0 system-prompt assembly and caching strategy
@@ -426,4 +426,4 @@ For single-user agent scenarios, this is a practical, runnable design that fits 
 ## Related links / sources
 
 - Hermes Agent source: `tools/memory_tool.py`, `tools/session_search_tool.py`, `hermes_state.py`, `agent/memory_manager.py`, `agent/memory_provider.py`, `agent/context_compressor.py`, `plugins/memory/`
-- Related archive: 0504-hermes-memory-safety-mechanisms (a detailed walkthrough of the L1 safety mechanisms)
+- Related note: 0504-hermes-memory-safety-mechanisms (a detailed walkthrough of the L1 safety mechanisms)

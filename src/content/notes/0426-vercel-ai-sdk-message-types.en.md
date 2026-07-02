@@ -217,7 +217,7 @@ So if you want to truly understand streaming in the Vercel AI SDK, you shouldn't
 
 ### 7. AI SDK UI uses SSE as its standard streaming protocol
 
-The most archive-worthy part of this addition is that it makes the post-AI-SDK-5 streaming protocol much more concrete.
+The most note-worthy part of this addition is that it makes the post-AI-SDK-5 streaming protocol much more concrete.
 
 The Vercel AI SDK chose **SSE (Server-Sent Events)** as its standard streaming transport.
 

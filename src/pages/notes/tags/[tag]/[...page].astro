@@ -1,12 +1,12 @@
 ---
 /**
- * Archive Tag Filter Page with Pagination
- * Shows archive entries filtered by tag
+ * Note Tag Filter Page with Pagination
+ * Shows note entries filtered by tag
  */
 import type { GetStaticPaths, Page } from 'astro'
 import type { CollectionEntry } from 'astro:content'
-
 import { getCollection } from 'astro:content'
+
 import { Paginator } from 'astro-pure/components/pages'
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
@@ -14,12 +14,12 @@ import PageLayout from '@/layouts/BaseLayout.astro'
 export const prerender = true
 
 export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
-  const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
+  const allNotes = (await getCollection('notes')).filter((entry) => !entry.data.draft)
 
-  const uniqueTags = [...new Set(allArchives.flatMap((entry) => entry.data.tags))]
+  const uniqueTags = [...new Set(allNotes.flatMap((entry) => entry.data.tags))]
 
   return uniqueTags.flatMap((tag) => {
-    const filteredEntries = allArchives
+    const filteredEntries = allNotes
       .filter((entry) => entry.data.tags.includes(tag))
       .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
 
@@ -31,7 +31,7 @@ export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
 }
 
 interface Props {
-  page: Page<CollectionEntry<'archive'>>
+  page: Page<CollectionEntry<'notes'>>
 }
 
 const { page } = Astro.props as unknown as Props
@@ -39,7 +39,7 @@ const { tag } = Astro.params
 
 const statusLabels: Record<string, string> = {
   'in-progress': '🚧 In Progress',
-  incomplete: '⏸️ Incomplete',
+  incomplete: '⏸️ Needs more',
   ready: '✅ Ready',
   archived: '📦 Archived'
 }
@@ -52,8 +52,8 @@ const statusColors: Record<string, string> = {
 }
 
 const meta = {
-  title: `Archive Tag: ${tag}`,
-  description: `Archive entries tagged with ${tag}`
+  title: `Note Tag: ${tag}`,
+  description: `Note entries tagged with ${tag}`
 }
 
 const paginationProps = {
@@ -73,7 +73,7 @@ const paginationProps = {
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/archive' style='back' />
+  <Button title='Back' href='/notes' style='back' />
 
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
@@ -82,16 +82,17 @@ const paginationProps = {
         <h1 class='text-3xl font-medium'>{tag}</h1>
       </div>
       <p class='mb-6 text-muted-foreground'>
-        {page.total} {page.total === 1 ? 'entry' : 'entries'} with this tag
+        {page.total}
+        {page.total === 1 ? 'entry' : 'entries'} with this tag
       </p>
     </div>
 
-    <section id='content' class='animate' aria-label='Archive entries'>
+    <section id='content' class='animate' aria-label='Note entries'>
       <ul class='space-y-3'>
         {
           page.data.map((entry) => (
             <li class='group relative rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'>
-              <a href={`/archive/${entry.id}`} class='block' data-astro-prefetch>
+              <a href={`/notes/${entry.id}`} class='block' data-astro-prefetch>
                 <div class='mb-2 flex items-start gap-3'>
                   <div class='mt-0.5 shrink-0 text-xl opacity-70 group-hover:opacity-100'>
                     {entry.data.type === 'note' && '📝'}
@@ -157,11 +158,13 @@ const paginationProps = {
         }
       </ul>
 
-      {page.lastPage > 1 && (
-        <div class='mt-8'>
-          <Paginator {...paginationProps} />
-        </div>
-      )}
+      {
+        page.lastPage > 1 && (
+          <div class='mt-8'>
+            <Paginator {...paginationProps} />
+          </div>
+        )
+      }
     </section>
   </main>
 </PageLayout>

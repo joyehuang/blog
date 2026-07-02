@@ -5,24 +5,24 @@ import { buildManifest, type FsCollectionEntry } from './manifest'
 import type { FsNode } from './types'
 
 /**
- * Server-only entry point for the pseudo-FS. Loads blog + archive
+ * Server-only entry point for the pseudo-FS. Loads blog + notes
  * collections, normalizes them into `FsCollectionEntry`, and builds the
  * manifest. Called once per page render from BaseLayout / Terminal.astro.
  */
 export async function buildSiteFs(): Promise<FsNode> {
   const blogRaw = (await getCollection('blog')) as unknown as RawEntry[]
   const blogEnRaw = (await getCollection('blogEn')) as unknown as RawEntry[]
-  const archiveRaw = await getCollection('archive').catch(() => [] as unknown as RawEntry[])
-  const archiveEnRaw = await getCollection('archiveEn').catch(() => [] as unknown as RawEntry[])
+  const notesRaw = await getCollection('notes').catch(() => [] as unknown as RawEntry[])
+  const notesEnRaw = await getCollection('notesEn').catch(() => [] as unknown as RawEntry[])
   const curatedRaw = await getCollection('curated').catch(() => [] as unknown as RawEntry[])
   const talksRaw = await getCollection('talks').catch(() => [] as unknown as RawEntry[])
 
   const blog = sortByDate(blogRaw).filter(isPublished).map(toEntry('blog'))
   const blogEn = sortByDate(blogEnRaw).filter(isPublished).map(toEntry('blog_en'))
-  const notes = sortByDate(archiveRaw as RawEntry[])
+  const notes = sortByDate(notesRaw as RawEntry[])
     .filter(isPublished)
     .map(toEntry('notes'))
-  const notesEn = sortByDate(archiveEnRaw as RawEntry[])
+  const notesEn = sortByDate(notesEnRaw as RawEntry[])
     .filter(isPublished)
     .map(toEntry('notes_en'))
   const curated = sortByDate(curatedRaw as RawEntry[])
@@ -108,7 +108,7 @@ function pickExtraMeta(fm: Record<string, unknown>): Record<string, unknown> {
     'subtitle',
     'topics',
     'relatedBlog',
-    'relatedArchive'
+    'relatedNote'
   ]) {
     if (fm[key] !== undefined) extra[key] = fm[key]
   }

@@ -78,7 +78,7 @@ const openSource = await Promise.all(
 )
 
 const MAX_NOTES = 4
-const archiveTypeLabels: Record<string, string> = {
+const noteTypeLabels: Record<string, string> = {
   note: 'Note',
   snippet: 'Snippet',
   draft: 'Draft',
@@ -86,7 +86,7 @@ const archiveTypeLabels: Record<string, string> = {
   research: 'Research',
   reference: 'Reference'
 }
-const latestNotes = (await getCollection('archiveEn'))
+const latestNotes = (await getCollection('notesEn'))
   .filter((e) => !e.data.draft)
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, MAX_NOTES)
@@ -147,9 +147,9 @@ const latestNotes = (await getCollection('archiveEn'))
           Undergraduate at the University of Melbourne. Currently working on Playyy.ai at Adastra
           Labs (Shimo Docs), building atypica (a multi-agent system for commercial research) at
           Tezign, and working on AI full-stack features and a video-editing agent at fAIshion.ai and
-          Goshu Tech. I care about how LLMs actually work under the hood, and about shipping products
-          that run in the real world. Build fast, learn faster — off the clock: piano, cello,
-          photography.
+          Goshu Tech. I care about how LLMs actually work under the hood, and about shipping
+          products that run in the real world. Build fast, learn faster — off the clock: piano,
+          cello, photography.
         </p>
         <Button title='More about me' class='w-fit self-end' href='/en/about' style='ahead' />
       </Section>
@@ -175,11 +175,11 @@ const latestNotes = (await getCollection('archiveEn'))
                 <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
                   <a
                     class='group/link w-full flex flex-col sm:flex-row transition-all hover:text-primary'
-                    href={`/en/archive/${note.data.translationKey}`}
+                    href={`/en/notes/${note.data.translationKey}`}
                     data-astro-prefetch
                   >
                     <span class='min-w-[95px] py-1 text-xs text-muted-foreground'>
-                      {archiveTypeLabels[note.data.type] || note.data.type}
+                      {noteTypeLabels[note.data.type] || note.data.type}
                     </span>
                     <div class='z-10 flex-grow'>
                       <div class='flex justify-between'>
@@ -213,7 +213,7 @@ const latestNotes = (await getCollection('archiveEn'))
                 </li>
               ))}
             </ul>
-            <Button title='More notes' class='w-fit self-end' href='/en/archive' style='ahead' />
+            <Button title='More notes' class='w-fit self-end' href='/en/notes' style='ahead' />
           </Section>
         )
       }
@@ -248,7 +248,10 @@ const latestNotes = (await getCollection('archiveEn'))
           href='https://www.faishion.ai/'
         >
           <ul class='ms-4 list-disc text-muted-foreground'>
-            <li>Full-stack development and model integration for an AI virtual try-on and outfit-matching platform</li>
+            <li>
+              Full-stack development and model integration for an AI virtual try-on and
+              outfit-matching platform
+            </li>
           </ul>
         </LinkCard>
       </Section>

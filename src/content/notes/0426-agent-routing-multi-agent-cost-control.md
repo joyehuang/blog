@@ -12,7 +12,7 @@ tags:
   - routing
   - workflow
 type: research
-status: ready
+status: incomplete
 # source removed — synthesized knowledge from LLM discussion
 draft: false
 ---

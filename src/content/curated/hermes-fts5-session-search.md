@@ -13,7 +13,7 @@ tags:
   - llm
   - search
   - retrieval
-relatedArchive:
+relatedNote:
   - 0526-hermes-fts5-session-search
 draft: false
 ---

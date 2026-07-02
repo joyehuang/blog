@@ -14,7 +14,7 @@ tags:
 type: paper
 status: digested
 difficulty: deep
-relatedArchive:
+relatedNote:
   - 0526-hermes-fts5-session-search
 draft: false
 ---

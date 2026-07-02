@@ -19,7 +19,7 @@ tags:
 type: research
 status: ready
 # source removed — synthesized knowledge from LLM discussion
-relatedArchive:
+relatedNote:
   - 0426-rag-retrieval-details-and-pipeline-design
 draft: false
 language: en
@@ -285,7 +285,7 @@ but rather:
 ## Related links / sources
 
 - Original Grok share (actually browsed and read this time): <https://grok.com/share/c2hhcmQtMw_b7e297d7-8c50-4cb8-8e2b-cf958a287c0b>
-- Related archive: </en/archive/0426-rag-retrieval-details-and-pipeline-design>
+- Related note: </en/notes/0426-rag-retrieval-details-and-pipeline-design>
 
 ## Notes
 

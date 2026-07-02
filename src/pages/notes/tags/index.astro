@@ -1,18 +1,19 @@
 ---
 /**
- * Archive Tags Index
- * Shows all tags used in the archive with entry counts
+ * Note Tags Index
+ * Shows all tags used in the notes with entry counts
  */
 import { getCollection } from 'astro:content'
+
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
-const allArchives = (await getCollection('archive')).filter((entry) => !entry.data.draft)
+const allNotes = (await getCollection('notes')).filter((entry) => !entry.data.draft)
 
 // Count entries per tag
-const tagCounts = allArchives.reduce(
+const tagCounts = allNotes.reduce(
   (acc, entry) => {
     entry.data.tags.forEach((tag) => {
       acc[tag] = (acc[tag] || 0) + 1
@@ -29,22 +30,22 @@ const sortedTags = Object.entries(tagCounts).sort(([tagA, countA], [tagB, countB
 })
 
 const meta = {
-  title: 'Archive Tags',
-  description: 'Browse archive entries by tag'
+  title: 'Note Tags',
+  description: 'Browse note entries by tag'
 }
 ---
 
 <PageLayout {meta}>
-  <Button title='Back' href='/archive' style='back' />
+  <Button title='Back' href='/notes' style='back' />
 
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
       <h1 class='mb-2 flex items-center gap-2 text-3xl font-medium'>
         <Icon name='tag-2' />
-        Archive Tags
+        Note Tags
       </h1>
       <p class='mb-6 text-muted-foreground'>
-        Browse {sortedTags.length} tags across {allArchives.length} archive entries
+        Browse {sortedTags.length} tags across {allNotes.length} note entries
       </p>
     </div>
 
@@ -53,7 +54,7 @@ const meta = {
         {
           sortedTags.map(([tag, count]) => (
             <a
-              href={`/archive/tags/${tag}`}
+              href={`/notes/tags/${tag}`}
               class='group rounded-lg border border-border bg-card p-4 transition hover:border-foreground/20 hover:shadow-sm'
               data-astro-prefetch
             >
@@ -68,9 +69,11 @@ const meta = {
         }
       </div>
 
-      {sortedTags.length === 0 && (
-        <p class='text-muted-foreground'>No tags found in archive entries.</p>
-      )}
+      {
+        sortedTags.length === 0 && (
+          <p class='text-muted-foreground'>No tags found in note entries.</p>
+        )
+      }
     </section>
   </main>
 </PageLayout>

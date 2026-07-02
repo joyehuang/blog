@@ -11,10 +11,10 @@ tags:
   - reranker
   - jina
   - qwen
-relatedArchive:
+relatedNote:
   - 0426-rag-retrieval-details-and-pipeline-design
 type: research
-status: ready
+status: incomplete
 source: https://jina.ai/embeddings/
 draft: false
 language: en
@@ -96,7 +96,7 @@ The value of this kind of capability:
 - Lowers indexing cost
 - Improves cost-effectiveness at large-scale deployment
 
-If my archive / knowledge base grows large later, this "compress without an obvious quality drop" capability will be very handy.
+If my notes / knowledge base grows large later, this "compress without an obvious quality drop" capability will be very handy.
 
 ### 2. A quick comparison with OpenAI / Voyage
 

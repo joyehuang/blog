@@ -48,7 +48,7 @@ export const theme: ThemeUserConfig = {
   header: {
     menu: [
       { title: 'Blog', link: '/blog' },
-      { title: 'Notes', link: '/archive' },
+      { title: 'Notes', link: '/notes' },
       { title: 'Talks', link: '/talks' },
       { title: 'Projects', link: '/projects' },
       { title: 'Links', link: '/links' },
@@ -64,7 +64,7 @@ export const theme: ThemeUserConfig = {
     credits: true,
     /** Optional details about the social media accounts for this site. */
     social: {
-      github: 'https://github.com/joyehuang',
+      github: 'https://github.com/joyehuang'
       // linkedin: 'https://www.linkedin.com/in/joyehuang/'
     }
   },
@@ -88,13 +88,11 @@ export const integ: IntegrationUserConfig = {
       { date: '2025-07-04', content: '友链页面就绪，等第一位朋友。' },
       {
         date: '2025-11-04',
-        content:
-          '收到首位友链：<a href="https://sanbaiblog.cn/" target="_blank">一清三白</a>。'
+        content: '收到首位友链：<a href="https://sanbaiblog.cn/" target="_blank">一清三白</a>。'
       },
       {
         date: '2026-04-19',
-        content:
-          '添加 <a href="https://www.wengxiaoxiong.com/" target="_blank">翁小雄</a>。'
+        content: '添加 <a href="https://www.wengxiaoxiong.com/" target="_blank">翁小雄</a>。'
       },
       {
         date: '2026-04-27',
@@ -113,8 +111,7 @@ export const integ: IntegrationUserConfig = {
       },
       {
         date: '2026-06-25',
-        content:
-          '添加 <a href="https://cxin.vercel.app/" target="_blank">Cxin Blog</a>。'
+        content: '添加 <a href="https://cxin.vercel.app/" target="_blank">Cxin Blog</a>。'
       }
     ],
     // Yourself link info

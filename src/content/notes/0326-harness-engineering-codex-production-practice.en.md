@@ -10,7 +10,7 @@ tags:
   - software engineering
   - workflow
 type: research
-status: ready
+status: incomplete
 source: https://openai.com/zh-Hans-CN/index/harness-engineering/
 draft: false
 language: en
@@ -19,7 +19,7 @@ translationKey: '0326-harness-engineering-codex-production-practice'
 
 ## The core idea
 
-This archive card captures an engineering-practice article I think is genuinely important:
+This note captures an engineering-practice article I think is genuinely important:
 
 - OpenAI's official article: <https://openai.com/zh-Hans-CN/index/harness-engineering/>
 - Gemini-assisted close-reading summary: <https://gemini.google.com/share/e447cc0560fa>

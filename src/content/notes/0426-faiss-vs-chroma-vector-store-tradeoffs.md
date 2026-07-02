@@ -19,7 +19,7 @@ tags:
 type: research
 status: ready
 # source removed — synthesized knowledge from LLM discussion
-relatedArchive:
+relatedNote:
   - 0426-rag-retrieval-details-and-pipeline-design
 draft: false
 ---
@@ -283,7 +283,7 @@ Chroma 几乎是 Faiss 的反面：
 ## 相关链接 / 来源
 
 - Grok 分享原文（本次已实际浏览阅读）：<https://grok.com/share/c2hhcmQtMw_b7e297d7-8c50-4cb8-8e2b-cf958a287c0b>
-- 相关 archive：<./0426-rag-retrieval-details-and-pipeline-design>
+- 相关 note：<./0426-rag-retrieval-details-and-pipeline-design>
 
 ## 备注
 

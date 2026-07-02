@@ -1,15 +1,15 @@
 ---
-import { render, type CollectionEntry } from 'astro:content'
-import { getCollection } from 'astro:content'
+import { getCollection, render, type CollectionEntry } from 'astro:content'
+
+import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import PageInfo from '@/components/comment/PageInfo.astro'
-import { Button, Icon } from 'astro-pure/user'
 
 export const prerender = true
 
 export async function getStaticPaths() {
-  const archives = await getCollection('archiveEn')
-  return archives
+  const notes = await getCollection('notesEn')
+  return notes
     .filter((entry) => entry.data.translationKey)
     .map((entry) => ({
       params: { id: entry.data.translationKey! },
@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 }
 
 type Props = {
-  entry: CollectionEntry<'archiveEn'>
+  entry: CollectionEntry<'notesEn'>
 }
 
 const { entry } = Astro.props
@@ -28,7 +28,7 @@ const { title, description, date, updatedDate, tags, type, status, source } = en
 
 const statusLabels: Record<string, string> = {
   'in-progress': '🚧 In Progress',
-  incomplete: '⏸️ Incomplete',
+  incomplete: '⏸️ Needs more',
   ready: '✅ Ready',
   archived: '📦 Archived'
 }
@@ -48,7 +48,7 @@ const meta = {
 }
 ---
 
-<PageLayout {meta} back='/en/archive'>
+<PageLayout {meta} back='/en/notes'>
   <div slot='header' class='animate gap-y-4'>
     <div class='mb-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground'>
       <span class='rounded-md bg-muted px-2 py-1'>{typeLabels[type] || type}</span>
@@ -69,7 +69,7 @@ const meta = {
 
     {description && <p class='text-lg text-muted-foreground'>{description}</p>}
 
-    <PageInfo class='mt-2 italic' path={`/en/archive/${entry.data.translationKey}`} />
+    <PageInfo class='mt-2 italic' path={`/en/notes/${entry.data.translationKey}`} />
 
     <div class='mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground'>
       <div class='flex items-center gap-2'>
@@ -119,7 +119,7 @@ const meta = {
       <p class='text-sm text-muted-foreground'>
         🗂️ A {typeLabels[type]?.toLowerCase().replace(/^.. /, '') || type} from the knowledge base.
       </p>
-      <Button title='← Back' href='/en/archive' style='back' />
+      <Button title='← Back' href='/en/notes' style='back' />
     </div>
   </div>
 </PageLayout>
