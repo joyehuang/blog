@@ -88,6 +88,11 @@ input, comment text, search text, or free-form user input.
 | `article_slug` | Article identifier for article-scoped events. | `20260517---agentonboardingguide` |
 | `episode` | Talk episode number. | `1`, `2` |
 | `resource` | Talk or article resource type. | `deck`, `video`, `record`, `slide` |
+| `source` | How the surface was reached when relevant. | `first_visit`, `replay` |
+| `duration_ms` | Elapsed interaction time in milliseconds. | `4200`, `9300` |
+| `time_to_cta_ms` | Elapsed time from surface start to CTA view. | `3600`, `4100` |
+| `played` | Whether the visitor interacted with a playful surface. | `true`, `false` |
+| `interactions` | Low-cardinality interaction burst count. | `1`, `3` |
 
 Use `null` for unavailable optional properties rather than inventing placeholders.
 
@@ -156,6 +161,126 @@ Required properties:
 - `href`: Feishu/doc URL for external link actions, otherwise `null`
 
 Use this to compare real activity interest with dismissals.
+
+### `intro_start`
+
+Home page entrance animation starts.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `animation`
+- `source`: `first_visit` | `replay`
+
+Use this to measure how many visitors actually see the intro animation,
+separate from repeat visitors where the session gate hides it.
+
+### `intro_cta_view`
+
+The entrance animation resolves and the final CTA is shown.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `enter`
+- `source`: `first_visit` | `replay`
+- `time_to_cta_ms`: milliseconds from animation start to CTA view
+
+Use this with `intro_start` to measure how many visitors stay through the
+animation until the CTA appears.
+
+### `intro_play`
+
+User meaningfully interacts with the entrance animation particle field.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `particle_hover`
+- `source`: `first_visit` | `replay`
+- `duration_ms`: milliseconds from animation start to first particle hover
+- `percent`: approximate animation resolve progress when interaction happened
+- `interactions`: number of interaction bursts counted so far
+
+Use this to measure whether visitors are "playing" with the hover-reactive
+particle animation instead of only watching it.
+
+### `intro_cta_click`
+
+User enters the home page from the entrance animation CTA.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `enter` | `avatar`
+- `source`: `first_visit` | `replay`
+- `duration_ms`: milliseconds from animation start to enter click
+- `time_to_cta_ms`: milliseconds from animation start to CTA view
+- `played`: whether `intro_play` fired before the click
+- `interactions`: number of particle-hover interaction bursts before the click
+
+Use this with `intro_cta_view` to measure CTA conversion from the entrance
+animation.
+
+### `intro_skip`
+
+User skips the entrance animation before entering the home page.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `skip`
+- `source`: `first_visit` | `replay`
+- `duration_ms`: milliseconds from animation start to skip click
+- `time_to_cta_ms`: milliseconds from animation start to CTA view, or `null` if skipped before CTA view
+- `played`: whether `intro_play` fired before the skip
+- `interactions`: number of particle-hover interaction bursts before the skip
+
+Use this to tell whether the intro animation is getting dismissed before the
+CTA.
+
+### `intro_replay`
+
+User replays the entrance animation from the persistent home page control.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `replay`
+- `source`: `replay`
+
+Use this to measure voluntary replay interest separately from first-visit
+exposure.
+
+### `intro_abandon`
+
+User leaves the page while the entrance animation is still active.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/`
+- `surface`: `intro_overlay`
+- `target`: `pagehide`
+- `source`: `first_visit` | `replay`
+- `duration_ms`: milliseconds from animation start to page hide
+- `time_to_cta_ms`: milliseconds from animation start to CTA view, or `null` if the CTA was never shown
+- `played`: whether `intro_play` fired before leaving
+- `interactions`: number of particle-hover interaction bursts before leaving
+
+Use this to estimate watch time for visitors who do not click enter or skip.
 
 ### `contact_method_reveal`
 
@@ -334,6 +459,13 @@ Implemented in current code:
 - `terminal_command`
 - `github_link_click`
 - `agent_competition_click`
+- `intro_start`
+- `intro_cta_view`
+- `intro_play`
+- `intro_cta_click`
+- `intro_skip`
+- `intro_replay`
+- `intro_abandon`
 - `contact_method_reveal`
 - `article_contact_reveal`
 - `sponsorship_method_reveal`
