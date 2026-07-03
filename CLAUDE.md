@@ -6,7 +6,11 @@
 
 ## Git workflow
 
-After every code change — even small ones — create a commit and `git push origin main`. Don't batch unrelated work; commit at natural checkpoints and push immediately. No need to ask before pushing.
+Commit at natural checkpoints — even small changes. Don't batch unrelated work; create the commit promptly. No need to ask before committing.
+
+**Preview-first — do NOT push straight to `main`.** `main` is the production branch and auto-deploys to Vercel, so anything pushed there is immediately live. Instead create a feature branch and push there so Vercel builds a preview, share it, and only merge/push to `main` after the user has seen the preview and approved. (This rule exists because a blog post was once auto-pushed to `main` and went to production before review.)
+
+Name feature branches with a conventional type prefix: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/` followed by a short kebab-case description (e.g. `feat/talks-week3-preview`).
 
 Guidelines:
 
