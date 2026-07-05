@@ -83,6 +83,7 @@ input, comment text, search text, or free-form user input.
 | `command_result` | Safe terminal outcome bucket. | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
 | `repo` | Repository name for GitHub clicks. | `Learn-Open-Harness`, `interview-prep` |
 | `project` | Project identifier for project clicks. | `atypica`, `aixcut`, `prepwise` |
+| `team` | Agent competition team identifier. | `deep-research-agent`, `coding-agent` |
 | `link_type` | Project link type. | `site`, `github`, `doc`, `release` |
 | `method_name` | Contact or payment method. | `wechat`, `qq_group`, `wechat_pay`, `alipay` |
 | `article_slug` | Article identifier for article-scoped events. | `20260517---agentonboardingguide` |
@@ -161,6 +162,22 @@ Required properties:
 - `href`: Feishu/doc URL for external link actions, otherwise `null`
 
 Use this to compare real activity interest with dismissals.
+
+### `agent_team_signup`
+
+User interacts with the Agent competition team signup board (`/agent-teams`).
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: `/agent-teams`
+- `surface`: `agent_teams`
+- `action`: `open` | `submit`
+- `team`: team identifier, for example `deep-research-agent`
+
+`open` fires when a visitor opens a team's signup form; `submit` fires on a
+successful signup. Never send the submitted nickname, contact, or note — they
+are personal data. Use this to see which topics attract real signup intent.
 
 ### `intro_start`
 
@@ -459,6 +476,7 @@ Implemented in current code:
 - `terminal_command`
 - `github_link_click`
 - `agent_competition_click`
+- `agent_team_signup`
 - `intro_start`
 - `intro_cta_view`
 - `intro_play`

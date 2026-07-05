@@ -1,0 +1,393 @@
+---
+import { activity, teams } from '@/data/agent-teams'
+
+// 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
+// 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
+---
+
+<section class='agent-board not-prose' data-agent-board>
+  <header class='mb-6'>
+    <p class='text-sm font-medium tracking-wide text-muted-foreground'>{activity.subtitle}</p>
+    <h1 class='mt-1 text-2xl font-semibold text-foreground sm:text-3xl'>{activity.title}</h1>
+    <p class='mt-3 max-w-2xl leading-relaxed text-muted-foreground'>{activity.tagline}</p>
+    <div class='mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
+      <span>截止：{activity.deadline}</span>
+      <a
+        class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
+        href={activity.docHref}
+        target='_blank'
+        rel='noopener noreferrer'
+      >
+        活动详情 ↗
+      </a>
+    </div>
+  </header>
+
+  {/* 未配置 / 加载失败时的横幅，默认隐藏，由脚本控制 */}
+  <p
+    class='board-banner mb-5 hidden rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground'
+    data-board-banner
+    role='status'
+  >
+  </p>
+
+  <div class='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+    {
+      teams.map((team) => (
+        <article
+          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5'
+          data-team-id={team.id}
+          data-capacity={team.capacity ?? ''}
+        >
+          <div class='flex items-start justify-between gap-3'>
+            <h2 class='m-0 text-lg font-medium text-foreground'>{team.title}</h2>
+            <span
+              class='shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+              data-count-label
+            >
+              …
+            </span>
+          </div>
+
+          <p class='m-0 text-sm leading-snug text-muted-foreground'>{team.summary}</p>
+
+          {team.tags && team.tags.length > 0 && (
+            <div class='flex flex-wrap gap-1.5'>
+              {team.tags.map((tag) => (
+                <span class='rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'>
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
+            <li class='roster-empty text-xs text-muted-foreground'>加载中…</li>
+          </ul>
+
+          <div class='mt-auto pt-1'>
+            <button
+              type='button'
+              class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              data-signup-toggle
+              aria-expanded='false'
+            >
+              报名 / 加入
+            </button>
+          </div>
+
+          <form class='signup-form mt-1 flex-col gap-2' data-signup-form hidden>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              昵称（会公开显示）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='name'
+                type='text'
+                maxlength='24'
+                required
+                autocomplete='off'
+                placeholder='你的昵称'
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              联系方式（可选，仅组织者可见）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='contact'
+                type='text'
+                maxlength='60'
+                autocomplete='off'
+                placeholder='微信 / 邮箱等'
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              留言（可选）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='note'
+                type='text'
+                maxlength='60'
+                autocomplete='off'
+                placeholder='想说的一句话'
+              />
+            </label>
+            <label class='passcode-field flex-col gap-1 text-xs text-muted-foreground' data-passcode-field hidden>
+              报名口令
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                autocomplete='off'
+                placeholder='群里公布的口令'
+              />
+            </label>
+
+            {/* 蜜罐：正常用户看不到、不会填 */}
+            <div class='hp-field' aria-hidden='true'>
+              <label>
+                Leave this empty
+                <input name='hp' type='text' tabindex='-1' autocomplete='off' />
+              </label>
+            </div>
+
+            <div class='flex items-center gap-3'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                提交报名
+              </button>
+              <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
+            </div>
+          </form>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  /* 蜜罐字段：对真人完全不可见，但对填表机器人仍存在 */
+  .hp-field {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .signup-form[data-open] {
+    display: flex;
+  }
+  .passcode-field[data-show] {
+    display: flex;
+  }
+
+  .roster-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border));
+    padding: 0.1rem 0.55rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted) / 0.4);
+  }
+
+  .team-card[data-full='true'] .signup-toggle {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .form-msg[data-tone='error'] {
+    color: #dc2626;
+  }
+  .form-msg[data-tone='success'] {
+    color: #16a34a;
+  }
+  :global(.dark) .form-msg[data-tone='error'] {
+    color: #f87171;
+  }
+  :global(.dark) .form-msg[data-tone='success'] {
+    color: #4ade80;
+  }
+</style>
+
+<script>
+  type Member = { name: string; note: string | null; ts: number }
+  type Team = { id: string; count: number; capacity: number | null; members: Member[] }
+  type BoardData = {
+    configured: boolean
+    degraded?: boolean
+    passcodeRequired: boolean
+    teams: Team[]
+  }
+
+  function fireAnalytics(action: 'open' | 'submit', team: string) {
+    document.dispatchEvent(
+      new CustomEvent('site:analytics', {
+        detail: {
+          eventName: 'agent_team_signup',
+          properties: { surface: 'agent_teams', action, team }
+        }
+      })
+    )
+  }
+
+  function setMsg(form: HTMLElement, text: string, tone: 'error' | 'success' | '' = '') {
+    const el = form.querySelector<HTMLElement>('[data-form-msg]')
+    if (!el) return
+    el.textContent = text
+    if (tone) el.dataset.tone = tone
+    else delete el.dataset.tone
+  }
+
+  function renderRoster(card: HTMLElement, team: Team) {
+    const capacity = team.capacity
+    const label = card.querySelector<HTMLElement>('[data-count-label]')
+    if (label) label.textContent = capacity != null ? `${team.count} / ${capacity} 人` : `${team.count} 人`
+
+    const full = capacity != null && team.count >= capacity
+    card.dataset.full = full ? 'true' : 'false'
+    const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
+    if (toggle) {
+      toggle.disabled = full
+      toggle.textContent = full ? '名额已满' : '报名 / 加入'
+    }
+
+    const roster = card.querySelector<HTMLElement>('[data-roster]')
+    if (!roster) return
+    roster.replaceChildren()
+    if (team.members.length === 0) {
+      const li = document.createElement('li')
+      li.className = 'roster-empty text-xs text-muted-foreground'
+      li.textContent = '还没有人报名，来当第一个 👋'
+      roster.appendChild(li)
+      return
+    }
+    for (const member of team.members) {
+      const li = document.createElement('li')
+      li.className = 'roster-chip'
+      li.textContent = member.name // textContent — 用户输入不会被当 HTML 解析
+      if (member.note) li.title = member.note
+      roster.appendChild(li)
+    }
+  }
+
+  function wireCard(card: HTMLElement, board: HTMLElement) {
+    const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
+    const form = card.querySelector<HTMLFormElement>('[data-signup-form]')
+    if (!toggle || !form) return
+
+    toggle.addEventListener('click', () => {
+      if (board.dataset.configured !== 'true') return
+      const open = form.hasAttribute('data-open')
+      if (open) {
+        form.removeAttribute('data-open')
+        form.hidden = true
+        toggle.setAttribute('aria-expanded', 'false')
+      } else {
+        form.setAttribute('data-open', '')
+        form.hidden = false
+        toggle.setAttribute('aria-expanded', 'true')
+        form.querySelector<HTMLInputElement>('input[name="name"]')?.focus()
+        fireAnalytics('open', card.dataset.teamId || '')
+      }
+    })
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const teamId = card.dataset.teamId || ''
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+      const data = new FormData(form)
+      const payload = {
+        teamId,
+        name: String(data.get('name') || ''),
+        contact: String(data.get('contact') || ''),
+        note: String(data.get('note') || ''),
+        passcode: String(data.get('passcode') || ''),
+        hp: String(data.get('hp') || '')
+      }
+
+      if (submitBtn) submitBtn.disabled = true
+      setMsg(form, '提交中…')
+      try {
+        const res = await fetch('/api/agent-teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        const body = await res.json()
+        if (res.ok && body.ok) {
+          renderRoster(card, body.roster as Team)
+          form.reset()
+          form.removeAttribute('data-open')
+          form.hidden = true
+          toggle.setAttribute('aria-expanded', 'false')
+          setMsg(form, '报名成功！', 'success')
+          fireAnalytics('submit', teamId)
+        } else {
+          setMsg(form, (body && body.message) || '提交失败，请稍后再试', 'error')
+        }
+      } catch {
+        setMsg(form, '网络错误，请稍后再试', 'error')
+      } finally {
+        if (submitBtn) submitBtn.disabled = false
+      }
+    })
+  }
+
+  function applyState(board: HTMLElement, cards: Map<string, HTMLElement>, data: BoardData) {
+    board.dataset.configured = data.configured ? 'true' : 'false'
+    board.dataset.passcodeRequired = data.passcodeRequired ? 'true' : 'false'
+
+    const banner = board.querySelector<HTMLElement>('[data-board-banner]')
+    if (banner) {
+      if (!data.configured) {
+        banner.textContent = '报名系统正在配置中，稍后开放，先看看有哪些主题吧。'
+        banner.hidden = false
+        banner.classList.remove('hidden')
+      } else if (data.degraded) {
+        banner.textContent = '名单暂时加载不出来，请稍后刷新重试。'
+        banner.hidden = false
+        banner.classList.remove('hidden')
+      } else {
+        banner.hidden = true
+        banner.classList.add('hidden')
+      }
+    }
+
+    for (const team of data.teams) {
+      const card = cards.get(team.id)
+      if (card) renderRoster(card, team)
+    }
+
+    // 未配置：禁用所有报名按钮
+    if (!data.configured) {
+      for (const card of cards.values()) {
+        const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
+        if (toggle) toggle.disabled = true
+      }
+    }
+
+    // 需要口令：显示每个表单里的口令输入
+    if (data.passcodeRequired) {
+      for (const card of cards.values()) {
+        const field = card.querySelector<HTMLElement>('[data-passcode-field]')
+        if (field) {
+          field.dataset.show = ''
+          field.hidden = false
+          const input = field.querySelector<HTMLInputElement>('input[name="passcode"]')
+          if (input) input.required = true
+        }
+      }
+    }
+  }
+
+  function initBoard(board: HTMLElement) {
+    const cards = new Map<string, HTMLElement>()
+    board.querySelectorAll<HTMLElement>('[data-team-id]').forEach((card) => {
+      const id = card.dataset.teamId
+      if (!id) return
+      cards.set(id, card)
+      wireCard(card, board)
+    })
+
+    fetch('/api/agent-teams', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data: BoardData) => applyState(board, cards, data))
+      .catch(() => {
+        const banner = board.querySelector<HTMLElement>('[data-board-banner]')
+        if (banner) {
+          banner.textContent = '名单暂时加载不出来，请稍后刷新重试。'
+          banner.hidden = false
+          banner.classList.remove('hidden')
+        }
+      })
+  }
+
+  const board = document.querySelector<HTMLElement>('[data-agent-board]')
+  if (board) initBoard(board)
+</script>

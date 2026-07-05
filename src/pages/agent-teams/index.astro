@@ -1,0 +1,22 @@
+---
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import Comment from '@/components/comment/Comment.astro'
+import AgentTeamsBoard from '@/components/agent-teams/AgentTeamsBoard.astro'
+import { activity } from '@/data/agent-teams'
+
+// 静态壳：队伍卡与表单结构预渲染，实时名单由客户端拉 /api/agent-teams 填充。
+export const prerender = true
+---
+
+<PageLayout
+  meta={{
+    title: `${activity.title} · ${activity.subtitle}`,
+    description: activity.tagline
+  }}
+  highlightColor='#5B8DB8'
+>
+  <Button title='Back' href='/' style='back' />
+  <AgentTeamsBoard />
+  <Comment class='mt-10' path='/agent-teams' />
+</PageLayout>
