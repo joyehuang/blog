@@ -25,6 +25,7 @@
     "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.4.1",
     "@astrojs/vercel": "^8.1.4",
+    "@neondatabase/serverless": "^1.1.0",
     "@playform/compress": "^0.1.9",
     "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^19.2.14",
