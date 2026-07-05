@@ -42,6 +42,10 @@ const analyticsAttrs = (
   project: Props['project'][number],
   link: Props['project'][number]['links'][number]
 ) => {
+  // Internal links are answered by the destination pageview — don't double-track
+  // them as click events (see ANALYTICS.md tracking boundary).
+  if (!/^https?:\/\//i.test(link.href)) return {}
+
   const eventName = project.analyticsEvent ?? 'project_link_click'
   if (eventName === 'agent_competition_click') {
     return {
