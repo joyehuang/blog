@@ -166,9 +166,16 @@ const toc = generateToc(headings)
 
       if (!isAbove && !isBelow) return
 
+      // Scroll only the sidebar container — never `activeLink.scrollIntoView()`, which
+      // also scrolls every scrollable ancestor (the window included) and would hijack
+      // the smooth page scroll started when a TOC link is clicked.
+      const centerOffset = (containerRect.height - linkRect.height) / 2
+      const targetScrollTop =
+        scrollContainer.scrollTop + (linkRect.top - containerRect.top) - centerOffset
+
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      activeLink.scrollIntoView({
-        block: 'center',
+      scrollContainer.scrollTo({
+        top: targetScrollTop,
         behavior: reducedMotion ? 'auto' : 'smooth'
       })
     }
