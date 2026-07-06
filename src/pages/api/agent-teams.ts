@@ -6,13 +6,16 @@ import {
   createTeam,
   detailEditable,
   getBuiltinTracks,
+  getCaptains,
   getCustomTeams,
   getDetails,
   getRosters,
   isConfigured,
   passcodeRequired,
   removeSignup,
+  setCaptain,
   updateDetail,
+  type CaptainErrorCode,
   type CreateErrorCode,
   type DetailErrorCode,
   type LeaveErrorCode,
@@ -37,16 +40,25 @@ type TeamPayload = TeamMeta & {
   count: number
   members: PublicMember[]
   detail: string | null
+  /** 队长的 name_key；无则前端默认第一个报名的人当队长 */
+  captain: string | null
 }
 
 function buildTeams(
   metas: TeamMeta[],
   rosters: Record<string, PublicMember[]> = {},
-  details: Record<string, string> = {}
+  details: Record<string, string> = {},
+  captains: Record<string, string> = {}
 ): TeamPayload[] {
   return metas.map((m) => {
     const members = rosters[m.id] ?? []
-    return { ...m, count: members.length, members, detail: details[m.id] ?? null }
+    return {
+      ...m,
+      count: members.length,
+      members,
+      detail: details[m.id] ?? null,
+      captain: captains[m.id] ?? null
+    }
   })
 }
 
@@ -77,12 +89,16 @@ export const GET: APIRoute = async () => {
     const [builtins, customs] = await Promise.all([getBuiltinTracks(), getCustomTeams()])
     const metas = [...builtins, ...customs]
     const ids = metas.map((m) => m.id)
-    const [rosters, details] = await Promise.all([getRosters(ids), getDetails(ids)])
+    const [rosters, details, captains] = await Promise.all([
+      getRosters(ids),
+      getDetails(ids),
+      getCaptains(ids)
+    ])
     return json({
       configured: true,
       passcodeRequired: passcodeRequired(),
       detailEditable: editable,
-      teams: buildTeams(metas, rosters, details)
+      teams: buildTeams(metas, rosters, details, captains)
     })
   } catch {
     // 数据库抖动——仍让页面渲染出赛道卡（用代码兜底），只是名单/介绍/自定义赛道暂时为空。
@@ -158,6 +174,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const result = await createTeam({
       title: str(body.title) ?? '',
       summary: str(body.summary) ?? '',
+      kind: str(body.kind) === 'solo' ? 'solo' : 'team',
+      name: str(body.name),
       passcode: str(body.passcode),
       hp: str(body.hp),
       ip
@@ -234,7 +252,15 @@ const DETAIL_STATUS_BY_CODE: Record<DetailErrorCode, number> = {
   store_error: 500
 }
 
-// 队长编辑详细介绍。
+const CAPTAIN_STATUS_BY_CODE: Record<CaptainErrorCode, number> = {
+  not_configured: 503,
+  invalid: 400,
+  not_found: 404,
+  passcode: 403,
+  store_error: 500
+}
+
+// 队长编辑：action=captain 转让队长；否则更新详细介绍。
 export const PUT: APIRoute = async ({ request }) => {
   let body: Record<string, unknown>
   try {
@@ -247,6 +273,22 @@ export const PUT: APIRoute = async ({ request }) => {
   const known = (await resolveCapacity(teamId)) !== undefined
   if (!known) {
     return json({ ok: false, code: 'passcode', message: '未知的队伍' }, 400)
+  }
+
+  // 转让队长。
+  if (body.action === 'captain') {
+    const result = await setCaptain({
+      teamId,
+      name: str(body.name) ?? '',
+      passcode: str(body.passcode)
+    })
+    if (result.ok) {
+      return json({ ok: true, teamId: result.teamId, captain: result.captainKey })
+    }
+    return json(
+      { ok: false, code: result.code, message: result.message },
+      CAPTAIN_STATUS_BY_CODE[result.code]
+    )
   }
 
   const result = await updateDetail({

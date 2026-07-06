@@ -5,7 +5,7 @@ import { activity, teams } from '@/data/agent-teams'
 // 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
 ---
 
-<section class='agent-board not-prose' data-agent-board>
+<section class='agent-board not-prose mt-6' data-agent-board>
   <header class='board-hero mb-8 overflow-hidden rounded-2xl border p-6 sm:p-8'>
     <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
       <span
@@ -228,12 +228,23 @@ import { activity, teams } from '@/data/agent-teams'
                 placeholder='多写点：这支队想做成什么样、技术路线、想找什么样的队友…'
               ></textarea>
             </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              转让队长给（可选，填名单里某人的昵称）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='captain'
+                type='text'
+                maxlength='24'
+                autocomplete='off'
+                placeholder='留空则不变'
+              />
+            </label>
             <div class='flex items-center gap-3'>
               <button
                 type='submit'
                 class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               >
-                保存介绍
+                保存
               </button>
               <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
             </div>
@@ -249,7 +260,7 @@ import { activity, teams } from '@/data/agent-teams'
       <div class='min-w-0'>
         <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
         <p class='m-0 mt-1 text-sm leading-snug text-muted-foreground'>
-          自命题：创建一个属于你的赛道，别人也能来加入。
+          自命题：创建一个属于你的赛道。组队（多人）或个人（就你一个）都行。
         </p>
       </div>
       <button
@@ -285,6 +296,34 @@ import { activity, teams } from '@/data/agent-teams'
           required
           autocomplete='off'
           placeholder='它能做什么，一句话说清'
+        />
+      </label>
+      <div class='flex flex-col gap-1.5 text-xs text-muted-foreground'>
+        类型
+        <div class='flex flex-wrap gap-x-4 gap-y-1.5' data-create-kind>
+          <label class='inline-flex items-center gap-1.5'>
+            <input type='radio' name='kind' value='team' checked />
+            组队（多人一起做）
+          </label>
+          <label class='inline-flex items-center gap-1.5'>
+            <input type='radio' name='kind' value='solo' />
+            个人（就我一个，别人不能加入）
+          </label>
+        </div>
+      </div>
+      <label
+        class='solo-name-field flex-col gap-1 text-xs text-muted-foreground'
+        data-solo-name-field
+        hidden
+      >
+        你的昵称（会公开显示，就是这张卡的人）
+        <input
+          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+          name='name'
+          type='text'
+          maxlength='24'
+          autocomplete='off'
+          placeholder='你的 QQ 昵称'
         />
       </label>
       <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
@@ -367,23 +406,29 @@ import { activity, teams } from '@/data/agent-teams'
   .passcode-field[data-show] {
     display: flex;
   }
+  .solo-name-field[data-show] {
+    display: flex;
+  }
 
-  .roster-chip {
+  /* 名单是脚本动态渲染的，拿不到 Astro 的 scope 属性，故这几条都用 :global 才生效。 */
+  :global(.roster-chip) {
     display: inline-flex;
     align-items: center;
+    gap: 0.25rem;
     border-radius: 9999px;
     border: 1px solid hsl(var(--border));
-    padding: 0.1rem 0.55rem;
+    padding: 0.12rem 0.55rem;
     font-size: 0.75rem;
     line-height: 1.2;
     color: hsl(var(--foreground));
     background: hsl(var(--muted) / 0.4);
   }
-
-  /* 队长小皇冠：琥珀色，稍微和名字拉开一点距离。
-     名单是脚本动态渲染的，拿不到 Astro 的 scope 属性，故用 :global 让样式生效。 */
+  /* 队长：琥珀色描边 + 淡底，配一个小皇冠 */
+  :global(.roster-chip.is-captain) {
+    border-color: rgb(245 158 11 / 0.5);
+    background: rgb(245 158 11 / 0.12);
+  }
   :global(.roster-crown) {
-    margin-right: 0.2rem;
     color: #f59e0b;
     flex-shrink: 0;
   }
@@ -418,6 +463,7 @@ import { activity, teams } from '@/data/agent-teams'
     capacity: number | null
     members: Member[]
     detail: string | null
+    captain?: string | null
   }
   type BoardData = {
     configured: boolean
@@ -485,12 +531,21 @@ import { activity, teams } from '@/data/agent-teams'
       roster.appendChild(li)
       return
     }
-    // 第一个报名的人当队长（发起人），名字前加个小皇冠区分。个人参赛赛道没有队长。
-    const hasCaptain = team.id !== 'solo-participant'
+    // 队长：以 team.captain（后台转让后的 name_key）为准；没设 / 已退队则默认第一个报名的人。
+    // 只有 2 人及以上才标队长——一个人的卡片没必要区分。
+    let captainIndex = -1
+    if (team.members.length > 1) {
+      const captainKey = team.captain ? team.captain.toLowerCase() : null
+      if (captainKey) {
+        captainIndex = team.members.findIndex((m) => m.name.toLowerCase() === captainKey)
+      }
+      if (captainIndex < 0) captainIndex = 0
+    }
     team.members.forEach((member, index) => {
       const li = document.createElement('li')
       li.className = 'roster-chip'
-      if (hasCaptain && index === 0) {
+      if (index === captainIndex) {
+        li.classList.add('is-captain')
         li.appendChild(captainIcon())
       }
       const nameSpan = document.createElement('span')
@@ -501,20 +556,30 @@ import { activity, teams } from '@/data/agent-teams'
     })
   }
 
-  // 队长标记：一个小皇冠 SVG（继承文字色，用 CSS 染成琥珀色）。
+  // 队长标记：Lucide 皇冠（描边款，继承文字色，用 CSS 染成琥珀色）。
   function captainIcon(): SVGSVGElement {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
     svg.setAttribute('viewBox', '0 0 24 24')
-    svg.setAttribute('width', '11')
-    svg.setAttribute('height', '11')
-    svg.setAttribute('fill', 'currentColor')
-    svg.setAttribute('aria-label', '队长')
+    svg.setAttribute('width', '12')
+    svg.setAttribute('height', '12')
+    svg.setAttribute('fill', 'none')
+    svg.setAttribute('stroke', 'currentColor')
+    svg.setAttribute('stroke-width', '2')
+    svg.setAttribute('stroke-linecap', 'round')
+    svg.setAttribute('stroke-linejoin', 'round')
     svg.setAttribute('role', 'img')
+    svg.setAttribute('aria-label', '队长')
     svg.classList.add('roster-crown')
-    const path = document.createElementNS(ns, 'path')
-    path.setAttribute('d', 'M5 16 3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5Zm0 2h14v2H5v-2Z')
-    svg.appendChild(path)
+    const p1 = document.createElementNS(ns, 'path')
+    p1.setAttribute(
+      'd',
+      'M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z'
+    )
+    svg.appendChild(p1)
+    const p2 = document.createElementNS(ns, 'path')
+    p2.setAttribute('d', 'M5 21h14')
+    svg.appendChild(p2)
     const title = document.createElementNS(ns, 'title')
     title.textContent = '队长'
     svg.appendChild(title)
@@ -708,11 +773,9 @@ import { activity, teams } from '@/data/agent-teams'
         const teamId = card.dataset.teamId || ''
         const saveBtn = detailForm.querySelector<HTMLButtonElement>('button[type="submit"]')
         const data = new FormData(detailForm)
-        const payload = {
-          teamId,
-          detail: String(data.get('detail') || ''),
-          passcode: String(data.get('passcode') || '')
-        }
+        const passcode = String(data.get('passcode') || '')
+        const captainName = String(data.get('captain') || '').trim()
+        const detailPayload = { teamId, detail: String(data.get('detail') || ''), passcode }
 
         if (saveBtn) saveBtn.disabled = true
         setMsg(detailForm, '保存中…', '', '[data-detail-msg]')
@@ -720,18 +783,39 @@ import { activity, teams } from '@/data/agent-teams'
           const res = await fetch('/api/agent-teams', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(detailPayload)
           })
           const body = await res.json()
-          if (res.ok && body.ok) {
-            renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
-            detailForm.removeAttribute('data-open')
-            detailForm.hidden = true
-            detailToggle.setAttribute('aria-expanded', 'false')
-            setMsg(detailForm, '已更新！', 'success', '[data-detail-msg]')
-          } else {
+          if (!(res.ok && body.ok)) {
             setMsg(detailForm, (body && body.message) || '保存失败，请稍后再试', 'error', '[data-detail-msg]')
+            return
           }
+          renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
+
+          // 填了「转让队长」就再发一次，然后刷新这张卡的名单让皇冠挪位。
+          if (captainName) {
+            const cres = await fetch('/api/agent-teams', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'captain', teamId, name: captainName, passcode })
+            })
+            const cbody = await cres.json()
+            if (!(cres.ok && cbody.ok)) {
+              setMsg(detailForm, (cbody && cbody.message) || '队长转让失败', 'error', '[data-detail-msg]')
+              return
+            }
+            const fresh = await fetch('/api/agent-teams', { cache: 'no-store' })
+              .then((r) => r.json())
+              .catch(() => null)
+            const t = fresh && (fresh.teams || []).find((x: Team) => x.id === teamId)
+            if (t) renderRoster(card, t as Team)
+          }
+
+          detailForm.reset()
+          detailForm.removeAttribute('data-open')
+          detailForm.hidden = true
+          detailToggle.setAttribute('aria-expanded', 'false')
+          setMsg(detailForm, captainName ? '已保存，队长已转让' : '已更新！', 'success', '[data-detail-msg]')
         } catch {
           setMsg(detailForm, '网络错误，请稍后再试', 'error', '[data-detail-msg]')
         } finally {
@@ -827,6 +911,21 @@ import { activity, teams } from '@/data/agent-teams'
     const form = wrap.querySelector<HTMLFormElement>('[data-create-form]')
     if (!toggle || !form) return
 
+    // 组队 / 个人切换：选「个人」才显示并要求填昵称。
+    const soloField = form.querySelector<HTMLElement>('[data-solo-name-field]')
+    const soloInput = soloField?.querySelector<HTMLInputElement>('input[name="name"]')
+    const syncKind = () => {
+      const solo = form.querySelector<HTMLInputElement>('input[name="kind"]:checked')?.value === 'solo'
+      if (!soloField) return
+      if (solo) soloField.dataset.show = ''
+      else delete soloField.dataset.show
+      soloField.hidden = !solo
+      if (soloInput) soloInput.required = solo
+    }
+    form
+      .querySelectorAll<HTMLInputElement>('input[name="kind"]')
+      .forEach((r) => r.addEventListener('change', syncKind))
+
     toggle.addEventListener('click', () => {
       if (board.dataset.configured !== 'true') return
       const open = form.hasAttribute('data-open')
@@ -846,10 +945,13 @@ import { activity, teams } from '@/data/agent-teams'
       event.preventDefault()
       const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
       const data = new FormData(form)
+      const kind = data.get('kind') === 'solo' ? 'solo' : 'team'
       const payload = {
         action: 'create',
+        kind,
         title: String(data.get('title') || ''),
         summary: String(data.get('summary') || ''),
+        name: String(data.get('name') || ''),
         passcode: String(data.get('passcode') || ''),
         hp: String(data.get('hp') || '')
       }
@@ -865,6 +967,7 @@ import { activity, teams } from '@/data/agent-teams'
         const body = await res.json()
         if (res.ok && body.ok) {
           form.reset()
+          syncKind() // 复位到「组队」并收起昵称框
           form.removeAttribute('data-open')
           form.hidden = true
           toggle.setAttribute('aria-expanded', 'false')

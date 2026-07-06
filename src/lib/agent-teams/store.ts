@@ -182,6 +182,16 @@ async function ensureSchema(sql: Sql): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+  // 赛道类型：team=可多人组队，solo=个人（名额 1，别人不能加入）。旧行默认 team。
+  await sql`ALTER TABLE agent_team_customs ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'team'`
+  // 队长：一队一行，记录队长的 name_key。没有行时默认「第一个报名的人」当队长。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_captains (
+      team_id TEXT PRIMARY KEY,
+      captain_key TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
   // 内置赛道：标题/简介/标签/名额入库，以 DB 为准（可后台改而不必改代码 + 重新部署）。
   // 代码里的 teams 只作「种子」：首次启动补齐缺失的赛道，已存在的行不动。
   await sql`
@@ -491,6 +501,10 @@ export async function updateDetail(input: DetailUpdateInput): Promise<DetailResu
 export type CreateTeamInput = {
   title: string
   summary: string
+  /** team=可多人组队；solo=个人（名额 1，别人不能加入） */
+  kind?: 'team' | 'solo'
+  /** 个人赛道必填：创建者昵称，创建时自动占用唯一名额并成为队长 */
+  name?: string
   passcode?: string
   /** 蜜罐字段：正常用户永远为空 */
   hp?: string
@@ -517,6 +531,7 @@ export async function getBuiltinTracks(): Promise<TeamMeta[]> {
   const rows = (await sql`
     SELECT id, title, summary, tags, capacity
     FROM agent_team_tracks
+    WHERE id <> 'solo-participant'
     ORDER BY sort_order ASC, created_at ASC
   `) as { id: string; title: string; summary: string; tags: unknown; capacity: number | null }[]
 
@@ -537,13 +552,19 @@ export async function getCustomTeams(): Promise<TeamMeta[]> {
   await ensureSchema(sql)
 
   const rows = (await sql`
-    SELECT id, title, summary
+    SELECT id, title, summary, kind
     FROM agent_team_customs
     ORDER BY created_at ASC
-  `) as { id: string; title: string; summary: string }[]
+  `) as { id: string; title: string; summary: string; kind: string }[]
 
-  // 自定义赛道无标签、名额不限。
-  return rows.map((r) => ({ id: r.id, title: r.title, summary: r.summary, tags: [], capacity: null }))
+  // 自定义赛道无标签；个人赛道名额固定 1（别人加不进来），组队赛道名额不限。
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    summary: r.summary,
+    tags: [],
+    capacity: r.kind === 'solo' ? 1 : null
+  }))
 }
 
 /** 创建一个自定义赛道。口令匹配编辑口令才放行。 */
@@ -567,6 +588,18 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
   if (summary.length === 0) {
     return { ok: false, code: 'invalid', message: '简介不能为空' }
   }
+
+  const kind = input.kind === 'solo' ? 'solo' : 'team'
+  // 个人赛道要在创建时就把创建者占进唯一名额，所以必须带昵称。
+  let creatorName: string | null = null
+  if (kind === 'solo') {
+    creatorName = cleanText(input.name ?? '')
+    if (creatorName.length === 0 || creatorName.length > NAME_MAX) {
+      return { ok: false, code: 'invalid', message: `个人参赛要填你的昵称（1–${NAME_MAX} 个字符）` }
+    }
+  }
+
+  const capacity = kind === 'solo' ? 1 : null
   const ip = input.ip ?? null
   const id = `custom-${crypto.randomUUID().slice(0, 8)}`
 
@@ -586,11 +619,96 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
     }
 
     await sql`
-      INSERT INTO agent_team_customs (id, title, summary, ip)
-      VALUES (${id}, ${title}, ${summary}, ${ip})
+      INSERT INTO agent_team_customs (id, title, summary, ip, kind)
+      VALUES (${id}, ${title}, ${summary}, ${ip}, ${kind})
     `
-    return { ok: true, team: { id, title, summary, tags: [], capacity: null } }
+
+    // 个人赛道：创建者自动报名占位 + 当队长，卡片一建好就是「1/1，他本人」。
+    if (kind === 'solo' && creatorName) {
+      const nameKey = creatorName.toLowerCase()
+      await sql`
+        INSERT INTO agent_team_signups (team_id, name, name_key, ip)
+        VALUES (${id}, ${creatorName}, ${nameKey}, ${ip})
+        ON CONFLICT (team_id, name_key) DO NOTHING
+      `
+      await sql`
+        INSERT INTO agent_team_captains (team_id, captain_key)
+        VALUES (${id}, ${nameKey})
+        ON CONFLICT (team_id) DO UPDATE SET captain_key = EXCLUDED.captain_key, updated_at = now()
+      `
+    }
+
+    return { ok: true, team: { id, title, summary, tags: [], capacity } }
   } catch {
     return { ok: false, code: 'store_error', message: '创建失败，请稍后再试' }
+  }
+}
+
+// --- 队长（谁是队长 / 转让队长）------------------------------------------
+
+/** 批量读取多支队伍的队长 name_key，返回 { teamId: captainKey }（无则不含该键） */
+export async function getCaptains(teamIds: string[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {}
+  if (teamIds.length === 0) return out
+
+  const sql = getSql()
+  if (!sql) return out
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT team_id, captain_key
+    FROM agent_team_captains
+    WHERE team_id = ANY(${teamIds})
+  `) as { team_id: string; captain_key: string }[]
+
+  for (const row of rows) out[row.team_id] = row.captain_key
+  return out
+}
+
+export type CaptainErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
+
+export type CaptainResult =
+  | { ok: true; teamId: string; captainKey: string }
+  | { ok: false; code: CaptainErrorCode; message: string }
+
+/**
+ * 转让队长：把队长设成名单里的某个昵称。口令匹配编辑口令才放行，且目标必须已在名单里。
+ */
+export async function setCaptain(input: {
+  teamId: string
+  name: string
+  passcode?: string
+}): Promise<CaptainResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
+
+  if ((input.passcode ?? '') !== getEditPasscode()) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
+
+  const name = cleanText(input.name ?? '')
+  const nameKey = name.toLowerCase()
+  if (nameKey.length === 0) {
+    return { ok: false, code: 'invalid', message: '请填要转让给谁（昵称）' }
+  }
+
+  try {
+    await ensureSchema(sql)
+    const member = (await sql`
+      SELECT 1 FROM agent_team_signups
+      WHERE team_id = ${input.teamId} AND name_key = ${nameKey}
+      LIMIT 1
+    `) as { '?column?': number }[]
+    if (member.length === 0) {
+      return { ok: false, code: 'not_found', message: '这个昵称不在名单里，没法转给他' }
+    }
+    await sql`
+      INSERT INTO agent_team_captains (team_id, captain_key)
+      VALUES (${input.teamId}, ${nameKey})
+      ON CONFLICT (team_id) DO UPDATE SET captain_key = EXCLUDED.captain_key, updated_at = now()
+    `
+    return { ok: true, teamId: input.teamId, captainKey: nameKey }
+  } catch {
+    return { ok: false, code: 'store_error', message: '转让失败，请稍后再试' }
   }
 }
