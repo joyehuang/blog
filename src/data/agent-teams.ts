@@ -20,6 +20,8 @@ export type AgentTeam = {
 
 /** 活动整体信息（页面头部展示用） */
 export const activity = {
+  /** 比赛的英文名 / 品牌名 */
+  name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
   subtitle: '组队报名',
   tagline: '选一个你感兴趣的主题，填个名字就算加入。参赛、围观、找队友都欢迎，对 Agent 感兴趣就来玩。',
