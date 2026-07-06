@@ -178,6 +178,13 @@ import { activity, teams } from '@/data/agent-teams'
               >
                 提交报名
               </button>
+              <button
+                type='button'
+                class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                data-cancel
+              >
+                收起
+              </button>
               <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
             </div>
           </form>
@@ -201,6 +208,13 @@ import { activity, teams } from '@/data/agent-teams'
                 class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               >
                 确认退出
+              </button>
+              <button
+                type='button'
+                class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                data-cancel
+              >
+                收起
               </button>
               <p class='form-msg m-0 text-xs' data-leave-msg role='status'></p>
             </div>
@@ -245,6 +259,13 @@ import { activity, teams } from '@/data/agent-teams'
                 class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               >
                 保存
+              </button>
+              <button
+                type='button'
+                class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                data-cancel
+              >
+                收起
               </button>
               <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
             </div>
@@ -353,6 +374,13 @@ import { activity, teams } from '@/data/agent-teams'
           class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
         >
           创建
+        </button>
+        <button
+          type='button'
+          class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+          data-cancel
+        >
+          收起
         </button>
         <p class='form-msg m-0 text-xs' data-create-msg role='status'></p>
       </div>
@@ -691,6 +719,13 @@ import { activity, teams } from '@/data/agent-teams'
       }
     })
 
+    // 「收起」按钮：把报名表单收回去
+    form.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
+      form.removeAttribute('data-open')
+      form.hidden = true
+      toggle.setAttribute('aria-expanded', 'false')
+    })
+
     // 退出 / 退赛：按昵称把自己从名单里删掉
     const leaveToggle = card.querySelector<HTMLButtonElement>('[data-leave-toggle]')
     const leaveForm = card.querySelector<HTMLFormElement>('[data-leave-form]')
@@ -744,6 +779,12 @@ import { activity, teams } from '@/data/agent-teams'
         } finally {
           if (submitBtn) submitBtn.disabled = false
         }
+      })
+
+      leaveForm.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
+        leaveForm.removeAttribute('data-open')
+        leaveForm.hidden = true
+        leaveToggle.setAttribute('aria-expanded', 'false')
       })
     }
 
@@ -821,6 +862,12 @@ import { activity, teams } from '@/data/agent-teams'
         } finally {
           if (saveBtn) saveBtn.disabled = false
         }
+      })
+
+      detailForm.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
+        detailForm.removeAttribute('data-open')
+        detailForm.hidden = true
+        detailToggle.setAttribute('aria-expanded', 'false')
       })
     }
   }
@@ -981,6 +1028,12 @@ import { activity, teams } from '@/data/agent-teams'
       } finally {
         if (submitBtn) submitBtn.disabled = false
       }
+    })
+
+    form.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
+      form.removeAttribute('data-open')
+      form.hidden = true
+      toggle.setAttribute('aria-expanded', 'false')
     })
   }
 
