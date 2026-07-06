@@ -61,11 +61,17 @@ import { activity, teams } from '@/data/agent-teams'
             </div>
           )}
 
+          <div
+            class='team-detail hidden whitespace-pre-wrap rounded-lg border border-dashed px-3 py-2 text-sm leading-relaxed text-muted-foreground'
+            data-detail
+          >
+          </div>
+
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
             <li class='roster-empty text-xs text-muted-foreground'>加载中…</li>
           </ul>
 
-          <div class='mt-auto pt-1'>
+          <div class='mt-auto flex flex-wrap items-center gap-2 pt-1'>
             <button
               type='button'
               class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
@@ -73,6 +79,14 @@ import { activity, teams } from '@/data/agent-teams'
               aria-expanded='false'
             >
               报名 / 加入
+            </button>
+            <button
+              type='button'
+              class='detail-edit-toggle hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              data-detail-edit-toggle
+              aria-expanded='false'
+            >
+              队长编辑
             </button>
           </div>
 
@@ -141,6 +155,39 @@ import { activity, teams } from '@/data/agent-teams'
               <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
             </div>
           </form>
+
+          <form class='detail-form mt-1 flex-col gap-2' data-detail-form hidden>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              队长口令
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                autocomplete='off'
+                placeholder='你的队长口令'
+                required
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              详细介绍（会公开显示，最多 600 字，可分段）
+              <textarea
+                class='min-h-[7rem] rounded-lg border bg-background px-2.5 py-1.5 text-sm leading-relaxed text-foreground'
+                name='detail'
+                maxlength='600'
+                placeholder='多写点：这支队想做成什么样、技术路线、想找什么样的队友…'
+              ></textarea>
+            </label>
+            <div class='flex items-center gap-3'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                保存介绍
+              </button>
+              <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
+            </div>
+          </form>
         </article>
       ))
     }
@@ -159,6 +206,12 @@ import { activity, teams } from '@/data/agent-teams'
 
   .signup-form[data-open] {
     display: flex;
+  }
+  .detail-form[data-open] {
+    display: flex;
+  }
+  .detail-edit-toggle[data-show] {
+    display: inline-flex;
   }
   .passcode-field[data-show] {
     display: flex;
@@ -197,11 +250,18 @@ import { activity, teams } from '@/data/agent-teams'
 
 <script>
   type Member = { name: string; note: string | null; ts: number }
-  type Team = { id: string; count: number; capacity: number | null; members: Member[] }
+  type Team = {
+    id: string
+    count: number
+    capacity: number | null
+    members: Member[]
+    detail: string | null
+  }
   type BoardData = {
     configured: boolean
     degraded?: boolean
     passcodeRequired: boolean
+    detailEditable: boolean
     teams: Team[]
   }
 
@@ -216,12 +276,28 @@ import { activity, teams } from '@/data/agent-teams'
     )
   }
 
-  function setMsg(form: HTMLElement, text: string, tone: 'error' | 'success' | '' = '') {
-    const el = form.querySelector<HTMLElement>('[data-form-msg]')
+  function setMsg(
+    form: HTMLElement,
+    text: string,
+    tone: 'error' | 'success' | '' = '',
+    selector = '[data-form-msg]'
+  ) {
+    const el = form.querySelector<HTMLElement>(selector)
     if (!el) return
     el.textContent = text
     if (tone) el.dataset.tone = tone
     else delete el.dataset.tone
+  }
+
+  function renderDetail(card: HTMLElement, value: string | null) {
+    const box = card.querySelector<HTMLElement>('[data-detail]')
+    if (!box) return
+    const detail = value ?? ''
+    box.textContent = detail // textContent + pre-wrap — 用户输入不当 HTML 解析
+    box.hidden = detail.length === 0
+    box.classList.toggle('hidden', detail.length === 0)
+    // 缓存当前值，供队长编辑表单预填
+    card.dataset.detail = detail
   }
 
   function renderRoster(card: HTMLElement, team: Team) {
@@ -317,6 +393,64 @@ import { activity, teams } from '@/data/agent-teams'
         if (submitBtn) submitBtn.disabled = false
       }
     })
+
+    // 队长编辑「详细介绍」
+    const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-edit-toggle]')
+    const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
+    if (detailToggle && detailForm) {
+      const textarea = detailForm.querySelector<HTMLTextAreaElement>('textarea[name="detail"]')
+
+      detailToggle.addEventListener('click', () => {
+        const open = detailForm.hasAttribute('data-open')
+        if (open) {
+          detailForm.removeAttribute('data-open')
+          detailForm.hidden = true
+          detailToggle.setAttribute('aria-expanded', 'false')
+        } else {
+          if (textarea) textarea.value = card.dataset.detail || ''
+          detailForm.setAttribute('data-open', '')
+          detailForm.hidden = false
+          detailToggle.setAttribute('aria-expanded', 'true')
+          detailForm.querySelector<HTMLInputElement>('input[name="passcode"]')?.focus()
+        }
+      })
+
+      detailForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const teamId = card.dataset.teamId || ''
+        const saveBtn = detailForm.querySelector<HTMLButtonElement>('button[type="submit"]')
+        const data = new FormData(detailForm)
+        const payload = {
+          teamId,
+          detail: String(data.get('detail') || ''),
+          passcode: String(data.get('passcode') || '')
+        }
+
+        if (saveBtn) saveBtn.disabled = true
+        setMsg(detailForm, '保存中…', '', '[data-detail-msg]')
+        try {
+          const res = await fetch('/api/agent-teams', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          const body = await res.json()
+          if (res.ok && body.ok) {
+            renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
+            detailForm.removeAttribute('data-open')
+            detailForm.hidden = true
+            detailToggle.setAttribute('aria-expanded', 'false')
+            setMsg(detailForm, '已更新！', 'success', '[data-detail-msg]')
+          } else {
+            setMsg(detailForm, (body && body.message) || '保存失败，请稍后再试', 'error', '[data-detail-msg]')
+          }
+        } catch {
+          setMsg(detailForm, '网络错误，请稍后再试', 'error', '[data-detail-msg]')
+        } finally {
+          if (saveBtn) saveBtn.disabled = false
+        }
+      })
+    }
   }
 
   function applyState(board: HTMLElement, cards: Map<string, HTMLElement>, data: BoardData) {
@@ -341,7 +475,20 @@ import { activity, teams } from '@/data/agent-teams'
 
     for (const team of data.teams) {
       const card = cards.get(team.id)
-      if (card) renderRoster(card, team)
+      if (!card) continue
+      renderRoster(card, team)
+      renderDetail(card, team.detail)
+    }
+
+    // 开放了队长编辑：显示每张卡的「队长编辑」入口
+    if (data.detailEditable) {
+      for (const card of cards.values()) {
+        const toggle = card.querySelector<HTMLElement>('[data-detail-edit-toggle]')
+        if (toggle) {
+          toggle.dataset.show = ''
+          toggle.classList.remove('hidden')
+        }
+      }
     }
 
     // 未配置：禁用所有报名按钮

@@ -62,6 +62,7 @@ export type SignupResult =
 const NAME_MAX = 24
 const NOTE_MAX = 60
 const CONTACT_MAX = 60
+const DETAIL_MAX = 600
 // 轻量限流：同一 IP 在窗口内最多成功报名这么多次。
 const RATE_LIMIT = 5
 const RATE_WINDOW_SEC = 600
@@ -93,6 +94,39 @@ export function isConfigured(): boolean {
 /** 是否设置了报名口令 */
 export function passcodeRequired(): boolean {
   return getPasscode() !== null
+}
+
+// 队长编辑鉴权：
+//   - AGENT_TEAMS_CAPTAIN_PASSCODES: JSON map，形如 {"game-agent":"xxx","rss-agent":"yyy"}，
+//     每个队长一个专属口令，只能改自己那支队。
+//   - AGENT_TEAMS_ADMIN_PASSCODE: 管理员口令，能改任意队伍（你自己兜底用）。
+function getCaptainPasscodes(): Record<string, string> {
+  const raw =
+    import.meta.env.AGENT_TEAMS_CAPTAIN_PASSCODES ?? process.env.AGENT_TEAMS_CAPTAIN_PASSCODES
+  if (!raw) return {}
+  try {
+    const obj = JSON.parse(String(raw)) as unknown
+    if (obj && typeof obj === 'object') {
+      const out: Record<string, string> = {}
+      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+        if (typeof v === 'string' && v.length > 0) out[k] = v
+      }
+      return out
+    }
+  } catch {
+    // 配错了就当没配，页面不显示编辑入口。
+  }
+  return {}
+}
+
+function getAdminPasscode(): string | null {
+  const p = import.meta.env.AGENT_TEAMS_ADMIN_PASSCODE ?? process.env.AGENT_TEAMS_ADMIN_PASSCODE
+  return p && String(p).length > 0 ? String(p) : null
+}
+
+/** 是否开放了队长编辑（配了任一队长口令或管理员口令）——决定前端是否显示编辑入口 */
+export function detailEditable(): boolean {
+  return getAdminPasscode() !== null || Object.keys(getCaptainPasscodes()).length > 0
 }
 
 // --- 连接 / 表结构 -------------------------------------------------------
@@ -131,6 +165,14 @@ async function ensureSchema(sql: Sql): Promise<void> {
     CREATE INDEX IF NOT EXISTS agent_team_signups_team_created
       ON agent_team_signups (team_id, created_at)
   `
+  // 队长维护的「详细介绍」，一队一行，队长编辑时 upsert。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_details (
+      team_id TEXT PRIMARY KEY,
+      detail TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
   schemaReady = true
 }
 
@@ -142,6 +184,19 @@ const CONTROL_CHARS = new RegExp('[\\u0000-\\u001F\\u007F]', 'g')
 
 function cleanText(input: string): string {
   return input.replace(CONTROL_CHARS, ' ').replace(/\s+/g, ' ').trim()
+}
+
+// 详细介绍要保留换行（队长要分段阐述），所以只去掉除换行外的控制字符，
+// 并折叠横向空白与多余空行。渲染端用 textContent + white-space: pre-wrap，无 XSS。
+const CONTROL_EXCEPT_NL = new RegExp('[\\u0000-\\u0009\\u000B-\\u001F\\u007F]', 'g')
+
+function cleanMultiline(input: string): string {
+  return input
+    .replace(CONTROL_EXCEPT_NL, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 type RosterRow = { name: string; note: string | null; ts_sec: number }
@@ -173,6 +228,25 @@ export async function getRosters(teamIds: string[]): Promise<Record<string, Publ
     if (!out[row.team_id]) out[row.team_id] = []
     out[row.team_id].push(rowToMember(row))
   }
+  return out
+}
+
+/** 批量读取多支队伍的「详细介绍」，返回 { teamId: detail }（无则不含该键） */
+export async function getDetails(teamIds: string[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {}
+  if (teamIds.length === 0) return out
+
+  const sql = getSql()
+  if (!sql) return out
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT team_id, detail
+    FROM agent_team_details
+    WHERE team_id = ANY(${teamIds})
+  `) as { team_id: string; detail: string }[]
+
+  for (const row of rows) out[row.team_id] = row.detail
   return out
 }
 
@@ -263,5 +337,57 @@ export async function addSignup(
     }
   } catch {
     return { ok: false, code: 'store_error', message: '写入失败，请稍后再试' }
+  }
+}
+
+// --- 队长编辑详细介绍 ---------------------------------------------------
+
+export type DetailUpdateInput = {
+  teamId: string
+  detail: string
+  passcode?: string
+}
+
+export type DetailErrorCode = 'not_configured' | 'passcode' | 'store_error'
+
+export type DetailResult =
+  | { ok: true; teamId: string; detail: string }
+  | { ok: false; code: DetailErrorCode; message: string }
+
+/**
+ * 队长更新某队的详细介绍。口令匹配该队的队长口令、或匹配管理员口令才放行。
+ * detail 传空串表示清空（删除该行）。teamId 合法性由调用方校验。
+ */
+export async function updateDetail(input: DetailUpdateInput): Promise<DetailResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
+
+  const captain = getCaptainPasscodes()[input.teamId]
+  const admin = getAdminPasscode()
+  if (!captain && !admin) {
+    return { ok: false, code: 'passcode', message: '这支队伍还没有开放队长编辑' }
+  }
+  const pass = input.passcode ?? ''
+  const authed = (!!captain && pass === captain) || (!!admin && pass === admin)
+  if (!authed) {
+    return { ok: false, code: 'passcode', message: '队长口令不正确' }
+  }
+
+  const detail = cleanMultiline(input.detail ?? '').slice(0, DETAIL_MAX)
+
+  try {
+    await ensureSchema(sql)
+    if (detail.length === 0) {
+      await sql`DELETE FROM agent_team_details WHERE team_id = ${input.teamId}`
+      return { ok: true, teamId: input.teamId, detail: '' }
+    }
+    await sql`
+      INSERT INTO agent_team_details (team_id, detail, updated_at)
+      VALUES (${input.teamId}, ${detail}, now())
+      ON CONFLICT (team_id) DO UPDATE SET detail = EXCLUDED.detail, updated_at = now()
+    `
+    return { ok: true, teamId: input.teamId, detail }
+  } catch {
+    return { ok: false, code: 'store_error', message: '保存失败，请稍后再试' }
   }
 }
