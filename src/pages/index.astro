@@ -484,15 +484,10 @@ const agentHackathonLink =
           </p>
           <div class='mt-3 flex flex-wrap items-center gap-2'>
             <a
-              href={agentHackathonLink}
-              target='_blank'
-              rel='noopener noreferrer'
+              href='/agent-teams'
               class='group inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background no-underline transition-transform hover:-translate-y-0.5'
-              data-analytics-event='agent_competition_click'
-              data-analytics-surface='agent_popout'
-              data-analytics-action='external_link'
             >
-              去看群比赛
+              去组队
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 width='16'
@@ -520,6 +515,17 @@ const agentHackathonLink =
             >
               收进角落
             </button>
+            <a
+              href={agentHackathonLink}
+              target='_blank'
+              rel='noopener noreferrer'
+              class='inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline'
+              data-analytics-event='agent_competition_click'
+              data-analytics-surface='agent_popout'
+              data-analytics-action='external_link'
+            >
+              活动详情 ↗
+            </a>
           </div>
         </div>
       </div>
