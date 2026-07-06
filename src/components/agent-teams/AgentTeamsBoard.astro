@@ -5,7 +5,7 @@ import { activity, teams } from '@/data/agent-teams'
 // 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
 ---
 
-<section class='agent-board not-prose mt-6' data-agent-board>
+<section class='agent-board not-prose mt-6 flex flex-col' data-agent-board>
   <header class='board-hero mb-8 overflow-hidden rounded-2xl border p-6 sm:p-8'>
     <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
       <span
@@ -22,7 +22,7 @@ import { activity, teams } from '@/data/agent-teams'
     <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
       <span class='inline-flex items-center gap-1.5'>
         <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
-        组队进行中
+        组队进行中 · {activity.deadlineText}截止
       </span>
       <a
         class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
@@ -49,7 +49,8 @@ import { activity, teams } from '@/data/agent-teams'
   >
   </p>
 
-  <div class='grid grid-cols-1 gap-4 sm:grid-cols-2' data-team-grid>
+  {/* order-last：视觉上把「创建赛道」卡排到队伍列表上面（DOM 里它仍在后面） */}
+  <div class='order-last grid grid-cols-1 gap-4 sm:grid-cols-2' data-team-grid>
     {
       teams.map((team) => (
         <article
@@ -275,8 +276,8 @@ import { activity, teams } from '@/data/agent-teams'
     }
   </div>
 
-  {/* 自命题：自助创建一个新赛道卡片 */}
-  <div class='create-card mt-4 rounded-xl border border-dashed bg-background p-4 sm:p-5' data-create-card>
+  {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方） */}
+  <div class='create-card mb-4 rounded-xl border border-dashed bg-background p-4 sm:p-5' data-create-card>
     <div class='flex items-start justify-between gap-3'>
       <div class='min-w-0'>
         <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
