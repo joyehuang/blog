@@ -68,16 +68,6 @@ export const releases: ChangelogRelease[] = [
       {
         type: 'changed',
         summary: '文章页反馈入口文案校准：明确「内容错漏走评论，结构 / 功能建议开 issue」的边界。'
-      },
-      {
-        type: 'added',
-        summary:
-          'Agent 比赛：填入真实赛道（含自命题与 RSS/学习领域），并让队长可自助编辑各队详细介绍。队长鉴权用每队一个口令或全局管理员口令，详细介绍存 agent_team_details 表，经 PUT /api/agent-teams 更新。'
-      },
-      {
-        type: 'changed',
-        summary:
-          'Agent 比赛入口从顶部导航移到主页左下角弹窗，CTA 改为「去组队」直达 /agent-teams，飞书文档降级为次级「活动详情」外链；报名联系方式改为 QQ。'
       }
     ]
   }

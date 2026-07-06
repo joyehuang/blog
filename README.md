@@ -66,8 +66,8 @@ bun run build
 - `src/content/notes`: notes、研究卡片和未成稿材料。
 - `src/content/curated`: 精选外部资料。
 - `src/content/talks` 和 `public/talks`: 公开分享、幻灯片或活动记录。
-- `ROADMAP.md`: 计划中、下一步和暂缓的站点维护方向。
-- `CHANGELOG.md`: 已完成、已上线或已合并的重要变更记录。
+- `ROADMAP.md`: 计划中、下一步和暂缓的站点维护方向（镜像，数据源在 `src/data/roadmap.ts`）。
+- `CHANGELOG.md`: 已完成、已上线或已合并的重要变更记录（镜像，数据源在 `src/data/changelog.ts`）。
 - `.github/ISSUE_TEMPLATE/*`: bug、功能建议和站点反馈入口。
 - `CLAUDE.md`: agent 写代码前需要读取的项目维护约定。
 
@@ -109,11 +109,7 @@ Notes 的 `status` 可选：
 
 ## 维护工作流
 
-- GitHub Issues 用来收集讨论、建议和 bug。
-- `ROADMAP.md` 用来整理计划、优先级和暂缓事项。
-- `CHANGELOG.md` 用来记录已经完成的站点、内容系统、analytics 和维护变更。
-- 涉及 Vercel Analytics 的改动先看 `ANALYTICS.md`。
-- 文章页底部的反馈入口会引导读者创建 GitHub issue，方便后续进入 roadmap 或 changelog。
+站点维护分三层：GitHub Issues 收集讨论与反馈，`src/data/roadmap.ts` 跟踪计划，`src/data/changelog.ts` 记录已发布变更；`/roadmap` 与 `/changelog` 页面渲染自这两个数据源，`ROADMAP.md` 与 `CHANGELOG.md` 是它们的 GitHub 浏览镜像。涉及 Vercel Analytics 的改动先看 `ANALYTICS.md`。完整约定见 `CLAUDE.md`。
 
 ## 计划中的 Agent Skills
 

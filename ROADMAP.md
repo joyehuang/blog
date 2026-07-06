@@ -1,77 +1,23 @@
 # Roadmap
 
-This roadmap keeps the blog's product and maintenance direction visible without
-turning GitHub Issues into long-term memory. Issues hold discussion and concrete
-tasks. This file holds priorities, decisions, and review cadence.
-
-## Working Rules
-
-- Every roadmap item should have a stable short id, for example
-  `maintenance-loop`.
-- Link related issues as soon as they exist: `Refs #12`, `Closes #18`.
-- When an item ships, move the outcome to `CHANGELOG.md` and either remove the
-  item from `Now` or move follow-up work to `Next`.
-- Review this file at least monthly, and after any cluster of related issues is
-  opened or closed.
+> 数据源在 `src/data/roadmap.ts`；本文件是它的 GitHub 浏览镜像，方便不打开站点时也能看。
+> 维护方式以 `CLAUDE.md` 为准：改 TS 数据源，再人工同步本镜像。站点 `/roadmap` 页面渲染自 TS 数据源。
 
 ## Now
 
-### `maintenance-loop`
+_进行中的工作。数据源见 `src/data/roadmap.ts`。_
 
-Build a lightweight repo-native maintenance system so site direction, shipped
-changes, reader feedback, and agent instructions do not depend on human memory.
-
-Status: in progress
-
-Related files:
-
-- `ROADMAP.md`
-- `CHANGELOG.md`
-- `CLAUDE.md`
-- `ANALYTICS.md`
-- `.github/ISSUE_TEMPLATE/*`
-- `.github/PULL_REQUEST_TEMPLATE.md`
-
-Definition of done:
-
-- Feedback from article pages can open a GitHub issue.
-- Issues are the discussion and triage layer.
-- `ROADMAP.md` tracks planned work.
-- `CHANGELOG.md` tracks shipped work.
-- `CLAUDE.md` tells coding agents which maintenance files to check and update.
+暂无。
 
 ## Next
 
-### `public-feedback-loop`
-
-Improve how reader suggestions flow from the public site into GitHub Issues.
-
-Possible work:
-
-- Add feedback entry points to selected non-article pages such as Talks and
-  Curated.
-- Add issue labels for `feedback`, `content`, `site`, and `analytics`.
-- Periodically review open feedback issues and promote accepted work to this
-  roadmap.
-
-### `content-maintenance`
-
-Make content status easier to audit.
-
-Possible work:
-
-- Add a lightweight review checklist for old notes and posts.
-- Surface stale or incomplete content in a private report.
-- Decide which content changes belong in `CHANGELOG.md`.
+- `public-feedback-loop` — 让读者建议从站点更顺畅地流入 GitHub Issues，并定期把采纳的建议推进到 roadmap。
+- `content-maintenance` — 让内容状态更容易被审计，识别陈旧或未完成的内容。
 
 ## Later
 
-### `automation-review`
-
-Explore scheduled maintenance prompts or GitHub automation for stale issues,
-roadmap review, and changelog reminders. Keep this manual until the workflow is
-stable enough to automate.
+- `automation-review` — 在手工工作流稳定之后，探索定时提醒或 GitHub Automation 处理陈旧 issue、roadmap 复盘、changelog 提醒。
 
 ## Done
 
-Nothing yet.
+- `maintenance-loop` (2026-07-06) — 建立仓库原生维护系统：issue 模板、PR 维护清单、文章页反馈入口、`CLAUDE.md` 维护指引，并把 roadmap / changelog 渲染为公开站点页面。
