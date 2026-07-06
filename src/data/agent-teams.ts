@@ -23,8 +23,11 @@ export const activity = {
   title: '第一届 Joye 粉丝 Agent 比赛',
   subtitle: '组队报名',
   tagline: '选一个你感兴趣的主题，填个名字就算加入。参赛、围观、找队友都欢迎，对 Agent 感兴趣就来玩。',
-  /** 占位截止日，改成真实日期 */
-  deadline: '2026-08-31',
+  /** 报名截止日（YYYY-MM-DD，测试会校验格式）；具体到点的说明放在 notice 里 */
+  deadline: '2026-07-10',
+  /** 头部醒目提示：报名规则以本页为准 */
+  notice:
+    '所有参赛者都要在本页报名 —— 包括单独参赛、暂时不想组队的人（下方「个人参赛」赛道）。最终参赛名单以本页为准：7 月 10 日晚 12 点截止后，未在本页报名的人自动取消参赛资格。',
   /** 活动详情文档（飞书 wiki） */
   docHref: 'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 }
@@ -163,6 +166,13 @@ export const teams: AgentTeam[] = [
     summary: '自动剪辑、配字幕、卡点，把一堆素材理成一条能发的视频。',
     tags: ['video', 'editing'],
     capacity: 6
+  },
+  {
+    // 不组队 / 单人参赛也要在本页报名，报名即视为参赛，名单以本页为准。名额不限。
+    id: 'solo-participant',
+    title: '个人参赛（不组队）',
+    summary: '不想组队、想单独参赛？在这里报名就算参赛。最终名单以本页为准，逾期未报名视为放弃资格。',
+    tags: ['solo']
   }
   // 「自命题赛道」不再是静态卡：由用户在页面上自助创建（见 store.ts 的 createTeam）。
 ]

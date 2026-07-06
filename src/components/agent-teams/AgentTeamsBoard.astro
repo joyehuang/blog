@@ -21,6 +21,12 @@ import { activity, teams } from '@/data/agent-teams'
         活动详情 ↗
       </a>
     </div>
+    <p
+      class='mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-foreground'
+      role='note'
+    >
+      {activity.notice}
+    </p>
   </header>
 
   {/* 未配置 / 加载失败时的横幅，默认隐藏，由脚本控制 */}
