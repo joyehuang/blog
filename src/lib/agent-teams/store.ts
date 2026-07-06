@@ -382,6 +382,70 @@ export async function addSignup(
   }
 }
 
+// --- 退出 / 退赛（自助删除自己的报名）----------------------------------
+
+export type LeaveInput = {
+  teamId: string
+  name: string
+  passcode?: string
+}
+
+export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
+
+export type LeaveResult =
+  | { ok: true; roster: TeamRoster }
+  | { ok: false; code: LeaveErrorCode; message: string }
+
+/**
+ * 按昵称把某人从某队名单里删掉。门槛与报名一致：设了报名口令就要口令匹配。
+ * 这是「粉丝群自助退赛」，不是强鉴权——和报名一样只挡路人。
+ */
+export async function removeSignup(
+  input: LeaveInput,
+  opts: { capacity: number | null }
+): Promise<LeaveResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '报名系统尚未配置' }
+
+  const passcode = getPasscode()
+  if (passcode && input.passcode !== passcode) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
+
+  const name = cleanText(input.name ?? '')
+  if (name.length === 0 || name.length > NAME_MAX) {
+    return { ok: false, code: 'invalid', message: `昵称需为 1–${NAME_MAX} 个字符` }
+  }
+  const nameKey = name.toLowerCase()
+
+  try {
+    await ensureSchema(sql)
+
+    const deleted = (await sql`
+      DELETE FROM agent_team_signups
+      WHERE team_id = ${input.teamId} AND name_key = ${nameKey}
+      RETURNING id
+    `) as { id: number }[]
+    if (deleted.length === 0) {
+      return { ok: false, code: 'not_found', message: '名单里没有这个昵称' }
+    }
+
+    const existing = (await sql`
+      SELECT name, note, EXTRACT(EPOCH FROM created_at)::float8 AS ts_sec
+      FROM agent_team_signups
+      WHERE team_id = ${input.teamId}
+      ORDER BY created_at ASC
+    `) as RosterRow[]
+    const members = existing.map(rowToMember)
+    return {
+      ok: true,
+      roster: { id: input.teamId, count: members.length, capacity: opts.capacity, members }
+    }
+  } catch {
+    return { ok: false, code: 'store_error', message: '操作失败，请稍后再试' }
+  }
+}
+
 // --- 队长编辑详细介绍 ---------------------------------------------------
 
 export type DetailUpdateInput = {

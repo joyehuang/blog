@@ -11,9 +11,11 @@ import {
   getRosters,
   isConfigured,
   passcodeRequired,
+  removeSignup,
   updateDetail,
   type CreateErrorCode,
   type DetailErrorCode,
+  type LeaveErrorCode,
   type PublicMember,
   type SignupErrorCode,
   type TeamMeta
@@ -191,6 +193,43 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ ok: true, roster: result.roster })
   }
   return json({ ok: false, code: result.code, message: result.message }, STATUS_BY_CODE[result.code])
+}
+
+const LEAVE_STATUS_BY_CODE: Record<LeaveErrorCode, number> = {
+  not_configured: 503,
+  invalid: 400,
+  not_found: 404,
+  passcode: 403,
+  store_error: 500
+}
+
+// 退出 / 退赛：把自己（按昵称）从某队名单里删掉。
+export const DELETE: APIRoute = async ({ request }) => {
+  let body: Record<string, unknown>
+  try {
+    body = (await request.json()) as Record<string, unknown>
+  } catch {
+    return json({ ok: false, code: 'invalid', message: '请求格式不正确' }, 400)
+  }
+
+  const teamId = str(body.teamId) ?? ''
+  const capacity = await resolveCapacity(teamId)
+  if (capacity === undefined) {
+    return json({ ok: false, code: 'invalid', message: '未知的队伍' }, 400)
+  }
+
+  const result = await removeSignup(
+    { teamId, name: str(body.name) ?? '', passcode: str(body.passcode) },
+    { capacity }
+  )
+
+  if (result.ok) {
+    return json({ ok: true, roster: result.roster })
+  }
+  return json(
+    { ok: false, code: result.code, message: result.message },
+    LEAVE_STATUS_BY_CODE[result.code]
+  )
 }
 
 const DETAIL_STATUS_BY_CODE: Record<DetailErrorCode, number> = {

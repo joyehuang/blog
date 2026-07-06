@@ -88,6 +88,14 @@ import { activity, teams } from '@/data/agent-teams'
             </button>
             <button
               type='button'
+              class='leave-toggle inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              data-leave-toggle
+              aria-expanded='false'
+            >
+              退出
+            </button>
+            <button
+              type='button'
               class='detail-edit-toggle hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
               data-detail-edit-toggle
               aria-expanded='false'
@@ -159,6 +167,41 @@ import { activity, teams } from '@/data/agent-teams'
                 提交报名
               </button>
               <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
+            </div>
+          </form>
+
+          <form class='leave-form mt-1 flex-col gap-2' data-leave-form hidden>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              你的 QQ 昵称（要和报名时一致）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='name'
+                type='text'
+                maxlength='24'
+                required
+                autocomplete='off'
+                placeholder='报名时填的昵称'
+              />
+            </label>
+            <label class='passcode-field flex-col gap-1 text-xs text-muted-foreground' data-passcode-field hidden>
+              报名口令
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                autocomplete='off'
+                placeholder='群里公布的口令'
+              />
+            </label>
+            <div class='flex items-center gap-3'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                确认退出
+              </button>
+              <p class='form-msg m-0 text-xs' data-leave-msg role='status'></p>
             </div>
           </form>
 
@@ -288,6 +331,9 @@ import { activity, teams } from '@/data/agent-teams'
   }
 
   .signup-form[data-open] {
+    display: flex;
+  }
+  .leave-form[data-open] {
     display: flex;
   }
   .detail-form[data-open] {
@@ -526,6 +572,63 @@ import { activity, teams } from '@/data/agent-teams'
       }
     })
 
+    // 退出 / 退赛：按昵称把自己从名单里删掉
+    const leaveToggle = card.querySelector<HTMLButtonElement>('[data-leave-toggle]')
+    const leaveForm = card.querySelector<HTMLFormElement>('[data-leave-form]')
+    if (leaveToggle && leaveForm) {
+      leaveToggle.addEventListener('click', () => {
+        if (board.dataset.configured !== 'true') return
+        const open = leaveForm.hasAttribute('data-open')
+        if (open) {
+          leaveForm.removeAttribute('data-open')
+          leaveForm.hidden = true
+          leaveToggle.setAttribute('aria-expanded', 'false')
+        } else {
+          leaveForm.setAttribute('data-open', '')
+          leaveForm.hidden = false
+          leaveToggle.setAttribute('aria-expanded', 'true')
+          leaveForm.querySelector<HTMLInputElement>('input[name="name"]')?.focus()
+        }
+      })
+
+      leaveForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const teamId = card.dataset.teamId || ''
+        const submitBtn = leaveForm.querySelector<HTMLButtonElement>('button[type="submit"]')
+        const data = new FormData(leaveForm)
+        const payload = {
+          teamId,
+          name: String(data.get('name') || ''),
+          passcode: String(data.get('passcode') || '')
+        }
+
+        if (submitBtn) submitBtn.disabled = true
+        setMsg(leaveForm, '处理中…', '', '[data-leave-msg]')
+        try {
+          const res = await fetch('/api/agent-teams', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          const body = await res.json()
+          if (res.ok && body.ok) {
+            renderRoster(card, body.roster as Team)
+            leaveForm.reset()
+            leaveForm.removeAttribute('data-open')
+            leaveForm.hidden = true
+            leaveToggle.setAttribute('aria-expanded', 'false')
+            setMsg(leaveForm, '已退出', 'success', '[data-leave-msg]')
+          } else {
+            setMsg(leaveForm, (body && body.message) || '操作失败，请稍后再试', 'error', '[data-leave-msg]')
+          }
+        } catch {
+          setMsg(leaveForm, '网络错误，请稍后再试', 'error', '[data-leave-msg]')
+        } finally {
+          if (submitBtn) submitBtn.disabled = false
+        }
+      })
+    }
+
     // 队长编辑「详细介绍」
     const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-edit-toggle]')
     const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
@@ -641,24 +744,24 @@ import { activity, teams } from '@/data/agent-teams'
       }
     }
 
-    // 未配置：禁用所有报名按钮
+    // 未配置：禁用所有报名 / 退出按钮
     if (!data.configured) {
       for (const card of cards.values()) {
-        const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
-        if (toggle) toggle.disabled = true
+        card
+          .querySelectorAll<HTMLButtonElement>('[data-signup-toggle], [data-leave-toggle]')
+          .forEach((toggle) => (toggle.disabled = true))
       }
     }
 
-    // 需要口令：显示每个表单里的口令输入
+    // 需要口令：显示每个表单里的口令输入（报名表单 + 退出表单都有）
     if (data.passcodeRequired) {
       for (const card of cards.values()) {
-        const field = card.querySelector<HTMLElement>('[data-passcode-field]')
-        if (field) {
+        card.querySelectorAll<HTMLElement>('[data-passcode-field]').forEach((field) => {
           field.dataset.show = ''
           field.hidden = false
           const input = field.querySelector<HTMLInputElement>('input[name="passcode"]')
           if (input) input.required = true
-        }
+        })
       }
     }
   }
