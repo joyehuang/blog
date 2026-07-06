@@ -5,6 +5,7 @@ import {
   addSignup,
   createTeam,
   detailEditable,
+  getBuiltinTracks,
   getCustomTeams,
   getDetails,
   getRosters,
@@ -21,15 +22,14 @@ import {
 // SSR endpoint —— 名单要实时，且要读服务端 env / DB，不能预渲染。
 export const prerender = false
 
-// 静态赛道的元信息，统一成 TeamMeta 形状（与自定义赛道拼在一起）。
-const staticMetas: TeamMeta[] = teams.map((t) => ({
+// 赛道以 DB 为准（getBuiltinTracks）；这份代码里的元信息只在「未配置 / DB 降级」时兜底。
+const fallbackMetas: TeamMeta[] = teams.map((t) => ({
   id: t.id,
   title: t.title,
   summary: t.summary,
   tags: t.tags ?? [],
   capacity: t.capacity ?? null
 }))
-const staticCapacity = new Map(staticMetas.map((m) => [m.id, m.capacity]))
 
 type TeamPayload = TeamMeta & {
   count: number
@@ -67,13 +67,13 @@ export const GET: APIRoute = async () => {
       configured: false,
       passcodeRequired: false,
       detailEditable: editable,
-      teams: buildTeams(staticMetas)
+      teams: buildTeams(fallbackMetas)
     })
   }
 
   try {
-    const customs = await getCustomTeams()
-    const metas = [...staticMetas, ...customs]
+    const [builtins, customs] = await Promise.all([getBuiltinTracks(), getCustomTeams()])
+    const metas = [...builtins, ...customs]
     const ids = metas.map((m) => m.id)
     const [rosters, details] = await Promise.all([getRosters(ids), getDetails(ids)])
     return json({
@@ -83,13 +83,13 @@ export const GET: APIRoute = async () => {
       teams: buildTeams(metas, rosters, details)
     })
   } catch {
-    // 数据库抖动——仍让页面渲染出静态赛道卡，只是名单/介绍/自定义赛道暂时为空。
+    // 数据库抖动——仍让页面渲染出赛道卡（用代码兜底），只是名单/介绍/自定义赛道暂时为空。
     return json({
       configured: true,
       degraded: true,
       passcodeRequired: passcodeRequired(),
       detailEditable: editable,
-      teams: buildTeams(staticMetas)
+      teams: buildTeams(fallbackMetas)
     })
   }
 }
@@ -113,11 +113,13 @@ function resolveIp(request: Request, clientAddress: string | undefined): string 
   }
 }
 
-/** 某队的名额：静态赛道用配置；自定义赛道名额不限（null）；都不是则 undefined = 未知 */
+/** 某队的名额：从 DB 的内置 + 自定义赛道里查；查不到则 undefined = 未知队伍 */
 async function resolveCapacity(teamId: string): Promise<number | null | undefined> {
-  if (staticCapacity.has(teamId)) return staticCapacity.get(teamId) ?? null
-  const customs = await getCustomTeams().catch(() => [] as TeamMeta[])
-  const found = customs.find((t) => t.id === teamId)
+  const [builtins, customs] = await Promise.all([
+    getBuiltinTracks().catch(() => [] as TeamMeta[]),
+    getCustomTeams().catch(() => [] as TeamMeta[])
+  ])
+  const found = [...builtins, ...customs].find((t) => t.id === teamId)
   return found ? found.capacity : undefined
 }
 

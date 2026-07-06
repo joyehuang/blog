@@ -22,6 +22,8 @@
 
 import { neon } from '@neondatabase/serverless'
 
+import { teams as seedTracks } from '@/data/agent-teams'
+
 /** 对外暴露的成员（不含联系方式 / IP） */
 export type PublicMember = { name: string; note: string | null; ts: number }
 
@@ -178,7 +180,42 @@ async function ensureSchema(sql: Sql): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+  // 内置赛道：标题/简介/标签/名额入库，以 DB 为准（可后台改而不必改代码 + 重新部署）。
+  // 代码里的 teams 只作「种子」：首次启动补齐缺失的赛道，已存在的行不动。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_tracks (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+      capacity INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  await seedBuiltinTracks(sql)
   schemaReady = true
+}
+
+/**
+ * 把代码里的内置赛道种进 agent_team_tracks：只补「表里还没有」的 id，已存在的行原样保留
+ * （标题/简介以 DB 为准）。稳态下就一次 SELECT、零 INSERT。
+ */
+async function seedBuiltinTracks(sql: Sql): Promise<void> {
+  const rows = (await sql`SELECT id FROM agent_team_tracks`) as { id: string }[]
+  const have = new Set(rows.map((r) => r.id))
+  for (let i = 0; i < seedTracks.length; i++) {
+    const t = seedTracks[i]
+    if (have.has(t.id)) continue
+    await sql`
+      INSERT INTO agent_team_tracks (id, title, summary, tags, capacity, sort_order)
+      VALUES (
+        ${t.id}, ${t.title}, ${t.summary},
+        ${JSON.stringify(t.tags ?? [])}::jsonb, ${t.capacity ?? null}, ${i}
+      )
+      ON CONFLICT (id) DO NOTHING
+    `
+  }
 }
 
 // --- 校验帮助函数 -------------------------------------------------------
@@ -411,6 +448,28 @@ export type CreateErrorCode =
 export type CreateResult =
   | { ok: true; team: TeamMeta }
   | { ok: false; code: CreateErrorCode; message: string }
+
+/** 读取所有内置赛道（以 DB 为准，按 sort_order 升序），统一成 TeamMeta 形状 */
+export async function getBuiltinTracks(): Promise<TeamMeta[]> {
+  const sql = getSql()
+  if (!sql) return []
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT id, title, summary, tags, capacity
+    FROM agent_team_tracks
+    ORDER BY sort_order ASC, created_at ASC
+  `) as { id: string; title: string; summary: string; tags: unknown; capacity: number | null }[]
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    summary: r.summary,
+    // JSONB 经 neon 驱动已解析成 JS 值；兜底成字符串数组。
+    tags: Array.isArray(r.tags) ? r.tags.map((x) => String(x)) : [],
+    capacity: r.capacity
+  }))
+}
 
 /** 读取所有用户自定义赛道（按创建时间升序），统一成 TeamMeta 形状 */
 export async function getCustomTeams(): Promise<TeamMeta[]> {

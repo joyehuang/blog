@@ -415,13 +415,9 @@ import { activity, teams } from '@/data/agent-teams'
     }
   }
 
-  // 自定义赛道没有预渲染的卡：克隆一张静态卡当模板，重置后填入新赛道信息。
-  function buildCard(pristine: HTMLElement, team: Team): HTMLElement {
-    const card = pristine.cloneNode(true) as HTMLElement
-    card.dataset.teamId = team.id
+  // 标题 / 简介 / 标签以 DB 为准，每次拉到数据都覆盖到卡上（预渲染值只是首屏兜底）。
+  function renderMeta(card: HTMLElement, team: Team) {
     card.dataset.capacity = team.capacity != null ? String(team.capacity) : ''
-    delete card.dataset.full
-    delete card.dataset.detail
 
     const title = card.querySelector<HTMLElement>('[data-title]')
     if (title) title.textContent = team.title
@@ -429,20 +425,29 @@ import { activity, teams } from '@/data/agent-teams'
     if (summary) summary.textContent = team.summary
 
     const tags = card.querySelector<HTMLElement>('[data-tags]')
-    if (tags) {
-      if (team.tags && team.tags.length > 0) {
-        tags.replaceChildren(
-          ...team.tags.map((tag) => {
-            const span = document.createElement('span')
-            span.className = 'rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'
-            span.textContent = '#' + tag
-            return span
-          })
-        )
-      } else {
-        tags.remove()
-      }
+    if (!tags) return
+    if (team.tags && team.tags.length > 0) {
+      tags.replaceChildren(
+        ...team.tags.map((tag) => {
+          const span = document.createElement('span')
+          span.className = 'rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'
+          span.textContent = '#' + tag
+          return span
+        })
+      )
+    } else {
+      tags.remove() // 无标签就移除容器，避免空 flex 项撑出多余间距
     }
+  }
+
+  // 自定义赛道没有预渲染的卡：克隆一张静态卡当模板，重置后填入新赛道信息。
+  function buildCard(pristine: HTMLElement, team: Team): HTMLElement {
+    const card = pristine.cloneNode(true) as HTMLElement
+    card.dataset.teamId = team.id
+    delete card.dataset.full
+    delete card.dataset.detail
+
+    renderMeta(card, team)
 
     const detail = card.querySelector<HTMLElement>('[data-detail]')
     if (detail) {
@@ -610,6 +615,7 @@ import { activity, teams } from '@/data/agent-teams'
         cards.set(team.id, card)
         wireCard(card, board)
       }
+      renderMeta(card, team) // 标题/简介/标签以 DB 为准，覆盖预渲染值
       renderRoster(card, team)
       renderDetail(card, team.detail)
     }
