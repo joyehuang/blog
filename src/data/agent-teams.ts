@@ -123,6 +123,13 @@ export const teams: AgentTeam[] = [
     capacity: 6
   },
   {
+    id: 'learning-agent',
+    title: '学习领域 Agent',
+    summary: '规划路线、出题讲解、追踪进度，陪你把一个领域啃下来。',
+    tags: ['learning', 'tutor'],
+    capacity: 6
+  },
+  {
     id: 'open-track',
     title: '自命题赛道',
     summary: '没有命题，你来定义。任何脑洞都能在这里开一队。',
