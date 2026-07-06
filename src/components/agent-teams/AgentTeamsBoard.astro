@@ -31,7 +31,7 @@ import { activity, teams } from '@/data/agent-teams'
   >
   </p>
 
-  <div class='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+  <div class='grid grid-cols-1 gap-4 sm:grid-cols-2' data-team-grid>
     {
       teams.map((team) => (
         <article
@@ -40,7 +40,7 @@ import { activity, teams } from '@/data/agent-teams'
           data-capacity={team.capacity ?? ''}
         >
           <div class='flex items-start justify-between gap-3'>
-            <h2 class='m-0 text-lg font-medium text-foreground'>{team.title}</h2>
+            <h2 class='m-0 text-lg font-medium text-foreground' data-title>{team.title}</h2>
             <span
               class='shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
               data-count-label
@@ -49,10 +49,10 @@ import { activity, teams } from '@/data/agent-teams'
             </span>
           </div>
 
-          <p class='m-0 text-sm leading-snug text-muted-foreground'>{team.summary}</p>
+          <p class='m-0 text-sm leading-snug text-muted-foreground' data-summary>{team.summary}</p>
 
           {team.tags && team.tags.length > 0 && (
-            <div class='flex flex-wrap gap-1.5'>
+            <div class='flex flex-wrap gap-1.5' data-tags>
               {team.tags.map((tag) => (
                 <span class='rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'>
                   #{tag}
@@ -61,11 +61,17 @@ import { activity, teams } from '@/data/agent-teams'
             </div>
           )}
 
+          <div
+            class='team-detail hidden whitespace-pre-wrap rounded-lg border border-dashed px-3 py-2 text-sm leading-relaxed text-muted-foreground'
+            data-detail
+          >
+          </div>
+
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
             <li class='roster-empty text-xs text-muted-foreground'>加载中…</li>
           </ul>
 
-          <div class='mt-auto pt-1'>
+          <div class='mt-auto flex flex-wrap items-center gap-2 pt-1'>
             <button
               type='button'
               class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
@@ -74,11 +80,19 @@ import { activity, teams } from '@/data/agent-teams'
             >
               报名 / 加入
             </button>
+            <button
+              type='button'
+              class='detail-edit-toggle hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              data-detail-edit-toggle
+              aria-expanded='false'
+            >
+              队长编辑
+            </button>
           </div>
 
           <form class='signup-form mt-1 flex-col gap-2' data-signup-form hidden>
             <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
-              昵称（会公开显示）
+              QQ 昵称（会公开显示，方便认人）
               <input
                 class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
                 name='name'
@@ -86,18 +100,18 @@ import { activity, teams } from '@/data/agent-teams'
                 maxlength='24'
                 required
                 autocomplete='off'
-                placeholder='你的昵称'
+                placeholder='你的 QQ 昵称'
               />
             </label>
             <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
-              联系方式（可选，仅组织者可见）
+              QQ（可选，仅组织者可见，方便拉你进队）
               <input
                 class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
                 name='contact'
                 type='text'
                 maxlength='60'
                 autocomplete='off'
-                placeholder='微信 / 邮箱等'
+                placeholder='你的 QQ 号'
               />
             </label>
             <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
@@ -141,9 +155,119 @@ import { activity, teams } from '@/data/agent-teams'
               <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
             </div>
           </form>
+
+          <form class='detail-form mt-1 flex-col gap-2' data-detail-form hidden>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              口令（粉丝群的名字）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                autocomplete='off'
+                placeholder='粉丝群的名字'
+                required
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              详细介绍（会公开显示，最多 600 字，可分段）
+              <textarea
+                class='min-h-[7rem] rounded-lg border bg-background px-2.5 py-1.5 text-sm leading-relaxed text-foreground'
+                name='detail'
+                maxlength='600'
+                placeholder='多写点：这支队想做成什么样、技术路线、想找什么样的队友…'
+              ></textarea>
+            </label>
+            <div class='flex items-center gap-3'>
+              <button
+                type='submit'
+                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                保存介绍
+              </button>
+              <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
+            </div>
+          </form>
         </article>
       ))
     }
+  </div>
+
+  {/* 自命题：自助创建一个新赛道卡片 */}
+  <div class='create-card mt-4 rounded-xl border border-dashed bg-background p-4 sm:p-5' data-create-card>
+    <div class='flex items-start justify-between gap-3'>
+      <div class='min-w-0'>
+        <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
+        <p class='m-0 mt-1 text-sm leading-snug text-muted-foreground'>
+          自命题：创建一个属于你的赛道，别人也能来加入。
+        </p>
+      </div>
+      <button
+        type='button'
+        class='create-toggle inline-flex shrink-0 items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+        data-create-toggle
+        aria-expanded='false'
+      >
+        ＋ 创建赛道
+      </button>
+    </div>
+
+    <form class='create-form mt-3 flex-col gap-2' data-create-form hidden>
+      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+        赛道名称
+        <input
+          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+          name='title'
+          type='text'
+          maxlength='30'
+          required
+          autocomplete='off'
+          placeholder='例如：会写周报的 Agent'
+        />
+      </label>
+      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+        一句话简介
+        <input
+          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+          name='summary'
+          type='text'
+          maxlength='80'
+          required
+          autocomplete='off'
+          placeholder='它能做什么，一句话说清'
+        />
+      </label>
+      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+        口令（粉丝群的名字）
+        <input
+          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+          name='passcode'
+          type='text'
+          maxlength='40'
+          required
+          autocomplete='off'
+          placeholder='粉丝群的名字'
+        />
+      </label>
+
+      {/* 蜜罐 */}
+      <div class='hp-field' aria-hidden='true'>
+        <label>
+          Leave this empty
+          <input name='hp' type='text' tabindex='-1' autocomplete='off' />
+        </label>
+      </div>
+
+      <div class='flex items-center gap-3'>
+        <button
+          type='submit'
+          class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+        >
+          创建
+        </button>
+        <p class='form-msg m-0 text-xs' data-create-msg role='status'></p>
+      </div>
+    </form>
   </div>
 </section>
 
@@ -159,6 +283,15 @@ import { activity, teams } from '@/data/agent-teams'
 
   .signup-form[data-open] {
     display: flex;
+  }
+  .detail-form[data-open] {
+    display: flex;
+  }
+  .create-form[data-open] {
+    display: flex;
+  }
+  .detail-edit-toggle[data-show] {
+    display: inline-flex;
   }
   .passcode-field[data-show] {
     display: flex;
@@ -197,11 +330,21 @@ import { activity, teams } from '@/data/agent-teams'
 
 <script>
   type Member = { name: string; note: string | null; ts: number }
-  type Team = { id: string; count: number; capacity: number | null; members: Member[] }
+  type Team = {
+    id: string
+    title: string
+    summary: string
+    tags: string[]
+    count: number
+    capacity: number | null
+    members: Member[]
+    detail: string | null
+  }
   type BoardData = {
     configured: boolean
     degraded?: boolean
     passcodeRequired: boolean
+    detailEditable: boolean
     teams: Team[]
   }
 
@@ -216,12 +359,28 @@ import { activity, teams } from '@/data/agent-teams'
     )
   }
 
-  function setMsg(form: HTMLElement, text: string, tone: 'error' | 'success' | '' = '') {
-    const el = form.querySelector<HTMLElement>('[data-form-msg]')
+  function setMsg(
+    form: HTMLElement,
+    text: string,
+    tone: 'error' | 'success' | '' = '',
+    selector = '[data-form-msg]'
+  ) {
+    const el = form.querySelector<HTMLElement>(selector)
     if (!el) return
     el.textContent = text
     if (tone) el.dataset.tone = tone
     else delete el.dataset.tone
+  }
+
+  function renderDetail(card: HTMLElement, value: string | null) {
+    const box = card.querySelector<HTMLElement>('[data-detail]')
+    if (!box) return
+    const detail = value ?? ''
+    box.textContent = detail // textContent + pre-wrap — 用户输入不当 HTML 解析
+    box.hidden = detail.length === 0
+    box.classList.toggle('hidden', detail.length === 0)
+    // 缓存当前值，供队长编辑表单预填
+    card.dataset.detail = detail
   }
 
   function renderRoster(card: HTMLElement, team: Team) {
@@ -254,6 +413,49 @@ import { activity, teams } from '@/data/agent-teams'
       if (member.note) li.title = member.note
       roster.appendChild(li)
     }
+  }
+
+  // 标题 / 简介 / 标签以 DB 为准，每次拉到数据都覆盖到卡上（预渲染值只是首屏兜底）。
+  function renderMeta(card: HTMLElement, team: Team) {
+    card.dataset.capacity = team.capacity != null ? String(team.capacity) : ''
+
+    const title = card.querySelector<HTMLElement>('[data-title]')
+    if (title) title.textContent = team.title
+    const summary = card.querySelector<HTMLElement>('[data-summary]')
+    if (summary) summary.textContent = team.summary
+
+    const tags = card.querySelector<HTMLElement>('[data-tags]')
+    if (!tags) return
+    if (team.tags && team.tags.length > 0) {
+      tags.replaceChildren(
+        ...team.tags.map((tag) => {
+          const span = document.createElement('span')
+          span.className = 'rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground'
+          span.textContent = '#' + tag
+          return span
+        })
+      )
+    } else {
+      tags.remove() // 无标签就移除容器，避免空 flex 项撑出多余间距
+    }
+  }
+
+  // 自定义赛道没有预渲染的卡：克隆一张静态卡当模板，重置后填入新赛道信息。
+  function buildCard(pristine: HTMLElement, team: Team): HTMLElement {
+    const card = pristine.cloneNode(true) as HTMLElement
+    card.dataset.teamId = team.id
+    delete card.dataset.full
+    delete card.dataset.detail
+
+    renderMeta(card, team)
+
+    const detail = card.querySelector<HTMLElement>('[data-detail]')
+    if (detail) {
+      detail.textContent = ''
+      detail.hidden = true
+      detail.classList.add('hidden')
+    }
+    return card
   }
 
   function wireCard(card: HTMLElement, board: HTMLElement) {
@@ -317,9 +519,73 @@ import { activity, teams } from '@/data/agent-teams'
         if (submitBtn) submitBtn.disabled = false
       }
     })
+
+    // 队长编辑「详细介绍」
+    const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-edit-toggle]')
+    const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
+    if (detailToggle && detailForm) {
+      const textarea = detailForm.querySelector<HTMLTextAreaElement>('textarea[name="detail"]')
+
+      detailToggle.addEventListener('click', () => {
+        const open = detailForm.hasAttribute('data-open')
+        if (open) {
+          detailForm.removeAttribute('data-open')
+          detailForm.hidden = true
+          detailToggle.setAttribute('aria-expanded', 'false')
+        } else {
+          if (textarea) textarea.value = card.dataset.detail || ''
+          detailForm.setAttribute('data-open', '')
+          detailForm.hidden = false
+          detailToggle.setAttribute('aria-expanded', 'true')
+          detailForm.querySelector<HTMLInputElement>('input[name="passcode"]')?.focus()
+        }
+      })
+
+      detailForm.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const teamId = card.dataset.teamId || ''
+        const saveBtn = detailForm.querySelector<HTMLButtonElement>('button[type="submit"]')
+        const data = new FormData(detailForm)
+        const payload = {
+          teamId,
+          detail: String(data.get('detail') || ''),
+          passcode: String(data.get('passcode') || '')
+        }
+
+        if (saveBtn) saveBtn.disabled = true
+        setMsg(detailForm, '保存中…', '', '[data-detail-msg]')
+        try {
+          const res = await fetch('/api/agent-teams', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          const body = await res.json()
+          if (res.ok && body.ok) {
+            renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
+            detailForm.removeAttribute('data-open')
+            detailForm.hidden = true
+            detailToggle.setAttribute('aria-expanded', 'false')
+            setMsg(detailForm, '已更新！', 'success', '[data-detail-msg]')
+          } else {
+            setMsg(detailForm, (body && body.message) || '保存失败，请稍后再试', 'error', '[data-detail-msg]')
+          }
+        } catch {
+          setMsg(detailForm, '网络错误，请稍后再试', 'error', '[data-detail-msg]')
+        } finally {
+          if (saveBtn) saveBtn.disabled = false
+        }
+      })
+    }
   }
 
-  function applyState(board: HTMLElement, cards: Map<string, HTMLElement>, data: BoardData) {
+  function applyState(
+    board: HTMLElement,
+    grid: HTMLElement | null,
+    pristine: HTMLElement | null,
+    cards: Map<string, HTMLElement>,
+    data: BoardData
+  ) {
     board.dataset.configured = data.configured ? 'true' : 'false'
     board.dataset.passcodeRequired = data.passcodeRequired ? 'true' : 'false'
 
@@ -340,8 +606,33 @@ import { activity, teams } from '@/data/agent-teams'
     }
 
     for (const team of data.teams) {
-      const card = cards.get(team.id)
-      if (card) renderRoster(card, team)
+      let card = cards.get(team.id)
+      if (!card) {
+        // 自定义赛道：动态建卡并接线
+        if (!pristine || !grid) continue
+        card = buildCard(pristine, team)
+        grid.appendChild(card)
+        cards.set(team.id, card)
+        wireCard(card, board)
+      }
+      renderMeta(card, team) // 标题/简介/标签以 DB 为准，覆盖预渲染值
+      renderRoster(card, team)
+      renderDetail(card, team.detail)
+    }
+
+    // 未配置：禁用「创建赛道」入口
+    const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
+    if (createToggle) createToggle.disabled = !data.configured
+
+    // 开放了队长编辑：显示每张卡的「队长编辑」入口
+    if (data.detailEditable) {
+      for (const card of cards.values()) {
+        const toggle = card.querySelector<HTMLElement>('[data-detail-edit-toggle]')
+        if (toggle) {
+          toggle.dataset.show = ''
+          toggle.classList.remove('hidden')
+        }
+      }
     }
 
     // 未配置：禁用所有报名按钮
@@ -366,7 +657,75 @@ import { activity, teams } from '@/data/agent-teams'
     }
   }
 
+  // 「创建赛道」表单：提交成功后 reload 重新拉一次名单，新卡就会出现。
+  function wireCreateCard(board: HTMLElement, reload: () => Promise<void>) {
+    const wrap = board.querySelector<HTMLElement>('[data-create-card]')
+    if (!wrap) return
+    const toggle = wrap.querySelector<HTMLButtonElement>('[data-create-toggle]')
+    const form = wrap.querySelector<HTMLFormElement>('[data-create-form]')
+    if (!toggle || !form) return
+
+    toggle.addEventListener('click', () => {
+      if (board.dataset.configured !== 'true') return
+      const open = form.hasAttribute('data-open')
+      if (open) {
+        form.removeAttribute('data-open')
+        form.hidden = true
+        toggle.setAttribute('aria-expanded', 'false')
+      } else {
+        form.setAttribute('data-open', '')
+        form.hidden = false
+        toggle.setAttribute('aria-expanded', 'true')
+        form.querySelector<HTMLInputElement>('input[name="title"]')?.focus()
+      }
+    })
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+      const data = new FormData(form)
+      const payload = {
+        action: 'create',
+        title: String(data.get('title') || ''),
+        summary: String(data.get('summary') || ''),
+        passcode: String(data.get('passcode') || ''),
+        hp: String(data.get('hp') || '')
+      }
+
+      if (submitBtn) submitBtn.disabled = true
+      setMsg(form, '创建中…', '', '[data-create-msg]')
+      try {
+        const res = await fetch('/api/agent-teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        const body = await res.json()
+        if (res.ok && body.ok) {
+          form.reset()
+          form.removeAttribute('data-open')
+          form.hidden = true
+          toggle.setAttribute('aria-expanded', 'false')
+          setMsg(form, '创建成功！已加到下面', 'success', '[data-create-msg]')
+          await reload()
+        } else {
+          setMsg(form, (body && body.message) || '创建失败，请稍后再试', 'error', '[data-create-msg]')
+        }
+      } catch {
+        setMsg(form, '网络错误，请稍后再试', 'error', '[data-create-msg]')
+      } finally {
+        if (submitBtn) submitBtn.disabled = false
+      }
+    })
+  }
+
   function initBoard(board: HTMLElement) {
+    const grid = board.querySelector<HTMLElement>('[data-team-grid]')
+    // 在任何改动前，克隆第一张静态卡当作自定义卡的模板。
+    const pristine = board.querySelector<HTMLElement>('[data-team-id]')?.cloneNode(true) as
+      | HTMLElement
+      | undefined
+
     const cards = new Map<string, HTMLElement>()
     board.querySelectorAll<HTMLElement>('[data-team-id]').forEach((card) => {
       const id = card.dataset.teamId
@@ -375,17 +734,23 @@ import { activity, teams } from '@/data/agent-teams'
       wireCard(card, board)
     })
 
-    fetch('/api/agent-teams', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data: BoardData) => applyState(board, cards, data))
-      .catch(() => {
-        const banner = board.querySelector<HTMLElement>('[data-board-banner]')
-        if (banner) {
-          banner.textContent = '名单暂时加载不出来，请稍后刷新重试。'
-          banner.hidden = false
-          banner.classList.remove('hidden')
-        }
-      })
+    const showBannerError = () => {
+      const banner = board.querySelector<HTMLElement>('[data-board-banner]')
+      if (banner) {
+        banner.textContent = '名单暂时加载不出来，请稍后刷新重试。'
+        banner.hidden = false
+        banner.classList.remove('hidden')
+      }
+    }
+
+    const reload = () =>
+      fetch('/api/agent-teams', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data: BoardData) => applyState(board, grid, pristine ?? null, cards, data))
+        .catch(showBannerError)
+
+    wireCreateCard(board, reload)
+    reload()
   }
 
   const board = document.querySelector<HTMLElement>('[data-agent-board]')

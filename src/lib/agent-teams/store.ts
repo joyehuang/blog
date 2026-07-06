@@ -22,6 +22,8 @@
 
 import { neon } from '@neondatabase/serverless'
 
+import { teams as seedTracks } from '@/data/agent-teams'
+
 /** 对外暴露的成员（不含联系方式 / IP） */
 export type PublicMember = { name: string; note: string | null; ts: number }
 
@@ -31,6 +33,15 @@ export type TeamRoster = {
   count: number
   capacity: number | null
   members: PublicMember[]
+}
+
+/** 队伍元信息（标题/简介/标签/名额）——静态赛道与自定义赛道统一成这个形状 */
+export type TeamMeta = {
+  id: string
+  title: string
+  summary: string
+  tags: string[]
+  capacity: number | null
 }
 
 /** 报名提交入参 */
@@ -62,9 +73,14 @@ export type SignupResult =
 const NAME_MAX = 24
 const NOTE_MAX = 60
 const CONTACT_MAX = 60
+const DETAIL_MAX = 600
+const TITLE_MAX = 30
+const SUMMARY_MAX = 80
 // 轻量限流：同一 IP 在窗口内最多成功报名这么多次。
 const RATE_LIMIT = 5
 const RATE_WINDOW_SEC = 600
+// 同一 IP 在窗口内最多创建这么多个自定义赛道。
+const CREATE_RATE_LIMIT = 3
 
 // --- 环境 / 配置 ---------------------------------------------------------
 
@@ -93,6 +109,21 @@ export function isConfigured(): boolean {
 /** 是否设置了报名口令 */
 export function passcodeRequired(): boolean {
   return getPasscode() !== null
+}
+
+// 编辑/建赛道口令：一个默认口令即可，默认值就是粉丝群的名字（群成员都知道）。
+// 想让它不出现在公开仓库里，可在 Vercel 配 AGENT_TEAMS_EDIT_PASSCODE 覆盖。
+// 注意：这只是「挡住路人」的轻门槛，不是强安全。报名本身不需要这个口令。
+const DEFAULT_EDIT_PASSCODE = '一群开心快乐的小奶龙'
+
+function getEditPasscode(): string {
+  const p = import.meta.env.AGENT_TEAMS_EDIT_PASSCODE ?? process.env.AGENT_TEAMS_EDIT_PASSCODE
+  return p && String(p).length > 0 ? String(p) : DEFAULT_EDIT_PASSCODE
+}
+
+/** 编辑简介 / 建赛道是否开放——总有默认口令，故恒为 true（保留给未来做锁定开关） */
+export function detailEditable(): boolean {
+  return true
 }
 
 // --- 连接 / 表结构 -------------------------------------------------------
@@ -131,7 +162,60 @@ async function ensureSchema(sql: Sql): Promise<void> {
     CREATE INDEX IF NOT EXISTS agent_team_signups_team_created
       ON agent_team_signups (team_id, created_at)
   `
+  // 队长维护的「详细介绍」，一队一行，队长编辑时 upsert。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_details (
+      team_id TEXT PRIMARY KEY,
+      detail TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  // 用户自助创建的「自命题赛道」，一队一行。id 用 custom-<uuid8>，名单/介绍与静态赛道共表。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_customs (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      ip TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  // 内置赛道：标题/简介/标签/名额入库，以 DB 为准（可后台改而不必改代码 + 重新部署）。
+  // 代码里的 teams 只作「种子」：首次启动补齐缺失的赛道，已存在的行不动。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_tracks (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+      capacity INTEGER,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  await seedBuiltinTracks(sql)
   schemaReady = true
+}
+
+/**
+ * 把代码里的内置赛道种进 agent_team_tracks：只补「表里还没有」的 id，已存在的行原样保留
+ * （标题/简介以 DB 为准）。稳态下就一次 SELECT、零 INSERT。
+ */
+async function seedBuiltinTracks(sql: Sql): Promise<void> {
+  const rows = (await sql`SELECT id FROM agent_team_tracks`) as { id: string }[]
+  const have = new Set(rows.map((r) => r.id))
+  for (let i = 0; i < seedTracks.length; i++) {
+    const t = seedTracks[i]
+    if (have.has(t.id)) continue
+    await sql`
+      INSERT INTO agent_team_tracks (id, title, summary, tags, capacity, sort_order)
+      VALUES (
+        ${t.id}, ${t.title}, ${t.summary},
+        ${JSON.stringify(t.tags ?? [])}::jsonb, ${t.capacity ?? null}, ${i}
+      )
+      ON CONFLICT (id) DO NOTHING
+    `
+  }
 }
 
 // --- 校验帮助函数 -------------------------------------------------------
@@ -142,6 +226,19 @@ const CONTROL_CHARS = new RegExp('[\\u0000-\\u001F\\u007F]', 'g')
 
 function cleanText(input: string): string {
   return input.replace(CONTROL_CHARS, ' ').replace(/\s+/g, ' ').trim()
+}
+
+// 详细介绍要保留换行（队长要分段阐述），所以只去掉除换行外的控制字符，
+// 并折叠横向空白与多余空行。渲染端用 textContent + white-space: pre-wrap，无 XSS。
+const CONTROL_EXCEPT_NL = new RegExp('[\\u0000-\\u0009\\u000B-\\u001F\\u007F]', 'g')
+
+function cleanMultiline(input: string): string {
+  return input
+    .replace(CONTROL_EXCEPT_NL, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 type RosterRow = { name: string; note: string | null; ts_sec: number }
@@ -173,6 +270,25 @@ export async function getRosters(teamIds: string[]): Promise<Record<string, Publ
     if (!out[row.team_id]) out[row.team_id] = []
     out[row.team_id].push(rowToMember(row))
   }
+  return out
+}
+
+/** 批量读取多支队伍的「详细介绍」，返回 { teamId: detail }（无则不含该键） */
+export async function getDetails(teamIds: string[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {}
+  if (teamIds.length === 0) return out
+
+  const sql = getSql()
+  if (!sql) return out
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT team_id, detail
+    FROM agent_team_details
+    WHERE team_id = ANY(${teamIds})
+  `) as { team_id: string; detail: string }[]
+
+  for (const row of rows) out[row.team_id] = row.detail
   return out
 }
 
@@ -263,5 +379,159 @@ export async function addSignup(
     }
   } catch {
     return { ok: false, code: 'store_error', message: '写入失败，请稍后再试' }
+  }
+}
+
+// --- 队长编辑详细介绍 ---------------------------------------------------
+
+export type DetailUpdateInput = {
+  teamId: string
+  detail: string
+  passcode?: string
+}
+
+export type DetailErrorCode = 'not_configured' | 'passcode' | 'store_error'
+
+export type DetailResult =
+  | { ok: true; teamId: string; detail: string }
+  | { ok: false; code: DetailErrorCode; message: string }
+
+/**
+ * 队长更新某队的详细介绍。口令匹配该队的队长口令、或匹配管理员口令才放行。
+ * detail 传空串表示清空（删除该行）。teamId 合法性由调用方校验。
+ */
+export async function updateDetail(input: DetailUpdateInput): Promise<DetailResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
+
+  if ((input.passcode ?? '') !== getEditPasscode()) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
+
+  const detail = cleanMultiline(input.detail ?? '').slice(0, DETAIL_MAX)
+
+  try {
+    await ensureSchema(sql)
+    if (detail.length === 0) {
+      await sql`DELETE FROM agent_team_details WHERE team_id = ${input.teamId}`
+      return { ok: true, teamId: input.teamId, detail: '' }
+    }
+    await sql`
+      INSERT INTO agent_team_details (team_id, detail, updated_at)
+      VALUES (${input.teamId}, ${detail}, now())
+      ON CONFLICT (team_id) DO UPDATE SET detail = EXCLUDED.detail, updated_at = now()
+    `
+    return { ok: true, teamId: input.teamId, detail }
+  } catch {
+    return { ok: false, code: 'store_error', message: '保存失败，请稍后再试' }
+  }
+}
+
+// --- 自命题：用户自助创建赛道 -------------------------------------------
+
+export type CreateTeamInput = {
+  title: string
+  summary: string
+  passcode?: string
+  /** 蜜罐字段：正常用户永远为空 */
+  hp?: string
+  ip?: string | null
+}
+
+export type CreateErrorCode =
+  | 'not_configured'
+  | 'invalid'
+  | 'passcode'
+  | 'rate_limited'
+  | 'store_error'
+
+export type CreateResult =
+  | { ok: true; team: TeamMeta }
+  | { ok: false; code: CreateErrorCode; message: string }
+
+/** 读取所有内置赛道（以 DB 为准，按 sort_order 升序），统一成 TeamMeta 形状 */
+export async function getBuiltinTracks(): Promise<TeamMeta[]> {
+  const sql = getSql()
+  if (!sql) return []
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT id, title, summary, tags, capacity
+    FROM agent_team_tracks
+    ORDER BY sort_order ASC, created_at ASC
+  `) as { id: string; title: string; summary: string; tags: unknown; capacity: number | null }[]
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    summary: r.summary,
+    // JSONB 经 neon 驱动已解析成 JS 值；兜底成字符串数组。
+    tags: Array.isArray(r.tags) ? r.tags.map((x) => String(x)) : [],
+    capacity: r.capacity
+  }))
+}
+
+/** 读取所有用户自定义赛道（按创建时间升序），统一成 TeamMeta 形状 */
+export async function getCustomTeams(): Promise<TeamMeta[]> {
+  const sql = getSql()
+  if (!sql) return []
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT id, title, summary
+    FROM agent_team_customs
+    ORDER BY created_at ASC
+  `) as { id: string; title: string; summary: string }[]
+
+  // 自定义赛道无标签、名额不限。
+  return rows.map((r) => ({ id: r.id, title: r.title, summary: r.summary, tags: [], capacity: null }))
+}
+
+/** 创建一个自定义赛道。口令匹配编辑口令才放行。 */
+export async function createTeam(input: CreateTeamInput): Promise<CreateResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
+
+  // 蜜罐。
+  if (input.hp && input.hp.trim().length > 0) {
+    return { ok: false, code: 'invalid', message: '提交无效' }
+  }
+  if ((input.passcode ?? '') !== getEditPasscode()) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
+
+  const title = cleanText(input.title ?? '')
+  if (title.length === 0 || title.length > TITLE_MAX) {
+    return { ok: false, code: 'invalid', message: `赛道名称需为 1–${TITLE_MAX} 个字符` }
+  }
+  const summary = cleanText(input.summary ?? '').slice(0, SUMMARY_MAX)
+  if (summary.length === 0) {
+    return { ok: false, code: 'invalid', message: '简介不能为空' }
+  }
+  const ip = input.ip ?? null
+  const id = `custom-${crypto.randomUUID().slice(0, 8)}`
+
+  try {
+    await ensureSchema(sql)
+
+    // 限流：同一 IP 短时间内创建太多赛道就挡一下。
+    if (ip) {
+      const limitRows = (await sql`
+        SELECT count(*)::int AS n
+        FROM agent_team_customs
+        WHERE ip = ${ip} AND created_at > now() - (${RATE_WINDOW_SEC} * interval '1 second')
+      `) as { n: number }[]
+      if ((limitRows[0]?.n ?? 0) >= CREATE_RATE_LIMIT) {
+        return { ok: false, code: 'rate_limited', message: '创建太频繁了，歇一会儿再来' }
+      }
+    }
+
+    await sql`
+      INSERT INTO agent_team_customs (id, title, summary, ip)
+      VALUES (${id}, ${title}, ${summary}, ${ip})
+    `
+    return { ok: true, team: { id, title, summary, tags: [], capacity: null } }
+  } catch {
+    return { ok: false, code: 'store_error', message: '创建失败，请稍后再试' }
   }
 }

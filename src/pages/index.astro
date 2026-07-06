@@ -484,15 +484,10 @@ const agentHackathonLink =
           </p>
           <div class='mt-3 flex flex-wrap items-center gap-2'>
             <a
-              href={agentHackathonLink}
-              target='_blank'
-              rel='noopener noreferrer'
+              href='/agent-teams'
               class='group inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background no-underline transition-transform hover:-translate-y-0.5'
-              data-analytics-event='agent_competition_click'
-              data-analytics-surface='agent_popout'
-              data-analytics-action='external_link'
             >
-              去看群比赛
+              去组队
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 width='16'
@@ -510,38 +505,21 @@ const agentHackathonLink =
                 <path d='m12 5 7 7-7 7'></path>
               </svg>
             </a>
-            <button
-              type='button'
-              data-agent-popout-minimize
-              class='rounded-full border bg-background px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+            <a
+              href={agentHackathonLink}
+              target='_blank'
+              rel='noopener noreferrer'
+              class='inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline'
               data-analytics-event='agent_competition_click'
               data-analytics-surface='agent_popout'
-              data-analytics-action='minimize'
+              data-analytics-action='external_link'
             >
-              收进角落
-            </button>
+              活动详情 ↗
+            </a>
           </div>
         </div>
       </div>
     </div>
-
-    <button
-      type='button'
-      data-agent-popout-pill
-      class='agent-popout-pill hidden items-center gap-2 rounded-full border bg-background/95 px-3 py-2 text-sm font-medium shadow-lg backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-xl'
-      aria-label='展开第一届 Joye 粉丝 Agent 比赛弹窗'
-      data-analytics-event='agent_competition_click'
-      data-analytics-surface='agent_pill'
-      data-analytics-action='pill_open'
-    >
-      <span class='relative flex size-2'>
-        <span
-          class='absolute inline-flex size-full animate-ping rounded-full bg-muted-foreground opacity-30'
-        ></span>
-        <span class='relative inline-flex size-2 rounded-full bg-muted-foreground'></span>
-      </span>
-      第一届 Agent 活动
-    </button>
   </aside>
 
   <script is:inline>
@@ -550,9 +528,7 @@ const agentHackathonLink =
       if (!root) return
 
       const panel = root.querySelector('[data-agent-popout-panel]')
-      const pill = root.querySelector('[data-agent-popout-pill]')
       const closeButton = root.querySelector('[data-agent-popout-close]')
-      const minimizeButton = root.querySelector('[data-agent-popout-minimize]')
       const copy = root.querySelector('[data-agent-popout-copy]')
       const output = root.querySelector('[data-agent-popout-output]')
       const storageKey = 'joye-agent-popout-state'
@@ -584,12 +560,11 @@ const agentHackathonLink =
       }
 
       const nudge = () => {
-        if (reduceMotion || root.dataset.state === 'closed') return
-        const target = root.dataset.state === 'minimized' ? pill : panel
-        target.classList.remove('agent-popout-nudge')
-        void target.offsetWidth
-        target.classList.add('agent-popout-nudge')
-        window.setTimeout(() => target.classList.remove('agent-popout-nudge'), 1600)
+        if (reduceMotion || root.dataset.state === 'closed' || !panel) return
+        panel.classList.remove('agent-popout-nudge')
+        void panel.offsetWidth
+        panel.classList.add('agent-popout-nudge')
+        window.setTimeout(() => panel.classList.remove('agent-popout-nudge'), 1600)
       }
 
       const scheduleNudge = () => {
@@ -603,23 +578,20 @@ const agentHackathonLink =
       }
 
       const setState = (state) => {
-        if (!panel || !pill) return
+        if (!panel) return
         root.dataset.state = state
         panel.classList.toggle('hidden', state !== 'open')
-        pill.classList.toggle('hidden', state !== 'minimized')
-        pill.classList.toggle('inline-flex', state === 'minimized')
         root.classList.toggle('hidden', state === 'closed')
         window.localStorage.setItem(storageKey, state)
         if (state === 'open') typeText()
         scheduleNudge()
       }
 
+      // 只剩 open / closed 两态；历史上被「收进角落」存成 minimized 的当作 open。
       const savedState = window.localStorage.getItem(storageKey)
-      setState(savedState === 'closed' || savedState === 'minimized' ? savedState : 'open')
+      setState(savedState === 'closed' ? 'closed' : 'open')
 
       closeButton?.addEventListener('click', () => setState('closed'))
-      minimizeButton?.addEventListener('click', () => setState('minimized'))
-      pill?.addEventListener('click', () => setState('open'))
     })()
   </script>
 </PageLayout>
@@ -629,10 +601,6 @@ const agentHackathonLink =
     position: relative;
     transform-origin: bottom left;
     animation: agent-pop-up 980ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
-  }
-
-  .agent-popout-pill {
-    animation: agent-pill 460ms cubic-bezier(0.2, 0.9, 0.25, 1.15);
   }
 
   .agent-popout-nudge {
@@ -689,17 +657,6 @@ const agentHackathonLink =
     }
   }
 
-  @keyframes agent-pill {
-    0% {
-      opacity: 0;
-      transform: translateY(10px) scale(0.94);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
   @keyframes agent-caret {
     50% {
       opacity: 0;
@@ -708,7 +665,6 @@ const agentHackathonLink =
 
   @media (prefers-reduced-motion: reduce) {
     .agent-popout-panel,
-    .agent-popout-pill,
     .agent-popout-nudge,
     .agent-type-caret {
       animation: none;
