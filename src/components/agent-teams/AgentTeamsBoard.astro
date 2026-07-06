@@ -96,7 +96,7 @@ import { activity, teams } from '@/data/agent-teams'
               data-signup-toggle
               aria-expanded='false'
             >
-              报名 / 加入
+              报名
             </button>
             <button
               type='button'
@@ -380,6 +380,14 @@ import { activity, teams } from '@/data/agent-teams'
     background: hsl(var(--muted) / 0.4);
   }
 
+  /* 队长小皇冠：琥珀色，稍微和名字拉开一点距离。
+     名单是脚本动态渲染的，拿不到 Astro 的 scope 属性，故用 :global 让样式生效。 */
+  :global(.roster-crown) {
+    margin-right: 0.2rem;
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
+
   .team-card[data-full='true'] .signup-toggle {
     pointer-events: none;
     opacity: 0.5;
@@ -464,7 +472,7 @@ import { activity, teams } from '@/data/agent-teams'
     const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
     if (toggle) {
       toggle.disabled = full
-      toggle.textContent = full ? '名额已满' : '报名 / 加入'
+      toggle.textContent = full ? '名额已满' : '报名'
     }
 
     const roster = card.querySelector<HTMLElement>('[data-roster]')
@@ -477,13 +485,40 @@ import { activity, teams } from '@/data/agent-teams'
       roster.appendChild(li)
       return
     }
-    for (const member of team.members) {
+    // 第一个报名的人当队长（发起人），名字前加个小皇冠区分。个人参赛赛道没有队长。
+    const hasCaptain = team.id !== 'solo-participant'
+    team.members.forEach((member, index) => {
       const li = document.createElement('li')
       li.className = 'roster-chip'
-      li.textContent = member.name // textContent — 用户输入不会被当 HTML 解析
+      if (hasCaptain && index === 0) {
+        li.appendChild(captainIcon())
+      }
+      const nameSpan = document.createElement('span')
+      nameSpan.textContent = member.name // textContent — 用户输入不会被当 HTML 解析
+      li.appendChild(nameSpan)
       if (member.note) li.title = member.note
       roster.appendChild(li)
-    }
+    })
+  }
+
+  // 队长标记：一个小皇冠 SVG（继承文字色，用 CSS 染成琥珀色）。
+  function captainIcon(): SVGSVGElement {
+    const ns = 'http://www.w3.org/2000/svg'
+    const svg = document.createElementNS(ns, 'svg')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('width', '11')
+    svg.setAttribute('height', '11')
+    svg.setAttribute('fill', 'currentColor')
+    svg.setAttribute('aria-label', '队长')
+    svg.setAttribute('role', 'img')
+    svg.classList.add('roster-crown')
+    const path = document.createElementNS(ns, 'path')
+    path.setAttribute('d', 'M5 16 3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5Zm0 2h14v2H5v-2Z')
+    svg.appendChild(path)
+    const title = document.createElementNS(ns, 'title')
+    title.textContent = '队长'
+    svg.appendChild(title)
+    return svg
   }
 
   // 标题 / 简介 / 标签以 DB 为准，每次拉到数据都覆盖到卡上（预渲染值只是首屏兜底）。
