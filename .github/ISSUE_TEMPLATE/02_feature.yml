@@ -1,11 +1,31 @@
-name: 💡 Feature
-description: Suggest a new feature or improvement.
+name: Feature or improvement
+description: Suggest a site feature, content-system change, or workflow improvement.
 labels: ['enhancement']
 body:
+  - type: input
+    id: related-page
+    attributes:
+      label: Related page or area
+      description: Link to a page or name the area this affects.
+      placeholder: /blog, /talks, /curated, analytics, maintenance workflow
   - type: textarea
     id: description
     attributes:
-      label: Description
+      label: What should change?
       description: A summary of the feature or improvement you are suggesting.
     validations:
       required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why is this useful?
+      description: What problem does it solve for readers or future maintenance?
+  - type: checkboxes
+    id: planning
+    attributes:
+      label: Planning
+      options:
+        - label: This should be considered for `ROADMAP.md`.
+          required: false
+        - label: This should be mentioned in `CHANGELOG.md` after it ships.
+          required: false

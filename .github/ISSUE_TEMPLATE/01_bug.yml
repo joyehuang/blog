@@ -1,31 +1,39 @@
-name: "\U0001F41B Bug report"
-description: Report an issue or possible bug
+name: Bug report
+description: Report a site bug, broken page, or incorrect behavior.
 labels: ['bug']
 body:
   - type: markdown
     attributes:
       value: |
-        ##  Quick Checklist
-        Thank you for taking the time to file a bug report! Please fill out this form as completely as possible.
-
-        ✅ I am using the **latest version of `astro-theme-pure`** and all plugins.
-        ✅ I am using a version of Node that Astro supports (`v18.17.1` or `v20.3.0` or higher.)
+        Thanks for reporting a problem with the site. Please include enough context to reproduce or locate the issue.
   - type: textarea
     id: bug-description
     attributes:
-      label: Describe the Bug
-      description: A clear and concise description of what the bug is.
+      label: What happened?
+      description: A clear description of the problem.
     validations:
       required: true
   - type: input
+    id: page-url
+    attributes:
+      label: Page URL
+      description: The page where this happened, if any.
+      placeholder: https://joyehuang.me/...
+  - type: input
     id: browser
     attributes:
-      label: If this issue only occurs in one browser, which browser is a problem?
+      label: Browser
+      description: If this only happens in one browser, which one?
       placeholder: Chrome, Firefox, Safari
-  - type: checkboxes
-    id: will-pr
+  - type: textarea
+    id: expected
     attributes:
-      label: Participation
+      label: Expected behavior
+      description: What did you expect to happen instead?
+  - type: checkboxes
+    id: maintenance
+    attributes:
+      label: Maintenance impact
       options:
-        - label: I am willing to submit a pull request for this issue.
+        - label: This should be reflected in `CHANGELOG.md` after it is fixed.
           required: false

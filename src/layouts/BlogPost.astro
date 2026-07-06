@@ -9,6 +9,7 @@ import { MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import Comment from '@/components/comment/Comment.astro'
+import GitHubFeedback from '@/components/feedback/GitHubFeedback.astro'
 import HeroEn from '@/components/HeroEn.astro'
 import TableOfContents from '@/components/navigation/TableOfContents.astro'
 import { integ } from '@/site-config'
@@ -33,12 +34,7 @@ const {
   enHero = false
 } = Astro.props
 
-const {
-  description,
-  publishDate,
-  title,
-  updatedDate
-} = data
+const { description, publishDate, title, updatedDate } = data
 
 // English mirrors (id ends in `.en`) reuse the Chinese post's generated OG image
 // unless a post provides a custom static social card.
@@ -77,6 +73,7 @@ const tocHeadings = headings
     <Copyright {data} />
     {/* Article recommend */}
     {recommend && <ArticleBottom collections={posts} {id} class='mt-3 sm:mt-6' />}
+    <GitHubFeedback title={title} slug={id} />
     {/* Comments */}
     {data.comment && <Comment class='mt-6' />}
   </Fragment>

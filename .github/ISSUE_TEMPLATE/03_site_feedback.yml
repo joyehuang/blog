@@ -1,0 +1,49 @@
+name: Site feedback
+description: Suggest an improvement, report confusing content, or point out a site issue.
+title: '[Feedback]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sending feedback. If this came from a page on the site, please keep the page URL so the context is easy to recover later.
+  - type: input
+    id: page-url
+    attributes:
+      label: Page URL
+      description: The page this feedback is about, if any.
+      placeholder: https://joyehuang.me/blog/...
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Feedback type
+      options:
+        - Content correction
+        - Site feature
+        - Design or interaction
+        - Broken link or bug
+        - Topic suggestion
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggestion
+      description: What should change, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Extra context
+      description: Links, screenshots, examples, or constraints that would help.
+  - type: checkboxes
+    id: follow-up
+    attributes:
+      label: Follow-up
+      options:
+        - label: This should be considered for `ROADMAP.md`.
+          required: false
+        - label: This should be mentioned in `CHANGELOG.md` after it ships.
+          required: false

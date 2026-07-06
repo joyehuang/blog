@@ -66,6 +66,10 @@ bun run build
 - `src/content/notes`: notes、研究卡片和未成稿材料。
 - `src/content/curated`: 精选外部资料。
 - `src/content/talks` 和 `public/talks`: 公开分享、幻灯片或活动记录。
+- `ROADMAP.md`: 计划中、下一步和暂缓的站点维护方向。
+- `CHANGELOG.md`: 已完成、已上线或已合并的重要变更记录。
+- `.github/ISSUE_TEMPLATE/*`: bug、功能建议和站点反馈入口。
+- `CLAUDE.md`: agent 写代码前需要读取的项目维护约定。
 
 如果你不需要某些页面，例如 talks、curated、links 或 notes，可以删除对应页面、内容集合和导航项。
 
@@ -102,6 +106,14 @@ Notes 的 `status` 可选：
 - `archived`: 已归档
 
 建议只把真正可以公开阅读、且正文里没有明显 `待补充` 段落的内容标成 `ready`。
+
+## 维护工作流
+
+- GitHub Issues 用来收集讨论、建议和 bug。
+- `ROADMAP.md` 用来整理计划、优先级和暂缓事项。
+- `CHANGELOG.md` 用来记录已经完成的站点、内容系统、analytics 和维护变更。
+- 涉及 Vercel Analytics 的改动先看 `ANALYTICS.md`。
+- 文章页底部的反馈入口会引导读者创建 GitHub issue，方便后续进入 roadmap 或 changelog。
 
 ## 计划中的 Agent Skills
 
@@ -144,6 +156,7 @@ Notes 的 `status` 可选：
 - `contact/ContactQR.astro`: 联系页二维码卡片。
 - `curated/CuratedItem.astro`: Curated 单条资料卡。
 - `curated/CuratedLibrary.astro`: Curated 列表、筛选和布局。
+- `feedback/GitHubFeedback.astro`: 文章或页面底部的 GitHub issue 反馈入口。
 - `home/LinkCard.astro`: 首页外链卡片。
 - `home/ProjectCard.astro`: 首页项目卡片。
 - `home/Section.astro`: 首页通用 section 容器。

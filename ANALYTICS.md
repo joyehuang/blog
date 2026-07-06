@@ -68,32 +68,32 @@ Keep properties flat: strings, numbers, booleans, or `null`. Do not send
 personal data such as email addresses, IP addresses, display names, full command
 input, comment text, search text, or free-form user input.
 
-| Property | Meaning | Examples |
-| --- | --- | --- |
-| `locale` | Current site locale. | `zh`, `en` |
-| `page` | Current pathname. | `/`, `/en`, `/contact`, `/talks` |
-| `surface` | UI area where the interaction happened. | `home_profile`, `agent_popout`, `projects`, `article_inline` |
-| `section` | Content section when useful. | `open_source`, `programs`, `sponsorship` |
-| `target` | Specific interacted object. | `profile`, `repo`, `wechat`, `pill` |
-| `action` | Interaction action. | `click`, `reveal`, `close`, `minimize`, `external_link` |
-| `method` | Interaction method. | `shell_click`, `keyboard_backtick`, `hover`, `focus` |
-| `href` | Destination for anchors. | `https://github.com/joyehuang` |
-| `destination_type` | Normalized destination kind. | `internal`, `external`, `github`, `mailto`, `doc`, `video` |
-| `command` | Terminal command name only. | `help`, `open`, `mail`, `connect` |
-| `command_result` | Safe terminal outcome bucket. | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
-| `repo` | Repository name for GitHub clicks. | `Learn-Open-Harness`, `interview-prep` |
-| `project` | Project identifier for project clicks. | `atypica`, `aixcut`, `prepwise` |
-| `team` | Agent competition team identifier. | `deep-research-agent`, `coding-agent` |
-| `link_type` | Project link type. | `site`, `github`, `doc`, `release` |
-| `method_name` | Contact or payment method. | `wechat`, `qq_group`, `wechat_pay`, `alipay` |
-| `article_slug` | Article identifier for article-scoped events. | `20260517---agentonboardingguide` |
-| `episode` | Talk episode number. | `1`, `2` |
-| `resource` | Talk or article resource type. | `deck`, `video`, `record`, `slide` |
-| `source` | How the surface was reached when relevant. | `first_visit`, `replay` |
-| `duration_ms` | Elapsed interaction time in milliseconds. | `4200`, `9300` |
-| `time_to_cta_ms` | Elapsed time from surface start to CTA view. | `3600`, `4100` |
-| `played` | Whether the visitor interacted with a playful surface. | `true`, `false` |
-| `interactions` | Low-cardinality interaction burst count. | `1`, `3` |
+| Property           | Meaning                                                | Examples                                                                   |
+| ------------------ | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `locale`           | Current site locale.                                   | `zh`, `en`                                                                 |
+| `page`             | Current pathname.                                      | `/`, `/en`, `/contact`, `/talks`                                           |
+| `surface`          | UI area where the interaction happened.                | `home_profile`, `agent_popout`, `projects`, `article_inline`               |
+| `section`          | Content section when useful.                           | `open_source`, `programs`, `sponsorship`                                   |
+| `target`           | Specific interacted object.                            | `profile`, `repo`, `wechat`, `pill`                                        |
+| `action`           | Interaction action.                                    | `click`, `reveal`, `close`, `minimize`, `external_link`                    |
+| `method`           | Interaction method.                                    | `shell_click`, `keyboard_backtick`, `hover`, `focus`                       |
+| `href`             | Destination for anchors.                               | `https://github.com/joyehuang`                                             |
+| `destination_type` | Normalized destination kind.                           | `internal`, `external`, `github`, `mailto`, `doc`, `video`                 |
+| `command`          | Terminal command name only.                            | `help`, `open`, `mail`, `connect`                                          |
+| `command_result`   | Safe terminal outcome bucket.                          | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
+| `repo`             | Repository name for GitHub clicks.                     | `Learn-Open-Harness`, `interview-prep`                                     |
+| `project`          | Project identifier for project clicks.                 | `atypica`, `aixcut`, `prepwise`                                            |
+| `team`             | Agent competition team identifier.                     | `deep-research-agent`, `coding-agent`                                      |
+| `link_type`        | Project link type.                                     | `site`, `github`, `doc`, `release`                                         |
+| `method_name`      | Contact or payment method.                             | `wechat`, `qq_group`, `wechat_pay`, `alipay`                               |
+| `article_slug`     | Article identifier for article-scoped events.          | `20260517---agentonboardingguide`                                          |
+| `episode`          | Talk episode number.                                   | `1`, `2`                                                                   |
+| `resource`         | Talk or article resource type.                         | `deck`, `video`, `record`, `slide`                                         |
+| `source`           | How the surface was reached when relevant.             | `first_visit`, `replay`                                                    |
+| `duration_ms`      | Elapsed interaction time in milliseconds.              | `4200`, `9300`                                                             |
+| `time_to_cta_ms`   | Elapsed time from surface start to CTA view.           | `3600`, `4100`                                                             |
+| `played`           | Whether the visitor interacted with a playful surface. | `true`, `false`                                                            |
+| `interactions`     | Low-cardinality interaction burst count.               | `1`, `3`                                                                   |
 
 Use `null` for unavailable optional properties rather than inventing placeholders.
 
@@ -395,6 +395,22 @@ Required properties:
 This is allowed even though it routes to Contact because the source intent
 ("join the talks") is lost in a plain Contact pageview.
 
+### `site_feedback_click`
+
+User clicks a GitHub issue entry point from a public page feedback block.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `article_footer` | `page_footer`
+- `target`: `github_issue`
+- `article_slug`: article identifier when fired from an article, otherwise `null`
+- `href`: GitHub issue creation URL
+
+Use this to measure feedback intent that would otherwise disappear as an
+external GitHub exit. Do not send free-form feedback text or issue content.
+
 ### `language_switch_click`
 
 User switches site language.
@@ -490,6 +506,7 @@ Implemented in current code:
 - `project_link_click`
 - `talk_resource_click`
 - `talk_join_intent`
+- `site_feedback_click`
 - `language_switch_click`
 
 Legacy events retained only for historical data interpretation:

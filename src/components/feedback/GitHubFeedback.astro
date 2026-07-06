@@ -1,0 +1,54 @@
+---
+interface Props {
+  title: string
+  source?: 'article' | 'page'
+  slug?: string
+}
+
+const { title, source = 'article', slug } = Astro.props as Props
+
+const issueUrl = new URL('https://github.com/joyehuang/blog/issues/new')
+issueUrl.searchParams.set('template', '03_site_feedback.yml')
+issueUrl.searchParams.set('title', `Feedback: ${title}`)
+issueUrl.searchParams.set('page-url', Astro.url.toString())
+
+const labels =
+  source === 'article'
+    ? {
+        heading: '有建议或发现问题？',
+        body: '这篇内容如果有错漏、难懂的地方，或者你希望我补充某个方向，可以直接开一个 GitHub issue。这样建议会留在公开工作流里，后续也能进入 roadmap 或 changelog。',
+        action: '提交文章反馈'
+      }
+    : {
+        heading: '有建议？',
+        body: '如果这个页面哪里可以改进，可以直接开一个 GitHub issue。建议会进入公开工作流，方便后续整理和跟进。',
+        action: '提交反馈'
+      }
+---
+
+<aside
+  class='not-prose mt-6 rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground sm:p-5'
+>
+  <div class='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+    <div class='space-y-1.5'>
+      <h2 class='text-base font-medium text-foreground'>
+        {labels.heading}
+      </h2>
+      <p class='leading-6'>
+        {labels.body}
+      </p>
+    </div>
+    <a
+      class='inline-flex shrink-0 items-center justify-center rounded-md border border-border bg-background px-3 py-2 font-medium text-foreground transition hover:border-foreground/40 hover:bg-background/80'
+      href={issueUrl.toString()}
+      target='_blank'
+      rel='noreferrer'
+      data-analytics-event='site_feedback_click'
+      data-analytics-surface={`${source}_footer`}
+      data-analytics-target='github_issue'
+      data-analytics-article-slug={slug ?? null}
+    >
+      {labels.action}
+    </a>
+  </div>
+</aside>
