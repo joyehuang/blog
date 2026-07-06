@@ -54,8 +54,8 @@ export const teams: AgentTeam[] = [
   },
   {
     id: 'radio-agent',
-    title: '个人电台 Agent（han 神）',
-    summary: '像 han 神那样，用你的口味生成一档会聊天、会放歌的私人电台。',
+    title: '个人电台 Agent（憨神）',
+    summary: '像憨神那样，用你的口味生成一档会聊天、会放歌的私人电台。',
     tags: ['audio', 'voice'],
     capacity: 6
   },
