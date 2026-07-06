@@ -33,6 +33,15 @@ export type TeamRoster = {
   members: PublicMember[]
 }
 
+/** 队伍元信息（标题/简介/标签/名额）——静态赛道与自定义赛道统一成这个形状 */
+export type TeamMeta = {
+  id: string
+  title: string
+  summary: string
+  tags: string[]
+  capacity: number | null
+}
+
 /** 报名提交入参 */
 export type SignupInput = {
   teamId: string
@@ -63,9 +72,13 @@ const NAME_MAX = 24
 const NOTE_MAX = 60
 const CONTACT_MAX = 60
 const DETAIL_MAX = 600
+const TITLE_MAX = 30
+const SUMMARY_MAX = 80
 // 轻量限流：同一 IP 在窗口内最多成功报名这么多次。
 const RATE_LIMIT = 5
 const RATE_WINDOW_SEC = 600
+// 同一 IP 在窗口内最多创建这么多个自定义赛道。
+const CREATE_RATE_LIMIT = 3
 
 // --- 环境 / 配置 ---------------------------------------------------------
 
@@ -96,37 +109,19 @@ export function passcodeRequired(): boolean {
   return getPasscode() !== null
 }
 
-// 队长编辑鉴权：
-//   - AGENT_TEAMS_CAPTAIN_PASSCODES: JSON map，形如 {"game-agent":"xxx","rss-agent":"yyy"}，
-//     每个队长一个专属口令，只能改自己那支队。
-//   - AGENT_TEAMS_ADMIN_PASSCODE: 管理员口令，能改任意队伍（你自己兜底用）。
-function getCaptainPasscodes(): Record<string, string> {
-  const raw =
-    import.meta.env.AGENT_TEAMS_CAPTAIN_PASSCODES ?? process.env.AGENT_TEAMS_CAPTAIN_PASSCODES
-  if (!raw) return {}
-  try {
-    const obj = JSON.parse(String(raw)) as unknown
-    if (obj && typeof obj === 'object') {
-      const out: Record<string, string> = {}
-      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-        if (typeof v === 'string' && v.length > 0) out[k] = v
-      }
-      return out
-    }
-  } catch {
-    // 配错了就当没配，页面不显示编辑入口。
-  }
-  return {}
+// 编辑/建赛道口令：一个默认口令即可，默认值就是粉丝群的名字（群成员都知道）。
+// 想让它不出现在公开仓库里，可在 Vercel 配 AGENT_TEAMS_EDIT_PASSCODE 覆盖。
+// 注意：这只是「挡住路人」的轻门槛，不是强安全。报名本身不需要这个口令。
+const DEFAULT_EDIT_PASSCODE = '一群开心快乐的小奶龙'
+
+function getEditPasscode(): string {
+  const p = import.meta.env.AGENT_TEAMS_EDIT_PASSCODE ?? process.env.AGENT_TEAMS_EDIT_PASSCODE
+  return p && String(p).length > 0 ? String(p) : DEFAULT_EDIT_PASSCODE
 }
 
-function getAdminPasscode(): string | null {
-  const p = import.meta.env.AGENT_TEAMS_ADMIN_PASSCODE ?? process.env.AGENT_TEAMS_ADMIN_PASSCODE
-  return p && String(p).length > 0 ? String(p) : null
-}
-
-/** 是否开放了队长编辑（配了任一队长口令或管理员口令）——决定前端是否显示编辑入口 */
+/** 编辑简介 / 建赛道是否开放——总有默认口令，故恒为 true（保留给未来做锁定开关） */
 export function detailEditable(): boolean {
-  return getAdminPasscode() !== null || Object.keys(getCaptainPasscodes()).length > 0
+  return true
 }
 
 // --- 连接 / 表结构 -------------------------------------------------------
@@ -171,6 +166,16 @@ async function ensureSchema(sql: Sql): Promise<void> {
       team_id TEXT PRIMARY KEY,
       detail TEXT NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `
+  // 用户自助创建的「自命题赛道」，一队一行。id 用 custom-<uuid8>，名单/介绍与静态赛道共表。
+  await sql`
+    CREATE TABLE IF NOT EXISTS agent_team_customs (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      ip TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
   schemaReady = true
@@ -362,15 +367,8 @@ export async function updateDetail(input: DetailUpdateInput): Promise<DetailResu
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
 
-  const captain = getCaptainPasscodes()[input.teamId]
-  const admin = getAdminPasscode()
-  if (!captain && !admin) {
-    return { ok: false, code: 'passcode', message: '这支队伍还没有开放队长编辑' }
-  }
-  const pass = input.passcode ?? ''
-  const authed = (!!captain && pass === captain) || (!!admin && pass === admin)
-  if (!authed) {
-    return { ok: false, code: 'passcode', message: '队长口令不正确' }
+  if ((input.passcode ?? '') !== getEditPasscode()) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
   }
 
   const detail = cleanMultiline(input.detail ?? '').slice(0, DETAIL_MAX)
@@ -389,5 +387,92 @@ export async function updateDetail(input: DetailUpdateInput): Promise<DetailResu
     return { ok: true, teamId: input.teamId, detail }
   } catch {
     return { ok: false, code: 'store_error', message: '保存失败，请稍后再试' }
+  }
+}
+
+// --- 自命题：用户自助创建赛道 -------------------------------------------
+
+export type CreateTeamInput = {
+  title: string
+  summary: string
+  passcode?: string
+  /** 蜜罐字段：正常用户永远为空 */
+  hp?: string
+  ip?: string | null
+}
+
+export type CreateErrorCode =
+  | 'not_configured'
+  | 'invalid'
+  | 'passcode'
+  | 'rate_limited'
+  | 'store_error'
+
+export type CreateResult =
+  | { ok: true; team: TeamMeta }
+  | { ok: false; code: CreateErrorCode; message: string }
+
+/** 读取所有用户自定义赛道（按创建时间升序），统一成 TeamMeta 形状 */
+export async function getCustomTeams(): Promise<TeamMeta[]> {
+  const sql = getSql()
+  if (!sql) return []
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT id, title, summary
+    FROM agent_team_customs
+    ORDER BY created_at ASC
+  `) as { id: string; title: string; summary: string }[]
+
+  // 自定义赛道无标签、名额不限。
+  return rows.map((r) => ({ id: r.id, title: r.title, summary: r.summary, tags: [], capacity: null }))
+}
+
+/** 创建一个自定义赛道。口令匹配编辑口令才放行。 */
+export async function createTeam(input: CreateTeamInput): Promise<CreateResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
+
+  // 蜜罐。
+  if (input.hp && input.hp.trim().length > 0) {
+    return { ok: false, code: 'invalid', message: '提交无效' }
+  }
+  if ((input.passcode ?? '') !== getEditPasscode()) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
+
+  const title = cleanText(input.title ?? '')
+  if (title.length === 0 || title.length > TITLE_MAX) {
+    return { ok: false, code: 'invalid', message: `赛道名称需为 1–${TITLE_MAX} 个字符` }
+  }
+  const summary = cleanText(input.summary ?? '').slice(0, SUMMARY_MAX)
+  if (summary.length === 0) {
+    return { ok: false, code: 'invalid', message: '简介不能为空' }
+  }
+  const ip = input.ip ?? null
+  const id = `custom-${crypto.randomUUID().slice(0, 8)}`
+
+  try {
+    await ensureSchema(sql)
+
+    // 限流：同一 IP 短时间内创建太多赛道就挡一下。
+    if (ip) {
+      const limitRows = (await sql`
+        SELECT count(*)::int AS n
+        FROM agent_team_customs
+        WHERE ip = ${ip} AND created_at > now() - (${RATE_WINDOW_SEC} * interval '1 second')
+      `) as { n: number }[]
+      if ((limitRows[0]?.n ?? 0) >= CREATE_RATE_LIMIT) {
+        return { ok: false, code: 'rate_limited', message: '创建太频繁了，歇一会儿再来' }
+      }
+    }
+
+    await sql`
+      INSERT INTO agent_team_customs (id, title, summary, ip)
+      VALUES (${id}, ${title}, ${summary}, ${ip})
+    `
+    return { ok: true, team: { id, title, summary, tags: [], capacity: null } }
+  } catch {
+    return { ok: false, code: 'store_error', message: '创建失败，请稍后再试' }
   }
 }

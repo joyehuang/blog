@@ -128,11 +128,6 @@ export const teams: AgentTeam[] = [
     summary: '规划路线、出题讲解、追踪进度，陪你把一个领域啃下来。',
     tags: ['learning', 'tutor'],
     capacity: 6
-  },
-  {
-    id: 'open-track',
-    title: '自命题赛道',
-    summary: '没有命题，你来定义。任何脑洞都能在这里开一队。',
-    tags: ['open']
   }
+  // 「自命题赛道」不再是静态卡：由用户在页面上自助创建（见 store.ts 的 createTeam）。
 ]
