@@ -391,4 +391,28 @@ const headings = [
       >
     </li>
   </ul>
+
+  {/* roadmap & changelog */}
+  <div class='not-prose mt-8 flex flex-col gap-3 rounded-lg border border-border bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5'>
+    <div class='space-y-1'>
+      <p class='text-base font-medium text-foreground'>Site Roadmap & Changelog</p>
+      <p class='text-sm text-muted-foreground'>
+        Where this site is headed and what's changed recently. Public, not kept in my head.
+      </p>
+    </div>
+    <div class='flex shrink-0 gap-2'>
+      <a
+        class='inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition hover:border-foreground/40'
+        href='/en/roadmap'
+      >
+        Roadmap
+      </a>
+      <a
+        class='inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition hover:border-foreground/40'
+        href='/en/changelog'
+      >
+        Changelog
+      </a>
+    </div>
+  </div>
 </PageLayout>

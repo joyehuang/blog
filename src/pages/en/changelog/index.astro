@@ -1,0 +1,28 @@
+---
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import ChangelogSection from '@/components/site/ChangelogSection.astro'
+import { releases } from '@/data/changelog'
+import { useTranslations } from '@/i18n/ui'
+
+export const prerender = true
+
+const lang = 'en' as const
+const t = useTranslations(lang)
+---
+
+<PageLayout meta={{ title: 'Changelog', description: t('changelog.subtitle') }}>
+  <Button title='Back' href='/en/about' style='back' />
+  <header class='mb-8 mt-4'>
+    <h1 class='text-2xl font-medium sm:text-3xl'>{t('changelog.title')}</h1>
+    <p class='mt-2 max-w-2xl leading-relaxed text-muted-foreground'>
+      {t('changelog.subtitle')}
+    </p>
+  </header>
+
+  <div class='flex flex-col gap-10'>
+    {releases.map((release) => (
+      <ChangelogSection release={release} lang={lang} />
+    ))}
+  </div>
+</PageLayout>

@@ -1,0 +1,80 @@
+---
+import type { ChangeEntry, ChangeType, ChangelogRelease } from '@/data/changelog'
+import { useTranslations } from '@/i18n/ui'
+import type { Lang } from '@/i18n/ui'
+
+interface Props {
+  release: ChangelogRelease
+  lang: Lang
+}
+
+const { release, lang } = Astro.props
+const t = useTranslations(lang)
+
+const isUnreleased = release.version.toLowerCase() === 'unreleased'
+const displayVersion = isUnreleased ? t('changelog.unreleased') : release.version
+
+// 把条目按 type 分组，保持 type 的稳定展示顺序
+const typeOrder: ChangeType[] = ['added', 'changed', 'fixed', 'removed', 'deprecated', 'notes']
+const byType = typeOrder
+  .map((type) => ({
+    type,
+    entries: release.entries.filter((e) => e.type === type)
+  }))
+  .filter((group) => group.entries.length > 0)
+
+const typeBadgeClass: Record<ChangeType, string> = {
+  added: 'bg-primary/10 text-primary',
+  changed: 'bg-foreground/10 text-foreground',
+  fixed: 'bg-primary/10 text-primary',
+  removed: 'bg-foreground/10 text-muted-foreground',
+  deprecated: 'bg-foreground/10 text-muted-foreground',
+  notes: 'bg-muted text-muted-foreground'
+}
+---
+
+<section class='not-prose'>
+  <header class='mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1'>
+    <h2 class='m-0 font-mono text-lg font-semibold text-foreground'>{displayVersion}</h2>
+    {release.date && (
+      <span class='text-sm text-muted-foreground'>{release.date}</span>
+    )}
+  </header>
+
+  {
+    byType.length === 0 ? (
+      <p class='rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground'>
+        {t('roadmap.empty')}
+      </p>
+    ) : (
+      <div class='flex flex-col gap-4'>
+        {byType.map((group) => (
+          <div>
+            <p class='mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+              {t(`changelog.type.${group.type}` as 'changelog.type.added')}
+            </p>
+            <ul class='m-0 flex flex-col gap-2 pl-0'>
+              {group.entries.map((entry: ChangeEntry) => (
+                <li class='flex flex-row items-start gap-2 rounded-lg border bg-background px-3 py-2 text-sm leading-relaxed text-foreground'>
+                  <span
+                    class={`mt-0.5 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-medium ${typeBadgeClass[entry.type]}`}
+                  >
+                    {t(`changelog.type.${entry.type}` as 'changelog.type.added')}
+                  </span>
+                  <div class='flex-1'>
+                    <span>{entry.summary}</span>
+                    {entry.refs && entry.refs.length > 0 && (
+                      <span class='ml-1 font-mono text-xs text-muted-foreground'>
+                        {entry.refs.map((r) => `· ${r}`).join(' ')}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    )
+  }
+</section>

@@ -21,7 +21,26 @@ export const ui = {
     'nav.toggleDarkMode': 'Dark Theme',
     'nav.toggleLang': '切换语言',
     'notice.translating': '网站界面已提供英文版，但大部分博客与笔记仍为中文，翻译正在进行中。',
-    'home.title': '首页'
+    'home.title': '首页',
+    'roadmap.title': 'Roadmap',
+    'roadmap.subtitle': '站点在往哪走、下一步做什么、什么先放着。',
+    'roadmap.horizon.now': '进行中',
+    'roadmap.horizon.next': '下一步',
+    'roadmap.horizon.later': '暂缓',
+    'roadmap.horizon.done': '已完成',
+    'roadmap.empty': '这里暂时什么都没有。',
+    'roadmap.goals': '完成定义',
+    'roadmap.refs': '相关',
+    'roadmap.shippedAt': '完成于',
+    'changelog.title': 'Changelog',
+    'changelog.subtitle': '站点功能、内容系统、analytics 和维护流程的变更记录。',
+    'changelog.unreleased': '未发布',
+    'changelog.type.added': '新增',
+    'changelog.type.changed': '变更',
+    'changelog.type.fixed': '修复',
+    'changelog.type.removed': '移除',
+    'changelog.type.deprecated': '弃用',
+    'changelog.type.notes': '说明'
   },
   en: {
     'nav.blog': 'Blog',
@@ -37,7 +56,27 @@ export const ui = {
     'nav.toggleLang': 'Switch language',
     'notice.translating':
       "The site's interface is available in English, but most posts and notes are still in Chinese — translation is a work in progress.",
-    'home.title': 'Home'
+    'home.title': 'Home',
+    'roadmap.title': 'Roadmap',
+    'roadmap.subtitle': "Where the site is headed, what's next, and what's parked.",
+    'roadmap.horizon.now': 'Now',
+    'roadmap.horizon.next': 'Next',
+    'roadmap.horizon.later': 'Later',
+    'roadmap.horizon.done': 'Done',
+    'roadmap.empty': 'Nothing here yet.',
+    'roadmap.goals': 'Definition of done',
+    'roadmap.refs': 'Related',
+    'roadmap.shippedAt': 'Shipped',
+    'changelog.title': 'Changelog',
+    'changelog.subtitle':
+      'Record of site, content-system, analytics, and maintenance changes.',
+    'changelog.unreleased': 'Unreleased',
+    'changelog.type.added': 'Added',
+    'changelog.type.changed': 'Changed',
+    'changelog.type.fixed': 'Fixed',
+    'changelog.type.removed': 'Removed',
+    'changelog.type.deprecated': 'Deprecated',
+    'changelog.type.notes': 'Notes'
   }
 } as const satisfies Record<Lang, Record<string, string>>
 
@@ -84,7 +123,7 @@ export function localizedPath(path: string, lang: Lang): string {
  */
 export function hasEnAlternate(barePath: string): boolean {
   if (barePath === '/') return true
-  if (['/about', '/projects', '/links', '/contact', '/search', '/curated'].includes(barePath))
+  if (['/about', '/projects', '/links', '/contact', '/search', '/curated', '/roadmap', '/changelog'].includes(barePath))
     return true
   // blog & notes: only the paginated list is mirrored under /en, not detail pages
   if (/^\/blog(\/\d+)?$/.test(barePath)) return true
