@@ -128,6 +128,27 @@ export const teams: AgentTeam[] = [
     summary: '规划路线、出题讲解、追踪进度，陪你把一个领域啃下来。',
     tags: ['learning', 'tutor'],
     capacity: 6
+  },
+  {
+    id: 'live2d-agent',
+    title: 'Live2D Agent',
+    summary: '给 Agent 一副 Live2D 皮囊，会说话、有表情、随对话动起来的桌面伙伴。',
+    tags: ['live2d', 'avatar'],
+    capacity: 6
+  },
+  {
+    id: 'language-learning-agent',
+    title: '语言学习 Agent',
+    summary: '陪你练口语、纠发音、记单词，按你的水平定制每天的语言练习。',
+    tags: ['language', 'tutor'],
+    capacity: 6
+  },
+  {
+    id: 'newcomer-onboarding-agent',
+    title: '新人入门新领域 Agent',
+    summary: '面向零基础新人，把陌生领域拆成上手路径，边学边练地带你入门。',
+    tags: ['onboarding', 'learning'],
+    capacity: 6
   }
   // 「自命题赛道」不再是静态卡：由用户在页面上自助创建（见 store.ts 的 createTeam）。
 ]
