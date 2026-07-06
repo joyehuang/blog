@@ -149,6 +149,20 @@ export const teams: AgentTeam[] = [
     summary: '面向零基础新人，把陌生领域拆成上手路径，边学边练地带你入门。',
     tags: ['onboarding', 'learning'],
     capacity: 6
+  },
+  {
+    id: 'vr3d-agent',
+    title: 'VR/3D Agent',
+    summary: '根据你的想法生成、摆布 3D 场景，在 VR 里跟 Agent 一起搭世界。',
+    tags: ['vr', '3d'],
+    capacity: 6
+  },
+  {
+    id: 'video-editing-agent',
+    title: '剪视频 Agent',
+    summary: '自动剪辑、配字幕、卡点，把一堆素材理成一条能发的视频。',
+    tags: ['video', 'editing'],
+    capacity: 6
   }
   // 「自命题赛道」不再是静态卡：由用户在页面上自助创建（见 store.ts 的 createTeam）。
 ]
