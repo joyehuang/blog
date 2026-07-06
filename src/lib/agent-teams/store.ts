@@ -96,9 +96,15 @@ function getConn(): string | null {
   return c ? String(c) : null
 }
 
+// 统一的默认口令：粉丝群的名字（群成员都知道）。页面挂在首页后会有路人点进来，
+// 所以报名 / 组队 / 建赛道都要口令——只有群里的人才填得对。这只是「挡住路人」的
+// 轻门槛，不是强安全。想让口令不出现在公开仓库里，可在 Vercel 配对应环境变量覆盖。
+const DEFAULT_GROUP_PASSCODE = '一群开心快乐的小奶龙'
+
+// 报名 / 退出口令：默认就用群名，所有人（含组员）都要填。可用 AGENT_TEAMS_PASSCODE 覆盖。
 function getPasscode(): string | null {
   const p = import.meta.env.AGENT_TEAMS_PASSCODE ?? process.env.AGENT_TEAMS_PASSCODE
-  return p && String(p).length > 0 ? String(p) : null
+  return p && String(p).length > 0 ? String(p) : DEFAULT_GROUP_PASSCODE
 }
 
 /** 数据库是否已配置——未配置时页面走"配置中"降级路径 */
@@ -106,19 +112,15 @@ export function isConfigured(): boolean {
   return getConn() !== null
 }
 
-/** 是否设置了报名口令 */
+/** 是否需要报名口令——默认恒为 true（有群名兜底），所有人都要填 */
 export function passcodeRequired(): boolean {
   return getPasscode() !== null
 }
 
-// 编辑/建赛道口令：一个默认口令即可，默认值就是粉丝群的名字（群成员都知道）。
-// 想让它不出现在公开仓库里，可在 Vercel 配 AGENT_TEAMS_EDIT_PASSCODE 覆盖。
-// 注意：这只是「挡住路人」的轻门槛，不是强安全。报名本身不需要这个口令。
-const DEFAULT_EDIT_PASSCODE = '一群开心快乐的小奶龙'
-
+// 编辑 / 建赛道口令：默认同样是粉丝群的名字。可用 AGENT_TEAMS_EDIT_PASSCODE 覆盖。
 function getEditPasscode(): string {
   const p = import.meta.env.AGENT_TEAMS_EDIT_PASSCODE ?? process.env.AGENT_TEAMS_EDIT_PASSCODE
-  return p && String(p).length > 0 ? String(p) : DEFAULT_EDIT_PASSCODE
+  return p && String(p).length > 0 ? String(p) : DEFAULT_GROUP_PASSCODE
 }
 
 /** 编辑简介 / 建赛道是否开放——总有默认口令，故恒为 true（保留给未来做锁定开关） */
