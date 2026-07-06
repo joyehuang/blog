@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Roadmap
-    url: https://github.com/joyehuang/blog/blob/main/ROADMAP.md
+    url: https://joyehuang.me/roadmap
     about: Check planned and deferred work before opening a larger feature request.
   - name: Changelog
-    url: https://github.com/joyehuang/blog/blob/main/CHANGELOG.md
+    url: https://joyehuang.me/changelog
     about: Check shipped site and maintenance changes.

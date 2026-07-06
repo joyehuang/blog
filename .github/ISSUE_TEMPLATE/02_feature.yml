@@ -25,7 +25,5 @@ body:
     attributes:
       label: Planning
       options:
-        - label: This should be considered for `ROADMAP.md`.
-          required: false
-        - label: This should be mentioned in `CHANGELOG.md` after it ships.
+        - label: This should be considered for the roadmap (and changelog once it ships).
           required: false

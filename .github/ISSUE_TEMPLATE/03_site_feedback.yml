@@ -17,11 +17,11 @@ body:
     id: feedback-type
     attributes:
       label: Feedback type
+      description: Content, design, or feature suggestions. For bugs and broken links, use the Bug report template instead.
       options:
         - Content correction
         - Site feature
         - Design or interaction
-        - Broken link or bug
         - Topic suggestion
         - Other
     validations:
@@ -43,7 +43,5 @@ body:
     attributes:
       label: Follow-up
       options:
-        - label: This should be considered for `ROADMAP.md`.
-          required: false
-        - label: This should be mentioned in `CHANGELOG.md` after it ships.
+        - label: This should be considered for the roadmap (and changelog once it ships).
           required: false

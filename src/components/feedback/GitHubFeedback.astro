@@ -15,14 +15,14 @@ issueUrl.searchParams.set('page-url', Astro.url.toString())
 const labels =
   source === 'article'
     ? {
-        heading: '有建议或发现问题？',
-        body: '这篇内容如果有错漏、难懂的地方，或者你希望我补充某个方向，可以直接开一个 GitHub issue。这样建议会留在公开工作流里，后续也能进入 roadmap 或 changelog。',
-        action: '提交文章反馈'
+        heading: '结构性建议或功能请求',
+        body: '内容上的错漏、没看懂的地方，直接在下面评论区告诉我就好。如果你希望补充某个方向、或对文章结构/站点功能有建议，可以开一个 GitHub issue，它会进入公开的 roadmap 与 changelog 工作流。',
+        action: '开一个 Issue'
       }
     : {
-        heading: '有建议？',
-        body: '如果这个页面哪里可以改进，可以直接开一个 GitHub issue。建议会进入公开工作流，方便后续整理和跟进。',
-        action: '提交反馈'
+        heading: '对这个页面有建议？',
+        body: '页面结构或功能上的改进建议，可以开一个 GitHub issue。建议会进入公开工作流，方便后续整理和跟进。',
+        action: '开一个 Issue'
       }
 ---
 
