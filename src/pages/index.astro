@@ -166,37 +166,30 @@ const agentHackathonLink =
           style='ahead'
         />
       </Section>
-      <Section title='Summer of Agents'>
-        <a
-          href='/agent-teams'
-          class='soa-card group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center'
+      <a
+        href='/agent-teams'
+        class='soa-card group flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+      >
+        <div class='min-w-0'>
+          <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
+            <span
+              class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-300'
+            >
+              第一届
+            </span>
+            <span class='text-muted-foreground'>Joye 粉丝 Agent 比赛 · 组队报名</span>
+          </div>
+          <h3 class='soa-title mt-1.5 text-2xl font-bold sm:text-3xl'>Summer of Agents</h3>
+          <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
+            公开报名已经截止，现在是组队阶段。感兴趣欢迎进群围观，说不定还会有第二届 😄
+          </p>
+        </div>
+        <span
+          class='inline-flex shrink-0 items-center gap-1 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground transition-transform group-hover:translate-x-0.5 sm:self-center'
         >
-          <div
-            class='flex size-12 shrink-0 items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-2xl'
-            aria-hidden='true'
-          >
-            ☀️
-          </div>
-          <div class='min-w-0 flex-1'>
-            <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
-              <span
-                class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-300'
-              >
-                第一届
-              </span>
-              <span class='text-muted-foreground'>Joye 粉丝 Agent 比赛</span>
-            </div>
-            <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
-              公开报名已经截止，现在是组队阶段。感兴趣欢迎进群围观，说不定还会有第二届 😄
-            </p>
-          </div>
-          <span
-            class='inline-flex shrink-0 items-center gap-1 self-start rounded-full border px-3 py-1.5 text-sm font-medium text-foreground transition-transform group-hover:translate-x-0.5 sm:self-center'
-          >
-            进去看看 →
-          </span>
-        </a>
-      </Section>
+          进去看看 →
+        </span>
+      </a>
       {
         allPostsByDate.length > 0 && (
           <Section title='Blog'>
@@ -636,6 +629,14 @@ const agentHackathonLink =
       rgb(245 158 11 / 0.04),
       rgb(249 115 22 / 0.08)
     );
+  }
+  .soa-title {
+    width: fit-content;
+    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 
   .agent-popout-panel {

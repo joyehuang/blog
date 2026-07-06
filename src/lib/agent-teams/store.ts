@@ -389,18 +389,16 @@ export async function addSignup(
 export type LeaveInput = {
   teamId: string
   name: string
-  passcode?: string
 }
 
-export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
+export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'store_error'
 
 export type LeaveResult =
   | { ok: true; roster: TeamRoster }
   | { ok: false; code: LeaveErrorCode; message: string }
 
 /**
- * 按昵称把某人从某队名单里删掉。门槛与报名一致：设了报名口令就要口令匹配。
- * 这是「粉丝群自助退赛」，不是强鉴权——和报名一样只挡路人。
+ * 按昵称把某人从某队名单里删掉。退出不需要口令——自己想退随时能退。
  */
 export async function removeSignup(
   input: LeaveInput,
@@ -408,11 +406,6 @@ export async function removeSignup(
 ): Promise<LeaveResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '报名系统尚未配置' }
-
-  const passcode = getPasscode()
-  if (passcode && input.passcode !== passcode) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
-  }
 
   const name = cleanText(input.name ?? '')
   if (name.length === 0 || name.length > NAME_MAX) {
