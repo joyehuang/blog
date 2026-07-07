@@ -664,8 +664,17 @@ const agentHackathonLink =
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    animation: soa-border-spin 4s linear infinite;
+    opacity: 0;
+    animation: soa-border-spin 2.5s linear infinite;
+    animation-play-state: paused;
+    transition: opacity 0.25s ease;
     pointer-events: none;
+  }
+
+  .soa-card:hover::before,
+  .soa-card:focus-visible::before {
+    opacity: 1;
+    animation-play-state: running;
   }
 
   @keyframes soa-border-spin {
@@ -677,6 +686,7 @@ const agentHackathonLink =
   @media (prefers-reduced-motion: reduce) {
     .soa-card::before {
       animation: none;
+      transition: none;
     }
   }
 
