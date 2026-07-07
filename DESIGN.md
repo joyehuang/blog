@@ -62,12 +62,6 @@ spacing:
 
 # Design Conventions
 
-This file follows the [design.md](https://github.com/google-labs-code/design.md)
-convention: the YAML frontmatter above holds machine-readable tokens, the
-markdown body below holds human-readable rationale and file citations. Tokens
-are normative — if a value here and the code disagree, the code is the bug
-(or this file is stale); fix whichever is wrong in the same commit.
-
 This documents what the codebase actually does, not an aspirational spec.
 
 ## Overview
