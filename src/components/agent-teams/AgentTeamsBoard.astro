@@ -59,7 +59,7 @@ import { activity, teams } from '@/data/agent-teams'
     {
       teams.map((team) => (
         <article
-          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5 sm:min-h-[23rem]'
+          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5 sm:min-h-[15rem]'
           data-team-id={team.id}
           data-capacity={team.capacity ?? ''}
           data-loaded='false'
@@ -86,20 +86,13 @@ import { activity, teams } from '@/data/agent-teams'
             </div>
           )}
 
-          <div class='flex flex-col items-start gap-1.5' data-detail-wrap>
-            <div
-              class='team-detail hidden w-full whitespace-pre-wrap rounded-lg border border-dashed px-3 py-2 text-sm leading-relaxed text-muted-foreground'
-              data-detail
-            >
-            </div>
-            <button
-              type='button'
-              class='detail-toggle hidden text-xs font-medium text-foreground underline-offset-4 hover:underline'
-              data-detail-toggle
-            >
-              展开
-            </button>
-          </div>
+          <button
+            type='button'
+            class='detail-toggle hidden items-center gap-1 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline'
+            data-detail-toggle
+          >
+            📄 查看详细介绍
+          </button>
 
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
             <li class='roster-empty flex gap-1.5'>
@@ -406,6 +399,17 @@ import { activity, teams } from '@/data/agent-teams'
       </div>
     </form>
   </div>
+
+  {/* 「详细介绍」弹窗：全站共用一个，点开哪张卡就把内容填进来再 showModal。 */}
+  <dialog class='detail-dialog' data-detail-dialog>
+    <form method='dialog' class='detail-dialog-inner'>
+      <div class='detail-dialog-head'>
+        <h3 class='m-0 text-base font-medium text-foreground' data-detail-dialog-title></h3>
+        <button type='submit' class='detail-dialog-close' aria-label='关闭'>✕</button>
+      </div>
+      <div class='detail-dialog-body' data-detail-dialog-body></div>
+    </form>
+  </dialog>
 </section>
 
 <style>
@@ -513,21 +517,55 @@ import { activity, teams } from '@/data/agent-teams'
     }
   }
 
-  /* 详细介绍：默认只显示 4 行，超出的靠「展开」按钮撑开，让卡片高度不会被长文本拉得参差不齐。
-     :not([hidden]) 很重要——没有它，这条规则的优先级会盖过 .hidden / [hidden]，
-     让空的介绍框也变成一个可见的虚线方块。 */
-  .team-detail:not([data-expanded]):not([hidden]) {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    overflow: hidden;
+  /* 详细介绍不再撑在卡片里——点「查看详细介绍」弹一个共用的 <dialog>，
+     卡片高度就不会因为有没有写详细介绍而参差不齐。 */
+  .detail-toggle:not(.hidden) {
+    display: inline-flex;
   }
-  .team-detail[data-expanded] {
-    display: block;
+
+  .detail-dialog {
+    width: min(92vw, 34rem);
+    max-height: 80vh;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius, 0.75rem);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
-  .detail-toggle[data-show] {
-    display: inline-block;
-    align-self: flex-start;
+  .detail-dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  .detail-dialog-inner {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+  }
+  .detail-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .detail-dialog-close {
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    line-height: 1;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground));
+  }
+  .detail-dialog-close:hover {
+    color: hsl(var(--foreground));
+  }
+  .detail-dialog-body {
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+    white-space: pre-wrap;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
   }
 
   .signup-form[data-open] {
@@ -640,34 +678,15 @@ import { activity, teams } from '@/data/agent-teams'
   }
 
   function renderDetail(card: HTMLElement, value: string | null) {
-    const box = card.querySelector<HTMLElement>('[data-detail]')
-    const toggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
-    if (!box) return
     const detail = value ?? ''
-    box.textContent = detail // textContent + pre-wrap — 用户输入不当 HTML 解析
-    box.removeAttribute('data-expanded') // 每次拿到新数据都先收起，避免旧的展开状态错位
-    const empty = detail.length === 0
-    box.hidden = empty
-    box.classList.toggle('hidden', empty)
-    // 缓存当前值，供队长编辑表单预填
+    // 缓存当前值：卡片本身不再铺开显示，只在弹窗和队长编辑表单预填时用它。
     card.dataset.detail = detail
 
+    const toggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
     if (!toggle) return
-    if (empty) {
-      delete toggle.dataset.show
-      toggle.hidden = true
-      toggle.classList.add('hidden')
-      return
-    }
-    toggle.textContent = '展开'
-    // 等一帧让 line-clamp 布局完成，再判断文本是否真的被裁掉——没超出就不显示按钮。
-    requestAnimationFrame(() => {
-      const overflowing = box.scrollHeight - box.clientHeight > 1
-      toggle.hidden = !overflowing
-      toggle.classList.toggle('hidden', !overflowing)
-      if (overflowing) toggle.dataset.show = ''
-      else delete toggle.dataset.show
-    })
+    const empty = detail.length === 0
+    toggle.hidden = empty
+    toggle.classList.toggle('hidden', empty)
   }
 
   function renderRoster(card: HTMLElement, team: Team) {
@@ -789,36 +808,29 @@ import { activity, teams } from '@/data/agent-teams'
 
     renderMeta(card, team)
 
-    const detail = card.querySelector<HTMLElement>('[data-detail]')
-    if (detail) {
-      detail.textContent = ''
-      detail.removeAttribute('data-expanded')
-      detail.hidden = true
-      detail.classList.add('hidden')
-    }
     const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
     if (detailToggle) {
-      delete detailToggle.dataset.show
       detailToggle.hidden = true
       detailToggle.classList.add('hidden')
     }
     return card
   }
 
+  // 「查看详细介绍」弹窗：全站共用一个 <dialog>，点开哪张卡就把标题/正文填进去再弹出。
+  function openDetailDialog(board: HTMLElement, card: HTMLElement) {
+    const dialog = board.querySelector<HTMLDialogElement>('[data-detail-dialog]')
+    if (!dialog) return
+    const titleEl = dialog.querySelector<HTMLElement>('[data-detail-dialog-title]')
+    const bodyEl = dialog.querySelector<HTMLElement>('[data-detail-dialog-body]')
+    if (titleEl) titleEl.textContent = card.querySelector('[data-title]')?.textContent ?? ''
+    if (bodyEl) bodyEl.textContent = card.dataset.detail ?? ''
+    dialog.showModal()
+  }
+
   function wireCard(card: HTMLElement, board: HTMLElement) {
-    // 「详细介绍」展开/收起：内容默认裁到 4 行，卡片高度才不会被长文本撑得参差不齐。
-    const detailBox = card.querySelector<HTMLElement>('[data-detail]')
-    const detailExpandToggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
-    detailExpandToggle?.addEventListener('click', () => {
-      const expanded = detailBox?.hasAttribute('data-expanded')
-      if (expanded) {
-        detailBox?.removeAttribute('data-expanded')
-        detailExpandToggle.textContent = '展开'
-      } else {
-        detailBox?.setAttribute('data-expanded', '')
-        detailExpandToggle.textContent = '收起'
-      }
-    })
+    card
+      .querySelector<HTMLButtonElement>('[data-detail-toggle]')
+      ?.addEventListener('click', () => openDetailDialog(board, card))
 
     const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
     const form = card.querySelector<HTMLFormElement>('[data-signup-form]')
