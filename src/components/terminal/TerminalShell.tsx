@@ -134,7 +134,7 @@ function MatrixRain() {
 }
 
 const COLLAPSE_KEY = 'wt-collapsed'
-const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'theme dark', 'matrix']
+const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'design', 'theme dark', 'matrix']
 
 export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props) {
   const [entries, setEntries] = useState<RenderEntry[]>([])
