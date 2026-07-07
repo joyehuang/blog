@@ -1,150 +1,262 @@
+---
+version: alpha
+name: Joye Personal Blog
+description: A solo engineer's blog and portfolio (Astro). Calm, editorial, technical on the main reading surfaces — chrome stays quiet so writing and project work are the subject. A separate, deliberately playful terminal/dev-mode/mascot layer exists as an easter egg and does not follow these tokens (see Sub-themes).
+colors:
+  background: "hsl(210 33% 99%)"
+  foreground: "hsl(240 10% 3.9%)"
+  card: "hsl(0 0% 100%)"
+  card-foreground: "hsl(240 10% 3.9%)"
+  popover: "hsl(0 0% 100%)"
+  popover-foreground: "hsl(240 10% 3.9%)"
+  primary: "hsl(200 29% 45%)"
+  primary-foreground: "hsl(0 0% 92.5%)"
+  secondary: "hsl(240 4.8% 95.9%)"
+  secondary-foreground: "hsl(240 5.9% 10%)"
+  muted: "hsl(240 4.8% 95%)"
+  muted-foreground: "hsl(240 3.8% 28.1%)"
+  accent: "hsl(240 4.8% 95.9%)"
+  accent-foreground: "hsl(240 5.9% 10%)"
+  destructive: "hsl(0 72.22% 50.59%)"
+  destructive-foreground: "hsl(0 0% 98%)"
+  border: "hsl(240 5.9% 88%)"
+  input: "hsl(240 5.9% 90%)"
+  ring: "hsl(240 5.9% 10%)"
+  term-surface: "hsl(210 20% 97%)"
+  term-chrome: "hsl(210 20% 95%)"
+  term-ok: "hsl(142 50% 40%)"
+  code-bg: "hsl(220 14% 93%)"
+  code-fg: "hsl(220 13% 18%)"
+typography:
+  body:
+    fontFamily: Satoshi
+    fontSize: 16px
+    fontWeight: 400
+    lineHeight: 1.5
+  brand:
+    fontFamily: Satoshi
+    fontSize: 20px
+    fontWeight: 600
+  prose-heading:
+    fontFamily: Satoshi
+    fontWeight: 500
+  ui-label:
+    fontFamily: "JetBrains Mono"
+    fontSize: 12px
+    fontWeight: 400
+    lineHeight: 20px
+    letterSpacing: -0.025em
+rounded:
+  md: 6px
+  lg: 8px
+  xl: 12px
+  2xl: 16px
+  full: 9999px
+spacing:
+  icon-button: 6px
+  nav-gap: 16px
+  card-sm: 16px
+  card-md: 20px
+  card-lg: 24px
+---
+
 # Design Conventions
 
-This file collects the small UI conventions for this site — color, type,
-spacing, radius, shadow, breakpoints, and motion. Check it before adding or
-reviewing UI so new components reuse existing tokens/patterns instead of
-inventing new ones. It documents what the codebase actually does, not an
-aspirational spec — if you change a convention, update this file in the same
-commit.
+This file follows the [design.md](https://github.com/google-labs-code/design.md)
+convention: the YAML frontmatter above holds machine-readable tokens, the
+markdown body below holds human-readable rationale and file citations. Tokens
+are normative — if a value here and the code disagree, the code is the bug
+(or this file is stale); fix whichever is wrong in the same commit.
+
+This documents what the codebase actually does, not an aspirational spec.
+
+## Overview
+
+A solo engineering blog/portfolio. The primary reading surfaces (blog, notes,
+projects, about) should feel calm, editorial, and technical — quiet chrome,
+generous whitespace, nothing competing with the writing. The terminal /
+dev-mode / mascot layer is the one deliberate exception: it's meant to feel
+playful and a little skeuomorphic (macOS window chrome, scanlines, a mascot
+speech bubble), clearly a different "device" from the rest of the site rather
+than another themed card. See [Sub-themes](#sub-themes).
 
 ## Colors
 
 All color is driven by HSL-triplet CSS variables in
-[`app.css`](src/assets/styles/app.css), set in `:root` and overridden in
-`.dark` (toggled as a class on `<html>`, see `ThemeProvider.astro`). Variables
+[`app.css`](src/assets/styles/app.css:19-71), set in `:root` and overridden in
+`.dark` (toggled as a class on `<html>`, see
+[`ThemeProvider.astro`](src/components/ThemeProvider.astro:24)). Variables
 store a raw `H S% L%` triplet (no `hsl()` wrapper) so they can be consumed
 with an alpha channel: `hsl(var(--primary) / 0.25)`.
 
-Pairs, shadcn/ui-style (`app.css:19-71`):
+| Token | Light | Dark | Used for |
+| --- | --- | --- | --- |
+| `background` / `foreground` | `210 33% 99%` / `240 10% 3.9%` | `240 20.54% 5.2%` / `0 0% 98%` | Page base |
+| `card` / `card-foreground` | `0 0% 100%` / `240 10% 3.9%` | `240 10% 3.9%` / `0 0% 98%` | Cards, popovers |
+| `primary` / `primary-foreground` | `200 29% 45%` (muted teal-blue) | `195 95% 85%` (bright cyan) | Links, accents, active state |
+| `secondary` / `muted` / `accent` | `240 4.8% 95.9%` / `95%` / `95.9%` | `240 3.7% 15.9%` / `5.9% 12%` / `3.7% 15.9%` | Low-emphasis fills |
+| `muted-foreground` | `240 3.8% 28.1%` | `240 5% 74.9%` | Secondary text |
+| `destructive` / `destructive-foreground` | `0 72.22% 50.59%` / `0 0% 98%` | `0 62.8% 30.6%` / `0 0% 98%` | Errors |
+| `border` / `input` / `ring` | `240 5.9% 88%` / `90%` / `10%` | `240 3.7% 19.9%` / `15.9%` / `4.9% 83.9%` | Structural lines, focus |
+| `term-surface` / `term-chrome` / `term-ok` | terminal sub-theme (see below) | | Terminal widget |
+| `code-bg` / `code-fg` | `220 14% 93%` / `220 13% 18%` | `240 5.9% 12%` / `0 0% 92%` | Code blocks |
 
-- `--background` / `--foreground`
-- `--card` / `--card-foreground`, `--popover` / `--popover-foreground`
-- `--primary` / `--primary-foreground`
-- `--secondary` / `--secondary-foreground`
-- `--muted` / `--muted-foreground`
-- `--accent` / `--accent-foreground`
-- `--destructive` / `--destructive-foreground`
-- Structural: `--border`, `--input`, `--ring`
-- Site-specific: `--term-surface` / `--term-chrome` / `--term-ok` (terminal
-  sub-theme), `--code-bg` / `--code-fg` (code blocks)
+`--primary` is not held constant across themes — it flips from a muted
+mid-tone in light mode to a bright near-foreground tone in dark mode, rather
+than keeping the same hue/lightness. Match that intent: a color that reads as
+an "accent" in light mode should still read as one in dark mode, even if the
+exact HSL differs.
 
-`--primary` is not held constant across themes: light mode uses a muted
-teal-blue (`200 29% 45%`), dark mode flips to a bright near-foreground cyan
-(`195 95% 85%`) rather than keeping the same hue/lightness. Match that
-intent — a color that reads as an "accent" in light mode should still read
-as one in dark mode, even if the exact HSL differs.
-
-`uno.config.ts` maps every pair into `theme.colors` (`uno.config.ts:128-162`)
+[`uno.config.ts:128-162`](uno.config.ts) maps every pair into `theme.colors`
 so components use the semantic name, never the raw variable or a generic
-Tailwind palette color: `bg-muted`, `text-muted-foreground`, `border-input`,
+Tailwind shade: `bg-muted`, `text-muted-foreground`, `border-input`,
 `hover:text-primary`. `presetWind3` (full Tailwind palette) is intentionally
-disabled — only `presetMini` + `presetTypography` run — so classes like
-`text-red-500` don't exist here; if a new color is needed, add a token to
-`app.css` + `uno.config.ts` rather than reaching for a raw Tailwind shade.
+disabled — only `presetMini` + `presetTypography` run
+([`uno.config.ts:184-187`](uno.config.ts)) — so classes like `text-red-500`
+don't exist here; if a new color is needed, add a token to `app.css` +
+`uno.config.ts` rather than reaching for a raw Tailwind shade.
 
-Don't hardcode colors in component CSS. The one deliberate exception is the
-terminal's macOS-style traffic-light buttons
-(`terminal.css:156-158`, `#ff6058`/`#ffbd2e`/`#28c93f`) — those are chrome
-skeuomorphism, not theme content, so they're pinned regardless of light/dark.
+The one deliberate hardcoded-color exception is the terminal's macOS-style
+traffic-light buttons (`#ff6058`/`#ffbd2e`/`#28c93f`,
+[`terminal.css:156-158`](src/components/terminal/terminal.css)) — chrome
+skeuomorphism, not theme content, so it's pinned regardless of light/dark.
 
 ## Typography
 
 - Body font: **Satoshi**, self-hosted variable font
-  (`app.css:1-16`, `/fonts/Satoshi-Variable.ttf`), set once on `html` — don't
-  re-declare `font-family` per component.
-- Monospace: **JetBrains Mono** (Google Fonts, `BaseHead.astro:48-57`),
-  fallback stack `'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas,
-  monospace`. This is scoped to the terminal / dev-mode / mascot sub-theme —
-  general UI stays on Satoshi; don't add `font-mono` to ordinary components.
-- Prose (blog/notes body copy) uses `presetTypography`, applied via the
+  ([`app.css:1-16`](src/assets/styles/app.css), `/fonts/Satoshi-Variable.ttf`),
+  set once on `html` — don't re-declare `font-family` per component.
+- Monospace: **JetBrains Mono**
+  ([`BaseHead.astro:48-57`](src/components/BaseHead.astro)), fallback stack
+  `'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace`.
+  Scoped to the terminal / dev-mode / mascot sub-theme — general UI stays on
+  Satoshi; don't add `font-mono` to ordinary components.
+- Prose (blog/notes body copy) uses `presetTypography` via the
   `prose text-base text-muted-foreground` class combo
-  (`site.config.ts:140`, safelisted in `uno.config.ts:198-199` since it's
-  injected dynamically). Headings inside prose are `font-weight: 500`, not
-  bold (`uno.config.ts:12-13`); `strong` is `600`, links are `500`
-  (`uno.config.ts:114,118`) — these override the typography preset's
-  defaults, so don't fight them with inline weight utilities.
+  ([`site.config.ts:140`](src/site.config.ts)). Headings inside prose are
+  `font-weight: 500`, not bold
+  ([`uno.config.ts:12-13`](uno.config.ts)); `strong` is `600`, links are `500`
+  ([`uno.config.ts:114,118`](uno.config.ts)) — don't fight these with inline
+  weight utilities.
 - Compact UI text (icon-button labels, dev-mode chrome) pairs
-  `font-mono text-xs leading-5 tracking-tight` (`Header.astro:79`); nav/brand
-  text uses `font-semibold`/`font-medium` at `text-xl`/default size
-  (`Header.astro:41,58`) — there's no larger custom type scale beyond default
-  Tailwind sizes (`text-xs` … `text-xl` cover nearly everything observed).
+  `font-mono text-xs leading-5 tracking-tight`
+  ([`Header.astro:79`](src/components/Header.astro)); nav/brand text uses
+  `font-semibold`/`font-medium` at `text-xl`/default size
+  ([`Header.astro:41,58`](src/components/Header.astro)) — there's no larger
+  custom type scale beyond default Tailwind sizes (`text-xs` … `text-xl`
+  cover nearly everything observed).
 
-## Spacing
+## Layout
 
-No custom spacing scale — default 0.25rem-increment scale from `presetMini`.
-Two idioms recur enough to be conventions:
+No custom spacing scale — default 0.25rem-increment scale from
+`presetMini`. Two idioms recur enough to be conventions:
 
-- Icon buttons: `size-5` content box with `p-1.5` padding
-  (`Header.astro:79,87,96`) — use this pairing for any new icon-only button
-  rather than picking arbitrary padding.
+- Icon buttons: `size-5` content box with `p-1.5` (6px) padding
+  ([`Header.astro:79,87,96`](src/components/Header.astro)) — use this
+  pairing for any new icon-only button rather than picking arbitrary padding.
 - Horizontal flex spacing in nav/header contexts: `gap-x-*` (2/3/4/5), not
   bare `gap-*` — keeps vertical rhythm untouched when a row wraps.
-- Card padding: `p-4`/`p-5 sm:p-6` for content cards (`pages/index.astro:171`).
+- Card padding: `p-4`/`p-5 sm:p-6`
+  ([`pages/index.astro:171`](src/pages/index.astro)).
 
-## Border radius
+### Breakpoints
 
-`--radius: 0.5rem` (`app.css:39`) is the canonical system radius, but it's
-mostly consumed as a raw CSS value (prose images/blockquotes,
-`uno.config.ts:39,101`) rather than a class — the practical convention lives
-in which Tailwind radius utility each layer uses:
+Utility classes use default Tailwind/UnoCSS breakpoints (`sm:`, `md:`, etc.)
+throughout — that part is standard. The exception is **scoped `<style>`
+blocks**, where UnoCSS doesn't generate responsive variants for hand-rolled
+CSS, so components fall back to raw `@media` queries that don't always match
+the Tailwind px values exactly:
 
-- **`rounded-md`** — compact controls: icon buttons, small badges
-  (`Header.astro:79,87,96`).
-- **`rounded-lg`** — the default for cards and list items; the single most
-  common radius in the codebase.
-- **`rounded-xl` / `rounded-2xl`** — hero-level containers: the header shell
-  (`Header.astro:38`, `rounded-xl` → `sm:rounded-2xl`), homepage/about cards
-  (`pages/index.astro:171,218,454,456`), popout panels.
-- **`rounded-full`** — avatars, status dots, pill badges.
+- `max-width: 640px` is the de facto mobile breakpoint (mirrors Tailwind
+  `sm`) — [`Header.astro:225`](src/components/Header.astro),
+  `ContentLayout.astro:183`, `FeatureCalloutCard.astro:199`,
+  `FriendConstellation.astro:434`, `GitHubContributions.astro:476`,
+  `devmode.css:349`, `TalksSeries.astro:992`.
+- `min-width`/`max-width: 768px`–`800px` is the de facto tablet breakpoint
+  (mirrors Tailwind `md`, loosely) —
+  [`Header.astro:215`](src/components/Header.astro) uses `800px`,
+  `ContentLayout.astro:138,143` uses `769px`, `PostPreviewEn.astro:153` uses
+  `768px`.
 
-Rule of thumb: control → `md`, card → `lg`, hero container → `xl`/`2xl`,
-avatar/pill/dot → `full`. The terminal sub-theme uses its own
-`--wt-radius: 0.85rem` (`terminal.css:33`) instead of the global token —
-that's intentional (see Sub-themes below), don't "fix" it to match.
+When adding a scoped media query, use `640px` for the mobile cutoff and
+`768px` (exact Tailwind `md`) for the tablet cutoff, unless you have a
+specific reason to diverge (as `Header.astro:215` does, to clear the sticky
+header's own horizontal margin).
 
-## Shadows
+## Elevation & Depth
 
 No shadow token/CSS var — always a Tailwind `shadow-*` utility or a
 hand-authored `box-shadow`. Two idioms, pick based on context:
 
 - **Interactive card hover**: `hover:shadow-sm` (or `hover:shadow-md` for
   pills) combined with `hover:-translate-y-0.5` or
-  `hover:border-foreground/25` (`pages/about/index.astro:38`,
+  `hover:border-foreground/25`
+  ([`pages/about/index.astro:38`](src/pages/about/index.astro),
   `pages/index.astro:134,171`, `home/ProjectCard.astro:29`,
   `home/LinkCard.astro:31`).
 - **Ambient elevation on static surfaces**: a soft shadow tied to the
   foreground token so it stays correct across themes, e.g.
   `box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06)`
-  (`FeatureCalloutCard.astro:72`). Prefer this pattern for new elevated
-  surfaces over hardcoded rgba — it's the theme-aware idiom.
+  ([`FeatureCalloutCard.astro:72`](src/components/blog/FeatureCalloutCard.astro)).
+  Prefer this pattern for new elevated surfaces over hardcoded rgba.
 
-The header's "scrolled" chrome shadow (`Header.astro:205-209,239-243`) is a
-hardcoded 4-layer rgba stack predating the foreground-token idiom above.
-It's left as-is for now, but don't copy it into new components — use the
-`hsl(var(--foreground) / …)` pattern instead.
+The header's "scrolled" chrome shadow
+([`Header.astro:205-209,239-243`](src/components/Header.astro)) is a
+hardcoded 4-layer rgba stack predating the foreground-token idiom above. It's
+left as-is, but don't copy it into new components.
 
-## Breakpoints
+## Shapes
 
-Utility classes use default Tailwind/UnoCSS breakpoints (`sm:`, `md:`, etc.)
-throughout — that part is standard. The exception is **scoped `<style>`
-blocks**, where UnoCSS doesn't generate responsive variants for hand-rolled
-CSS, so components fall back to raw `@media` queries. These don't always
-match the Tailwind px values exactly:
+`--radius: 0.5rem` (8px, [`app.css:39`](src/assets/styles/app.css)) is the
+canonical system radius, consumed as a raw CSS value in a couple of prose
+elements ([`uno.config.ts:39,101`](uno.config.ts)) rather than a class — the
+practical convention lives in which Tailwind radius utility each layer uses:
 
-- `max-width: 640px` is the de facto mobile breakpoint in scoped styles
-  (mirrors Tailwind `sm`) — used in `Header.astro:225`,
-  `ContentLayout.astro:183`, `FeatureCalloutCard.astro:199`,
-  `FriendConstellation.astro:434`, `GitHubContributions.astro:476`,
-  `devmode.css:349`, `TalksSeries.astro:992`.
-- `min-width`/`max-width: 768px`–`800px` is the de facto tablet breakpoint
-  (mirrors Tailwind `md`, loosely) — `Header.astro:215` uses `800px`,
-  `ContentLayout.astro:138,143` uses `769px`, `PostPreviewEn.astro:153` uses
-  `768px`.
+- **`rounded-md`** (6px) — compact controls: icon buttons, small badges
+  ([`Header.astro:79,87,96`](src/components/Header.astro)).
+- **`rounded-lg`** (8px) — the default for cards and list items; the single
+  most common radius in the codebase. Numerically equal to `--radius`.
+- **`rounded-xl`/`rounded-2xl`** (12px/16px) — hero-level containers: the
+  header shell ([`Header.astro:38`](src/components/Header.astro),
+  `rounded-xl` → `sm:rounded-2xl`), homepage/about cards, popout panels.
+- **`rounded-full`** — avatars, status dots, pill badges.
 
-When adding a scoped media query, use `640px` for the mobile cutoff. For the
-tablet cutoff, `768px` matches Tailwind `md` exactly — prefer that over
-`769px`/`800px` unless you have a specific reason to diverge (as
-`Header.astro:215` does, to clear the sticky header's own horizontal margin).
+Rule of thumb: control → `md`, card → `lg`, hero container → `xl`/`2xl`,
+avatar/pill/dot → `full`. The terminal sub-theme uses its own
+`--wt-radius: 0.85rem` ([`terminal.css:33`](src/components/terminal/terminal.css))
+instead of the global token — intentional, see Sub-themes.
+
+## Components
+
+No component token library — patterns are established by precedent, reused
+by copying the class combo rather than a shared component prop API:
+
+- **Icon button**: `size-5` box, `p-1.5` padding, `rounded-md`,
+  `hover:bg-border` (or `hover:bg-muted`), `transition-colors`
+  ([`Header.astro:77-93`](src/components/Header.astro)).
+- **Interactive card**: `rounded-lg`/`rounded-2xl`, `border`,
+  `hover:shadow-sm` + `hover:-translate-y-0.5` or `hover:border-foreground/25`
+  ([`home/ProjectCard.astro`](src/components/home/ProjectCard.astro),
+  `home/LinkCard.astro`).
+- **Icon/label swap control** (theme toggle, language switch): see
+  [Blurred Icon Transition](#blurred-icon-transition) below — this is a
+  motion pattern, not a static style, but any new "cycle through options"
+  button should reuse it rather than a plain state swap.
+
+## Do's and Don'ts
+
+- Do use the semantic token classes (`bg-muted`, `text-primary`, …), never a
+  raw Tailwind palette color or a literal hex/rgb in a component.
+- Don't add `font-mono` outside the terminal/dev-mode/mascot layer — it's a
+  sub-theme marker, not a general emphasis utility.
+- Do use the `hsl(var(--foreground) / <alpha>)` shadow idiom for new elevated
+  surfaces; don't hand-roll another hardcoded rgba shadow stack.
+- Don't invent a new scoped `@media` breakpoint — reuse `640px`/`768px`.
+- Don't swap a control's icon/label with `display:none`/`display:block` —
+  use the Blurred Icon Transition instead (see Motion).
+- Do keep the terminal/dev-mode/mascot sub-theme inside its own token set
+  (`--wt-*`, `--term-*`) rather than pulling in global tokens — it's meant to
+  read as a distinct "device," not another themed card.
 
 ## Sub-themes
 
@@ -154,19 +266,19 @@ not a bug to normalize away:
 
 - Own radius (`--wt-radius: 0.85rem`) and mono-first typography throughout.
 - Glassy chrome: `backdrop-filter: blur(18px) saturate(140%)`, layered
-  gradient/mask grid texture (`terminal.css:86-98`).
+  gradient/mask grid texture
+  ([`terminal.css:86-98`](src/components/terminal/terminal.css)).
 - `devmode.css` explicitly switches `mix-blend-mode` between `multiply`
-  (light) and `screen` (dark) for its scanline effect (`devmode.css:41-46`)
-  — a rare case where light/dark need different *blend modes*, not just
-  different colors.
+  (light) and `screen` (dark) for its scanline effect
+  ([`devmode.css:41-46`](src/components/terminal/devmode.css)) — a rare case
+  where light/dark need different *blend modes*, not just different colors.
 - `jojo.css`'s speech bubble uses theme tokens (`--card`/`--foreground`/
   `--border`) for color but its own literal `10px` radius / `6px 10px`
   padding — color follows the system, geometry doesn't.
 
 When extending one of these surfaces, stay inside its local token set
 (`--wt-*`, `--term-*`) rather than pulling in the global `--radius`/spacing
-scale — the whole point is that it reads as a distinct "device" (terminal
-window, mascot bubble) rather than another card in the site's design system.
+scale.
 
 ## Motion
 
