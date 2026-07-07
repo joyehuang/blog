@@ -606,13 +606,15 @@ const agentHackathonLink =
         root.dataset.state = state
         panel.classList.toggle('hidden', state !== 'open')
         root.classList.toggle('hidden', state === 'closed')
-        window.localStorage.setItem(storageKey, state)
+        // 关闭只在本次会话记住（sessionStorage）——下次访问弹窗会重新出现，
+        // 不像以前 localStorage 那样关一次就永久消失。
+        window.sessionStorage.setItem(storageKey, state)
         if (state === 'open') typeText()
         scheduleNudge()
       }
 
-      // 只剩 open / closed 两态；历史上被「收进角落」存成 minimized 的当作 open。
-      const savedState = window.localStorage.getItem(storageKey)
+      // 只剩 open / closed 两态；只认本次会话的关闭状态。
+      const savedState = window.sessionStorage.getItem(storageKey)
       setState(savedState === 'closed' ? 'closed' : 'open')
 
       closeButton?.addEventListener('click', () => setState('closed'))

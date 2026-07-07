@@ -7,6 +7,7 @@ import pencilIcon from '@/assets/tools/pencil.png'
 import hermesIcon from '@/assets/tools/hermes.png'
 
 const headings = [
+  { depth: 2, slug: 'summer-of-agents', text: 'Summer of Agents' },
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
   { depth: 2, slug: 'tools', text: 'Tools' },
@@ -25,6 +26,37 @@ const headings = [
     My motto: Build fast, learn faster. <Spoiler></Spoiler>
   </p>
   <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' style='ahead' />
+
+  {/* summer-of-agents */}
+  <h2 id='summer-of-agents'>Summer of Agents</h2>
+  <p>
+    今年夏天我在粉丝群里发起了「第一届 Joye 粉丝 Agent 比赛」——十几个赛道任你选，也可以自命题开一队。
+    公开报名已经截止，现在是组队阶段，参赛、围观、找队友都欢迎，说不定还会有第二届 😄
+  </p>
+  <a
+    href='/agent-teams'
+    class='not-prose group my-2 flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6'
+  >
+    <span class='min-w-0'>
+      <span class='flex flex-wrap items-center gap-2 text-xs font-medium'>
+        <span
+          class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-300'
+        >
+          第一届
+        </span>
+        <span class='text-muted-foreground'>Joye 粉丝 Agent 比赛 · 组队报名</span>
+      </span>
+      <span class='mt-1.5 block text-xl font-bold text-foreground sm:text-2xl'>Summer of Agents</span>
+      <span class='mt-1 block text-sm leading-relaxed text-muted-foreground'>
+        选一个感兴趣的赛道组队，或者自命题开一队。
+      </span>
+    </span>
+    <span
+      class='inline-flex shrink-0 items-center gap-1 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground transition-transform group-hover:translate-x-0.5 sm:self-center'
+    >
+      去组队 →
+    </span>
+  </a>
 
   {/* general-talk */}
   <h2 id='hobbies'>Hobbies</h2>

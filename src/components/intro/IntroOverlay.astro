@@ -47,9 +47,11 @@ import avatar from 'src/assets/avatar.png'
 <script is:inline>
   ;(function () {
     try {
+      // 冷却期：看过后 24 小时内不再自动播（避免每个会话都弹）。重播按钮不受限。
+      var seenAt = parseInt(localStorage.getItem('intro-seen-at') || '0', 10)
+      var recentlySeen = seenAt > 0 && Date.now() - seenAt < 24 * 60 * 60 * 1000
       var skip =
-        sessionStorage.getItem('intro-seen') === '1' ||
-        (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+        recentlySeen || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
       if (skip) {
         var el = document.getElementById('intro-overlay')
         if (el) el.classList.add('intro-idle')
@@ -482,7 +484,7 @@ import avatar from 'src/assets/avatar.png'
       if (card) card.classList.remove('show')
       hud.style.opacity = ''; hud.classList.remove('show')
       overlay.classList.remove('intro-idle'); overlay.classList.remove('intro-done')
-      try { sessionStorage.setItem('intro-seen', '1') } catch (e) {}
+      try { localStorage.setItem('intro-seen-at', String(Date.now())) } catch (e) {}
       trackIntro('intro_start', 'animation')
       start()
     }
@@ -503,7 +505,11 @@ import avatar from 'src/assets/avatar.png'
     if (replayBtn) replayBtn.addEventListener('click', function () { playSource = 'replay'; trackIntro('intro_replay', 'replay'); play('replay') })
 
     var seen = false
-    try { seen = sessionStorage.getItem('intro-seen') === '1' } catch (e) {}
+    // 与预渲染门一致：24 小时内看过就算 seen，不自动重播。
+    try {
+      var seenAtMain = parseInt(localStorage.getItem('intro-seen-at') || '0', 10)
+      seen = seenAtMain > 0 && Date.now() - seenAtMain < 24 * 60 * 60 * 1000
+    } catch (e) {}
     if (!seen && !reduce) {
       var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
       Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(function () { play('first_visit') })
