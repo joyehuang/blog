@@ -84,12 +84,12 @@ const searchHref = localizedPath('/search', lang)
       </button>
       <button
         id='toggleDarkMode'
-        class='group/dark box-content size-5 rounded-md border p-1.5 transition-colors hover:bg-border sm:group-[.not-top]:rounded-xl'
+        class='group/dark relative box-content size-5 rounded-md border p-1.5 transition-colors hover:bg-border sm:group-[.not-top]:rounded-xl'
       >
         <span class='sr-only'>{t('nav.toggleDarkMode')}</span>
-        <Icon class='system size-5 group-hover/dark:text-primary' name='computer' />
-        <Icon class='light hidden size-5 group-hover/dark:text-primary' name='sun' />
-        <Icon class='dark hidden size-5 group-hover/dark:text-primary' name='moon' />
+        <Icon class='theme-icon system size-5 group-hover/dark:text-primary' name='computer' />
+        <Icon class='theme-icon light size-5 group-hover/dark:text-primary' name='sun' />
+        <Icon class='theme-icon dark size-5 group-hover/dark:text-primary' name='moon' />
       </button>
       <button
         id='toggleMenu'
@@ -268,21 +268,52 @@ const searchHref = localizedPath('/search', lang)
 
   /* dark light mode toggle */
   #toggleDarkMode {
+    & .theme-icon {
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      opacity: 0;
+      filter: blur(4px);
+      transform: scale(0.6);
+      transition:
+        opacity 0.25s ease,
+        filter 0.25s ease,
+        transform 0.25s ease;
+      pointer-events: none;
+    }
+    & .system {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
     &[data-theme='dark'] {
       & .system {
-        display: none;
+        opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.6);
       }
       & .dark {
-        display: block;
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
       }
     }
     &[data-theme='light'] {
       & .system {
-        display: none;
+        opacity: 0;
+        filter: blur(4px);
+        transform: scale(0.6);
       }
-      .light {
-        display: block;
+      & .light {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
       }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #toggleDarkMode .theme-icon {
+      transition: none;
     }
   }
 </style>
