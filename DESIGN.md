@@ -27,6 +27,35 @@ colors:
   term-ok: "hsl(142 50% 40%)"
   code-bg: "hsl(220 14% 93%)"
   code-fg: "hsl(220 13% 18%)"
+# colorsDark is a non-normative extension (not part of the base design.md
+# spec): the site is dual-theme, and we keep both themes in one file rather
+# than splitting into a second design.dark.md. Same keys as `colors` above,
+# values applied when `.dark` is set on <html>.
+colorsDark:
+  background: "hsl(240 20.54% 5.2%)"
+  foreground: "hsl(0 0% 98%)"
+  card: "hsl(240 10% 3.9%)"
+  card-foreground: "hsl(0 0% 98%)"
+  popover: "hsl(240 10% 3.9%)"
+  popover-foreground: "hsl(0 0% 98%)"
+  primary: "hsl(195 95% 85%)"
+  primary-foreground: "hsl(240 3.7% 15.9%)"
+  secondary: "hsl(240 3.7% 15.9%)"
+  secondary-foreground: "hsl(0 0% 98%)"
+  muted: "hsl(240 5.9% 12%)"
+  muted-foreground: "hsl(240 5% 74.9%)"
+  accent: "hsl(240 3.7% 15.9%)"
+  accent-foreground: "hsl(0 0% 98%)"
+  destructive: "hsl(0 62.8% 30.6%)"
+  destructive-foreground: "hsl(0 0% 98%)"
+  border: "hsl(240 3.7% 19.9%)"
+  input: "hsl(240 3.7% 15.9%)"
+  ring: "hsl(240 4.9% 83.9%)"
+  term-surface: "hsl(240 18% 7%)"
+  term-chrome: "hsl(240 18% 4%)"
+  term-ok: "hsl(142 60% 65%)"
+  code-bg: "hsl(240 5.9% 12%)"
+  code-fg: "hsl(0 0% 92%)"
 typography:
   body:
     fontFamily: Satoshi
