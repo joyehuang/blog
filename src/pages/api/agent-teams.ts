@@ -171,11 +171,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   // action=create：自助创建自定义赛道。
   if (body.action === 'create') {
+    const capacityRaw = body.capacity
     const result = await createTeam({
       title: str(body.title) ?? '',
       summary: str(body.summary) ?? '',
       kind: str(body.kind) === 'solo' ? 'solo' : 'team',
       name: str(body.name),
+      capacity: typeof capacityRaw === 'number' && Number.isFinite(capacityRaw) ? capacityRaw : undefined,
       passcode: str(body.passcode),
       hp: str(body.hp),
       ip

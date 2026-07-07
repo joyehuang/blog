@@ -76,6 +76,9 @@ const CONTACT_MAX = 60
 const DETAIL_MAX = 600
 const TITLE_MAX = 30
 const SUMMARY_MAX = 80
+// 组队赛道的名额上限范围；不在这个区间就当没填，按不限处理。
+const TEAM_CAPACITY_MIN = 2
+const TEAM_CAPACITY_MAX = 999
 // 轻量限流：同一 IP 在窗口内最多成功报名这么多次。
 const RATE_LIMIT = 5
 const RATE_WINDOW_SEC = 600
@@ -184,6 +187,9 @@ async function ensureSchema(sql: Sql): Promise<void> {
   `
   // 赛道类型：team=可多人组队，solo=个人（名额 1，别人不能加入）。旧行默认 team。
   await sql`ALTER TABLE agent_team_customs ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'team'`
+  // 名额上限：组队赛道创建时可选填（默认 10，参照内置赛道的惯例），留空则不限；
+  // 个人赛道恒为 1，不走这一列。旧行（建功能前创建的）没有名额，NULL 就是「不限」。
+  await sql`ALTER TABLE agent_team_customs ADD COLUMN IF NOT EXISTS capacity INTEGER`
   // 队长：一队一行，记录队长的 name_key。没有行时默认「第一个报名的人」当队长。
   await sql`
     CREATE TABLE IF NOT EXISTS agent_team_captains (
@@ -381,6 +387,16 @@ export async function addSignup(
       return { ok: false, code: 'duplicate', message: '这个昵称已经在这支队伍里了' }
     }
 
+    // 这支队伍的第一个人：自动记为队长（个人赛道创建时已在 createTeam 里处理过，
+    // 这里补的是「组队」赛道第一个报名者的情形）。ON CONFLICT DO NOTHING 避免覆盖已有队长。
+    if (existing.length === 0) {
+      await sql`
+        INSERT INTO agent_team_captains (team_id, captain_key)
+        VALUES (${input.teamId}, ${nameKey})
+        ON CONFLICT (team_id) DO NOTHING
+      `
+    }
+
     const members = [
       ...existing.map(rowToMember),
       { name, note, ts: Math.round(inserted[0].ts_sec * 1000) }
@@ -503,8 +519,10 @@ export type CreateTeamInput = {
   summary: string
   /** team=可多人组队；solo=个人（名额 1，别人不能加入） */
   kind?: 'team' | 'solo'
-  /** 个人赛道必填：创建者昵称，创建时自动占用唯一名额并成为队长 */
+  /** 必填：创建者昵称，创建时自动占一个名额并成为队长（不论组队还是个人） */
   name?: string
+  /** 仅「组队」有效：名额上限；省略/非法值则不限。个人赛道恒为 1，忽略这个字段。 */
+  capacity?: number
   passcode?: string
   /** 蜜罐字段：正常用户永远为空 */
   hp?: string
@@ -552,18 +570,19 @@ export async function getCustomTeams(): Promise<TeamMeta[]> {
   await ensureSchema(sql)
 
   const rows = (await sql`
-    SELECT id, title, summary, kind
+    SELECT id, title, summary, kind, capacity
     FROM agent_team_customs
     ORDER BY created_at ASC
-  `) as { id: string; title: string; summary: string; kind: string }[]
+  `) as { id: string; title: string; summary: string; kind: string; capacity: number | null }[]
 
-  // 自定义赛道无标签；个人赛道名额固定 1（别人加不进来），组队赛道名额不限。
+  // 自定义赛道无标签；个人赛道名额恒为 1（别人加不进来，capacity 列对它不作数），
+  // 组队赛道按创建时填的名额来，没填 / 建功能前创建的老行就是不限。
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
     summary: r.summary,
     tags: [],
-    capacity: r.kind === 'solo' ? 1 : null
+    capacity: r.kind === 'solo' ? 1 : r.capacity
   }))
 }
 
@@ -590,16 +609,19 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
   }
 
   const kind = input.kind === 'solo' ? 'solo' : 'team'
-  // 个人赛道要在创建时就把创建者占进唯一名额，所以必须带昵称。
-  let creatorName: string | null = null
-  if (kind === 'solo') {
-    creatorName = cleanText(input.name ?? '')
-    if (creatorName.length === 0 || creatorName.length > NAME_MAX) {
-      return { ok: false, code: 'invalid', message: `个人参赛要填你的昵称（1–${NAME_MAX} 个字符）` }
-    }
+  // 不管组队还是个人，创建时都要带昵称——创建者会自动占一个名额并当队长。
+  const creatorName = cleanText(input.name ?? '')
+  if (creatorName.length === 0 || creatorName.length > NAME_MAX) {
+    return { ok: false, code: 'invalid', message: `请填你的昵称（1–${NAME_MAX} 个字符），创建后会自动加入并当队长` }
   }
 
-  const capacity = kind === 'solo' ? 1 : null
+  let capacity: number | null = kind === 'solo' ? 1 : null
+  if (kind === 'team' && input.capacity != null) {
+    const n = Math.trunc(input.capacity)
+    if (Number.isFinite(n) && n >= TEAM_CAPACITY_MIN && n <= TEAM_CAPACITY_MAX) {
+      capacity = n
+    }
+  }
   const ip = input.ip ?? null
   const id = `custom-${crypto.randomUUID().slice(0, 8)}`
 
@@ -619,12 +641,13 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
     }
 
     await sql`
-      INSERT INTO agent_team_customs (id, title, summary, ip, kind)
-      VALUES (${id}, ${title}, ${summary}, ${ip}, ${kind})
+      INSERT INTO agent_team_customs (id, title, summary, ip, kind, capacity)
+      VALUES (${id}, ${title}, ${summary}, ${ip}, ${kind}, ${capacity})
     `
 
-    // 个人赛道：创建者自动报名占位 + 当队长，卡片一建好就是「1/1，他本人」。
-    if (kind === 'solo' && creatorName) {
+    // 创建者自动报名占位 + 当队长——个人赛道卡片一建好就是「1/1，他本人」，
+    // 组队赛道也一样，不用创建完还得再手动报名一次才当上队长。
+    {
       const nameKey = creatorName.toLowerCase()
       await sql`
         INSERT INTO agent_team_signups (team_id, name, name_key, ip)
