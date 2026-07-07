@@ -17,11 +17,13 @@ const label = lang === 'en' ? '中' : 'EN'
   class='box-content flex size-5 items-center justify-center rounded-md border p-1.5 text-xs font-semibold leading-none transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
 >
   <span class='sr-only'>{t('nav.toggleLang')}</span>
-  <span aria-hidden='true'>{label}</span>
+  <span class='lang-label' aria-hidden='true'>{label}</span>
 </button>
 
 <script>
   import { trackSiteEvent } from '@/lib/analytics'
+
+  const LEAVE_DURATION = 250
 
   function targetPathname(pathname: string, current: 'zh' | 'en'): string {
     if (current === 'en') {
@@ -45,6 +47,40 @@ const label = lang === 'en' ? '中' : 'EN'
       to_locale: current === 'en' ? 'zh' : 'en',
       target_path: next
     })
-    window.location.href = next + window.location.search + window.location.hash
+
+    const destination = next + window.location.search + window.location.hash
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      window.location.href = destination
+      return
+    }
+
+    btn.classList.add('leaving')
+    window.setTimeout(() => {
+      window.location.href = destination
+    }, LEAVE_DURATION)
   })
 </script>
+
+<style>
+  .lang-label {
+    display: inline-block;
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+  #toggleLang.leaving .lang-label {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lang-label {
+      transition: none;
+    }
+  }
+</style>

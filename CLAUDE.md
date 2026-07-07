@@ -3,6 +3,7 @@
 ## Project references
 
 - Analytics tracking contract: `ANALYTICS.md`. Check this before adding, renaming, or changing Vercel Analytics events.
+- UI/motion conventions: `DESIGN.md`. Check this before adding new interactive UI or transitions, so components reuse existing patterns (e.g. the Blurred Icon Transition) instead of inventing new ones.
 
 ## Git workflow
 
