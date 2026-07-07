@@ -24,7 +24,13 @@ import { activity, teams } from '@/data/agent-teams'
         <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
         组队进行中 · {activity.deadlineText}截止
       </span>
-      <span data-team-count-label>共 {teams.length} 个主题</span>
+      <span class='team-count inline-flex items-baseline gap-1.5'>
+        共
+        <span class='team-count-number text-2xl font-bold leading-none sm:text-3xl' data-team-count-number>
+          {teams.length}
+        </span>
+        个主题
+      </span>
       <a
         class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
         href={activity.docHref}
@@ -471,6 +477,15 @@ import { activity, teams } from '@/data/agent-teams'
     -webkit-text-fill-color: transparent;
     color: transparent;
     width: fit-content;
+  }
+
+  /* 主题总数：数字要比周围的小字大一截、颜色也跳出来，一眼能看到量级。 */
+  .team-count-number {
+    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 
   /* 创建赛道卡：暖色描边 + 呼吸光环，让它在一堆队伍卡里跳出来，别人一眼就知道这是入口。 */
@@ -1213,7 +1228,13 @@ import { activity, teams } from '@/data/agent-teams'
       board.dataset.page = String(next)
       renderPagination(board, cards)
       // 翻页后卷回赛道网格顶部——不然人还停在页面底部的翻页按钮旁边，看不到新一页的卡片。
-      board.querySelector('[data-team-grid]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // 页面顶部有个 sticky header（top:1rem、约 44px 高），scrollIntoView 的默认对齐
+      // 会把网格顶端顶到 viewport 最上面，正好被这个 header 挡住，所以手动减一个偏移量。
+      const gridEl = board.querySelector<HTMLElement>('[data-team-grid]')
+      if (gridEl) {
+        const top = gridEl.getBoundingClientRect().top + window.scrollY - 76
+        window.scrollTo({ top, behavior: 'smooth' })
+      }
     }
 
     const prev = document.createElement('button')
@@ -1279,8 +1300,8 @@ import { activity, teams } from '@/data/agent-teams'
     }
 
     // 主题总数：以接口拿到的完整列表为准（含自定义赛道），覆盖 SSR 时只数得到内置赛道的数字。
-    const countLabel = board.querySelector<HTMLElement>('[data-team-count-label]')
-    if (countLabel) countLabel.textContent = `共 ${data.teams.length} 个主题`
+    const countNumber = board.querySelector<HTMLElement>('[data-team-count-number]')
+    if (countNumber) countNumber.textContent = String(data.teams.length)
 
     // 未配置：禁用「创建赛道」入口
     const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
