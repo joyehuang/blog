@@ -602,6 +602,24 @@ import { activity, teams } from '@/data/agent-teams'
     line-height: 1.2;
     color: hsl(var(--foreground));
     background: hsl(var(--muted) / 0.4);
+    /* 名单一到手就按顺序从下往上弹出来，像一个个上台一样；--i 由脚本按序号写入。 */
+    animation: roster-pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+  @keyframes roster-pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.6rem) scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.roster-chip) {
+      animation: none;
+    }
   }
   /* 队长：琥珀色描边 + 淡底，配一个小皇冠 */
   :global(.roster-chip.is-captain) {
@@ -732,6 +750,8 @@ import { activity, teams } from '@/data/agent-teams'
     ordered.forEach((member, index) => {
       const li = document.createElement('li')
       li.className = 'roster-chip'
+      // 一个个从下往上弹出来，像依次上台一样——用 --i 错开每个人的入场时机。
+      li.style.setProperty('--i', String(index))
       if (index === 0) {
         li.classList.add('is-captain')
         li.appendChild(captainIcon())
