@@ -24,6 +24,7 @@ import { activity, teams } from '@/data/agent-teams'
         <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
         组队进行中 · {activity.deadlineText}截止
       </span>
+      <span data-team-count-label>共 {teams.length} 个主题</span>
       <a
         class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
         href={activity.docHref}
@@ -307,15 +308,7 @@ import { activity, teams } from '@/data/agent-teams'
   <div class='create-card mb-4 rounded-xl border bg-background p-4 sm:p-5' data-create-card>
     <div class='flex items-start justify-between gap-3'>
       <div class='min-w-0'>
-        <div class='flex flex-wrap items-center gap-2'>
-          <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
-          <span
-            class='team-count-badge shrink-0 rounded-full border px-2 py-0.5 text-xs text-muted-foreground'
-            data-team-count-label
-          >
-            共 {teams.length} 个主题
-          </span>
-        </div>
+        <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
         <p class='m-0 mt-1 text-sm leading-snug text-muted-foreground'>
           自命题：创建一个属于你的赛道。组队（多人）或个人（就你一个）都行。
         </p>
@@ -512,11 +505,6 @@ import { activity, teams } from '@/data/agent-teams'
         0 0 0 1px rgb(245 158 11 / 0.18),
         0 0 22px 2px rgb(245 158 11 / 0.12);
     }
-  }
-  .team-count-badge {
-    border-color: rgb(245 158 11 / 0.35);
-    background: rgb(245 158 11 / 0.1);
-    color: hsl(var(--foreground));
   }
 
   /* 蜜罐字段：对真人完全不可见，但对填表机器人仍存在 */
@@ -1224,6 +1212,8 @@ import { activity, teams } from '@/data/agent-teams'
     const goTo = (next: number) => {
       board.dataset.page = String(next)
       renderPagination(board, cards)
+      // 翻页后卷回赛道网格顶部——不然人还停在页面底部的翻页按钮旁边，看不到新一页的卡片。
+      board.querySelector('[data-team-grid]')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
     const prev = document.createElement('button')
