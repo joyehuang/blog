@@ -698,10 +698,16 @@ import { activity, teams } from '@/data/agent-teams'
       captainIndex = team.members.findIndex((m) => m.name.toLowerCase() === captainKey)
     }
     if (captainIndex < 0) captainIndex = 0
-    team.members.forEach((member, index) => {
+
+    // 队长排在名单最前面，其余人保持原来的报名顺序。
+    const ordered = [
+      team.members[captainIndex],
+      ...team.members.filter((_, index) => index !== captainIndex)
+    ]
+    ordered.forEach((member, index) => {
       const li = document.createElement('li')
       li.className = 'roster-chip'
-      if (index === captainIndex) {
+      if (index === 0) {
         li.classList.add('is-captain')
         li.appendChild(captainIcon())
       }
