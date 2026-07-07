@@ -381,6 +381,16 @@ export async function addSignup(
       return { ok: false, code: 'duplicate', message: '这个昵称已经在这支队伍里了' }
     }
 
+    // 这支队伍的第一个人：自动记为队长（个人赛道创建时已在 createTeam 里处理过，
+    // 这里补的是「组队」赛道第一个报名者的情形）。ON CONFLICT DO NOTHING 避免覆盖已有队长。
+    if (existing.length === 0) {
+      await sql`
+        INSERT INTO agent_team_captains (team_id, captain_key)
+        VALUES (${input.teamId}, ${nameKey})
+        ON CONFLICT (team_id) DO NOTHING
+      `
+    }
+
     const members = [
       ...existing.map(rowToMember),
       { name, note, ts: Math.round(inserted[0].ts_sec * 1000) }

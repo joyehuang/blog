@@ -41,6 +41,11 @@ import { activity, teams } from '@/data/agent-teams'
     </p>
   </header>
 
+  {/* 首次拉取名单 / 自定义赛道期间的进度条，加载完成后由脚本隐藏 */}
+  <div class='board-loading-bar mb-5' data-board-loading role='status' aria-label='正在加载赛道数据…'>
+    <span class='board-loading-fill'></span>
+  </div>
+
   {/* 未配置 / 加载失败时的横幅，默认隐藏，由脚本控制 */}
   <p
     class='board-banner mb-5 hidden rounded-lg border border-dashed px-4 py-3 text-sm text-muted-foreground'
@@ -54,17 +59,18 @@ import { activity, teams } from '@/data/agent-teams'
     {
       teams.map((team) => (
         <article
-          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5'
+          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5 sm:min-h-[23rem]'
           data-team-id={team.id}
           data-capacity={team.capacity ?? ''}
+          data-loaded='false'
         >
           <div class='flex items-start justify-between gap-3'>
             <h2 class='m-0 text-lg font-medium text-foreground' data-title>{team.title}</h2>
             <span
-              class='shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+              class='skeleton inline-block h-5 w-14 shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
               data-count-label
             >
-              …
+              <span class='sr-only'>人数加载中…</span>
             </span>
           </div>
 
@@ -80,14 +86,27 @@ import { activity, teams } from '@/data/agent-teams'
             </div>
           )}
 
-          <div
-            class='team-detail hidden whitespace-pre-wrap rounded-lg border border-dashed px-3 py-2 text-sm leading-relaxed text-muted-foreground'
-            data-detail
-          >
+          <div class='flex flex-col items-start gap-1.5' data-detail-wrap>
+            <div
+              class='team-detail hidden w-full whitespace-pre-wrap rounded-lg border border-dashed px-3 py-2 text-sm leading-relaxed text-muted-foreground'
+              data-detail
+            >
+            </div>
+            <button
+              type='button'
+              class='detail-toggle hidden text-xs font-medium text-foreground underline-offset-4 hover:underline'
+              data-detail-toggle
+            >
+              展开
+            </button>
           </div>
 
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
-            <li class='roster-empty text-xs text-muted-foreground'>加载中…</li>
+            <li class='roster-empty flex gap-1.5'>
+              <span class='sr-only'>名单加载中…</span>
+              <span class='skeleton h-5 w-16 rounded-full' aria-hidden='true'></span>
+              <span class='skeleton h-5 w-12 rounded-full' aria-hidden='true'></span>
+            </li>
           </ul>
 
           <div class='mt-auto flex flex-wrap items-center gap-2 pt-1'>
@@ -420,6 +439,91 @@ import { activity, teams } from '@/data/agent-teams'
     overflow: hidden;
   }
 
+  /* 骨架屏：名单 / 人数还没从接口拉回来之前的占位动画。 */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    color: transparent !important;
+    background: hsl(var(--muted));
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.12), transparent);
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes skeleton-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton::after {
+      animation: none;
+    }
+  }
+  /* 数据到手后脚本会把这些元素换成真实内容并摘掉 .skeleton，这里只是兜底防止残留动画。 */
+  [data-loaded='true'] .skeleton {
+    animation: none;
+  }
+
+  /* 顶部细进度条：首次拉取赛道数据期间显示，拉完（无论成功与否）就淡出。 */
+  .board-loading-bar {
+    height: 3px;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  .board-loading-bar[data-done] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .board-loading-fill {
+    display: block;
+    height: 100%;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #fbbf24, #f97316);
+    animation: board-loading-slide 1.1s ease-in-out infinite;
+  }
+  @keyframes board-loading-slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .board-loading-fill {
+      animation: none;
+      width: 100%;
+    }
+  }
+
+  /* 详细介绍：默认只显示 4 行，超出的靠「展开」按钮撑开，让卡片高度不会被长文本拉得参差不齐。
+     :not([hidden]) 很重要——没有它，这条规则的优先级会盖过 .hidden / [hidden]，
+     让空的介绍框也变成一个可见的虚线方块。 */
+  .team-detail:not([data-expanded]):not([hidden]) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+  .team-detail[data-expanded] {
+    display: block;
+  }
+  .detail-toggle[data-show] {
+    display: inline-block;
+    align-self: flex-start;
+  }
+
   .signup-form[data-open] {
     display: flex;
   }
@@ -531,19 +635,42 @@ import { activity, teams } from '@/data/agent-teams'
 
   function renderDetail(card: HTMLElement, value: string | null) {
     const box = card.querySelector<HTMLElement>('[data-detail]')
+    const toggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
     if (!box) return
     const detail = value ?? ''
     box.textContent = detail // textContent + pre-wrap — 用户输入不当 HTML 解析
-    box.hidden = detail.length === 0
-    box.classList.toggle('hidden', detail.length === 0)
+    box.removeAttribute('data-expanded') // 每次拿到新数据都先收起，避免旧的展开状态错位
+    const empty = detail.length === 0
+    box.hidden = empty
+    box.classList.toggle('hidden', empty)
     // 缓存当前值，供队长编辑表单预填
     card.dataset.detail = detail
+
+    if (!toggle) return
+    if (empty) {
+      delete toggle.dataset.show
+      toggle.hidden = true
+      toggle.classList.add('hidden')
+      return
+    }
+    toggle.textContent = '展开'
+    // 等一帧让 line-clamp 布局完成，再判断文本是否真的被裁掉——没超出就不显示按钮。
+    requestAnimationFrame(() => {
+      const overflowing = box.scrollHeight - box.clientHeight > 1
+      toggle.hidden = !overflowing
+      toggle.classList.toggle('hidden', !overflowing)
+      if (overflowing) toggle.dataset.show = ''
+      else delete toggle.dataset.show
+    })
   }
 
   function renderRoster(card: HTMLElement, team: Team) {
     const capacity = team.capacity
     const label = card.querySelector<HTMLElement>('[data-count-label]')
-    if (label) label.textContent = capacity != null ? `${team.count} / ${capacity} 人` : `${team.count} 人`
+    if (label) {
+      label.classList.remove('skeleton')
+      label.textContent = capacity != null ? `${team.count} / ${capacity} 人` : `${team.count} 人`
+    }
 
     const full = capacity != null && team.count >= capacity
     card.dataset.full = full ? 'true' : 'false'
@@ -564,15 +691,13 @@ import { activity, teams } from '@/data/agent-teams'
       return
     }
     // 队长：以 team.captain（后台转让后的 name_key）为准；没设 / 已退队则默认第一个报名的人。
-    // 只有 2 人及以上才标队长——一个人的卡片没必要区分。
+    // 唯一的队员也算队长——个人赛道就是靠这个拿到编辑主题的权限。
     let captainIndex = -1
-    if (team.members.length > 1) {
-      const captainKey = team.captain ? team.captain.toLowerCase() : null
-      if (captainKey) {
-        captainIndex = team.members.findIndex((m) => m.name.toLowerCase() === captainKey)
-      }
-      if (captainIndex < 0) captainIndex = 0
+    const captainKey = team.captain ? team.captain.toLowerCase() : null
+    if (captainKey) {
+      captainIndex = team.members.findIndex((m) => m.name.toLowerCase() === captainKey)
     }
+    if (captainIndex < 0) captainIndex = 0
     team.members.forEach((member, index) => {
       const li = document.createElement('li')
       li.className = 'roster-chip'
@@ -655,13 +780,34 @@ import { activity, teams } from '@/data/agent-teams'
     const detail = card.querySelector<HTMLElement>('[data-detail]')
     if (detail) {
       detail.textContent = ''
+      detail.removeAttribute('data-expanded')
       detail.hidden = true
       detail.classList.add('hidden')
+    }
+    const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
+    if (detailToggle) {
+      delete detailToggle.dataset.show
+      detailToggle.hidden = true
+      detailToggle.classList.add('hidden')
     }
     return card
   }
 
   function wireCard(card: HTMLElement, board: HTMLElement) {
+    // 「详细介绍」展开/收起：内容默认裁到 4 行，卡片高度才不会被长文本撑得参差不齐。
+    const detailBox = card.querySelector<HTMLElement>('[data-detail]')
+    const detailExpandToggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
+    detailExpandToggle?.addEventListener('click', () => {
+      const expanded = detailBox?.hasAttribute('data-expanded')
+      if (expanded) {
+        detailBox?.removeAttribute('data-expanded')
+        detailExpandToggle.textContent = '展开'
+      } else {
+        detailBox?.setAttribute('data-expanded', '')
+        detailExpandToggle.textContent = '收起'
+      }
+    })
+
     const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
     const form = card.querySelector<HTMLFormElement>('[data-signup-form]')
     if (!toggle || !form) return
@@ -915,6 +1061,7 @@ import { activity, teams } from '@/data/agent-teams'
       renderMeta(card, team) // 标题/简介/标签以 DB 为准，覆盖预渲染值
       renderRoster(card, team)
       renderDetail(card, team.detail)
+      card.dataset.loaded = 'true'
     }
 
     // 未配置：禁用「创建赛道」入口
@@ -1065,11 +1212,17 @@ import { activity, teams } from '@/data/agent-teams'
       }
     }
 
+    const hideLoadingBar = () => {
+      const bar = board.querySelector<HTMLElement>('[data-board-loading]')
+      if (bar) bar.dataset.done = ''
+    }
+
     const reload = () =>
       fetch('/api/agent-teams', { cache: 'no-store' })
         .then((res) => res.json())
         .then((data: BoardData) => applyState(board, grid, pristine ?? null, cards, data))
         .catch(showBannerError)
+        .finally(hideLoadingBar)
 
     wireCreateCard(board, reload)
     reload()
