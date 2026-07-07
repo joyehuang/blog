@@ -624,7 +624,15 @@ const agentHackathonLink =
 
 <style>
   /* Summer of Agents 首页入口卡：暖色渐变底（UnoCSS 不生成 bg-gradient 工具类，手写） */
+  @property --soa-border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
   .soa-card {
+    position: relative;
+    z-index: 0;
     background-image: linear-gradient(
       to bottom right,
       rgb(250 204 21 / 0.1),
@@ -632,6 +640,56 @@ const agentHackathonLink =
       rgb(249 115 22 / 0.08)
     );
   }
+
+  /* 旋转光环：conic-gradient 只保留在边框环上（mask 挖空内容区），
+     角度通过 @property 动画驱动，让光带绕卡片流转 */
+  .soa-card::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--soa-border-angle),
+      transparent 0deg,
+      transparent 250deg,
+      rgba(148, 163, 184, 0.45) 280deg,
+      rgba(255, 255, 255, 0.95) 310deg,
+      rgba(226, 232, 240, 0.6) 335deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    animation: soa-border-spin 2.5s linear infinite;
+    animation-play-state: paused;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .soa-card:hover::before,
+  .soa-card:focus-visible::before {
+    opacity: 1;
+    animation-play-state: running;
+  }
+
+  @keyframes soa-border-spin {
+    to {
+      --soa-border-angle: 360deg;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .soa-card::before {
+      animation: none;
+      transition: none;
+    }
+  }
+
   .soa-title {
     width: fit-content;
     background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
