@@ -719,9 +719,10 @@ import { activity, teams } from '@/data/agent-teams'
 
   /* 名单区域固定一个高度区间：人少不至于看起来很空，人多超出就滚动，
      卡片高度才不会因为队伍人数差异忽高忽低。 */
+  /* 固定高度而不是 min/max 区间——1 个人的卡和 6 个人的卡，名单区域也要占同样高度，
+     后面的「查看详细介绍」/操作按钮才能在同一行的两张卡里对齐，不会一高一矮。 */
   .roster {
-    min-height: 1.75rem;
-    max-height: 3.75rem;
+    height: 3.75rem;
     overflow-y: auto;
   }
   /* flex-wrap 容器里，中文/emoji 文本的 flex item 默认允许缩到 min-content
