@@ -86,14 +86,6 @@ import { activity, teams } from '@/data/agent-teams'
             </div>
           )}
 
-          <button
-            type='button'
-            class='detail-toggle hidden items-center gap-1 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline'
-            data-detail-toggle
-          >
-            📄 查看详细介绍
-          </button>
-
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
             <li class='roster-empty flex flex-wrap gap-1.5'>
               <span class='sr-only'>名单加载中…</span>
@@ -108,6 +100,14 @@ import { activity, teams } from '@/data/agent-teams'
               ))}
             </li>
           </ul>
+
+          <button
+            type='button'
+            class='detail-toggle hidden items-center gap-1 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline'
+            data-detail-toggle
+          >
+            📄 查看详细介绍
+          </button>
 
           <div class='mt-auto flex flex-wrap items-center gap-2 pt-1'>
             <button
@@ -297,7 +297,7 @@ import { activity, teams } from '@/data/agent-teams'
 
   {/* 分页控件：order-last 保证它排在赛道网格下面（而不是排到「创建赛道」下面）。 */}
   <div
-    class='board-pagination order-last mb-4 flex items-center justify-center gap-3 text-sm text-muted-foreground'
+    class='board-pagination order-last mb-4 items-center justify-center gap-3 text-sm text-muted-foreground'
     data-board-pagination
     hidden
   >
@@ -626,6 +626,14 @@ import { activity, teams } from '@/data/agent-teams'
   }
   .team-capacity-field[data-show] {
     display: flex;
+  }
+  .board-pagination:not([hidden]) {
+    display: flex;
+  }
+  /* team-card 自带 .flex（内部要用 flex-col 排版），普通的 [hidden]/.hidden 优先级
+     干不过它——分页隐藏另开一个更高优先级的属性选择器，而不是复用 .hidden。 */
+  .team-card[data-page-hidden] {
+    display: none;
   }
   /* 类型选择做成两张可点的卡片而不是裸单选框：原生 radio 视觉隐藏，
      用 :has() 给选中的那张卡描边高亮，比灰突突的圆点好认多了。 */
@@ -1151,18 +1159,17 @@ import { activity, teams } from '@/data/agent-teams'
 
     cardEls.forEach((card, i) => {
       const onPage = Math.floor(i / PAGE_SIZE) === page
-      card.hidden = !onPage
-      card.classList.toggle('hidden', !onPage)
+      // 不用 .hidden/[hidden]：team-card 自带 .flex，二者优先级打不过，切换了也白切换。
+      if (onPage) delete card.dataset.pageHidden
+      else card.dataset.pageHidden = ''
     })
 
     pager.replaceChildren()
     if (pageCount <= 1) {
       pager.hidden = true
-      pager.classList.add('hidden')
       return
     }
     pager.hidden = false
-    pager.classList.remove('hidden')
 
     const pagerBtnClass =
       'inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40'
