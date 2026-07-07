@@ -67,7 +67,7 @@ import { activity, teams } from '@/data/agent-teams'
           <div class='flex items-start justify-between gap-3'>
             <h2 class='m-0 text-lg font-medium text-foreground' data-title>{team.title}</h2>
             <span
-              class='skeleton inline-block h-5 w-14 shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+              class='skeleton count-label inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
               data-count-label
             >
               <span class='sr-only'>人数加载中…</span>
@@ -460,6 +460,12 @@ import { activity, teams } from '@/data/agent-teams'
     to {
       transform: translateX(100%);
     }
+  }
+  /* 人数徽章：骨架屏阶段给个占位尺寸；真实文案（如「6 / 10 人」）到手后
+     去掉 .skeleton 就该按内容自适应宽度，靠 white-space:nowrap 防止折成两行。 */
+  .count-label.skeleton {
+    min-width: 3.5rem;
+    min-height: 1.25rem;
   }
   @media (prefers-reduced-motion: reduce) {
     .skeleton::after {
