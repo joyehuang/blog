@@ -99,7 +99,9 @@ import { activity, teams } from '@/data/agent-teams'
             </span>
           </div>
 
-          <p class='m-0 text-sm leading-snug text-muted-foreground' data-summary>{team.summary}</p>
+          <p class='team-summary m-0 text-sm leading-snug text-muted-foreground' data-summary>
+            {team.summary}
+          </p>
 
           {team.tags && team.tags.length > 0 && (
             <div class='flex flex-wrap gap-1.5' data-tags>
@@ -678,10 +680,21 @@ import { activity, teams } from '@/data/agent-teams'
   .detail-dialog-body {
     overflow-y: auto;
     padding: 1rem 1.25rem;
-    white-space: pre-wrap;
     font-size: 0.875rem;
     line-height: 1.7;
     color: hsl(var(--muted-foreground));
+  }
+  /* 弹窗里：一句话简介（完整版）当引言放最上面，下面才是队长写的详细介绍。 */
+  .detail-dialog-summary {
+    margin: 0;
+    color: hsl(var(--foreground));
+    white-space: pre-wrap;
+  }
+  .detail-dialog-detail {
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid hsl(var(--border));
+    white-space: pre-wrap;
   }
 
   .signup-form[data-open] {
@@ -730,12 +743,19 @@ import { activity, teams } from '@/data/agent-teams'
     outline-offset: 1px;
   }
 
-  /* 名单区域固定一个高度区间：人少不至于看起来很空，人多超出就滚动，
-     卡片高度才不会因为队伍人数差异忽高忽低。 */
-  /* 固定高度而不是 min/max 区间——1 个人的卡和 6 个人的卡，名单区域也要占同样高度，
-     后面的「查看详细介绍」/操作按钮才能在同一行的两张卡里对齐，不会一高一矮。 */
+  /* 一句话简介裁到 2 行——各卡的简介长短不一，裁齐了这一段的高度才稳定，
+     卡片就不会因为简介一长一短而参差。完整简介 + 详细介绍都进「查看详细介绍」弹窗。 */
+  .team-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  /* 名单不再强行等高——人多就多占一点、人少就少占一点，自然排布。人特别多时给个
+     上限滚动，别把卡撑爆；卡片整体等高交给 grid 的 stretch + 底部按钮的 mt-auto。 */
   .roster {
-    height: 3.75rem;
+    max-height: 5.5rem;
     overflow-y: auto;
   }
   /* flex-wrap 容器里，中文/emoji 文本的 flex item 默认允许缩到 min-content
@@ -886,15 +906,23 @@ import { activity, teams } from '@/data/agent-teams'
   }
 
   function renderDetail(card: HTMLElement, value: string | null) {
-    const detail = value ?? ''
     // 缓存当前值：卡片本身不再铺开显示，只在弹窗和队长编辑表单预填时用它。
-    card.dataset.detail = detail
+    card.dataset.detail = value ?? ''
+    refreshDetailToggle(card)
+  }
 
+  // 「查看详细介绍」按钮的显隐：有详细介绍，或者一句话简介被裁到看不全，就显示。
+  // 注意要在卡片可见时量 scrollHeight——display:none 的卡（翻页隐藏）量出来是 0，
+  // 所以翻页把某张卡显示出来时会再调一次这个函数重新判断。
+  function refreshDetailToggle(card: HTMLElement) {
     const toggle = card.querySelector<HTMLButtonElement>('[data-detail-toggle]')
     if (!toggle) return
-    const empty = detail.length === 0
-    toggle.hidden = empty
-    toggle.classList.toggle('hidden', empty)
+    const hasDetail = (card.dataset.detail ?? '').length > 0
+    const summaryEl = card.querySelector<HTMLElement>('[data-summary]')
+    const summaryClamped = !!summaryEl && summaryEl.scrollHeight - summaryEl.clientHeight > 1
+    const show = hasDetail || summaryClamped
+    toggle.hidden = !show
+    toggle.classList.toggle('hidden', !show)
   }
 
   function renderRoster(card: HTMLElement, team: Team) {
@@ -992,6 +1020,8 @@ import { activity, teams } from '@/data/agent-teams'
     if (title) title.textContent = team.title
     const summary = card.querySelector<HTMLElement>('[data-summary]')
     if (summary) summary.textContent = team.summary
+    // 缓存完整简介，供「查看详细介绍」弹窗展示（卡面上的那份被裁成 2 行）。
+    card.dataset.summary = team.summary
 
     const tags = card.querySelector<HTMLElement>('[data-tags]')
     if (!tags) return
@@ -1033,7 +1063,23 @@ import { activity, teams } from '@/data/agent-teams'
     const titleEl = dialog.querySelector<HTMLElement>('[data-detail-dialog-title]')
     const bodyEl = dialog.querySelector<HTMLElement>('[data-detail-dialog-body]')
     if (titleEl) titleEl.textContent = card.querySelector('[data-title]')?.textContent ?? ''
-    if (bodyEl) bodyEl.textContent = card.dataset.detail ?? ''
+    if (bodyEl) {
+      bodyEl.replaceChildren()
+      const summary = card.dataset.summary ?? ''
+      const detail = card.dataset.detail ?? ''
+      if (summary) {
+        const p = document.createElement('p')
+        p.className = 'detail-dialog-summary'
+        p.textContent = summary // textContent — 用户输入不当 HTML 解析
+        bodyEl.appendChild(p)
+      }
+      if (detail) {
+        const d = document.createElement('div')
+        d.className = 'detail-dialog-detail'
+        d.textContent = detail
+        bodyEl.appendChild(d)
+      }
+    }
     dialog.showModal()
   }
 
@@ -1273,8 +1319,13 @@ import { activity, teams } from '@/data/agent-teams'
     cardEls.forEach((card, i) => {
       const onPage = Math.floor(i / PAGE_SIZE) === page
       // 不用 .hidden/[hidden]：team-card 自带 .flex，二者优先级打不过，切换了也白切换。
-      if (onPage) delete card.dataset.pageHidden
-      else card.dataset.pageHidden = ''
+      if (onPage) {
+        delete card.dataset.pageHidden
+        // 卡片刚从隐藏切到显示，简介的 scrollHeight 这时才量得准——重判一次「查看详细介绍」的显隐。
+        refreshDetailToggle(card)
+      } else {
+        card.dataset.pageHidden = ''
+      }
     })
 
     pager.replaceChildren()
