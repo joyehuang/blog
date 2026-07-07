@@ -43,12 +43,25 @@ import { activity, teams } from '@/data/agent-teams'
         </p>
       </div>
 
-      {/* 主题总数：独立成一块，摆右边（原本这里一大片空白），数字够大才叫突出。 */}
+      {/* 主题总数：独立成一块，摆右边（原本这里一大片空白），数字够大才叫突出。
+          先只知道内置赛道数，自定义赛道还没拉到——与其先秀一个错的数字再跳成对的，
+          不如先用骨架屏占位，数据到手后再数字滚动到位。 */}
       <div class='team-count-card shrink-0 self-start rounded-xl border px-6 py-5 text-center sm:self-center'>
-        <div class='team-count-number text-5xl font-bold leading-none sm:text-6xl' data-team-count-number>
-          {teams.length}
+        <div
+          class='team-count-skeleton skeleton mx-auto h-12 w-20 rounded-lg sm:h-[3.75rem] sm:w-24'
+          data-team-count-skeleton
+          aria-hidden='true'
+        >
         </div>
-        <div class='mt-1.5 text-xs font-medium text-muted-foreground'>个可选主题</div>
+        <div
+          class='team-count-number hidden text-5xl font-bold leading-none sm:text-6xl'
+          data-team-count-number
+        >
+          0
+        </div>
+        <div class='mt-1.5 text-xs font-medium text-muted-foreground'>
+          <span class='sr-only' data-team-count-loading-label>主题数量加载中，</span>个可选主题
+        </div>
       </div>
     </div>
   </header>
@@ -838,6 +851,40 @@ import { activity, teams } from '@/data/agent-teams'
     else delete el.dataset.tone
   }
 
+  // 主题总数「数字滚动」：从当前显示的值滚到目标值，而不是直接跳字——
+  // 首次加载是 0 滚到真实总数，之后（比如建了新赛道）是旧总数滚到新总数。
+  function animateCount(el: HTMLElement, to: number, duration = 700) {
+    const from = Number.parseInt(el.textContent ?? '0', 10) || 0
+    if (from === to) {
+      el.textContent = String(to)
+      return
+    }
+    const start = performance.now()
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - (1 - t) ** 3 // ease-out，滚到最后再放慢
+      el.textContent = String(Math.round(from + (to - from) * eased))
+      if (t < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }
+
+  // 骨架屏 → 数字滚动：第一次拿到真实总数时切掉骨架屏、露出数字并开始滚动。
+  function revealTeamCount(board: HTMLElement, total: number) {
+    const skeleton = board.querySelector<HTMLElement>('[data-team-count-skeleton]')
+    const number = board.querySelector<HTMLElement>('[data-team-count-number]')
+    if (!number) return
+    if (skeleton && !skeleton.hidden) {
+      skeleton.hidden = true
+      skeleton.classList.add('hidden')
+      number.hidden = false
+      number.classList.remove('hidden')
+      const loadingLabel = board.querySelector<HTMLElement>('[data-team-count-loading-label]')
+      if (loadingLabel) loadingLabel.remove()
+    }
+    animateCount(number, total)
+  }
+
   function renderDetail(card: HTMLElement, value: string | null) {
     const detail = value ?? ''
     // 缓存当前值：卡片本身不再铺开显示，只在弹窗和队长编辑表单预填时用它。
@@ -1315,9 +1362,8 @@ import { activity, teams } from '@/data/agent-teams'
       card.dataset.loaded = 'true'
     }
 
-    // 主题总数：以接口拿到的完整列表为准（含自定义赛道），覆盖 SSR 时只数得到内置赛道的数字。
-    const countNumber = board.querySelector<HTMLElement>('[data-team-count-number]')
-    if (countNumber) countNumber.textContent = String(data.teams.length)
+    // 主题总数：以接口拿到的完整列表为准（含自定义赛道），数字滚动到位。
+    revealTeamCount(board, data.teams.length)
 
     // 未配置：禁用「创建赛道」入口
     const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
