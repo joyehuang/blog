@@ -7,7 +7,8 @@
  * name resolves, then the overlay fades to reveal the real homepage beneath.
  *
  * Behaviour:
- *   - Plays once per browser session (sessionStorage `intro-seen`).
+ *   - Plays once per browser per day (localStorage `intro-seen-at`, 24h cooldown),
+ *     regardless of whether the visitor skipped it or watched it through.
  *   - Skippable (button, or click anywhere). Disabled under prefers-reduced-motion.
  *   - Hover while it's up disperses + lights up that patch of particles.
  *   - Dark overlay (the diffusion aesthetic); fades out to the real page.
