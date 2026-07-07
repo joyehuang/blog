@@ -295,6 +295,14 @@ import { activity, teams } from '@/data/agent-teams'
     }
   </div>
 
+  {/* 分页控件：order-last 保证它排在赛道网格下面（而不是排到「创建赛道」下面）。 */}
+  <div
+    class='board-pagination order-last mb-4 flex items-center justify-center gap-3 text-sm text-muted-foreground'
+    data-board-pagination
+    hidden
+  >
+  </div>
+
   {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方） */}
   <div class='create-card mb-4 rounded-xl border border-dashed bg-background p-4 sm:p-5' data-create-card>
     <div class='flex items-start justify-between gap-3'>
@@ -314,59 +322,82 @@ import { activity, teams } from '@/data/agent-teams'
       </button>
     </div>
 
-    <form class='create-form mt-3 flex-col gap-2' data-create-form hidden>
-      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
-        赛道名称
-        <input
-          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-          name='title'
-          type='text'
-          maxlength='30'
-          required
-          autocomplete='off'
-          placeholder='例如：会写周报的 Agent'
-        />
-      </label>
-      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
-        一句话简介
-        <input
-          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-          name='summary'
-          type='text'
-          maxlength='80'
-          required
-          autocomplete='off'
-          placeholder='它能做什么，一句话说清'
-        />
-      </label>
+    <form class='create-form mt-4 flex-col gap-4' data-create-form hidden>
+      <div class='grid gap-3 sm:grid-cols-2'>
+        <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+          赛道名称
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='title'
+            type='text'
+            maxlength='30'
+            required
+            autocomplete='off'
+            placeholder='例如：会写周报的 Agent'
+          />
+        </label>
+        <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+          一句话简介
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='summary'
+            type='text'
+            maxlength='80'
+            required
+            autocomplete='off'
+            placeholder='它能做什么，一句话说清'
+          />
+        </label>
+      </div>
+
       <div class='flex flex-col gap-1.5 text-xs text-muted-foreground'>
         类型
-        <div class='flex flex-wrap gap-x-4 gap-y-1.5' data-create-kind>
-          <label class='inline-flex items-center gap-1.5'>
-            <input type='radio' name='kind' value='team' checked />
-            组队（多人一起做）
+        <div class='kind-picker grid grid-cols-2 gap-2' data-create-kind>
+          <label class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'>
+            <input class='sr-only' type='radio' name='kind' value='team' checked />
+            <span class='text-sm font-medium text-foreground'>👥 组队</span>
+            <span class='text-xs text-muted-foreground'>多人一起做，你自动当队长</span>
           </label>
-          <label class='inline-flex items-center gap-1.5'>
-            <input type='radio' name='kind' value='solo' />
-            个人（就我一个，别人不能加入）
+          <label class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'>
+            <input class='sr-only' type='radio' name='kind' value='solo' />
+            <span class='text-sm font-medium text-foreground'>🧍 个人</span>
+            <span class='text-xs text-muted-foreground'>就我一个，别人不能加入</span>
           </label>
         </div>
       </div>
-      <label
-        class='solo-name-field flex-col gap-1 text-xs text-muted-foreground'
-        data-solo-name-field
-        hidden
-      >
-        你的昵称（会公开显示，就是这张卡的人）
-        <input
-          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-          name='name'
-          type='text'
-          maxlength='24'
-          autocomplete='off'
-          placeholder='你的 QQ 昵称'
-        />
-      </label>
+
+      <div class='grid gap-3 sm:grid-cols-2'>
+        <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+          你的昵称（会公开显示，创建后自动加入并成为队长）
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='name'
+            type='text'
+            maxlength='24'
+            required
+            autocomplete='off'
+            placeholder='你的 QQ 昵称'
+          />
+        </label>
+        <label
+          class='team-capacity-field flex-col gap-1 text-xs text-muted-foreground'
+          data-team-capacity-field
+          data-show
+        >
+          名额上限（组队才需要，个人固定 1 人）
+          <input
+            class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+            name='capacity'
+            type='number'
+            min='2'
+            max='999'
+            step='1'
+            value='10'
+            autocomplete='off'
+          />
+        </label>
+      </div>
+
       <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
         口令（粉丝群的名字）
         <input
@@ -593,8 +624,39 @@ import { activity, teams } from '@/data/agent-teams'
   .passcode-field[data-show] {
     display: flex;
   }
-  .solo-name-field[data-show] {
+  .team-capacity-field[data-show] {
     display: flex;
+  }
+  /* 类型选择做成两张可点的卡片而不是裸单选框：原生 radio 视觉隐藏，
+     用 :has() 给选中的那张卡描边高亮，比灰突突的圆点好认多了。 */
+  .kind-option {
+    border-color: hsl(var(--border));
+  }
+  .kind-option:hover {
+    background: hsl(var(--muted) / 0.5);
+  }
+  .kind-option:has(input:checked) {
+    border-color: rgb(245 158 11 / 0.6);
+    background: rgb(245 158 11 / 0.1);
+  }
+  .kind-option:has(input:focus-visible) {
+    outline: 2px solid rgb(245 158 11 / 0.5);
+    outline-offset: 1px;
+  }
+
+  /* 名单区域固定一个高度区间：人少不至于看起来很空，人多超出就滚动，
+     卡片高度才不会因为队伍人数差异忽高忽低。 */
+  .roster {
+    min-height: 1.75rem;
+    max-height: 3.75rem;
+    overflow-y: auto;
+  }
+  /* flex-wrap 容器里，中文/emoji 文本的 flex item 默认允许缩到 min-content
+     （几乎能在任意字符间断行），加了 max-height/overflow 后这个收缩会被放大成
+     一整列竖排字——用 flex-shrink:0 让它们按自然宽度换行，不要被压扁。 */
+  :global(.roster-chip),
+  :global(.roster-empty) {
+    flex-shrink: 0;
   }
 
   /* 名单是脚本动态渲染的，拿不到 Astro 的 scope 属性，故这几条都用 :global 才生效。 */
@@ -1073,6 +1135,63 @@ import { activity, teams } from '@/data/agent-teams'
     }
   }
 
+  // 赛道太多堆一页不好翻，按固定页大小分页；新建的自定义赛道加进来后也要重新计算页数。
+  const PAGE_SIZE = 8
+
+  function renderPagination(board: HTMLElement, cards: Map<string, HTMLElement>) {
+    const pager = board.querySelector<HTMLElement>('[data-board-pagination]')
+    if (!pager) return
+
+    const cardEls = [...cards.values()]
+    const pageCount = Math.max(1, Math.ceil(cardEls.length / PAGE_SIZE))
+    let page = Number.parseInt(board.dataset.page ?? '0', 10)
+    if (!Number.isFinite(page) || page < 0) page = 0
+    if (page > pageCount - 1) page = pageCount - 1
+    board.dataset.page = String(page)
+
+    cardEls.forEach((card, i) => {
+      const onPage = Math.floor(i / PAGE_SIZE) === page
+      card.hidden = !onPage
+      card.classList.toggle('hidden', !onPage)
+    })
+
+    pager.replaceChildren()
+    if (pageCount <= 1) {
+      pager.hidden = true
+      pager.classList.add('hidden')
+      return
+    }
+    pager.hidden = false
+    pager.classList.remove('hidden')
+
+    const pagerBtnClass =
+      'inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40'
+
+    const goTo = (next: number) => {
+      board.dataset.page = String(next)
+      renderPagination(board, cards)
+    }
+
+    const prev = document.createElement('button')
+    prev.type = 'button'
+    prev.className = pagerBtnClass
+    prev.textContent = '← 上一页'
+    prev.disabled = page === 0
+    prev.addEventListener('click', () => goTo(page - 1))
+
+    const label = document.createElement('span')
+    label.textContent = `第 ${page + 1} / ${pageCount} 页`
+
+    const next = document.createElement('button')
+    next.type = 'button'
+    next.className = pagerBtnClass
+    next.textContent = '下一页 →'
+    next.disabled = page === pageCount - 1
+    next.addEventListener('click', () => goTo(page + 1))
+
+    pager.append(prev, label, next)
+  }
+
   function applyState(
     board: HTMLElement,
     grid: HTMLElement | null,
@@ -1150,6 +1269,8 @@ import { activity, teams } from '@/data/agent-teams'
         })
       }
     }
+
+    renderPagination(board, cards)
   }
 
   // 「创建赛道」表单：提交成功后 reload 重新拉一次名单，新卡就会出现。
@@ -1160,16 +1281,19 @@ import { activity, teams } from '@/data/agent-teams'
     const form = wrap.querySelector<HTMLFormElement>('[data-create-form]')
     if (!toggle || !form) return
 
-    // 组队 / 个人切换：选「个人」才显示并要求填昵称。
-    const soloField = form.querySelector<HTMLElement>('[data-solo-name-field]')
-    const soloInput = soloField?.querySelector<HTMLInputElement>('input[name="name"]')
+    // 昵称现在两种类型都要填（创建者自动加入并当队长）；名额上限只有「组队」才需要。
+    const capacityField = form.querySelector<HTMLElement>('[data-team-capacity-field]')
     const syncKind = () => {
       const solo = form.querySelector<HTMLInputElement>('input[name="kind"]:checked')?.value === 'solo'
-      if (!soloField) return
-      if (solo) soloField.dataset.show = ''
-      else delete soloField.dataset.show
-      soloField.hidden = !solo
-      if (soloInput) soloInput.required = solo
+      if (capacityField) {
+        if (solo) {
+          delete capacityField.dataset.show
+          capacityField.hidden = true
+        } else {
+          capacityField.dataset.show = ''
+          capacityField.hidden = false
+        }
+      }
     }
     form
       .querySelectorAll<HTMLInputElement>('input[name="kind"]')
@@ -1195,12 +1319,15 @@ import { activity, teams } from '@/data/agent-teams'
       const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
       const data = new FormData(form)
       const kind = data.get('kind') === 'solo' ? 'solo' : 'team'
+      const capacityRaw = String(data.get('capacity') || '').trim()
       const payload = {
         action: 'create',
         kind,
         title: String(data.get('title') || ''),
         summary: String(data.get('summary') || ''),
         name: String(data.get('name') || ''),
+        // 只有「组队」才带名额上限；留空就交给后端按不限处理。
+        capacity: kind === 'team' && capacityRaw ? Number(capacityRaw) : undefined,
         passcode: String(data.get('passcode') || ''),
         hp: String(data.get('hp') || '')
       }
@@ -1216,7 +1343,7 @@ import { activity, teams } from '@/data/agent-teams'
         const body = await res.json()
         if (res.ok && body.ok) {
           form.reset()
-          syncKind() // 复位到「组队」并收起昵称框
+          syncKind() // 复位到「组队」并把名额字段收回默认值
           form.removeAttribute('data-open')
           form.hidden = true
           toggle.setAttribute('aria-expanded', 'false')
@@ -1253,6 +1380,8 @@ import { activity, teams } from '@/data/agent-teams'
       cards.set(id, card)
       wireCard(card, board)
     })
+    // 数据到手前先按 SSR 渲染出的静态赛道分页，首屏就不会把几十张卡全堆出来。
+    renderPagination(board, cards)
 
     const showBannerError = () => {
       const banner = board.querySelector<HTMLElement>('[data-board-banner]')
