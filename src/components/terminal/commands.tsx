@@ -428,6 +428,33 @@ export const commands: CommandRegistry = {
     }
   },
 
+  design: {
+    name: 'design',
+    summary: 'download DESIGN.md',
+    run: ({ push }) => {
+      const href = '/api/design.md'
+      push([
+        { kind: 'text', tone: 'muted', text: 'downloading design.md…' },
+        {
+          kind: 'node',
+          node: (
+            <a className='wt-link' href={href} download='design.md'>
+              {href}
+            </a>
+          )
+        }
+      ])
+      if (typeof document !== 'undefined') {
+        const a = document.createElement('a')
+        a.href = href
+        a.download = 'design.md'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      }
+    }
+  },
+
   chat: {
     name: 'chat',
     summary: 'talk to my agent (mock)',
