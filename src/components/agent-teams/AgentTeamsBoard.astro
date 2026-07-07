@@ -297,17 +297,25 @@ import { activity, teams } from '@/data/agent-teams'
 
   {/* 分页控件：order-last 保证它排在赛道网格下面（而不是排到「创建赛道」下面）。 */}
   <div
-    class='board-pagination order-last mb-4 items-center justify-center gap-3 text-sm text-muted-foreground'
+    class='board-pagination order-last mt-5 mb-4 items-center justify-center gap-3 text-sm text-muted-foreground'
     data-board-pagination
     hidden
   >
   </div>
 
-  {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方） */}
-  <div class='create-card mb-4 rounded-xl border border-dashed bg-background p-4 sm:p-5' data-create-card>
+  {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方），加个光环效果突出它是入口 */}
+  <div class='create-card mb-4 rounded-xl border bg-background p-4 sm:p-5' data-create-card>
     <div class='flex items-start justify-between gap-3'>
       <div class='min-w-0'>
-        <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
+        <div class='flex flex-wrap items-center gap-2'>
+          <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
+          <span
+            class='team-count-badge shrink-0 rounded-full border px-2 py-0.5 text-xs text-muted-foreground'
+            data-team-count-label
+          >
+            共 {teams.length} 个主题
+          </span>
+        </div>
         <p class='m-0 mt-1 text-sm leading-snug text-muted-foreground'>
           自命题：创建一个属于你的赛道。组队（多人）或个人（就你一个）都行。
         </p>
@@ -470,6 +478,45 @@ import { activity, teams } from '@/data/agent-teams'
     -webkit-text-fill-color: transparent;
     color: transparent;
     width: fit-content;
+  }
+
+  /* 创建赛道卡：暖色描边 + 呼吸光环，让它在一堆队伍卡里跳出来，别人一眼就知道这是入口。 */
+  .create-card {
+    position: relative;
+    border-color: rgb(245 158 11 / 0.45);
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(250 204 21 / 0.07),
+      rgb(245 158 11 / 0.03),
+      rgb(249 115 22 / 0.05)
+    );
+    animation: create-card-glow 3s ease-in-out infinite;
+  }
+  @keyframes create-card-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 1px rgb(245 158 11 / 0.12),
+        0 0 22px 2px rgb(245 158 11 / 0.1);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px rgb(245 158 11 / 0.28),
+        0 0 34px 6px rgb(245 158 11 / 0.2);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .create-card {
+      animation: none;
+      box-shadow:
+        0 0 0 1px rgb(245 158 11 / 0.18),
+        0 0 22px 2px rgb(245 158 11 / 0.12);
+    }
+  }
+  .team-count-badge {
+    border-color: rgb(245 158 11 / 0.35);
+    background: rgb(245 158 11 / 0.1);
+    color: hsl(var(--foreground));
   }
 
   /* 蜜罐字段：对真人完全不可见，但对填表机器人仍存在 */
@@ -1240,6 +1287,10 @@ import { activity, teams } from '@/data/agent-teams'
       renderDetail(card, team.detail)
       card.dataset.loaded = 'true'
     }
+
+    // 主题总数：以接口拿到的完整列表为准（含自定义赛道），覆盖 SSR 时只数得到内置赛道的数字。
+    const countLabel = board.querySelector<HTMLElement>('[data-team-count-label]')
+    if (countLabel) countLabel.textContent = `共 ${data.teams.length} 个主题`
 
     // 未配置：禁用「创建赛道」入口
     const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
