@@ -7,45 +7,50 @@ import { activity, teams } from '@/data/agent-teams'
 
 <section class='agent-board not-prose mt-6 flex flex-col' data-agent-board>
   <header class='board-hero mb-8 overflow-hidden rounded-2xl border p-6 sm:p-8'>
-    <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
-      <span
-        class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-0.5 text-amber-700 dark:text-amber-300'
-      >
-        {activity.title}
-      </span>
-      <span class='text-muted-foreground'>{activity.subtitle}</span>
-    </div>
-    <h1 class='board-title mt-3 text-3xl font-bold tracking-tight sm:text-5xl'>
-      {activity.name}
-    </h1>
-    <p class='mt-3 max-w-2xl leading-relaxed text-muted-foreground'>{activity.tagline}</p>
-    <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
-      <span class='inline-flex items-center gap-1.5'>
-        <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
-        组队进行中 · {activity.deadlineText}截止
-      </span>
-      <span class='team-count inline-flex items-baseline gap-1.5'>
-        共
-        <span class='team-count-number text-2xl font-bold leading-none sm:text-3xl' data-team-count-number>
+    <div class='flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
+      <div class='min-w-0 sm:flex-1'>
+        <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
+          <span
+            class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-0.5 text-amber-700 dark:text-amber-300'
+          >
+            {activity.title}
+          </span>
+          <span class='text-muted-foreground'>{activity.subtitle}</span>
+        </div>
+        <h1 class='board-title mt-3 text-3xl font-bold tracking-tight sm:text-5xl'>
+          {activity.name}
+        </h1>
+        <p class='mt-3 max-w-2xl leading-relaxed text-muted-foreground'>{activity.tagline}</p>
+        <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
+          <span class='inline-flex items-center gap-1.5'>
+            <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
+            组队进行中 · {activity.deadlineText}截止
+          </span>
+          <a
+            class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
+            href={activity.docHref}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            活动详情 ↗
+          </a>
+        </div>
+        <p
+          class='mt-5 max-w-2xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-foreground'
+          role='note'
+        >
+          {activity.notice}
+        </p>
+      </div>
+
+      {/* 主题总数：独立成一块，摆右边（原本这里一大片空白），数字够大才叫突出。 */}
+      <div class='team-count-card shrink-0 self-start rounded-xl border px-6 py-5 text-center sm:self-center'>
+        <div class='team-count-number text-5xl font-bold leading-none sm:text-6xl' data-team-count-number>
           {teams.length}
-        </span>
-        个主题
-      </span>
-      <a
-        class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
-        href={activity.docHref}
-        target='_blank'
-        rel='noopener noreferrer'
-      >
-        活动详情 ↗
-      </a>
+        </div>
+        <div class='mt-1.5 text-xs font-medium text-muted-foreground'>个可选主题</div>
+      </div>
     </div>
-    <p
-      class='mt-5 max-w-2xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-foreground'
-      role='note'
-    >
-      {activity.notice}
-    </p>
   </header>
 
   {/* 首次拉取名单 / 自定义赛道期间的进度条，加载完成后由脚本隐藏 */}
@@ -479,7 +484,17 @@ import { activity, teams } from '@/data/agent-teams'
     width: fit-content;
   }
 
-  /* 主题总数：数字要比周围的小字大一截、颜色也跳出来，一眼能看到量级。 */
+  /* 主题总数：单独一块摆在 hero 右侧的空白处，暖色描边 + 底色，跟正文明显区隔开。 */
+  .team-count-card {
+    border-color: rgb(245 158 11 / 0.4);
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(250 204 21 / 0.14),
+      rgb(245 158 11 / 0.07),
+      rgb(249 115 22 / 0.12)
+    );
+  }
+  /* 数字要比「个可选主题」这行小字大出一大截、颜色也跳出来，一眼能看到量级。 */
   .team-count-number {
     background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
     -webkit-background-clip: text;
