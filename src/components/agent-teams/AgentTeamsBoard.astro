@@ -400,6 +400,9 @@ import { activity, teams } from '@/data/agent-teams'
     );
   }
   .board-title {
+    /* text-5xl 默认 line-height:1，行框正好等于字号，会让 g/y 这类降部字母露到框外
+       盖住下面的段落。加回一点行高留出降部空间。 */
+    line-height: 1.15 !important;
     background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
     -webkit-background-clip: text;
     background-clip: text;
