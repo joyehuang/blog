@@ -95,10 +95,17 @@ import { activity, teams } from '@/data/agent-teams'
           </button>
 
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
-            <li class='roster-empty flex gap-1.5'>
+            <li class='roster-empty flex flex-wrap gap-1.5'>
               <span class='sr-only'>名单加载中…</span>
-              <span class='skeleton h-5 w-16 rounded-full' aria-hidden='true'></span>
-              <span class='skeleton h-5 w-12 rounded-full' aria-hidden='true'></span>
+              {/* 骨架屏的人数跟着名额走（名额越大占位越多），加载完切成真名单时不会跳得太突兀。 */}
+              {Array.from({
+                length: Math.min(5, Math.max(2, team.capacity ? Math.round(team.capacity / 2.5) : 3))
+              }).map((_, i) => (
+                <span
+                  class={`skeleton h-5 rounded-full ${['w-16', 'w-12', 'w-14', 'w-10', 'w-16'][i % 5]}`}
+                  aria-hidden='true'
+                />
+              ))}
             </li>
           </ul>
 
