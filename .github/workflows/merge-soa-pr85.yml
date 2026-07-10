@@ -1,0 +1,41 @@
+# 一次性：北京时间 2026-07-11 00:00（UTC 16:00）前夕自动 merge PR #85（SoA 收尾）。
+#
+# GitHub 的 cron 调度可能延迟 5-30 分钟，所以设两个提前的触发点，任务内部
+# 精确等到 UTC 15:54（北京 23:54）再 merge——给 Vercel 留 3-6 分钟构建，
+# 站点在午夜前后上线。报名通道的关闭不依赖这里：代码里按 +08:00 服务端
+# 时钟判断，只要部署完成就会在北京时间 00:00 准点关闭。
+#
+# PR #85 合并后本 workflow 即为 no-op，可随后删除此文件。
+name: merge-soa-pr85
+
+on:
+  schedule:
+    - cron: '20 15 10 7 *' # Jul 10 15:20 UTC，主触发
+    - cron: '40 15 10 7 *' # Jul 10 15:40 UTC，冗余触发（先到先合，后到 no-op）
+  workflow_dispatch: {} # 手动兜底
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait until 15:54 UTC, then squash-merge PR 85
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          state=$(gh pr view 85 --repo "$GITHUB_REPOSITORY" --json state -q .state)
+          if [ "$state" != "OPEN" ]; then
+            echo "PR #85 is $state — nothing to do"
+            exit 0
+          fi
+          target=$(date -u -d '2026-07-10 15:54:00' +%s)
+          now=$(date -u +%s)
+          if [ "$now" -lt "$target" ]; then
+            echo "Sleeping $((target - now))s until 15:54 UTC (23:54 Beijing)"
+            sleep $((target - now))
+          fi
+          gh pr merge 85 --repo "$GITHUB_REPOSITORY" --squash
+          echo "Merged at $(date -u '+%H:%M:%S') UTC — Vercel production build starts now"
