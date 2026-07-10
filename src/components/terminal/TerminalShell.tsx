@@ -152,21 +152,25 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
   const idRef = useRef(0)
   const newId = () => `e${++idRef.current}`
 
-  // fetch the pseudo-FS once on mount instead of embedding it server-side
-  // (shared cache in fs/client — DevMode reuses the same in-flight request)
-  useEffect(() => {
+  // fetch the pseudo-FS instead of embedding it server-side (shared cache in
+  // fs/client — DevMode reuses the same in-flight request). A failed fetch
+  // resets that cache, so calling this again (from the `!fs` guard in
+  // runInput below) genuinely retries instead of replaying a stale failure.
+  const loadFs = useCallback(() => {
     let cancelled = false
     fetchSiteFs()
       .then((tree) => {
         if (!cancelled) setFs(tree)
       })
       .catch(() => {
-        /* command handlers below no-op while fs stays null */
+        /* stays null; next command attempt retries via runInput */
       })
     return () => {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => loadFs(), [loadFs])
 
   // hydrate collapsed state from localStorage
   useEffect(() => {
@@ -282,6 +286,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
           kind: 'output',
           lines: [{ kind: 'text', tone: 'muted', text: 'still booting… try again in a moment' }]
         })
+        loadFs() // retries — a no-op if the initial fetch is still in flight
         return
       }
       setHistory((h) => [...h, trimmed])
@@ -340,7 +345,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
         })
       }
     },
-    [appendEntry, updateStream, fs, cwd, ctxSetTheme, ctxNavigate]
+    [appendEntry, updateStream, fs, cwd, ctxSetTheme, ctxNavigate, loadFs]
   )
 
   // first-load hint, only client side
