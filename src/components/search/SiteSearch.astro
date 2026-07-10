@@ -1,30 +1,19 @@
----
-import '@pagefind/default-ui/css/ui.css'
-
-const isLocalDev = import.meta.env.DEV
----
-
-<joye-site-search data-mode={isLocalDev ? 'local' : 'pagefind'}>
+{/* 站内搜索：走 /api/search.json（terminal 的 search 命令同款后端），dev/prod 行为一致 */}
+<joye-site-search>
   <aside class='form my-4'>
-    {
-      isLocalDev ? (
-        <div id='local-site-search' class='local-search'>
-          <input
-            id='local-search-input'
-            class='local-search-input'
-            type='search'
-            placeholder='Search posts and notes...'
-            autocomplete='off'
-            spellcheck='false'
-            aria-label='Search posts and notes'
-          />
-          <div id='local-search-status' class='local-search-status' aria-live='polite' />
-          <ol id='local-search-results' class='local-search-results' />
-        </div>
-      ) : (
-        <div id='site-search' />
-      )
-    }
+    <div id='local-site-search' class='local-search'>
+      <input
+        id='local-search-input'
+        class='local-search-input'
+        type='search'
+        placeholder='Search posts and notes...'
+        autocomplete='off'
+        spellcheck='false'
+        aria-label='Search posts and notes'
+      />
+      <div id='local-search-status' class='local-search-status' aria-live='polite'></div>
+      <ol id='local-search-results' class='local-search-results'></ol>
+    </div>
   </aside>
 </joye-site-search>
 
@@ -44,38 +33,6 @@ const isLocalDev = import.meta.env.DEV
       if (this.dataset.ready === 'true') return
       this.dataset.ready = 'true'
 
-      if (this.dataset.mode === 'local') {
-        this.initLocalSearch()
-      } else {
-        this.initPagefind()
-      }
-    }
-
-    private initPagefind() {
-      const formatURL = (path: string) => path.replace(/(.)\/(#.*)?$/, '$1$2')
-      const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
-
-      onIdle(async () => {
-        // @ts-expect-error — Missing types for @pagefind/default-ui package.
-        const { PagefindUI } = await import('@pagefind/default-ui')
-        new PagefindUI({
-          element: '#site-search',
-          baseUrl: import.meta.env.BASE_URL,
-          bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
-          showImages: false,
-          showSubResults: true,
-          processResult: (result: { url: string; sub_results: Array<{ url: string }> }) => {
-            result.url = formatURL(result.url)
-            result.sub_results = result.sub_results.map((sub_result) => {
-              sub_result.url = formatURL(sub_result.url)
-              return sub_result
-            })
-          }
-        })
-      })
-    }
-
-    private initLocalSearch() {
       const input = this.querySelector<HTMLInputElement>('#local-search-input')
       const status = this.querySelector<HTMLElement>('#local-search-status')
       const results = this.querySelector<HTMLOListElement>('#local-search-results')
@@ -155,20 +112,6 @@ const isLocalDev = import.meta.env.DEV
 </script>
 
 <style>
-  #site-search {
-    --pagefind-ui-scale: 0.8;
-    --pagefind-ui-primary: hsl(var(--primary) / var(--un-bg-opacity, 1));
-    --pagefind-ui-text: hsl(var(--foreground) / var(--un-text-opacity, 1));
-    --pagefind-ui-background: hsl(var(--muted) / var(--un-bg-opacity, 1));
-    --pagefind-ui-border: hsl(var(--border) / var(--un-border-opacity, 1));
-    --pagefind-ui-tag: hsl(var(--muted-foreground) / var(--un-text-opacity, 1));
-    --pagefind-ui-border-width: 2px;
-    --pagefind-ui-border-radius: calc(var(--radius) + 2px);
-    --pagefind-ui-image-border-radius: calc(var(--radius) + 2px);
-    --pagefind-ui-image-box-ratio: 3 / 2;
-    --pagefind-ui-font: sans-serif;
-  }
-
   .local-search {
     display: grid;
     gap: 0.9rem;
