@@ -4,7 +4,7 @@ title: 一场面试，反推 AI 时代的产品形态
 subtitle: 从一家“文档协作 → AI 版 Canva”公司的面试聊起 —— 软件、Agent，与垂类的未来。
 date: 2026-06-27
 durationMinutes: 45
-attendees: joye + QQ 群友
+attendees: joye + 42 位群友
 deckUrl: /talks/2026-ai-product-form.html
 slideCount: 17
 video:
