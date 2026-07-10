@@ -4,7 +4,7 @@ title: 从实习面试到 Agent 开发
 subtitle: 聊聊 AI 行业，这一年到底在发生什么
 date: 2026-06-13
 durationMinutes: 45
-attendees: joye + 约 17 位群友
+attendees: joye + 30 位群友
 deckUrl: /talks/2026-from-interview-to-agent.html
 slideCount: 24
 video:

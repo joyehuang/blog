@@ -4,9 +4,12 @@ title: 一场面试，反推 AI 时代的产品形态
 subtitle: 从一家“文档协作 → AI 版 Canva”公司的面试聊起 —— 软件、Agent，与垂类的未来。
 date: 2026-06-27
 durationMinutes: 45
-attendees: joye + QQ 群友
+attendees: joye + 42 位群友
 deckUrl: /talks/2026-ai-product-form.html
 slideCount: 17
+video:
+  bvid: BV18jMn6hEXU
+  url: https://www.bilibili.com/video/BV18jMn6hEXU
 topics:
   - AI 产品形态
   - Agent 增量市场
@@ -34,4 +37,4 @@ status: published
 第二期分享会。从一场“文档协作 → AI 版 Canva”公司的面试出发，反推 AI 时代的软件产品形态：
 为什么 Agent 更像增量市场，为什么交互会从“操作工具”走向“表达意图”，以及为什么普通开发者更应该深耕垂类上下文和工作流。
 
-视频回放还在整理中，先公开本期 PPT。
+视频回放已发布，PPT 同步公开。
