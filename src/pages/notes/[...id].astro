@@ -4,6 +4,7 @@ import { getCollection, render, type CollectionEntry } from 'astro:content'
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import PageInfo from '@/components/comment/PageInfo.astro'
+import JsonLd from '@/components/JsonLd.astro'
 
 export const prerender = true
 
@@ -69,9 +70,38 @@ const meta = {
   title,
   description: description || title
 }
+
+// Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
+const origin = Astro.site!.origin
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href
+const noteLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  '@id': `${pageUrl}#article`,
+  mainEntityOfPage: pageUrl,
+  headline: title,
+  ...(description ? { description } : {}),
+  inLanguage: 'zh-CN',
+  datePublished: date.toISOString(),
+  dateModified: (updatedDate ?? date).toISOString(),
+  ...(tags.length ? { keywords: tags } : {}),
+  author: { '@id': `${origin}/#person` },
+  publisher: { '@id': `${origin}/#person` },
+  isPartOf: { '@id': `${origin}/#website` }
+}
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '首页', item: `${origin}/` },
+    { '@type': 'ListItem', position: 2, name: 'Notes', item: `${origin}/notes` },
+    { '@type': 'ListItem', position: 3, name: title }
+  ]
+}
 ---
 
 <PageLayout {meta} back='/notes'>
+  <JsonLd schema={[noteLd, breadcrumbLd]} />
   <div slot='header' class='animate gap-y-4'>
     <div class='mb-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground'>
       <span class='rounded-md bg-muted px-2 py-1'>{typeLabels[type] || type}</span>
