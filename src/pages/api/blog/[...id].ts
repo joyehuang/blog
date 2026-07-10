@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import { getEntry } from 'astro:content'
+import remarkCjkFriendly from 'remark-cjk-friendly'
 
 /**
  * Plaintext-ish endpoint consumed by the dev-mode `cat post` viewer.
@@ -20,6 +21,7 @@ function getProcessor() {
     processorPromise = createMarkdownProcessor({
       gfm: true,
       smartypants: true,
+      remarkPlugins: [remarkCjkFriendly],
       shikiConfig: {
         themes: { light: 'github-light', dark: 'github-dark' }
       }
