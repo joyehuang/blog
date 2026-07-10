@@ -7,6 +7,21 @@
   <div class='intro-jojo__sheet intro-jojo__paper' data-jojo-paper aria-hidden='true'>
     <div class='intro-jojo__grain'></div>
 
+    <div class='intro-jojo__media'>
+      <figure>
+        <img src='/images/landing/playyy-ui.png' alt='' />
+        <figcaption>PLAYYY / PRODUCT</figcaption>
+      </figure>
+      <figure>
+        <img src='/images/landing/atypica-poster.jpg' alt='' />
+        <figcaption>ATYPICA / AGENTS</figcaption>
+      </figure>
+      <figure>
+        <img src='/images/landing/aixcut-video-still.jpg' alt='' />
+        <figcaption>AIXCUT / VIDEO</figcaption>
+      </figure>
+    </div>
+
     <div class='intro-jojo__structure' aria-hidden='true'>
       <span class='intro-jojo__structure-frame'></span>
       <span class='intro-jojo__axis intro-jojo__axis--x'></span>
@@ -18,17 +33,17 @@
     </div>
 
     <div class='intro-jojo__register intro-jojo__register--top'>
-      <span>JY / HOME</span>
-      <span class='intro-jojo__live'><i></i> LIVE SURFACE</span>
-      <span>01 / MEL</span>
+      <span>JY / PROJECT REEL</span>
+      <span class='intro-jojo__live'><i></i> REAL WORK</span>
+      <span>03 / LIVE</span>
     </div>
 
     <div class='intro-jojo__monogram'>J.</div>
 
     <div class='intro-jojo__register intro-jojo__register--bottom'>
-      <span>37.8136 S</span>
-      <span>144.9631 E</span>
-      <span>~/joye</span>
+      <span>PLAYYY</span>
+      <span>ATYPICA</span>
+      <span>AIXCUT</span>
     </div>
 
     <i class='intro-jojo__fold intro-jojo__fold--one' data-jojo-fold></i>
@@ -116,10 +131,61 @@
       22px 0 52px rgb(8 18 24 / 28%);
   }
 
+  .intro-jojo__media {
+    position: absolute;
+    inset: clamp(4.7rem, 9vh, 6.5rem) clamp(2rem, 5vw, 5rem);
+    z-index: 0;
+    display: grid;
+    grid-template-columns: 0.92fr 0.72fr 1.2fr;
+    gap: clamp(0.45rem, 1vw, 1rem);
+  }
+
+  .intro-jojo__media::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(3 6 8 / 10%), rgb(3 6 8 / 52%));
+    content: '';
+    pointer-events: none;
+  }
+
+  .intro-jojo__media figure {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 18%);
+    background: #080b0d;
+  }
+
+  .intro-jojo__media figure:nth-child(2) {
+    transform: translateY(7%);
+  }
+
+  .intro-jojo__media img {
+    width: 100%;
+    height: 100%;
+    opacity: 0.86;
+    filter: saturate(0.78) contrast(1.08);
+    object-fit: cover;
+  }
+
+  .intro-jojo__media figcaption {
+    position: absolute;
+    right: 0.7rem;
+    bottom: 0.65rem;
+    left: 0.7rem;
+    z-index: 1;
+    color: rgb(255 255 255 / 78%);
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+
   .intro-jojo__grain {
     position: absolute;
     inset: 0;
-    opacity: 0.4;
+    z-index: 1;
+    opacity: 0.18;
     background-image: radial-gradient(circle, rgb(101 158 185 / 24%) 0 0.65px, transparent 0.8px);
     background-size: 22px 22px;
     mask-image: linear-gradient(115deg, transparent 8%, #000 48%, transparent 92%);
@@ -130,7 +196,7 @@
     inset: clamp(4.8rem, 10vh, 7.5rem) clamp(2.5rem, 7vw, 7.5rem);
     z-index: 1;
     color: var(--jojo-steel);
-    opacity: 0.78;
+    opacity: 0.22;
   }
 
   .intro-jojo__structure::before {
@@ -336,7 +402,7 @@
     font-weight: 900;
     line-height: 0.7;
     letter-spacing: -0.11em;
-    opacity: 0.05;
+    opacity: 0;
     transform: translate(-52%, -50%);
     user-select: none;
   }
@@ -558,6 +624,15 @@
           transparent 50.12%
         ),
         linear-gradient(0deg, transparent 0 49.92%, rgb(101 158 185 / 10%) 50%, transparent 50.08%);
+    }
+
+    .intro-jojo__media {
+      inset: 4.8rem 1rem 4.8rem;
+      grid-template-columns: 1fr 0.65fr;
+    }
+
+    .intro-jojo__media figure:first-child {
+      display: none;
     }
 
     .intro-jojo__structure {
