@@ -4,6 +4,7 @@ import { getCollection, type CollectionEntry } from 'astro:content'
 import rss from '@astrojs/rss'
 import type { Root } from 'mdast'
 import rehypeStringify from 'rehype-stringify'
+import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
@@ -46,6 +47,7 @@ const renderContent = async (post: CollectionEntry<'blog' | 'blogEn'>, site: URL
 
   const file = await unified()
     .use(remarkParse)
+    .use(remarkCjkFriendly)
     .use(remarkReplaceImageLink)
     .use(remarkRehype)
     .use(rehypeStringify)
@@ -76,14 +78,22 @@ const GET = async (context: AstroGlobal) => {
     site: `${import.meta.env.SITE}/en`,
     customData: '<language>en-us</language>',
     items: await Promise.all(
-      allPostsByDate.map(async (post) => ({
-        pubDate: post.data.publishDate,
-        link: `/en/blog/${post.data.translationKey}`,
-        customData: `<h:img src="${typeof post.data.heroImage?.src === 'string' ? post.data.heroImage?.src : post.data.heroImage?.src.src}" />
-          <enclosure url="${typeof post.data.heroImage?.src === 'string' ? post.data.heroImage?.src : post.data.heroImage?.src.src}" />`,
-        content: await renderContent(post, siteUrl),
-        ...post.data
-      }))
+      allPostsByDate.map(async (post) => {
+        const heroSrc =
+          typeof post.data.heroImage?.src === 'string'
+            ? post.data.heroImage.src
+            : post.data.heroImage?.src.src
+        return {
+          pubDate: post.data.publishDate,
+          link: `/en/blog/${post.data.translationKey}`,
+          // no heroImage -> no customData; interpolating undefined emits src="undefined"
+          ...(heroSrc
+            ? { customData: `<h:img src="${heroSrc}" />\n          <enclosure url="${heroSrc}" />` }
+            : {}),
+          content: await renderContent(post, siteUrl),
+          ...post.data
+        }
+      })
     )
   })
 }
