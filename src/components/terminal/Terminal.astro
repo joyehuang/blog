@@ -1,8 +1,5 @@
 ---
 import TerminalShell from './TerminalShell'
-import { buildSiteFs } from './fs/server'
-
-const fs = await buildSiteFs()
 ---
 
 <div class='wt-intro' aria-hidden='true'>
@@ -11,4 +8,4 @@ const fs = await buildSiteFs()
     Skip the scroll — try the interactive CLI. Type <code>help</code>, <code>design</code>, or <code>ls /blog</code>.
   </span>
 </div>
-<TerminalShell client:load fs={fs} />
+<TerminalShell client:load />

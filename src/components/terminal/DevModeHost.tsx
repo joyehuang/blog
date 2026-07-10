@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { trackSiteEvent } from '@/lib/analytics'
 
 import DevMode from './DevMode'
+import { fetchSiteFs } from './fs/client'
 import type { FsNode } from './fs/types'
 
 /**
@@ -13,6 +14,10 @@ import type { FsNode } from './fs/types'
  *   - `joye:toggle-dev` / `joye:enter-dev` / `joye:exit-dev` custom events
  *     (dispatched by the Header toggle button — keeps the Astro side
  *     decoupled from React).
+ *
+ * The pseudo-FS is fetched on demand when dev mode is entered, rather than
+ * shipped as a server-rendered prop — this component mounts on every page,
+ * but the manifest is only ever needed by the ~backtick minority of visits.
  */
 
 type Mode = 'human' | 'dev'
@@ -25,8 +30,39 @@ function isEditable(target: EventTarget | null): boolean {
   return false
 }
 
-export default function DevModeHost({ fs }: { fs: FsNode }) {
+function DevModeLoading({ failed }: { failed: boolean }) {
+  return (
+    <div className='dev-root' role='dialog' aria-label='dev mode terminal'>
+      <div className='dev-chrome'>
+        <div className='dev-chrome-left'>
+          <div className='dev-chrome-dots' aria-hidden>
+            <span />
+            <span />
+            <span />
+          </div>
+          <span className='dev-chrome-title'>dev mode</span>
+        </div>
+        <div className='dev-chrome-hint'>
+          press <span className='wt-kbd'>Esc</span> to leave
+        </div>
+      </div>
+      <div className='dev-body'>
+        <div className='dev-boot' aria-live='polite'>
+          <span className='dev-boot-line wt-tone-muted'>
+            <span className='wt-tone-fg'>
+              {failed ? 'failed to load manifest — press Esc to leave' : 'loading manifest…'}
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function DevModeHost() {
   const [mode, setMode] = useState<Mode>('human')
+  const [fs, setFs] = useState<FsNode | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   const enter = useCallback((method: string) => {
     trackSiteEvent('terminal_open', {
@@ -37,6 +73,35 @@ export default function DevModeHost({ fs }: { fs: FsNode }) {
     setMode('dev')
   }, [])
   const exit = useCallback(() => setMode('human'), [])
+
+  // fetch the pseudo-FS the first time dev mode is entered (shared cache in
+  // fs/client — reuses the home-page Terminal's in-flight request if any)
+  useEffect(() => {
+    if (mode !== 'dev' || fs) return
+    let cancelled = false
+    setLoadFailed(false)
+    fetchSiteFs()
+      .then((tree) => {
+        if (!cancelled) setFs(tree)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadFailed(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [mode, fs])
+
+  // Esc to back out while the manifest is still loading/failed — once `fs`
+  // resolves, DevMode mounts and its own input owns Esc-to-exit instead.
+  useEffect(() => {
+    if (mode !== 'dev' || fs) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') exit()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mode, fs, exit])
 
   // global `\`` hotkey — only fires when nothing editable is focused
   useEffect(() => {
@@ -76,5 +141,6 @@ export default function DevModeHost({ fs }: { fs: FsNode }) {
   }, [mode])
 
   if (mode !== 'dev') return null
+  if (!fs) return <DevModeLoading failed={loadFailed} />
   return <DevMode fs={fs} onExit={exit} />
 }
