@@ -138,12 +138,12 @@ const siteGraph = {
 {/* Sitemap */}
 <link href='/sitemap.xml' rel='sitemap' type='application/xml' />
 
-{/* RSS auto-discovery */}
+{/* RSS auto-discovery — per-language feed */}
 <link
   rel='alternate'
   type='application/rss+xml'
-  title={config.title}
-  href={`${Astro.site}rss.xml`}
+  title={lang === 'en' ? `${config.title} (EN)` : config.title}
+  href={`${Astro.site}${lang === 'en' ? 'en/rss.xml' : 'rss.xml'}`}
 />
 
 <meta content={Astro.generator} name='generator' />

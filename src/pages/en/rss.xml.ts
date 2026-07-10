@@ -1,7 +1,7 @@
 import { posix } from 'node:path'
 import type { AstroGlobal, ImageMetadata } from 'astro'
 import { getImage } from 'astro:assets'
-import type { CollectionEntry } from 'astro:content'
+import { getCollection, type CollectionEntry } from 'astro:content'
 import rss from '@astrojs/rss'
 import type { Root } from 'mdast'
 import rehypeStringify from 'rehype-stringify'
@@ -12,7 +12,7 @@ import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
 import config from 'virtual:config'
-import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import { sortMDByDate } from 'astro-pure/server'
 
 export const prerender = true
 
@@ -21,7 +21,7 @@ const imagesGlob = import.meta.glob<{ default: ImageMetadata }>(
   '/src/content/blog/**/*.{jpeg,jpg,png,gif}' // add more image formats if needed
 )
 
-const renderContent = async (post: CollectionEntry<'blog'>, site: URL) => {
+const renderContent = async (post: CollectionEntry<'blog' | 'blogEn'>, site: URL) => {
   // Replace image links with the correct path
   function remarkReplaceImageLink() {
     /**
@@ -67,7 +67,13 @@ const renderContent = async (post: CollectionEntry<'blog'>, site: URL) => {
 }
 
 const GET = async (context: AstroGlobal) => {
-  const allPostsByDate = sortMDByDate(await getBlogCollection()) as CollectionEntry<'blog'>[]
+  // EN post URLs are keyed by translationKey (post.id slugifies the `.en`
+  // filename and is not a valid route), so drop entries without one.
+  const allPostsByDate = sortMDByDate(
+    (await getCollection('blogEn')).filter(
+      (post) => (import.meta.env.PROD ? !post.data.draft : true) && post.data.translationKey
+    )
+  ) as CollectionEntry<'blogEn'>[]
   const siteUrl = context.site ?? new URL(import.meta.env.SITE)
 
   return rss({
@@ -77,9 +83,10 @@ const GET = async (context: AstroGlobal) => {
     stylesheet: '/scripts/pretty-feed-v3.xsl',
 
     // Contents
-    title: config.title,
-    description: config.description,
-    site: import.meta.env.SITE,
+    title: `${config.title} (EN)`,
+    description: 'English posts — agents, LLM internals, and engineering notes.',
+    site: `${import.meta.env.SITE}/en`,
+    customData: '<language>en-us</language>',
     items: await Promise.all(
       allPostsByDate.map(async (post) => {
         const heroSrc =
@@ -88,7 +95,7 @@ const GET = async (context: AstroGlobal) => {
             : post.data.heroImage?.src.src
         return {
           pubDate: post.data.publishDate,
-          link: `/blog/${post.id}`,
+          link: `/en/blog/${post.data.translationKey}`,
           // no heroImage -> no customData; interpolating undefined emits src="undefined"
           ...(heroSrc
             ? { customData: `<h:img src="${heroSrc}" />\n          <enclosure url="${heroSrc}" />` }
