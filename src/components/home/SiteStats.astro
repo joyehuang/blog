@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content'
-import { siteStats } from '@/data/site-stats'
 import config from 'virtual:config'
 
 import Section from './Section.astro'
@@ -11,9 +10,10 @@ interface Props {
 
 const { lang = 'zh' } = Astro.props as Props
 
-const [blogPosts, notes] = await Promise.all([
+const [blogPosts, notes, talks] = await Promise.all([
   getCollection('blog', ({ data }) => !data.draft),
-  getCollection('notes', ({ data }) => !data.draft)
+  getCollection('notes', ({ data }) => !data.draft),
+  getCollection('talks', ({ data }) => !data.draft && data.status === 'published')
 ])
 
 // Live total page views from Waline (/api/stats endpoint on the waline server).
@@ -40,27 +40,27 @@ const labels =
         title: 'Site stats',
         blog: 'Posts',
         notes: 'Notes',
-        projects: 'Projects',
+        talks: 'Talks',
         pageViews: 'Page views'
       }
     : {
         title: '站点统计',
         blog: '文章',
         notes: '笔记',
-        projects: '项目',
+        talks: '分享',
         pageViews: '浏览量'
       }
 
 const items = [
   { label: labels.blog, value: blogPosts.length.toString() },
   { label: labels.notes, value: notes.length.toString() },
-  { label: labels.projects, value: siteStats.projects.toString() },
+  { label: labels.talks, value: talks.length.toString() },
   { label: labels.pageViews, value: pageViews.toLocaleString() }
 ]
 ---
 
 <Section title={labels.title}>
-  <div class='grid grid-cols-2 gap-3 sm:grid-cols-5'>
+  <div class='grid grid-cols-2 gap-3 sm:grid-cols-4'>
     {
       items.map(({ label, value }) => (
         <div class='rounded-xl border bg-muted/30 px-4 py-3 text-center'>
