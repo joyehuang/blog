@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro'
 
-import { teams } from '@/data/agent-teams'
+import { isSignupClosed, teams } from '@/data/agent-teams'
 import {
   addSignup,
   createTeam,
@@ -76,11 +76,13 @@ function json(body: unknown, status = 200) {
 export const GET: APIRoute = async () => {
   const configured = isConfigured()
   const editable = detailEditable()
+  const signupClosed = isSignupClosed()
   if (!configured) {
     return json({
       configured: false,
       passcodeRequired: false,
       detailEditable: editable,
+      signupClosed,
       teams: buildTeams(fallbackMetas)
     })
   }
@@ -98,6 +100,7 @@ export const GET: APIRoute = async () => {
       configured: true,
       passcodeRequired: passcodeRequired(),
       detailEditable: editable,
+      signupClosed,
       teams: buildTeams(metas, rosters, details, captains)
     })
   } catch {
@@ -107,6 +110,7 @@ export const GET: APIRoute = async () => {
       degraded: true,
       passcodeRequired: passcodeRequired(),
       detailEditable: editable,
+      signupClosed,
       teams: buildTeams(fallbackMetas)
     })
   }
@@ -160,6 +164,11 @@ const CREATE_STATUS_BY_CODE: Record<CreateErrorCode, number> = {
 }
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
+  // 组队截止后关闭报名与建队（服务端时钟为准，不依赖前端状态）
+  if (isSignupClosed()) {
+    return json({ ok: false, code: 'closed', message: '组队已经截止啦，报名和建队通道已关闭 🙏' }, 403)
+  }
+
   let body: Record<string, unknown>
   try {
     body = (await request.json()) as Record<string, unknown>

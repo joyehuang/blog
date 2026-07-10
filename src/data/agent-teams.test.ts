@@ -4,7 +4,7 @@
 // 一旦撞车或被改动，报名名单就会串。这些是纯数据断言，`bun test` 直接跑，无需 DB。
 
 import { describe, expect, test } from 'bun:test'
-import { activity, teams } from './agent-teams'
+import { activity, isSignupClosed, teams } from './agent-teams'
 
 describe('teams 配置', () => {
   test('至少有一个赛道', () => {
@@ -71,5 +71,21 @@ describe('activity 配置', () => {
 
   test('docHref 是 http(s) 链接', () => {
     expect(activity.docHref).toMatch(/^https?:\/\//)
+  })
+
+  test('signupClosesAt 是带时区的合法时刻，且与 deadline 同一天（北京时间晚 12 点）', () => {
+    const closes = Date.parse(activity.signupClosesAt)
+    expect(Number.isNaN(closes)).toBe(false)
+    expect(activity.signupClosesAt).toMatch(/[+-]\d{2}:\d{2}$/)
+    // 晚 12 点 = deadline 次日 00:00
+    const deadlineMidnight = Date.parse(`${activity.deadline}T00:00:00+08:00`)
+    expect(closes - deadlineMidnight).toBe(24 * 60 * 60 * 1000)
+  })
+
+  test('isSignupClosed 以 signupClosesAt 为界', () => {
+    const closes = Date.parse(activity.signupClosesAt)
+    expect(isSignupClosed(closes - 1)).toBe(false)
+    expect(isSignupClosed(closes)).toBe(true)
+    expect(isSignupClosed(closes + 1)).toBe(true)
   })
 })

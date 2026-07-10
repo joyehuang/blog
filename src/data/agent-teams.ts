@@ -1,6 +1,6 @@
-// Agent 比赛组队报名 — 队伍主题配置（静态）。
+// Agent 比赛 — 队伍主题配置（静态）。
 //
-// 这里的内容是占位，之后直接改成真实主题即可。每支队伍一个 `id`：
+// 每支队伍一个 `id`：
 //   - 作为 Redis key（`agentteam:v1:{id}`）存报名名单；
 //   - 作为埋点事件 `agent_team_signup` 的 `team` 属性值。
 // 因此 `id` 一旦上线、有人报名后就不要再改，否则名单会对不上。
@@ -23,17 +23,22 @@ export const activity = {
   /** 比赛的英文名 / 品牌名 */
   name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
-  subtitle: '组队报名',
-  tagline: '选一个你感兴趣的主题，填个名字就算加入。参赛、围观、找队友都欢迎，对 Agent 感兴趣就来玩。',
+  subtitle: '比赛进行中',
+  tagline: '组队已经截止啦，现在各队都在开发中。围观、追进度、找灵感都欢迎，对 Agent 感兴趣就来看看 👀',
   /** 组队截止日（YYYY-MM-DD，测试会校验格式） */
   deadline: '2026-07-10',
-  /** 组队截止的口语化说法，用于展示 */
-  deadlineText: '7 月 10 日晚 12 点',
+  /** 组队截止时刻（北京时间 7/10 晚 12 点）——过点后 API 与看板同时关闭报名/建队 */
+  signupClosesAt: '2026-07-11T00:00:00+08:00',
   /** 头部醒目提示：当前阶段说明 */
   notice:
-    '公开报名已经截止啦，现在是组队阶段，7 月 10 日晚 12 点截止组队 —— 想参加或组队的话，先在群里拿到口令再来报名（所有人，包括已经报名的组员都要填口令）。不想组队也没关系：在下面「创建赛道」选「个人」，自己开一张卡就能单人参赛。感兴趣的朋友也欢迎进群围观，说不定还会有第二届 😄',
+    '组队已经截止啦，报名和建队通道已关闭。现在是开发阶段，各队正在打磨自己的 Agent——主题和名单都在下面，围观、追进度、找灵感都欢迎。说不定还会有第二届 😄',
   /** 活动详情文档（飞书 wiki） */
   docHref: 'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
+}
+
+/** 组队是否已截止——报名 / 建队通道随之关闭（API 与看板共用） */
+export function isSignupClosed(now: number = Date.now()): boolean {
+  return now >= Date.parse(activity.signupClosesAt)
 }
 
 /** 第一届比赛的真实赛道 —— 简介 / tags 可随时改，id 上线后勿动 */
