@@ -1,3 +1,4 @@
+import { posix } from 'node:path'
 import type { AstroGlobal, ImageMetadata } from 'astro'
 import { getImage } from 'astro:assets'
 import { getCollection, type CollectionEntry } from 'astro:content'
@@ -5,6 +6,7 @@ import rss from '@astrojs/rss'
 import type { Root } from 'mdast'
 import rehypeStringify from 'rehype-stringify'
 import remarkCjkFriendly from 'remark-cjk-friendly'
+import remarkMdx from 'remark-mdx'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
@@ -28,18 +30,25 @@ const renderContent = async (post: CollectionEntry<'blog' | 'blogEn'>, site: URL
     return async function (tree: Root) {
       const promises: Promise<void>[] = []
       visit(tree, 'image', (node) => {
-        if (node.url.startsWith('/images')) {
-          node.url = `${site}${node.url.replace('/', '')}`
-        } else {
-          const imagePathPrefix = `/src/content/blog/${post.id}/${node.url.replace('./', '')}`
-          const promise = imagesGlob[imagePathPrefix]?.().then(async (res) => {
-            const imagePath = res?.default
-            if (imagePath) {
-              node.url = `${site}${(await getImage({ src: imagePath })).src.replace('/', '')}`
-            }
-          })
-          if (promise) promises.push(promise)
+        if (/^[a-z][a-z\d+.-]*:/i.test(node.url)) return
+        if (node.url.startsWith('/')) {
+          node.url = new URL(node.url, site).href
+          return
         }
+
+        const filePath = post.filePath?.replaceAll('\\', '/')
+        if (!filePath) throw new Error(`Missing source path for RSS entry: ${post.id}`)
+
+        const imageKey = `/${posix.normalize(posix.join(posix.dirname(filePath), node.url))}`
+        const loadImage = imagesGlob[imageKey]
+        if (!loadImage) throw new Error(`Unable to resolve RSS image: ${imageKey}`)
+
+        promises.push(
+          loadImage().then(async ({ default: imagePath }) => {
+            const optimized = await getImage({ src: imagePath })
+            node.url = new URL(optimized.src, site).href
+          })
+        )
       })
       await Promise.all(promises)
     }
@@ -47,6 +56,7 @@ const renderContent = async (post: CollectionEntry<'blog' | 'blogEn'>, site: URL
 
   const file = await unified()
     .use(remarkParse)
+    .use(remarkMdx)
     .use(remarkCjkFriendly)
     .use(remarkReplaceImageLink)
     .use(remarkRehype)
