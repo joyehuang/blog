@@ -9,6 +9,7 @@ import vercel from '@astrojs/vercel'
 import AstroPureIntegration from 'astro-pure'
 import { defineConfig } from 'astro/config'
 import rehypeKatex from 'rehype-katex'
+import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkMath from 'remark-math'
 
 // Others
@@ -102,7 +103,8 @@ export default defineConfig({
   },
   // Markdown Options
   markdown: {
-    remarkPlugins: [remarkMath],
+    // remark-cjk-friendly：修复 **加粗** 紧贴全角标点时不渲染的 CommonMark flanking 问题
+    remarkPlugins: [remarkMath, remarkCjkFriendly],
     rehypePlugins: [
       [rehypeKatex, {}],
       rehypeHeadingIds,

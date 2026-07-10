@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content'
 import rss from '@astrojs/rss'
 import type { Root } from 'mdast'
 import rehypeStringify from 'rehype-stringify'
+import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
@@ -46,6 +47,7 @@ const renderContent = async (post: CollectionEntry<'blog'>, site: URL) => {
 
   const file = await unified()
     .use(remarkParse)
+    .use(remarkCjkFriendly)
     .use(remarkReplaceImageLink)
     .use(remarkRehype)
     .use(rehypeStringify)

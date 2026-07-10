@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import type { APIRoute } from 'astro'
 import { getEntry } from 'astro:content'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
+import remarkCjkFriendly from 'remark-cjk-friendly'
 
 const COLLECTIONS = {
   blog: 'blog',
@@ -36,6 +37,7 @@ function getProcessor() {
     processorPromise = createMarkdownProcessor({
       gfm: true,
       smartypants: true,
+      remarkPlugins: [remarkCjkFriendly],
       shikiConfig: {
         themes: { light: 'github-light', dark: 'github-dark' }
       }
