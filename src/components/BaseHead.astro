@@ -5,6 +5,7 @@ import { hasEnVersion } from '@/i18n/translations'
 import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
 
 import type { SiteMeta } from 'astro-pure/types'
+import JsonLd from '@/components/JsonLd.astro'
 import config from '@/site-config'
 
 type Props = SiteMeta & {
@@ -32,6 +33,38 @@ const hreflangAlternates = hasAlt
       { hreflang: 'x-default', href: new URL(barePath, Astro.site).href }
     ]
   : []
+
+// Structured data: WebSite + Person 全站输出，Person 的 @id 供文章页的
+// BlogPosting.author 引用（详情页的 JSON-LD 在各自页面输出）
+const origin = Astro.site!.origin
+const siteGraph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': `${origin}/#website`,
+      url: `${origin}/`,
+      name: config.title,
+      description: config.description,
+      inLanguage: lang === 'en' ? 'en' : 'zh-CN',
+      publisher: { '@id': `${origin}/#person` }
+    },
+    {
+      '@type': 'Person',
+      '@id': `${origin}/#person`,
+      name: config.author,
+      url: `${origin}/`,
+      image: `${origin}/favicon/apple-touch-icon.png`,
+      sameAs: [
+        'https://github.com/joyehuang',
+        'https://x.com/deshiou0604',
+        'https://space.bilibili.com/3546914882587480',
+        'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286'
+      ],
+      alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Melbourne' }
+    }
+  ]
+}
 ---
 
 <meta charset='utf-8' />
@@ -113,6 +146,9 @@ const hreflangAlternates = hasAlt
 />
 
 <meta content={Astro.generator} name='generator' />
+
+{/* Structured data — WebSite + Person (site-wide) */}
+<JsonLd schema={siteGraph} />
 
 {/* Styles */}
 <link rel='stylesheet' href='/styles/global.css' />

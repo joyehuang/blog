@@ -1,0 +1,11 @@
+---
+interface Props {
+  schema: Record<string, unknown> | Record<string, unknown>[]
+}
+
+const { schema } = Astro.props
+// 转义 `<`，防止值里出现 </script> 提前闭合标签
+const json = JSON.stringify(schema).replace(/</g, '\\u003c')
+---
+
+<script type='application/ld+json' set:html={json} is:inline />

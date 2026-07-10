@@ -10,7 +10,9 @@ import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import Comment from '@/components/comment/Comment.astro'
 import HeroEn from '@/components/HeroEn.astro'
+import JsonLd from '@/components/JsonLd.astro'
 import TableOfContents from '@/components/navigation/TableOfContents.astro'
+import { getLangFromUrl } from '@/i18n/ui'
 import { integ } from '@/site-config'
 
 interface Props {
@@ -53,6 +55,46 @@ const tocHeadings = headings
     ...heading,
     text: tocLabels[heading.slug] ?? heading.text
   }))
+
+// Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
+const lang = getLangFromUrl(Astro.url)
+const origin = Astro.site!.origin
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  '@id': `${pageUrl}#article`,
+  mainEntityOfPage: pageUrl,
+  headline: title,
+  description,
+  inLanguage: lang === 'en' ? 'en' : 'zh-CN',
+  datePublished: publishDate.toISOString(),
+  dateModified: (updatedDate ?? publishDate).toISOString(),
+  image: new URL(socialImage, Astro.site).href,
+  ...(data.tags.length ? { keywords: data.tags } : {}),
+  author: { '@id': `${origin}/#person` },
+  publisher: { '@id': `${origin}/#person` },
+  isPartOf: { '@id': `${origin}/#website` }
+}
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: lang === 'en' ? 'Home' : '首页',
+      item: lang === 'en' ? `${origin}/en` : `${origin}/`
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Blog',
+      item: lang === 'en' ? `${origin}/en/blog` : `${origin}/blog`
+    },
+    { '@type': 'ListItem', position: 3, name: title }
+  ]
+}
 ---
 
 <PageLayout
@@ -60,6 +102,7 @@ const tocHeadings = headings
   highlightColor={primaryColor}
   back={back}
 >
+  <JsonLd schema={[articleLd, breadcrumbLd]} />
   {!!tocHeadings.length && <TableOfContents headings={tocHeadings} slot='sidebar' />}
 
   {
