@@ -1,5 +1,5 @@
 ---
-import { getLangFromUrl, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
+import { getLangFromUrl, hasEnAlternate, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
 
 import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
@@ -22,13 +22,16 @@ const menuKeyMap: Record<string, Parameters<typeof t>[0]> = {
   '/contact': 'nav.contact'
 }
 
-const menu = (config.header?.menu ?? []).map((item) => {
-  const key = menuKeyMap[item.link]
-  return {
-    title: key ? t(key) : item.title,
-    link: localizedPath(item.link, lang)
-  }
-})
+// 英文站只展示有英文镜像的菜单项，避免生成 /en/talks 这类 404 链接
+const menu = (config.header?.menu ?? [])
+  .filter((item) => lang !== 'en' || hasEnAlternate(item.link))
+  .map((item) => {
+    const key = menuKeyMap[item.link]
+    return {
+      title: key ? t(key) : item.title,
+      link: localizedPath(item.link, lang)
+    }
+  })
 
 const homeHref = localizedPath('/', lang)
 const searchHref = localizedPath('/search', lang)
