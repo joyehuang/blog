@@ -10,7 +10,6 @@ import BaseHead from '@/components/BaseHead.astro'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
 import Header from '@/components/Header.astro'
 import DevModeHost from '@/components/terminal/DevModeHost'
-import { buildSiteFs } from '@/components/terminal/fs/server'
 import ThemeProvider from '@/components/ThemeProvider.astro'
 import config from '@/site-config'
 
@@ -31,9 +30,6 @@ const {
 
 const lang = getLangFromUrl(Astro.url)
 const htmlLang = lang === 'en' ? 'en' : config.locale.lang
-
-// Pseudo-FS shipped to the DevMode React island. Built once per page render.
-const fs = await buildSiteFs()
 ---
 
 <html lang={htmlLang}>
@@ -57,7 +53,7 @@ const fs = await buildSiteFs()
       <slot />
       <Footer />
     </div>
-    <DevModeHost client:only='react' fs={fs} />
+    <DevModeHost client:only='react' />
     <Analytics />
     <AnalyticsEvents />
     <SpeedInsights />

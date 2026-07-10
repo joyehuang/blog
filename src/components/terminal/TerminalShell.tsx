@@ -5,6 +5,7 @@ import { trackSiteEvent } from '@/lib/analytics'
 
 import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
+import { fetchSiteFs } from './fs/client'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath } from './fs/path'
 import type { FsNode } from './fs/types'
@@ -14,7 +15,6 @@ import './terminal.css'
 import type { HistoryEntry, OutputLine, Tone } from './types'
 
 type Props = {
-  fs: FsNode
   user?: string
   host?: string
 }
@@ -136,7 +136,8 @@ function MatrixRain() {
 const COLLAPSE_KEY = 'wt-collapsed'
 const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'design', 'theme dark', 'matrix']
 
-export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props) {
+export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
+  const [fs, setFs] = useState<FsNode | null>(null)
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
@@ -150,6 +151,22 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const idRef = useRef(0)
   const newId = () => `e${++idRef.current}`
+
+  // fetch the pseudo-FS once on mount instead of embedding it server-side
+  // (shared cache in fs/client — DevMode reuses the same in-flight request)
+  useEffect(() => {
+    let cancelled = false
+    fetchSiteFs()
+      .then((tree) => {
+        if (!cancelled) setFs(tree)
+      })
+      .catch(() => {
+        /* command handlers below no-op while fs stays null */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // hydrate collapsed state from localStorage
   useEffect(() => {
@@ -260,6 +277,13 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
       const trimmed = raw.trim()
       appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
+      if (!fs) {
+        appendEntry({
+          kind: 'output',
+          lines: [{ kind: 'text', tone: 'muted', text: 'still booting… try again in a moment' }]
+        })
+        return
+      }
       setHistory((h) => [...h, trimmed])
       setHistIdx(-1)
 
@@ -399,6 +423,7 @@ export default function Terminal({ fs, user = 'joye', host = ROOT_LABEL }: Props
     }
     if (e.key === 'Tab') {
       e.preventDefault()
+      if (!fs) return
       const completion = completeInput(input, { fs, cwd })
       if (!completion) return
       if (typeof completion === 'string') {
