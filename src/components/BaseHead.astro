@@ -53,6 +53,7 @@ const siteGraph = {
       '@type': 'Person',
       '@id': `${origin}/#person`,
       name: config.author,
+      description: 'Undergraduate student at the University of Melbourne',
       url: `${origin}/`,
       image: `${origin}/favicon/apple-touch-icon.png`,
       sameAs: [
@@ -61,7 +62,7 @@ const siteGraph = {
         'https://space.bilibili.com/3546914882587480',
         'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286'
       ],
-      alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Melbourne' }
+      affiliation: { '@type': 'CollegeOrUniversity', name: 'University of Melbourne' }
     }
   ]
 }
