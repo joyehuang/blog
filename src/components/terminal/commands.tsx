@@ -310,7 +310,11 @@ export const commands: CommandRegistry = {
       push([{ kind: 'text', tone: 'muted', text: `searching "${query}" …` }])
 
       try {
-        const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}&limit=6`)
+        const lang =
+          typeof window !== 'undefined' && window.location.pathname.startsWith('/en') ? 'en' : 'zh'
+        const response = await fetch(
+          `/api/search.json?q=${encodeURIComponent(query)}&limit=6&lang=${lang}`
+        )
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         const payload = (await response.json()) as { results: SearchApiResult[] }
 
