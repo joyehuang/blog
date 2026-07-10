@@ -33,8 +33,7 @@ const excludedSitemapPathPatterns = [
   /^\/(?:en\/)?search\/?$/,
   /^\/api(?:\/|$)/,
   /^\/\.well-known\/joye-manifest\.json$/,
-  /^\/pagefind(?:\/|$)/,
-  /^\/archives\/?$/ // 301 redirect stub, not a real page
+  /^\/pagefind(?:\/|$)/
 ]
 
 const shouldIncludeInSitemap = (page: string) => {
@@ -58,11 +57,6 @@ export default defineConfig({
   site: 'https://www.joyehuang.me',
   // base: '/docs',
   trailingSlash: 'never',
-
-  // 301：/archives 已被 /notes 取代（历史命名遗留），保住旧外链
-  redirects: {
-    '/archives': '/notes'
-  },
 
   // Adapter
   // https://docs.astro.build/en/guides/deploy/
