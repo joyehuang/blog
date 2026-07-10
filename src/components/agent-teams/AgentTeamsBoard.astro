@@ -1,8 +1,10 @@
 ---
-import { activity, teams } from '@/data/agent-teams'
+import { activity, isSignupClosed, teams } from '@/data/agent-teams'
 
 // 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
 // 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
+// signupClosed 是构建时刻的快照；页面可能在截止前构建，权威值以 API 返回为准。
+const signupClosed = isSignupClosed()
 ---
 
 <section class='agent-board not-prose mt-6 flex flex-col' data-agent-board>
@@ -142,8 +144,9 @@ import { activity, teams } from '@/data/agent-teams'
               class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               data-signup-toggle
               aria-expanded='false'
+              disabled={signupClosed}
             >
-              报名
+              {signupClosed ? '报名已截止' : '报名'}
             </button>
             <button
               type='button'
@@ -331,7 +334,11 @@ import { activity, teams } from '@/data/agent-teams'
   </div>
 
   {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方），加个光环效果突出它是入口 */}
-  <div class='create-card mb-4 rounded-xl border bg-background p-4 sm:p-5' data-create-card>
+  <div
+    class='create-card mb-4 rounded-xl border bg-background p-4 sm:p-5'
+    data-create-card
+    hidden={signupClosed}
+  >
     <div class='flex items-start justify-between gap-3'>
       <div class='min-w-0'>
         <h2 class='m-0 text-lg font-medium text-foreground'>没有合适的主题？</h2>
@@ -844,8 +851,12 @@ import { activity, teams } from '@/data/agent-teams'
     degraded?: boolean
     passcodeRequired: boolean
     detailEditable: boolean
+    signupClosed?: boolean
     teams: Team[]
   }
+
+  // 组队截止状态（以 API 返回为准）；renderRoster 重绘按钮时也要感知它
+  let signupClosed = false
 
   function fireAnalytics(action: 'open' | 'submit', team: string) {
     document.dispatchEvent(
@@ -937,8 +948,8 @@ import { activity, teams } from '@/data/agent-teams'
     card.dataset.full = full ? 'true' : 'false'
     const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
     if (toggle) {
-      toggle.disabled = full
-      toggle.textContent = full ? '名额已满' : '报名'
+      toggle.disabled = full || signupClosed
+      toggle.textContent = signupClosed ? '报名已截止' : full ? '名额已满' : '报名'
     }
 
     const roster = card.querySelector<HTMLElement>('[data-roster]')
@@ -1380,6 +1391,7 @@ import { activity, teams } from '@/data/agent-teams'
   ) {
     board.dataset.configured = data.configured ? 'true' : 'false'
     board.dataset.passcodeRequired = data.passcodeRequired ? 'true' : 'false'
+    signupClosed = data.signupClosed ?? false
 
     const banner = board.querySelector<HTMLElement>('[data-board-banner]')
     if (banner) {
@@ -1416,9 +1428,19 @@ import { activity, teams } from '@/data/agent-teams'
     // 主题总数：以接口拿到的完整列表为准（含自定义赛道），数字滚动到位。
     revealTeamCount(board, data.teams.length)
 
-    // 未配置：禁用「创建赛道」入口
+    // 未配置或组队已截止：禁用「创建赛道」入口
     const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
-    if (createToggle) createToggle.disabled = !data.configured
+    if (createToggle) createToggle.disabled = !data.configured || signupClosed
+
+    // 组队截止：隐藏建队卡片，收起所有报名表单（报名按钮文案由 renderRoster 统一处理）
+    if (signupClosed) {
+      const createCard = board.querySelector<HTMLElement>('[data-create-card]')
+      if (createCard) createCard.hidden = true
+      for (const card of cards.values()) {
+        const form = card.querySelector<HTMLElement>('[data-signup-form]')
+        if (form) form.hidden = true
+      }
+    }
 
     // 开放了队长编辑：显示每张卡的「队长编辑」入口
     if (data.detailEditable) {
