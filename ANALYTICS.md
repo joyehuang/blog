@@ -68,32 +68,32 @@ Keep properties flat: strings, numbers, booleans, or `null`. Do not send
 personal data such as email addresses, IP addresses, display names, full command
 input, comment text, search text, or free-form user input.
 
-| Property | Meaning | Examples |
-| --- | --- | --- |
-| `locale` | Current site locale. | `zh`, `en` |
-| `page` | Current pathname. | `/`, `/en`, `/contact`, `/talks` |
-| `surface` | UI area where the interaction happened. | `home_profile`, `agent_popout`, `projects`, `article_inline` |
-| `section` | Content section when useful. | `open_source`, `programs`, `sponsorship` |
-| `target` | Specific interacted object. | `profile`, `repo`, `wechat`, `pill` |
-| `action` | Interaction action. | `click`, `reveal`, `close`, `minimize`, `external_link` |
-| `method` | Interaction method. | `shell_click`, `keyboard_backtick`, `hover`, `focus` |
-| `href` | Destination for anchors. | `https://github.com/joyehuang` |
-| `destination_type` | Normalized destination kind. | `internal`, `external`, `github`, `mailto`, `doc`, `video` |
-| `command` | Terminal command name only. | `help`, `open`, `mail`, `connect` |
-| `command_result` | Safe terminal outcome bucket. | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
-| `repo` | Repository name for GitHub clicks. | `Learn-Open-Harness`, `interview-prep` |
-| `project` | Project identifier for project clicks. | `atypica`, `aixcut`, `prepwise` |
-| `team` | Agent competition team identifier. | `game-agent`, `rss-agent` |
-| `link_type` | Project link type. | `site`, `github`, `doc`, `release` |
-| `method_name` | Contact or payment method. | `wechat`, `qq_group`, `wechat_pay`, `alipay` |
-| `article_slug` | Article identifier for article-scoped events. | `20260517---agentonboardingguide` |
-| `episode` | Talk episode number. | `1`, `2` |
-| `resource` | Talk or article resource type. | `deck`, `video`, `record`, `slide` |
-| `source` | How the surface was reached when relevant. | `first_visit`, `replay` |
-| `duration_ms` | Elapsed interaction time in milliseconds. | `4200`, `9300` |
-| `time_to_cta_ms` | Elapsed time from surface start to CTA view. | `3600`, `4100` |
-| `played` | Whether the visitor interacted with a playful surface. | `true`, `false` |
-| `interactions` | Low-cardinality interaction burst count. | `1`, `3` |
+| Property           | Meaning                                                | Examples                                                                   |
+| ------------------ | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `locale`           | Current site locale.                                   | `zh`, `en`                                                                 |
+| `page`             | Current pathname.                                      | `/`, `/en`, `/contact`, `/talks`                                           |
+| `surface`          | UI area where the interaction happened.                | `home_profile`, `agent_popout`, `projects`, `article_inline`               |
+| `section`          | Content section when useful.                           | `open_source`, `programs`, `sponsorship`                                   |
+| `target`           | Specific interacted object.                            | `profile`, `repo`, `wechat`, `pill`                                        |
+| `action`           | Interaction action.                                    | `click`, `reveal`, `close`, `minimize`, `external_link`                    |
+| `method`           | Interaction method.                                    | `shell_click`, `keyboard_backtick`, `hover`, `focus`                       |
+| `href`             | Destination for anchors.                               | `https://github.com/joyehuang`                                             |
+| `destination_type` | Normalized destination kind.                           | `internal`, `external`, `github`, `mailto`, `doc`, `video`                 |
+| `command`          | Terminal command name only.                            | `help`, `open`, `mail`, `connect`                                          |
+| `command_result`   | Safe terminal outcome bucket.                          | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
+| `repo`             | Repository name for GitHub clicks.                     | `Learn-Open-Harness`, `interview-prep`                                     |
+| `project`          | Project identifier for project clicks.                 | `atypica`, `aixcut`, `prepwise`                                            |
+| `team`             | Agent competition team identifier.                     | `game-agent`, `rss-agent`                                                  |
+| `link_type`        | Project link type.                                     | `site`, `github`, `doc`, `release`                                         |
+| `method_name`      | Contact or payment method.                             | `wechat`, `qq_group`, `wechat_pay`, `alipay`                               |
+| `article_slug`     | Article identifier for article-scoped events.          | `20260517---agentonboardingguide`                                          |
+| `episode`          | Talk episode number.                                   | `1`, `2`                                                                   |
+| `resource`         | Talk or article resource type.                         | `deck`, `video`, `record`, `slide`                                         |
+| `source`           | How the surface was reached when relevant.             | `first_visit`, `replay`                                                    |
+| `duration_ms`      | Elapsed interaction time in milliseconds.              | `4200`, `9300`                                                             |
+| `time_to_cta_ms`   | Elapsed time from surface start to CTA view.           | `3600`, `4100`                                                             |
+| `played`           | Whether the visitor interacted with a playful surface. | `true`, `false`                                                            |
+| `interactions`     | Low-cardinality interaction burst count.               | `1`, `3`                                                                   |
 
 Use `null` for unavailable optional properties rather than inventing placeholders.
 
@@ -186,66 +186,34 @@ Home page entrance animation starts.
 Required properties:
 
 - `locale`: `zh` | `en`
-- `page`: `/`
+- `page`: `/` | `/en`
 - `surface`: `intro_overlay`
 - `target`: `animation`
 - `source`: `first_visit` | `replay`
+- `variant`: `focus` | `line` | `jojo`
+- `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 
 Use this to measure how many visitors actually see the intro animation,
-separate from repeat visitors where the session gate hides it.
+separate from repeat visitors where the versioned localStorage gate hides it.
 
-### `intro_cta_view`
+### `intro_complete`
 
-The entrance animation resolves and the final CTA is shown.
-
-Required properties:
-
-- `locale`: `zh` | `en`
-- `page`: `/`
-- `surface`: `intro_overlay`
-- `target`: `enter`
-- `source`: `first_visit` | `replay`
-- `time_to_cta_ms`: milliseconds from animation start to CTA view
-
-Use this with `intro_start` to measure how many visitors stay through the
-animation until the CTA appears.
-
-### `intro_play`
-
-User meaningfully interacts with the entrance animation particle field.
+The entrance animation finishes and the real home page becomes interactive.
 
 Required properties:
 
 - `locale`: `zh` | `en`
-- `page`: `/`
+- `page`: `/` | `/en`
 - `surface`: `intro_overlay`
-- `target`: `particle_hover`
+- `target`: `content`
 - `source`: `first_visit` | `replay`
-- `duration_ms`: milliseconds from animation start to first particle hover
-- `percent`: approximate animation resolve progress when interaction happened
-- `interactions`: number of interaction bursts counted so far
+- `variant`: `focus` | `line` | `jojo`
+- `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
+- `duration_ms`: milliseconds from animation start to completion
+- `time_to_content_ms`: milliseconds from animation start until the page is interactive
 
-Use this to measure whether visitors are "playing" with the hover-reactive
-particle animation instead of only watching it.
-
-### `intro_cta_click`
-
-User enters the home page from the entrance animation CTA.
-
-Required properties:
-
-- `locale`: `zh` | `en`
-- `page`: `/`
-- `surface`: `intro_overlay`
-- `target`: `enter` | `avatar`
-- `source`: `first_visit` | `replay`
-- `duration_ms`: milliseconds from animation start to enter click
-- `time_to_cta_ms`: milliseconds from animation start to CTA view
-- `played`: whether `intro_play` fired before the click
-- `interactions`: number of particle-hover interaction bursts before the click
-
-Use this with `intro_cta_view` to measure CTA conversion from the entrance
-animation.
+Use this with `intro_start` to compare completion and time-to-content across
+the three variants without treating the intro as a mandatory CTA gate.
 
 ### `intro_skip`
 
@@ -254,17 +222,16 @@ User skips the entrance animation before entering the home page.
 Required properties:
 
 - `locale`: `zh` | `en`
-- `page`: `/`
+- `page`: `/` | `/en`
 - `surface`: `intro_overlay`
 - `target`: `skip`
 - `source`: `first_visit` | `replay`
+- `variant`: `focus` | `line` | `jojo`
+- `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to skip click
-- `time_to_cta_ms`: milliseconds from animation start to CTA view, or `null` if skipped before CTA view
-- `played`: whether `intro_play` fired before the skip
-- `interactions`: number of particle-hover interaction bursts before the skip
 
 Use this to tell whether the intro animation is getting dismissed before the
-CTA.
+real page is revealed.
 
 ### `intro_replay`
 
@@ -273,10 +240,12 @@ User replays the entrance animation from the persistent home page control.
 Required properties:
 
 - `locale`: `zh` | `en`
-- `page`: `/`
+- `page`: `/` | `/en`
 - `surface`: `intro_overlay`
-- `target`: `replay`
+- `target`: `focus` | `line` | `jojo`
 - `source`: `replay`
+- `variant`: `focus` | `line` | `jojo`
+- `trigger`: `picker` | `event` | `replay`
 
 Use this to measure voluntary replay interest separately from first-visit
 exposure.
@@ -288,14 +257,13 @@ User leaves the page while the entrance animation is still active.
 Required properties:
 
 - `locale`: `zh` | `en`
-- `page`: `/`
+- `page`: `/` | `/en`
 - `surface`: `intro_overlay`
 - `target`: `pagehide`
 - `source`: `first_visit` | `replay`
+- `variant`: `focus` | `line` | `jojo`
+- `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to page hide
-- `time_to_cta_ms`: milliseconds from animation start to CTA view, or `null` if the CTA was never shown
-- `played`: whether `intro_play` fired before leaving
-- `interactions`: number of particle-hover interaction bursts before leaving
 
 Use this to estimate watch time for visitors who do not click enter or skip.
 
@@ -478,9 +446,7 @@ Implemented in current code:
 - `agent_competition_click`
 - `agent_team_signup`
 - `intro_start`
-- `intro_cta_view`
-- `intro_play`
-- `intro_cta_click`
+- `intro_complete`
 - `intro_skip`
 - `intro_replay`
 - `intro_abandon`
@@ -500,6 +466,9 @@ Legacy events retained only for historical data interpretation:
 - `home_agent_activity_click`
 - `home_cta_click`
 - `home_external_click`
+- `intro_cta_view`
+- `intro_play`
+- `intro_cta_click`
 
 ## Adding Or Changing Events
 
