@@ -73,12 +73,12 @@ describe('activity 配置', () => {
     expect(activity.docHref).toMatch(/^https?:\/\//)
   })
 
-  test('signupClosesAt 是带时区的合法时刻，且与 deadline 同一天（墨尔本晚 12 点）', () => {
+  test('signupClosesAt 是带时区的合法时刻，且与 deadline 同一天（北京时间晚 12 点）', () => {
     const closes = Date.parse(activity.signupClosesAt)
     expect(Number.isNaN(closes)).toBe(false)
     expect(activity.signupClosesAt).toMatch(/[+-]\d{2}:\d{2}$/)
     // 晚 12 点 = deadline 次日 00:00
-    const deadlineMidnight = Date.parse(`${activity.deadline}T00:00:00+10:00`)
+    const deadlineMidnight = Date.parse(`${activity.deadline}T00:00:00+08:00`)
     expect(closes - deadlineMidnight).toBe(24 * 60 * 60 * 1000)
   })
 
