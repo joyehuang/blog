@@ -59,9 +59,11 @@
         status.textContent = 'Searching...'
 
         try {
-          const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}&limit=10`, {
-            signal: activeRequest.signal
-          })
+          const lang = window.location.pathname.startsWith('/en') ? 'en' : 'zh'
+          const response = await fetch(
+            `/api/search.json?q=${encodeURIComponent(query)}&limit=10&lang=${lang}`,
+            { signal: activeRequest.signal }
+          )
           if (!response.ok) throw new Error(`HTTP ${response.status}`)
           const payload = (await response.json()) as { results: LocalSearchResult[] }
           renderResults(payload.results)
