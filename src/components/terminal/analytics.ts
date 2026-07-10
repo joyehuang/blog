@@ -38,7 +38,7 @@ export function classifyTerminalCommand(
       }
     }
 
-    if (/^\/(blog|archive|search|projects|links|about|contact)(\/|$)/.test(input)) {
+    if (/^\/(blog|notes|search|projects|links|about|contact)(\/|$)/.test(input)) {
       return {
         command_result: 'navigation',
         destination_type: 'internal'
