@@ -122,8 +122,8 @@ export const integ: IntegrationUserConfig = {
       { name: 'Avatar', val: 'https://joyehuang.me/favicon/favicon.ico' }
     ]
   },
-  // Enable page search function
-  pagefind: true,
+  // Page search runs on /api/search.json (see SiteSearch.astro); pagefind build hook disabled
+  pagefind: false,
   // Add a random quote to the footer (default on homepage footer)
   // See: https://astro-pure.js.org/docs/integrations/advanced#web-content-render
   quote: {

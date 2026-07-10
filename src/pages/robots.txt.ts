@@ -7,7 +7,6 @@ const robotsTxt = [
   'User-agent: *',
   'Allow: /',
   'Disallow: /api/',
-  'Disallow: /pagefind/',
   '',
   `Sitemap: ${new URL('/sitemap.xml', site).href}`
 ].join('\n')

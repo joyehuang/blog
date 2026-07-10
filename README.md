@@ -161,7 +161,7 @@ Notes 的 `status` 可选：
 - `projects/ProjectSection.astro`: 项目页分组 section。
 - `projects/Sponsors.astro`: 赞助者列表。
 - `projects/Sponsorship.astro`: 赞助入口。
-- `search/PFSearch.astro`: Pagefind 搜索 UI。
+- `search/SiteSearch.astro`: 站内搜索 UI（走 /api/search.json，中英文各自索引）。
 - `talks/TalksSeries.astro`: Talks 时间线/系列展示。
 - `terminal/*`: terminal dev mode、pseudo-FS、命令系统、文章 viewer 和样式。
 

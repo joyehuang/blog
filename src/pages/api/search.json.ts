@@ -21,12 +21,13 @@ type SearchResult = Omit<SearchDoc, 'body'> & {
 export const GET: APIRoute = async ({ url }) => {
   const query = (url.searchParams.get('q') ?? '').trim()
   const limit = clampLimit(Number(url.searchParams.get('limit') ?? 10))
+  const lang = url.searchParams.get('lang') === 'en' ? 'en' : 'zh'
 
   if (query.length < 2) {
     return json({ query, results: [] })
   }
 
-  const docs = await buildSearchDocs()
+  const docs = await buildSearchDocs(lang)
   const results = docs
     .map((doc) => scoreDoc(doc, query))
     .filter((result): result is SearchResult => Boolean(result))
@@ -50,7 +51,37 @@ function clampLimit(limit: number) {
   return Math.max(1, Math.min(20, Math.floor(limit)))
 }
 
-async function buildSearchDocs(): Promise<SearchDoc[]> {
+async function buildSearchDocs(lang: 'zh' | 'en'): Promise<SearchDoc[]> {
+  // en 集合的路由用 translationKey（.en 文件名 slug 化后不是合法路由）
+  if (lang === 'en') {
+    const [blogPosts, notesEntries] = await Promise.all([
+      getCollection('blogEn', ({ data }) => !data.draft && Boolean(data.translationKey)),
+      getCollection('notesEn', ({ data }) => !data.draft && Boolean(data.translationKey))
+    ])
+
+    const blogDocs = blogPosts.map<SearchDoc>((entry) => ({
+      collection: 'blog',
+      title: entry.data.title,
+      description: entry.data.description,
+      url: `/en/blog/${encodeURI(entry.data.translationKey!)}`,
+      date: formatDate(entry.data.publishDate),
+      tags: entry.data.tags,
+      body: normalizeBody((entry as { body?: string }).body ?? '')
+    }))
+
+    const noteDocs = notesEntries.map<SearchDoc>((entry) => ({
+      collection: 'notes',
+      title: entry.data.title,
+      description: entry.data.description,
+      url: `/en/notes/${encodeURI(entry.data.translationKey!)}`,
+      date: formatDate(entry.data.date),
+      tags: entry.data.tags,
+      body: normalizeBody((entry as { body?: string }).body ?? '')
+    }))
+
+    return [...blogDocs, ...noteDocs]
+  }
+
   const [blogPosts, notesEntries] = await Promise.all([
     getCollection('blog', ({ data }) => !data.draft),
     getCollection('notes', ({ data }) => !data.draft)
