@@ -264,6 +264,18 @@ const signupClosed = isSignupClosed()
                 placeholder='报名时填的昵称'
               />
             </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              QQ 群口令（和报名时一致）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='passcode'
+                type='text'
+                maxlength='40'
+                required
+                autocomplete='off'
+                placeholder='群里公布的口令'
+              />
+            </label>
             <div class='flex items-center gap-3'>
               <button
                 type='submit'
@@ -1321,7 +1333,8 @@ const signupClosed = isSignupClosed()
         const data = new FormData(leaveForm)
         const payload = {
           teamId,
-          name: String(data.get('name') || '')
+          name: String(data.get('name') || ''),
+          passcode: String(data.get('passcode') || '')
         }
 
         if (submitBtn) submitBtn.disabled = true

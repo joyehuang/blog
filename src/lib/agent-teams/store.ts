@@ -415,16 +415,17 @@ export async function addSignup(
 export type LeaveInput = {
   teamId: string
   name: string
+  passcode?: string
 }
 
-export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'store_error'
+export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
 
 export type LeaveResult =
   | { ok: true; roster: TeamRoster }
   | { ok: false; code: LeaveErrorCode; message: string }
 
 /**
- * 按昵称把某人从某队名单里删掉。退出不需要口令——自己想退随时能退。
+ * 按昵称把某人从某队名单里删掉。退出与报名共用 QQ 群口令，避免他人冒用昵称退队。
  */
 export async function removeSignup(
   input: LeaveInput,
@@ -432,6 +433,11 @@ export async function removeSignup(
 ): Promise<LeaveResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '报名系统尚未配置' }
+
+  const passcode = getPasscode()
+  if (passcode && input.passcode !== passcode) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
 
   const name = cleanText(input.name ?? '')
   if (name.length === 0 || name.length > NAME_MAX) {

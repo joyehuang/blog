@@ -228,6 +228,7 @@ const LEAVE_STATUS_BY_CODE: Record<LeaveErrorCode, number> = {
   not_configured: 503,
   invalid: 400,
   not_found: 404,
+  passcode: 403,
   store_error: 500
 }
 
@@ -246,7 +247,10 @@ export const DELETE: APIRoute = async ({ request }) => {
     return json({ ok: false, code: 'invalid', message: '未知的队伍' }, 400)
   }
 
-  const result = await removeSignup({ teamId, name: str(body.name) ?? '' }, { capacity })
+  const result = await removeSignup(
+    { teamId, name: str(body.name) ?? '', passcode: str(body.passcode) },
+    { capacity }
+  )
 
   if (result.ok) {
     return json({ ok: true, roster: result.roster })
