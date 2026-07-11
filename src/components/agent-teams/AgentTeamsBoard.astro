@@ -332,7 +332,7 @@ const signupClosed = isSignupClosed()
 
   {/* 分页控件：order-last 保证它排在赛道网格下面（而不是排到「创建赛道」下面）。 */}
   <div
-    class='board-pagination order-last mt-5 mb-4 items-center justify-center gap-3 text-sm text-muted-foreground'
+    class='board-pagination order-last mt-5 mb-4 flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground'
     data-board-pagination
     hidden
   >
@@ -1449,7 +1449,8 @@ const signupClosed = isSignupClosed()
       'inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40'
 
     const goTo = (next: number) => {
-      board.dataset.page = String(next)
+      const target = Math.min(pageCount - 1, Math.max(0, next))
+      board.dataset.page = String(target)
       renderPagination(board, cards)
       // 翻页后卷回赛道网格顶部——不然人还停在页面底部的翻页按钮旁边，看不到新一页的卡片。
       // 页面顶部有个 sticky header（top:1rem、约 44px 高），scrollIntoView 的默认对齐
@@ -1468,8 +1469,24 @@ const signupClosed = isSignupClosed()
     prev.disabled = page === 0
     prev.addEventListener('click', () => goTo(page - 1))
 
-    const label = document.createElement('span')
-    label.textContent = `第 ${page + 1} / ${pageCount} 页`
+    const pageButtons = document.createElement('span')
+    pageButtons.className = 'inline-flex flex-wrap items-center justify-center gap-1.5'
+    const pageBtnClass =
+      'inline-flex size-8 items-center justify-center rounded-lg border text-sm font-medium transition-colors hover:bg-muted'
+    for (let index = 0; index < pageCount; index += 1) {
+      const pageButton = document.createElement('button')
+      const pageNumber = index + 1
+      const current = index === page
+      pageButton.type = 'button'
+      pageButton.className = current
+        ? `${pageBtnClass} border-foreground bg-foreground text-background`
+        : `${pageBtnClass} text-foreground`
+      pageButton.textContent = String(pageNumber)
+      pageButton.setAttribute('aria-label', current ? `当前第 ${pageNumber} 页` : `跳转到第 ${pageNumber} 页`)
+      if (current) pageButton.setAttribute('aria-current', 'page')
+      else pageButton.addEventListener('click', () => goTo(index))
+      pageButtons.appendChild(pageButton)
+    }
 
     const next = document.createElement('button')
     next.type = 'button'
@@ -1478,7 +1495,7 @@ const signupClosed = isSignupClosed()
     next.disabled = page === pageCount - 1
     next.addEventListener('click', () => goTo(page + 1))
 
-    pager.append(prev, label, next)
+    pager.append(prev, pageButtons, next)
   }
 
   function applyState(
