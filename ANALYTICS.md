@@ -210,10 +210,9 @@ Required properties:
 - `variant`: `focus` | `line` | `jojo`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to completion
-- `time_to_content_ms`: milliseconds from animation start until the page is interactive
 
-Use this with `intro_start` to compare completion and time-to-content across
-the three variants without treating the intro as a mandatory CTA gate.
+Use this with `intro_start` to compare completion time across the three variants
+without treating the intro as a mandatory CTA gate.
 
 ### `intro_skip`
 

@@ -9,12 +9,13 @@ const BUILDER_LOADERS: Record<IntroVariant, () => Promise<IntroBuilder>> = {
   jojo: () => import('./variants/jojo').then(({ buildJoJoIntro }) => buildJoJoIntro)
 }
 
-type IntroEventDetail = { variant?: IntroVariant }
+type ReplayTrigger = Extract<IntroTrigger, 'event' | 'replay'>
+type IntroEventDetail = { variant?: IntroVariant; trigger?: ReplayTrigger }
 
 type IntroWindow = Window & {
   __introWatchdog?: number
   __joyeIntro?: {
-    play(variant: IntroVariant): void
+    play(variant: IntroVariant, trigger?: ReplayTrigger): void
   }
   __siteAnalyticsQueue?: Array<{
     eventName: string
@@ -36,6 +37,21 @@ function storedVariant(): IntroVariant {
     return isVariant(value) ? value : 'jojo'
   } catch {
     return 'jojo'
+  }
+}
+
+function prepareVariantAssets(root: HTMLElement) {
+  root.querySelectorAll<HTMLImageElement>('img[data-intro-src]').forEach((image) => {
+    const source = image.dataset.introSrc
+    if (source && !image.hasAttribute('src')) image.src = source
+  })
+}
+
+function markIntroSeen(variant: IntroVariant) {
+  try {
+    localStorage.setItem(SEEN_KEY, `${variant}:${Date.now()}`)
+  } catch {
+    // Playback remains available when storage is unavailable.
   }
 }
 
@@ -200,8 +216,7 @@ function initIntro() {
     } else {
       trackIntro('intro_complete', currentVariant, currentTrigger, currentSource, {
         target: 'content',
-        duration_ms: duration,
-        time_to_content_ms: duration
+        duration_ms: duration
       })
     }
 
@@ -269,6 +284,7 @@ function initIntro() {
     } catch {
       // Storage is an enhancement; private browsing must not block the entrance.
     }
+    markIntroSeen(variant)
 
     setMenu(false)
     selectVariant(variant)
@@ -282,6 +298,7 @@ function initIntro() {
       releaseOverlay(true)
       return
     }
+    prepareVariantAssets(root)
 
     trackIntro('intro_start', variant, trigger, currentSource, { target: 'animation' })
     if (trigger === 'picker' || trigger === 'event' || trigger === 'replay') {
@@ -296,17 +313,14 @@ function initIntro() {
         root,
         compact: compactQuery.matches,
         targets: {
-          avatar: document.querySelector<HTMLElement>('[data-intro-target="avatar"]'),
+          avatar: document.querySelector<HTMLElement>(
+            '[data-intro-target="avatar"], #content-header img'
+          ),
           contentHeader: document.getElementById('content-header'),
           header: document.querySelector<HTMLElement>('header-component'),
           jojo: document.getElementById('home-jojo')
         }
       })
-      try {
-        localStorage.setItem(SEEN_KEY, `${variant}:${Date.now()}`)
-      } catch {
-        // Playback remains available when storage is unavailable.
-      }
       overlay.classList.remove('intro-loading', 'intro-pending')
     } catch {
       if (request !== playRequest || !active || exiting) return
@@ -350,9 +364,13 @@ function initIntro() {
 
   window.addEventListener('joye:intro', (event) => {
     const detail = event instanceof CustomEvent ? (event.detail as IntroEventDetail | null) : null
-    if (detail?.variant && isVariant(detail.variant)) void play(detail.variant, 'event')
+    if (detail?.variant && isVariant(detail.variant)) {
+      void play(detail.variant, detail.trigger === 'replay' ? 'replay' : 'event')
+    }
   })
-  introWindow.__joyeIntro = { play: (variant) => void play(variant, 'event') }
+  introWindow.__joyeIntro = {
+    play: (variant, trigger = 'event') => void play(variant, trigger)
+  }
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {

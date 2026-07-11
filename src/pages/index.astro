@@ -103,6 +103,7 @@ const agentHackathonLink =
       <Image
         src={avatar}
         alt='profile'
+        data-intro-target='avatar'
         class='h-28 w-auto rounded-full border p-1'
         loading='eager'
       />
@@ -438,7 +439,7 @@ const agentHackathonLink =
   </main>
 
   {/* JoJo mascot — floating companion bottom-right (hidden on mobile) */}
-  <div class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
+  <div id='home-jojo' class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
     <div class='pointer-events-auto'>
       <JoJo client:load size='md' quipPool='idle' />
     </div>

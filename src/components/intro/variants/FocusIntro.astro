@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets'
+
 import avatar from '@/assets/avatar.png'
 ---
 
@@ -75,14 +77,15 @@ import avatar from '@/assets/avatar.png'
     </div>
 
     <div class='focus-proxy'>
-      <img
+      <Image
         class='focus-avatar-proxy'
-        src={avatar.src}
+        src={avatar}
         alt=''
-        width='192'
-        height='192'
+        width={192}
+        height={192}
+        format='webp'
         loading='eager'
-        decoding='sync'
+        decoding='async'
       />
       <span class='focus-proxy-glass'></span>
     </div>

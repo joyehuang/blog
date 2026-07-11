@@ -74,28 +74,44 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
       : clamp(viewportWidth * 0.112, 136, 164)
     const grabX = paperEdgeX - reach
 
-    const targetRect = targets.jojo?.getBoundingClientRect()
-    const hasJoJoTarget = Boolean(targetRect && targetRect.width > 2 && targetRect.height > 2)
-    const targetX =
-      hasJoJoTarget && targetRect
-        ? targetRect.left + targetRect.width / 2
-        : viewportWidth - (compact ? 34 : 62)
-    const targetY =
-      hasJoJoTarget && targetRect
-        ? targetRect.top + targetRect.height / 2
-        : viewportHeight - (compact ? 38 : 64)
     const proxyWidth = compact ? 138 : 118
     const proxyHeight = compact ? 118 : 104
-    const targetScale =
-      hasJoJoTarget && targetRect
-        ? clamp(
-            Math.min(targetRect.width / proxyWidth, targetRect.height / proxyHeight),
-            0.56,
-            1.02
-          )
-        : compact
-          ? 0.58
-          : 0.72
+    const resolveTarget = () => {
+      const currentViewportWidth = Math.max(
+        window.innerWidth,
+        document.documentElement.clientWidth,
+        320
+      )
+      const currentViewportHeight = Math.max(
+        window.innerHeight,
+        document.documentElement.clientHeight,
+        480
+      )
+      const targetRect = targets.jojo?.getBoundingClientRect()
+      const hasTarget = Boolean(targetRect && targetRect.width > 2 && targetRect.height > 2)
+
+      return {
+        x:
+          hasTarget && targetRect
+            ? targetRect.left + targetRect.width / 2
+            : currentViewportWidth - (compact ? 34 : 62),
+        y:
+          hasTarget && targetRect
+            ? targetRect.top + targetRect.height / 2
+            : currentViewportHeight - (compact ? 38 : 64),
+        scale:
+          hasTarget && targetRect
+            ? clamp(
+                Math.min(targetRect.width / proxyWidth, targetRect.height / proxyHeight),
+                0.56,
+                1.02
+              )
+            : compact
+              ? 0.58
+              : 0.72
+      }
+    }
+    const initialTarget = resolveTarget()
 
     const APPROACH_END = 0.12
     const LATCH_END = 0.78
@@ -185,9 +201,6 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
     const releaseX =
       grabX - paperTravel * releasePaperProgress - viewportWidth * (releasePinch / 100)
     const releaseY = grabY + Math.sin(releasePaperProgress * Math.PI * 2.1) * (compact ? 1 : 2.2)
-    const midX = mix(releaseX, targetX, compact ? 0.62 : 0.56)
-    const midY = Math.min(releaseY, targetY) - Math.min(compact ? 54 : 104, viewportHeight * 0.12)
-
     gsap.set(root, { opacity: 1 })
     gsap.set(paper, { opacity: 1, transformOrigin: '0% 50%', clipPath: 'inset(0 0 0 0)' })
     gsap.set(paperLayers, { opacity: 1, transformOrigin: '0% 50%' })
@@ -211,8 +224,8 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
     if (tension) gsap.set(tension, { opacity: 0, scale: 0.55, rotation: 45 })
     if (snap) {
       gsap.set(snap, {
-        x: targetX,
-        y: targetY,
+        x: initialTarget.x,
+        y: initialTarget.y,
         xPercent: -50,
         yPercent: -50,
         opacity: 0,
@@ -233,7 +246,7 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
       return
     }
 
-    if (hasJoJoTarget && targets.jojo) gsap.set(targets.jojo, { opacity: 0 })
+    if (targets.jojo) gsap.set(targets.jojo, { opacity: 0 })
 
     const visibleParts = compact
       ? parts.filter((part) => !part.hasAttribute('data-jojo-detail'))
@@ -412,8 +425,10 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
           opacity: 1
         },
         {
-          x: midX,
-          y: midY,
+          x: () => mix(releaseX, resolveTarget().x, compact ? 0.62 : 0.56),
+          y: () =>
+            Math.min(releaseY, resolveTarget().y) -
+            Math.min(compact ? 54 : 104, window.innerHeight * 0.12),
           rotation: compact ? 108 : 190,
           scale: compact ? 0.82 : 0.88,
           duration: duration(0.25),
@@ -425,10 +440,10 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
       .to(
         agent,
         {
-          x: targetX,
-          y: targetY,
+          x: () => resolveTarget().x,
+          y: () => resolveTarget().y,
           rotation: compact ? 180 : 360,
-          scale: targetScale,
+          scale: () => resolveTarget().scale,
           duration: duration(0.31),
           ease: 'back.out(1.45)'
         },
@@ -447,6 +462,7 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
 
     if (snap) {
       timeline
+        .set(snap, { x: () => resolveTarget().x, y: () => resolveTarget().y }, at(1.99))
         .fromTo(
           snap,
           { opacity: 0, scale: 0.35 },
@@ -460,7 +476,7 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
         )
     }
 
-    if (hasJoJoTarget && targets.jojo) {
+    if (targets.jojo) {
       timeline.fromTo(
         targets.jojo,
         { opacity: 0 },
@@ -472,7 +488,12 @@ export const buildJoJoIntro: IntroBuilder = ({ root, targets, compact }) => {
     timeline
       .to(
         agent,
-        { opacity: 0, scale: targetScale * 0.96, duration: duration(0.16), ease: 'power2.in' },
+        {
+          opacity: 0,
+          scale: () => resolveTarget().scale * 0.96,
+          duration: duration(0.16),
+          ease: 'power2.in'
+        },
         at(2.06)
       )
       .fromTo(

@@ -465,6 +465,9 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
                       title={`${project.title} live landing page`}
                       data-live-frame
                       data-src={project.href}
+                      aria-hidden='true'
+                      tabindex='-1'
+                      inert
                       loading='lazy'
                       sandbox='allow-scripts allow-same-origin allow-forms allow-popups'
                       referrerpolicy='strict-origin-when-cross-origin'
@@ -490,7 +493,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
             <span>04 / PUBLIC THINKING</span>
             <h2>{copy.evidence}</h2>
             <p>{copy.evidenceBody}</p>
-            <a href={`${prefix}/talks`}>{copy.evidenceCta} ↗</a>
+            <a href='/talks'>{copy.evidenceCta} ↗</a>
           </header>
 
           <ol class='evidence__index' aria-label={isEn ? 'Talk chapters' : '演讲章节'}>
@@ -973,7 +976,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       }, this)
 
       const replay = this.querySelector<HTMLButtonElement>('[data-replay-intro]')
-      const playIntro = () => window.__joyeIntro?.play('jojo')
+      const playIntro = () => window.__joyeIntro?.play('jojo', 'replay')
       replay?.addEventListener('click', playIntro)
       this.cleanups.push(() => replay?.removeEventListener('click', playIntro))
 
@@ -987,6 +990,9 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           if (nextLive && !frame.src) frame.src = frame.dataset.src ?? ''
           plane.dataset.live = String(nextLive)
           button.setAttribute('aria-pressed', String(nextLive))
+          frame.toggleAttribute('inert', !nextLive)
+          frame.tabIndex = nextLive ? 0 : -1
+          frame.setAttribute('aria-hidden', String(!nextLive))
           const nextLabel = button.querySelector<HTMLElement>(
             `[data-preview-label='${nextLive ? 'live' : 'static'}']`
           )
@@ -1012,7 +1018,9 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   declare global {
     interface Window {
-      __joyeIntro?: { play(variant: 'focus' | 'line' | 'jojo'): void }
+      __joyeIntro?: {
+        play(variant: 'focus' | 'line' | 'jojo', trigger?: 'event' | 'replay'): void
+      }
     }
   }
 </script>
@@ -1599,6 +1607,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     background: white;
     filter: blur(6px);
     transform: scale(0.97);
+    pointer-events: none;
   }
 
   .product-plane[data-live='true'] .product-plane__viewport > img {
@@ -1612,6 +1621,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     opacity: 1;
     filter: blur(0);
     transform: scale(1);
+    pointer-events: auto;
   }
 
   .case-study__depth {
@@ -2563,6 +2573,34 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     [data-problem-layer],
     [data-solution] {
       opacity: 1 !important;
+    }
+    .evidence {
+      height: auto !important;
+    }
+    .evidence__sticky {
+      position: relative !important;
+      display: block !important;
+      height: auto !important;
+    }
+    .evidence__index {
+      display: none !important;
+    }
+    .evidence__scene {
+      display: grid !important;
+      gap: 1rem !important;
+      height: auto !important;
+      min-height: 0 !important;
+      margin-top: 3rem !important;
+    }
+    [data-evidence-card] {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      clip-path: none !important;
+      filter: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
     }
   }
 </style>

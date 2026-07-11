@@ -55,19 +55,25 @@ export const buildFocusIntro: IntroBuilder = ({ root, targets, compact }) => {
     }
 
     const proxyRect = proxy.getBoundingClientRect()
-    const targetRect = targets.avatar?.getBoundingClientRect()
     const proxyCenterX = proxyRect.left + proxyRect.width / 2
     const proxyCenterY = proxyRect.top + proxyRect.height / 2
-    const targetCenterX = targetRect ? targetRect.left + targetRect.width / 2 : proxyCenterX
-    const targetCenterY = targetRect ? targetRect.top + targetRect.height / 2 : proxyCenterY
-    const destinationX = targetCenterX - proxyCenterX
-    const destinationY = targetCenterY - proxyCenterY
-    const destinationScaleX = targetRect?.width
-      ? targetRect.width / Math.max(proxyRect.width, 1)
-      : 0.72
-    const destinationScaleY = targetRect?.height
-      ? targetRect.height / Math.max(proxyRect.height, 1)
-      : destinationScaleX
+    const resolveDestination = () => {
+      const targetRect = targets.avatar?.getBoundingClientRect()
+      const targetCenterX = targetRect?.width
+        ? targetRect.left + targetRect.width / 2
+        : proxyCenterX
+      const targetCenterY = targetRect?.height
+        ? targetRect.top + targetRect.height / 2
+        : proxyCenterY
+      const scaleX = targetRect?.width ? targetRect.width / Math.max(proxyRect.width, 1) : 0.72
+
+      return {
+        x: targetCenterX - proxyCenterX,
+        y: targetCenterY - proxyCenterY,
+        scaleX,
+        scaleY: targetRect?.height ? targetRect.height / Math.max(proxyRect.height, 1) : scaleX
+      }
+    }
     const apertureRadius =
       Math.hypot(
         Math.max(proxyCenterX, innerWidth - proxyCenterX),
@@ -194,10 +200,10 @@ export const buildFocusIntro: IntroBuilder = ({ root, targets, compact }) => {
       .to(
         proxy,
         {
-          x: destinationX,
-          y: destinationY,
-          scaleX: destinationScaleX,
-          scaleY: destinationScaleY,
+          x: () => resolveDestination().x,
+          y: () => resolveDestination().y,
+          scaleX: () => resolveDestination().scaleX,
+          scaleY: () => resolveDestination().scaleY,
           duration: 0.7,
           ease: 'power4.inOut'
         },
