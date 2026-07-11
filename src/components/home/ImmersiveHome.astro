@@ -2,6 +2,8 @@
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
 
+import '@fontsource-variable/geist'
+
 import IntroOverlay from '@/components/intro/IntroOverlay.astro'
 import JoJo from '@/components/mascot/JoJo'
 
@@ -18,6 +20,8 @@ type RepoItem = {
   stars: number
   href?: string
   eyebrow?: string
+  image?: string
+  imageAlt?: string
 }
 
 interface Props {
@@ -122,6 +126,11 @@ const projects = isEn
         title: 'Playyy',
         role: 'Brand-aware AI image workspace',
         body: 'A creative environment that keeps brand context, generation, and iteration in one product surface.',
+        metrics: [
+          ['10+', 'AI creation tools'],
+          ['4K', 'export ready'],
+          ['02', 'frontier image models']
+        ],
         href: 'https://playyy.ai/',
         image: '/images/landing/playyy-ui.png',
         alt: 'Playyy product interface from the public website',
@@ -135,6 +144,11 @@ const projects = isEn
         title: 'atypica',
         role: 'Commercial research multi-agent system',
         body: 'At Tezign, I worked on a commercial-research agent workflow spanning clarification, persona interviews, memory, and resilient asynchronous tool execution.',
+        metrics: [
+          ['300K', 'AI personas'],
+          ['1M+', 'interviews'],
+          ['<30m', 'per research']
+        ],
         href: 'https://atypica.ai/',
         image: '/images/landing/atypica-site.png',
         alt: 'Atypica public website showing the research agent interface',
@@ -148,6 +162,11 @@ const projects = isEn
         title: 'AIXCut',
         role: 'Agent-assisted video editing',
         body: 'I worked across the product and full-stack workflow that helps an editing agent shape scripts, organise source footage, and move toward a deliverable cut.',
+        metrics: [
+          ['03', 'workflow stages'],
+          ['01', 'continuous agent loop'],
+          ['FULL', 'stack delivery']
+        ],
         href: 'https://aixcut.cn/',
         image: '/images/landing/aixcut-site.png',
         alt: 'AIXCut public website showing the video editing product',
@@ -163,6 +182,11 @@ const projects = isEn
         title: 'Playyy',
         role: '品牌感知的 AI 图像工作台',
         body: '在 Adastra Labs 参与品牌感知 AI 图像工作台的产品与工程研发，把品牌上下文、生成与迭代放进同一个创作界面。',
+        metrics: [
+          ['10+', 'AI 创作工具'],
+          ['4K', '高清输出'],
+          ['02', '前沿图像模型']
+        ],
         href: 'https://playyy.ai/',
         image: '/images/landing/playyy-ui.png',
         alt: 'Playyy 官网公开的产品界面',
@@ -176,6 +200,11 @@ const projects = isEn
         title: 'atypica',
         role: '商业研究多智能体系统',
         body: '在 Tezign AIGC 研发团队参与商业研究 Multi-Agent，覆盖澄清式反问、Persona 访谈、分层记忆与异步工具调用。',
+        metrics: [
+          ['300K', 'AI Personas'],
+          ['1M+', '完成访谈'],
+          ['<30m', '单次研究']
+        ],
         href: 'https://atypica.ai/',
         image: '/images/landing/atypica-site.png',
         alt: 'Atypica 官网展示的研究 Agent 产品界面',
@@ -189,6 +218,11 @@ const projects = isEn
         title: 'AIXCut',
         role: 'Agent 辅助视频剪辑',
         body: '参与 Agent 辅助视频剪辑产品与全栈流程，把脚本塑形、素材组织和剪辑定位推进到可交付的成片工作流。',
+        metrics: [
+          ['03', '核心流程阶段'],
+          ['01', '连续 Agent 闭环'],
+          ['FULL', '全栈交付']
+        ],
         href: 'https://aixcut.cn/',
         image: '/images/landing/aixcut-site.png',
         alt: 'AIXCut 官网展示的视频剪辑产品界面',
@@ -231,6 +265,42 @@ const evidence = isEn
         label: '实践 / Agent 苦工',
         title: '可靠 Agent 背后那些不光鲜的工作',
         image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
+      }
+    ]
+
+const capabilities = isEn
+  ? [
+      {
+        index: '01',
+        title: 'Product judgement',
+        body: 'Turn an ambiguous need into a workflow with explicit users, constraints, and success criteria.'
+      },
+      {
+        index: '02',
+        title: 'Agent systems',
+        body: 'Design clarification, memory, tools, retries, and state recovery as one dependable loop.'
+      },
+      {
+        index: '03',
+        title: 'Full-stack delivery',
+        body: 'Carry the product from interaction and APIs through asynchronous jobs and production behaviour.'
+      }
+    ]
+  : [
+      {
+        index: '01',
+        title: '产品判断',
+        body: '把模糊需求拆成明确的用户、约束、工作流与成功标准。'
+      },
+      {
+        index: '02',
+        title: 'Agent 系统',
+        body: '把澄清、记忆、工具、重试和状态恢复设计成可靠闭环。'
+      },
+      {
+        index: '03',
+        title: '全栈交付',
+        body: '从交互与 API 一直做到异步任务和生产环境中的真实行为。'
       }
     ]
 
@@ -305,6 +375,17 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       <span>01—03 / PRODUCTS</span>
       <h2>{copy.selected}</h2>
       <p>{copy.selectedBody}</p>
+      <div class='work-intro__capabilities' data-reveal>
+        {
+          capabilities.map((item) => (
+            <article>
+              <span>{item.index}</span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))
+        }
+      </div>
     </section>
 
     {
@@ -320,6 +401,14 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
               <h2>{project.title}</h2>
               <strong>{project.role}</strong>
               <p>{project.body}</p>
+              <dl class='case-study__metrics'>
+                {project.metrics.map(([value, label]) => (
+                  <div>
+                    <dt>{value}</dt>
+                    <dd>{label}</dd>
+                  </div>
+                ))}
+              </dl>
               <a href={project.href} target='_blank' rel='noopener noreferrer'>
                 {copy.visit} ↗
               </a>
@@ -470,6 +559,11 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
               rel='noopener noreferrer'
             >
               <span>{repo.eyebrow ?? (isEn ? 'Original project' : '独立项目')}</span>
+              {repo.image && (
+                <figure class='repo-card__visual'>
+                  <img src={repo.image} alt={repo.imageAlt ?? repo.name} loading='lazy' />
+                </figure>
+              )}
               <div>
                 <i>0{index + 1}</i>
                 <strong>{repo.name}</strong>
@@ -570,6 +664,11 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
             },
             0.12
           )
+          .from(
+            '.hero__portrait',
+            { opacity: 0, scale: 0.72, y: -18, duration: 0.9, ease: 'back.out(1.2)' },
+            0.32
+          )
 
         if (hero && heroStage) {
           gsap.to(heroStage, {
@@ -593,7 +692,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           this.cleanups.push(() => hero.removeEventListener('pointermove', move))
         }
 
-        this.querySelectorAll<HTMLElement>('[data-case]').forEach((section, index) => {
+        this.querySelectorAll<HTMLElement>('[data-case]').forEach((section) => {
           const screen = section.querySelector<HTMLElement>('[data-case-screen]')
           const copy = section.querySelector<HTMLElement>('[data-case-copy]')
           const depth = section.querySelector<HTMLElement>('[data-depth-card]')
@@ -619,7 +718,6 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
             return
           }
 
-          const direction = index % 2 === 0 ? 1 : -1
           const timeline = gsap.timeline({
             scrollTrigger: {
               trigger: section,
@@ -629,51 +727,87 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
             }
           })
 
+          if (section.classList.contains('case-study--playyy')) {
+            timeline
+              .fromTo(
+                screen,
+                { opacity: 0, scale: 0.78, yPercent: 18, rotationX: 15 },
+                {
+                  opacity: 1,
+                  scale: 1,
+                  yPercent: 0,
+                  rotationX: 0,
+                  duration: 0.56,
+                  ease: 'power3.out'
+                }
+              )
+              .fromTo(
+                copy,
+                { opacity: 0, y: 42 },
+                { opacity: 1, y: 0, duration: 0.36, ease: 'power2.out' },
+                0.1
+              )
+              .fromTo(
+                depth,
+                { opacity: 0, y: 70, scale: 0.88 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.4 },
+                0.24
+              )
+          } else if (section.classList.contains('case-study--atypica')) {
+            timeline
+              .fromTo(
+                screen,
+                { opacity: 0, xPercent: -24, scale: 0.96 },
+                {
+                  opacity: 1,
+                  xPercent: 0,
+                  scale: 1,
+                  duration: 0.6,
+                  ease: 'expo.out'
+                }
+              )
+              .fromTo(
+                copy,
+                { opacity: 0, xPercent: 14 },
+                { opacity: 1, xPercent: 0, duration: 0.38, ease: 'power2.out' },
+                0.12
+              )
+              .fromTo(
+                depth,
+                { opacity: 0, scale: 0.72, rotation: -5 },
+                { opacity: 1, scale: 1, rotation: 0, duration: 0.42 },
+                0.26
+              )
+          } else {
+            timeline
+              .fromTo(
+                screen,
+                { opacity: 0, xPercent: 14, clipPath: 'inset(0% 0% 0% 100% round .85rem)' },
+                {
+                  opacity: 1,
+                  xPercent: 0,
+                  clipPath: 'inset(0% 0% 0% 0% round .85rem)',
+                  duration: 0.62,
+                  ease: 'power3.inOut'
+                }
+              )
+              .fromTo(
+                copy,
+                { opacity: 0, yPercent: -12 },
+                { opacity: 1, yPercent: 0, duration: 0.36, ease: 'power2.out' },
+                0.12
+              )
+              .fromTo(
+                depth,
+                { opacity: 0, scaleX: 0.3, transformOrigin: 'left center' },
+                { opacity: 1, scaleX: 1, duration: 0.42 },
+                0.28
+              )
+          }
+
           timeline
-            .fromTo(
-              screen,
-              {
-                opacity: 0.12,
-                rotationY: 30 * direction,
-                rotationX: 13,
-                z: -580,
-                xPercent: 18 * direction
-              },
-              {
-                opacity: 1,
-                rotationY: 0,
-                rotationX: 0,
-                z: 0,
-                xPercent: 0,
-                duration: 0.46,
-                ease: 'power2.out'
-              }
-            )
-            .fromTo(
-              copy,
-              { opacity: 0, xPercent: -20 * direction, z: -180 },
-              { opacity: 1, xPercent: 0, z: 0, duration: 0.32, ease: 'power2.out' },
-              0.08
-            )
-            .fromTo(
-              depth,
-              { opacity: 0, rotationY: -36 * direction, z: -480 },
-              { opacity: 1, rotationY: -9 * direction, z: -90, duration: 0.36 },
-              0.15
-            )
-            .to(
-              screen,
-              {
-                opacity: 0.38,
-                rotationY: -14 * direction,
-                rotationX: -8,
-                z: 300,
-                xPercent: -8 * direction,
-                duration: 0.18
-              },
-              0.88
-            )
-            .to(copy, { opacity: 0.12, z: 150, duration: 0.16 }, 0.9)
+            .to(screen, { opacity: 0.36, scale: 0.96, duration: 0.18 }, 0.88)
+            .to(copy, { opacity: 0.12, y: -24, duration: 0.16 }, 0.9)
         })
 
         const evidenceSection = this.querySelector<HTMLElement>('[data-evidence]')
@@ -690,25 +824,27 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           evidenceTimeline
             .fromTo(
               evidenceCards,
-              { opacity: 0, z: -720, rotationY: 34, rotationX: 12 },
+              { opacity: 0, y: 110, scale: 0.9 },
               {
                 opacity: 1,
-                z: (i) => i * 65,
-                rotationY: (i) => (i - 1) * -8,
-                rotationX: 0,
-                stagger: 0.08,
-                duration: 0.5
+                y: 0,
+                scale: 1,
+                stagger: 0.12,
+                duration: 0.56,
+                ease: 'power3.out'
               }
             )
             .to(
               evidenceCards,
               {
-                xPercent: (i) => (i - 1) * 54,
-                rotationY: (i) => (i - 1) * -16,
-                z: (i) => 180 - Math.abs(i - 1) * 120,
-                duration: 0.48
+                x: (i) => (i - 1) * 230,
+                rotation: (i) => (i - 1) * -2.5,
+                scale: (i) => (i === 1 ? 1 : 0.92),
+                opacity: (i) => (i === 1 ? 1 : 0.42),
+                duration: 0.52,
+                ease: 'power2.inOut'
               },
-              0.48
+              0.5
             )
         }
 
@@ -744,7 +880,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           })
         } else if (finale && solution && problemLayers.length) {
           const problemTimeline = gsap.timeline({
-            scrollTrigger: { trigger: finale, start: 'top 72%', end: 'center center', scrub: 0.8 }
+            scrollTrigger: { trigger: finale, start: 'top 78%', end: 'center 44%', scrub: 1.8 }
           })
           problemTimeline
             .fromTo(
@@ -760,15 +896,16 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
                 z: (i) => i * 55,
                 rotationY: (i) => (i - 1) * 8,
                 xPercent: (i) => (i - 1) * 13,
-                stagger: 0.06,
-                duration: 0.58
+                stagger: 0.14,
+                duration: 1.05,
+                ease: 'power2.out'
               }
             )
             .fromTo(
               solution,
-              { opacity: 0, scale: 0.62, z: -260 },
-              { opacity: 1, scale: 1, z: 180, duration: 0.32 },
-              0.52
+              { opacity: 0, scale: 0.72, z: -260 },
+              { opacity: 1, scale: 1, z: 180, duration: 0.7, ease: 'power2.out' },
+              0.86
             )
         }
       }, this)
@@ -831,7 +968,8 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     color: var(--home-fg);
     background: var(--home-bg);
     font-family:
-      'Satoshi', 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif;
+      'Geist Variable', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans CJK SC', system-ui,
+      sans-serif;
     text-rendering: optimizeLegibility;
   }
 
@@ -913,6 +1051,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     position: relative;
     z-index: 4;
     width: min(43rem, 56vw);
+    padding-top: 6.4rem;
   }
 
   .hero__eyebrow {
@@ -927,11 +1066,11 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   }
 
   .hero h1 {
-    margin: clamp(3rem, 7vh, 6rem) 0 1.8rem;
-    font-size: clamp(5.4rem, 11vw, 10.5rem);
-    font-weight: 520;
-    letter-spacing: -0.085em;
-    line-height: 0.72;
+    margin: clamp(2.3rem, 4vh, 3.8rem) 0 1.8rem;
+    font-size: clamp(5.2rem, 10vw, 9.5rem);
+    font-weight: 380;
+    letter-spacing: -0.075em;
+    line-height: 0.78;
   }
 
   .hero__copy > p {
@@ -1031,13 +1170,16 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   .hero__portrait {
     position: absolute;
-    z-index: 5;
-    right: 2rem;
-    bottom: 2rem;
-    width: 3.4rem;
+    z-index: 6;
+    top: 8.4rem;
+    left: clamp(1rem, 4vw, 4rem);
+    width: 5.8rem;
     overflow: hidden;
-    border: 1px solid var(--home-border);
+    border: 1px solid color-mix(in srgb, var(--home-accent), var(--home-border) 45%);
     border-radius: 50%;
+    box-shadow:
+      0 1.5rem 4rem rgb(0 0 0 / 28%),
+      0 0 0 0.45rem color-mix(in srgb, var(--home-card), transparent 24%);
   }
 
   .hero__portrait :global(img) {
@@ -1079,10 +1221,10 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   .work-intro h2 {
     max-width: 52rem;
     margin: 0;
-    font-size: clamp(3.2rem, 6.8vw, 7.2rem);
-    font-weight: 520;
-    letter-spacing: -0.065em;
-    line-height: 0.92;
+    font-size: clamp(3rem, 5.8vw, 6.2rem);
+    font-weight: 360;
+    letter-spacing: -0.05em;
+    line-height: 1.02;
   }
 
   .work-intro p {
@@ -1090,6 +1232,51 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     margin: 0;
     color: var(--home-muted);
     line-height: 1.5;
+  }
+
+  .work-intro__capabilities {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: clamp(4rem, 7vw, 7rem);
+    border-top: 1px solid var(--home-border);
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .work-intro__capabilities article {
+    min-height: 13rem;
+    padding: 1.35rem 1.4rem 1.5rem 0;
+    border-right: 1px solid var(--home-border);
+  }
+
+  .work-intro__capabilities article + article {
+    padding-left: 1.4rem;
+  }
+
+  .work-intro__capabilities article:last-child {
+    border-right: 0;
+  }
+
+  .work-intro__capabilities span {
+    color: var(--home-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+  }
+
+  .work-intro__capabilities h3 {
+    margin: 3.2rem 0 0.65rem;
+    font-size: clamp(1.2rem, 1.7vw, 1.65rem);
+    font-weight: 430;
+    letter-spacing: -0.025em;
+  }
+
+  .work-intro__capabilities p {
+    max-width: 23rem;
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.86rem;
+    line-height: 1.55;
   }
 
   .case-study {
@@ -1119,17 +1306,17 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     z-index: 4;
     top: 50%;
     left: clamp(1rem, 4vw, 4rem);
-    width: min(30rem, 31vw);
+    width: min(31rem, 33vw);
     transform: translateY(-50%);
     transform-style: preserve-3d;
   }
 
   .case-study__copy h2 {
-    margin: 1.2rem 0 1.1rem;
-    font-size: clamp(4.5rem, 8.5vw, 9rem);
-    font-weight: 520;
-    letter-spacing: -0.08em;
-    line-height: 0.78;
+    margin: 1.15rem 0 1.35rem;
+    font-size: clamp(4.2rem, 7.4vw, 7.8rem);
+    font-weight: 390;
+    letter-spacing: -0.07em;
+    line-height: 0.94;
   }
 
   .case-study__copy strong {
@@ -1138,17 +1325,47 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     color: var(--case-accent);
     font-family: ui-monospace, monospace;
     font-size: 0.68rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.08em;
+    line-height: 1.45;
     text-transform: uppercase;
   }
 
   .case-study__copy p {
     max-width: 27rem;
-    margin: 0 0 2rem;
+    margin: 0 0 1.4rem;
     color: var(--home-muted);
     font-size: clamp(0.95rem, 1.3vw, 1.15rem);
     line-height: 1.55;
+  }
+
+  .case-study__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0 0 1.3rem;
+    border-top: 1px solid color-mix(in srgb, var(--case-accent), transparent 70%);
+    border-bottom: 1px solid color-mix(in srgb, var(--case-accent), transparent 78%);
+  }
+
+  .case-study__metrics > div {
+    min-width: 0;
+    padding: 0.7rem 0.25rem 0.7rem 0;
+  }
+
+  .case-study__metrics dt {
+    font-size: clamp(1.15rem, 1.55vw, 1.5rem);
+    font-weight: 430;
+    letter-spacing: -0.035em;
+  }
+
+  .case-study__metrics dd {
+    margin: 0.22rem 0 0;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.06em;
+    line-height: 1.35;
+    text-transform: uppercase;
   }
 
   .case-study__copy a {
@@ -1419,9 +1636,9 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   .visual-home[data-locale='zh'] .journal h2,
   .visual-home[data-locale='zh'] .source h2,
   .visual-home[data-locale='zh'] .finale h2 {
-    font-weight: 410;
-    letter-spacing: -0.042em;
-    line-height: 0.98;
+    font-weight: 360;
+    letter-spacing: -0.032em;
+    line-height: 1.04;
   }
 
   .visual-home[data-locale='zh'] .hero__copy > p,
@@ -1430,7 +1647,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   .visual-home[data-locale='zh'] .evidence header p,
   .visual-home[data-locale='zh'] .journal__intro p,
   .visual-home[data-locale='zh'] .finale__copy p {
-    font-weight: 390;
+    font-weight: 360;
     letter-spacing: 0.01em;
     line-height: 1.72;
   }
@@ -1642,6 +1859,21 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     font-style: normal;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .repo-card__visual {
+    margin: 1.15rem 0 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--home-border), white 8%);
+    border-radius: 0.55rem;
+    background: #07080a;
+  }
+
+  .repo-card__visual img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
   }
 
   .repo-card > div {
@@ -1927,12 +2159,16 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       min-height: 100svh;
       padding: 6.7rem 1rem 2rem;
     }
+    .hero__copy {
+      padding-top: 3.6rem;
+    }
     .hero__eyebrow span:last-child {
       display: none;
     }
     .hero h1 {
-      margin-top: 2.4rem;
+      margin-top: 1.8rem;
       font-size: clamp(4.8rem, 25vw, 7rem);
+      line-height: 0.82;
     }
     .hero__world {
       inset: 52% -24vw 2rem 2vw;
@@ -1952,15 +2188,38 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       top: 46%;
       left: 0;
     }
-    .hero__portrait,
     .hero__index {
       display: none;
+    }
+    .hero__portrait {
+      top: 6.8rem;
+      right: 1rem;
+      left: auto;
+      display: block;
+      width: 4.2rem;
     }
     .work-intro {
       padding: 6rem 1rem;
     }
     .work-intro h2 {
-      font-size: 3.6rem;
+      font-size: 3.25rem;
+    }
+    .work-intro__capabilities {
+      grid-template-columns: 1fr;
+      margin-top: 3.5rem;
+    }
+    .work-intro__capabilities article,
+    .work-intro__capabilities article + article {
+      min-height: auto;
+      padding: 1.2rem 0 1.5rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--home-border);
+    }
+    .work-intro__capabilities article:last-child {
+      border-bottom: 0;
+    }
+    .work-intro__capabilities h3 {
+      margin-top: 1.8rem;
     }
     .case-study {
       height: auto;
@@ -1981,7 +2240,8 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       width: 100%;
     }
     .case-study__copy h2 {
-      font-size: 4.5rem;
+      font-size: 4.1rem;
+      line-height: 1;
     }
     .case-study__scene {
       position: relative;
