@@ -1,6 +1,6 @@
 ---
 title: "For Everyone Who Wants Into Agents But Doesn't Know Where"
-description: "Joye's Agent Engineer Onboarding Guide v1.0: what an Agent is, why now, how to start, and how to land a job — for anyone who wants in but doesn't know where."
+description: "Joye's Agent Engineer Onboarding Guide v2.0 — what an Agent is, why now, how to start, how to get hired. July 2026: Harness/Loop lens + verifiable roadmap."
 publishDate: 2026-05-17 00:00:00
 tags: ['Agent', 'LLM', 'getting started', 'learning path', 'job hunting', 'AI']
 language: en
@@ -9,9 +9,22 @@ translationKey: '20260517---agentonboardingguide/post'
 
 import WechatReveal from '@/components/WechatReveal.astro'
 
-*Joye's Agent Engineer Onboarding Guide · v1.0 · Free edition for followers*
+*Joye's Agent Engineer Onboarding Guide · v2.0 · Free edition for followers*
 
-*Updated: 2026-05-17*
+*Updated: 2026-07-12 (v1.0 published 2026-05-17)*
+
+---
+
+## What's new in v2.0
+
+This is the first major update of the promised "one version every 3–6 months" cadence (it arrived a bit early — this industry moves too fast). If you've read v1.0, this list tells you what to re-read:
+
+- **Ecosystem facts fully refreshed to July 2026**: the model landscape turned over an entire generation (the Claude 5 family / GPT-5.6 / Gemini 3.5, and all five Chinese labs shipped new models), MCP moved into the Linux Foundation, Skills became an open standard… Chapter 2 is nearly rewritten.
+- **A new Harness / Loop engineering lens** — the most important narrative upgrade in the industry over the past two months. Chapters 1, 2, and 3 were restructured for it.
+- **Three technical statements corrected**: the dangerous claim that "prompt-level constraints beat execution-layer permission control" is gone (see 5.3); the Agent definition went from a binary to a spectrum (see 1.2); and several rules of thumb are now labeled as rules of thumb, not laws.
+- **The learning roadmap is now verifiable**: every stage in 4.2 has prerequisites, a minimum deliverable, acceptance criteria, and a budget — responding to the "I finished reading and still don't know where to put my hands" feedback.
+- **Three reading paths** (pick by your starting point) and **a self-check list at the end of every chapter**.
+- Assorted factual corrections (e.g. Karpathy's LLM Wiki actually shipped in early April; v1 said May).
 
 ---
 
@@ -21,10 +34,13 @@ import WechatReveal from '@/components/WechatReveal.astro'
 
 If your situation lately looks like this — people around you are talking about Agents, about MCP, about Vibe Coding, you see a swarm of unfamiliar terms floating by, you have a vague sense that this is a direction worth getting into, but every time you try to start you get scared off, either because you don't know which term to look up first, or because you open a "30-day crash course" tutorial and close it by page three — then this document is written for you.
 
-I roughly divide readers into two groups, and this material is useful for both:
+### Three starting points, three reading paths
 
-- **People with zero programming or zero LLM background**: what you need is a "map" — something that shows you what the whole field looks like and where to start walking.
-- **People with some programming background but who haven't really touched LLM applications yet**: what you need is a "translation table" — something that builds the bridge between what you already know and this new direction.
+People with different backgrounds shouldn't read this the same way. Find yourself first:
+
+- **Starting point A: you've never written code** (or only touched it in a class) — don't rush into a full read-through. Suggested path: **Chapter 1 → Chapter 3** (build the mental model, kill the anxiety) → **the catch-up list in 4.1** (until you can write functions and call an API) → **Stage 1 of Chapter 4**, hands-on → now go back and read **Chapter 2** — the terms will actually mean something — → digest **Chapter 5** slowly.
+- **Starting point B: you can code but haven't touched LLM applications** — read in order: **Chapter 1 → Chapter 2 → Chapter 4** (focus on 4.2 / 4.3) → **Chapter 5**. Chapter 3 is skippable; come back when you feel anxious.
+- **Starting point C: you're already building LLM apps and came to update your map** — go straight to **Chapter 2** (the biggest refresh in this version) → **Chapter 5** → **the resource list in 4.5**; use the end-of-chapter self-checks as a quiz.
 
 After reading this document, you should be able to:
 
@@ -33,7 +49,7 @@ After reading this document, you should be able to:
 - Stop feeling lost when you hear the jargon;
 - **Stop being anxious** — knowing that this path has a direction, that it can be walked, and that it's not too late to start now.
 
-**Estimated reading time**: about 11,000 Chinese characters in the original. At a rate of 350 characters per minute for technical Chinese content, **reading it straight through takes about 30 minutes**; if you read while looking things up and pause to think, **it's more like 1–1.5 hours** in practice.
+**Estimated reading time**: about 16,000 Chinese characters in the original. Reading it straight through takes about 45 minutes; if you read while looking things up and pause to think, it's more like 1.5–2 hours in practice.
 
 ### What this document is not
 
@@ -43,7 +59,9 @@ So your expectations land in the right place, let me also be clear about what th
 - **Not a framework manual** — it won't walk you through the LangChain / Vercel AI SDK APIs one by one.
 - **Not a paper survey** — it won't push Transformer formulas at you or walk you through papers.
 
-If those three things are what you came for, this material isn't for you — I'd suggest going straight to the official docs of a top-tier company. If what you need is "first help me figure out what kind of field I'm even facing" — you've come to the right place.
+And one more honest sentence about positioning (new in v2.0, because readers pointed out v1 was fuzzy here): **this is a map, not a driving school.** Reading it, you'll be able to read the terrain, understand the jargon, and know which way the road goes; but "knowing how to drive" can only come from your own hands. So remember this equation: **reading this document ≠ getting in; reading this document + finishing the Chapter 4 roadmap = getting in.** This version added acceptance criteria to every stage of Chapter 4 precisely so that "finishing" is something you can verify yourself.
+
+If those three things (code tutorial / framework manual / paper survey) are what you came for, this material isn't for you — I'd suggest going straight to the official docs of a top-tier company. If what you need is "first help me figure out what kind of field I'm even facing" — you've come to the right place.
 
 ---
 
@@ -51,16 +69,17 @@ If those three things are what you came for, this material isn't for you — I'd
 
 My name is Joye. I'm an undergraduate in Computing and Software Engineering at the University of Melbourne, currently in my second year.
 
-I'm currently doing a **full-stack Agent development internship at a unicorn company in Shanghai**.
+I currently do **Agent and full-stack development at Tezign (a Shanghai unicorn) and a few other AI companies**, and recently landed a remote role with compensation comparable to a full-time employee. I'm in the trenches on both the interviewing side and the building side — so everything in this document is first-hand, not second-hand paraphrase.
 
-Over the past few months I've intensively interviewed for Agent-related roles at **100+ AI companies** and received **30+ offers**. I wrote these experiences up into two blog posts that are also the "prequels" to this document:
+Over the past few months I've intensively interviewed for Agent-related roles at **100+ AI companies** and received **30+ offers**. I wrote these experiences up into several blog posts that serve as this document's "prequels" and "sequel":
 
-- **["A Second-Year Intern's Agent Development Interview Playbook"](https://www.joyehuang.me/en/blog/20260309---agentinterview/post)** (March 2026, 440 reads) — a complete retrospective of my own job hunt. This post is where I started taking on consulting.
-- **["A 1-Hour-19-Minute Agent Engineer Mock Interview: What Did We Actually Talk About"](https://www.joyehuang.me/en/blog/20260512---agentmockinterview/post)** (May 2026, 199 reads) — a full retrospective of an 80-minute paid mock interview I did together with another interviewer, W. After this one went out I got a ton of reader feedback: some people reorganized and deep-dived their projects using the methods in it and then landed offers at big companies, and others used this post to genuinely understand for the first time how to prepare for Agent development.
+- **["A Second-Year Intern's Agent Development Interview Playbook"](https://www.joyehuang.me/en/blog/20260309---agentinterview/post)** (March 2026) — a complete retrospective of my own job hunt. This post is where I started taking on consulting.
+- **["A 1-Hour-19-Minute Agent Engineer Mock Interview: What Did We Actually Talk About"](https://www.joyehuang.me/en/blog/20260512---agentmockinterview/post)** (May 2026) — a full retrospective of an 80-minute paid mock interview I did together with another interviewer, W. Readers have landed big-company offers after reorganizing their projects with the methods in it.
+- **["From Internship Interviews to Agent Engineering: The Words Change Faster Than the Models"](https://www.joyehuang.me/en/blog/20260615---frominternshipinterviewstoagentengineering/post)** (June 2026) — this guide's "spiritual sequel": the Prompt → Context → Harness → Loop relay of terminology, and how to stay un-anxious through it. This document references it in several places.
 
 **Open-source projects (GitHub [@joyehuang](https://github.com/joyehuang)):**
 
-- **[minimind-notes](https://github.com/joyehuang/minimind-notes)** (109+ Stars): a detailed annotated tutorial for building an LLM from scratch.
+- **[minimind-notes](https://github.com/joyehuang/minimind-notes)** (100+ Stars): a detailed annotated tutorial for building an LLM from scratch.
 - **[Learn-Open-Harness](https://github.com/joyehuang/Learn-Open-Harness)**: a beginner-friendly interactive OpenHarness tutorial that walks you through the implementation of a real Agent Harness.
 - **[skills](https://github.com/joyehuang/skills)**: my personal collection of Skills built on the Anthropic Skills paradigm.
 
@@ -70,25 +89,17 @@ I'm not the most senior person in the industry, but I've **just finished walking
 
 ### About the paid services
 
-This document is free. But everyone's situation is different — how your résumé should be rewritten, how your projects should be pitched, how your learning pace should be set, all of these need a specific 1-on-1 discussion. If you need that kind of in-depth help, I offer the following three services (please contact me for specific pricing):
-
-| Service | Price tier | Who it's for |
-|------|---------|--------|
-| **Résumé revision** | ￥ | You have a résumé but don't know how to "tell the story" so the interviewer's eyes light up |
-| **1-on-1 mock interview** | ￥￥ | You're about to interview and need a full live run-through + debrief |
-| **Learning roadmap / onboarding coaching** | ￥￥￥ | You're a complete beginner or lack a sense of direction and need weekly coaching over 1–3 months |
-
-A detailed description of each service is at the end of the document. Contact: WeChat <WechatReveal /> (with the note "paid consulting").
+This document is free, and the body text no longer interleaves any sales pitch. If you need specific 1-on-1 help (résumé revision / mock interviews / onboarding coaching), the detailed description of all three services lives at the very end of the document. Contact: WeChat <WechatReveal /> (with the note "paid consulting").
 
 ---
 
 ### How to use this document
 
-I suggest you **read it through in order the first time** to build an overall sense of the shape of things. After that, go back to the chapter that resonated most and read it closely a second time.
+I suggest you **follow whichever of the three paths above fits you**; build an overall sense of the shape of things on the first pass, then go back to the chapter that resonated most and read it closely a second time.
 
-Read with hands-on practice — after each chapter, pick the one point that struck you most and go search for a related open-source project, read a bit of official docs, or just open an LLM and have it explain it to you. **Reading without doing is the single biggest trap in this field.**
+Read with hands-on practice — after each chapter, pick the one point that struck you most and go search for a related open-source project or read a bit of official docs. **Reading without doing is the single biggest trap in this field** (the self-check at the end of each chapter is your minimum "brain-on" gate).
 
-If you find this helpful, feel free to share it on Xiaohongshu / X with friends who are also preparing. This document gets updated periodically (**roughly one version every 3–6 months**), and future versions will continue to be free.
+If you find this helpful, feel free to share it on Xiaohongshu / X with friends who are also preparing. This document gets updated periodically (**roughly one version every 3–6 months**), and future versions stay free — the v2.0 you're reading is the first time that promise got cashed.
 
 Let's begin.
 
@@ -110,11 +121,13 @@ A slightly more rigorous statement: **an Agent is a system with an LLM as its de
 
 **Misconception 2: Agent ≠ a single LLM API call.** A single-turn call is "input → output"; an Agent has to have at least one of these to count as an Agent: **a loop, tools, state**.
 
-**Misconception 3: Agent ≠ a form-filling app wrapped around an LLM.** Stuffing an LLM into a product where the user fills out a form is no different in essence from "a search box with GPT-4 bolted on." A real Agent should let the model decide for itself "what to do next," rather than running through a human-prescribed flow from start to finish.
+**Misconception 3: Agent ≠ a form-filling app wrapped around an LLM.** Stuffing an LLM into a product where the user fills out a form is no different in essence from "a search box with GPT-4 bolted on" — because the model participates in none of the "what to do next" decisions.
+
+But right here I need to correct something v1 stated too strongly (a common flaw in intro material): **"the model decides every step by itself" is not an entrance exam for being an Agent — autonomy is a spectrum.** The most common shape in real production systems is precisely "a deterministic workflow controls the backbone, and the LLM only decides at local nodes like classification, planning, and tool selection" — with permissions, retries, approvals, and state transitions controlled by the program. Deliberately **reducing** the model's degrees of freedom is often the correct reliability engineering, not a "fake Agent." Anthropic's own guidance treats workflows and agents as one spectrum you pick from as needed. So the more accurate statement is: the form-filling app's problem isn't "not autonomous enough," it's that the model participates in no decisions at all; **how much autonomy a good system grants the model is an engineering trade-off, not an identity test.**
 
 One thing to add: back in the early ChatGPT of 2023, you gave it an input and it gave you an output, and that was it. By 2025–2026, the mainstream web versions of ChatGPT, Claude, and Gemini have built quite a few Agent-ified capabilities into the product — web search, code execution, file read/write, MCP tool calls. **But this is "vendors packaging Agent capabilities at the product layer for users to use," not "the LLM itself becoming an Agent."** The underlying model is still that brain; it can act because there's a whole stack of Agent engineering wrapped around it — and that whole stack is exactly what you're going to learn.
 
-### 1.3 The Agent four-piece set
+### 1.3 The Agent four-piece set — and the Harness that assembles it
 
 Understand these four pieces and you've understood 80% of the engineering substance of Agents.
 
@@ -126,6 +139,10 @@ Understand these four pieces and you've understood 80% of the engineering substa
 
 **Loop (Agent Loop)**: `perceive → think → act → perceive → ...` The most classic implementation is called **ReAct** (Reason + Act). The termination condition is usually: the model decides it's done / it hits a max step count / the user interrupts.
 
+And the layer of engineering that **assembles** these four pieces — all the scaffolding that decides what the model sees at each step, what it's allowed to touch, and what happens when it errs — got a formal name in 2026: the **Harness**. Vivek Trivedy, the LangChain engineer responsible for its open-source agents, has a line worth memorizing: **"Agent = model + harness. Everything that isn't the model is the harness."**
+
+That's not an empty slogan. In February 2026 LangChain [ran an experiment](https://www.langchain.com/blog/improving-deep-agents-with-harness-engineering): without touching the model at all (it was the closed-source GPT-5.2-Codex), they rebuilt only the harness — system prompts, tools, loop-detection middleware — and lifted their agent's Terminal-Bench 2.0 score from 52.8% to 66.5% (+13.7 points, which put it in the leaderboard's top five at the time). **A lot of problems that look like "the model isn't good enough" are actually "the harness isn't built well."** Everything you'll learn in the rest of this document — context, memory, tools, reliability — is at bottom learning how to build a good harness.
+
 ### 1.4 A minimal Agent workflow: using "order me lunch" as an example
 
 You say to an Agent: "Order me a lunch, under 30 yuan, ideally Cantonese." Internally it runs roughly like this:
@@ -136,15 +153,35 @@ You say to an Agent: "Order me a lunch, under 30 yuan, ideally Cantonese." Inter
 
 **Round 3**: thinks "I have enough info, give it to the user" → answers directly: "I found 3 — A, B, C. Which would you like?"
 
-Note three key points:
+Note four key points:
 
-1. **Every step is decided by the model itself** — it judges on its own whether to call a tool, which one, and when to stop. This is the most central difference between an Agent and a "hardcoded workflow."
+1. **Every step is decided by the model itself** — it judges on its own whether to call a tool, which one, and when to stop. This is the most central difference between an Agent and a "hardcoded workflow" (though, per 1.2, in real systems this freedom is deliberately designed).
 2. **The tool execution is not done by the model** — the model only outputs "I want to call this tool"; the actual execution is your program's job.
 3. **Memory runs through the whole flow** — by the time it's thinking in round 3, the model still remembers the original budget and taste requirements.
+4. **Actions with real side effects must pass a program-layer gate** — when it actually gets to "place the order and pay," a responsible Agent will confirm with you first; and boundaries like "may it order at all, what's the amount cap" are enforced by the program at the tool-execution layer, never left to the model's self-restraint. This matters a great deal — Chapter 5 devotes space to it.
 
 ### 1.5 This chapter in one sentence
 
-> **Agent = an LLM in a loop, repeatedly "thinking a bit, doing a bit," until the task is done.**
+> **Agent = an LLM in a loop, repeatedly "thinking a bit, doing a bit," until the task is done — and all the engineering around that loop is called the harness.**
+
+---
+
+**✅ Chapter 1 self-check** (try answering without looking back; key points folded below)
+
+1. In three sentences, explain to a non-technical friend: what's the relationship between an Agent and the ChatGPT web app?
+2. Is "the model decides every step by itself" the qualifying bar for being an Agent? Why or why not?
+3. In a tool call, who actually executes the tool — the model or your program? Why does the distinction matter?
+
+<details>
+<summary>Key points</summary>
+
+1. See 1.1 / end of 1.2: the LLM is a brain; an Agent is that brain plus hands, eyes, memory, and a loop; the ChatGPT web app is Agent-ified capability packaged at the product layer — the underlying model itself is not an Agent.
+
+2. No. Autonomy is a spectrum (1.2): production systems commonly use a deterministic backbone with local model decisions; how much autonomy to grant is an engineering trade-off.
+
+3. Your program (1.4). Side-effect control, permissions, and auditing all live at the execution layer — which is also where the security boundary is (expanded in 5.3).
+
+</details>
 
 ---
 
@@ -152,65 +189,78 @@ Note three key points:
 
 > This chapter is written for the people who "have to go look up 10 terms halfway through reading a job description." We won't dig deep into each concept, but we'll lay the terminology map of this field flat, so that afterward, when you read any JD, blog post, or open-source project README, you'll know roughly what each term is talking about.
 
+One thing up front: the "five-layer map" below is **a memory aid, not a rigorous architecture spec** — MCP and Skills don't actually sit at the same level of abstraction, RAG and Memory overlap, and the boundaries in real systems are far blurrier than the diagram. The map's value is that JDs and READMEs stop being intimidating — don't use it as a design document.
+
 The whole Agent tech stack splits into five layers. We'll go from the bottom up.
 
 ### 2.1 The model layer: which brain to choose
 
-As of May 2026, the model landscape has split into **two regional pools**: the three overseas closed-source giants + five domestic open-source players.
+First, a lesson learned: v1 filled this section with specific model names, and **every one of them was stale within eight weeks** — that's just how the model layer works. So this version changes the format: first the landscape and selection logic (which don't expire), then the specific models in a snapshot table stamped with a date. **Before actually choosing, check each vendor's official models page and the public leaderboards — not any static article, including this one.**
 
-**The three big overseas closed-source models:**
+**The landscape (slow-changing)**: three overseas closed-source flagships (Anthropic's Claude, OpenAI's GPT, Google's Gemini) + five Chinese labs (DeepSeek, Qwen, Kimi, GLM, MiniMax). The overseas camp competes on flagship capability and agent-engineering maturity; the Chinese camp competes on cost-performance and open weights. One caveat: **the "Chinese = open-source" equation started loosening in 2026** — Alibaba's flagship Qwen3.7 went closed, API-only (the open line stops at Qwen3.6), and MiniMax M3 ships under a custom community license rather than MIT/Apache. "Open source" now has to be verified lab by lab, not assumed.
 
-- **Claude (Anthropic)**: currently the strongest reputation in Agent engineering. Opus 4.7 is the flagship, Sonnet 4.6 is the everyday workhorse, and both natively support a **1M token context**. Its handling of structured output, sustaining attention over long tasks, and tool-calling stability is very mature. **For a Coding Agent or complex Multi-Agent work, Claude is the current default choice.**
-- **GPT (OpenAI)**: the all-rounder in overall capability, with the most complete ecosystem and the most stable Function Calling.
-- **Gemini (Google)**: the strongest native multimodal capability (native understanding of images, video, audio). The top pick for multimodal Agent scenarios.
+**Snapshot (as of 2026-07-12; the most perishable table in this document)**:
 
-**The five domestic open-source / semi-open-source players** (by tier and differentiation):
+| Family | Current lineup | One-line positioning |
+|------|---------|-----------|
+| Claude (Anthropic) | Fable 5 (flagship) · Opus 4.8 · Sonnet 5, all with 1M context | Strongest reputation in agent engineering; the official docs literally say "start with Claude Opus 4.8" for complex agentic coding |
+| GPT (OpenAI) | GPT-5.6 family (Sol / Terra / Luna tiers, released 2026-07-09) | Most complete ecosystem; Codex now merged into the ChatGPT desktop app |
+| Gemini (Google) | Gemini 3.5 (Flash shipped; Pro still not generally available as of early July) | Strongest native multimodality; powers the always-on personal agent "Gemini Spark" |
+| DeepSeek | V4 series (Flash / Pro, 1M context, thinking built in) | Extreme cost-performance: V4-Flash at $0.14/$0.28 per million tokens; the full release lands mid-July with first-ever peak/off-peak pricing |
+| Qwen (Alibaba) | Qwen3.7-Max/Plus (closed API); open line Qwen3.6 (Apache 2.0) | Strong on Chinese-language scenarios and tool calling; June's open-source AgentWorld "language world model" is purpose-built for training agents |
+| Kimi (Moonshot) | K2.7-Code (2026-06, Modified MIT) | A coding-specialized agent model; long context is the traditional strength |
+| GLM (Zhipu) | GLM-5.2 (2026-06, MIT, 1M context) | **Current open-weight #1 on SWE-Bench Pro**; MIT license, the default for on-premise deployment |
+| MiniMax | M3 (2026-06, custom community license) | Highest open-weight SWE-Bench Verified score; the only open-weight model combining 1M context + native multimodality + computer use |
 
-- **Qwen (Alibaba Tongyi Qianwen)**: backed by the Alibaba Cloud ecosystem, Qwen3.6-Plus is strong on Chinese-language scenarios, tool-calling stability, and document processing; the open-source 35B MoE variant runs on a single GPU.
-- **DeepSeek**: the poster child for extreme cost-effectiveness. The V4 series is open-source, with prices so low they're nearly free (output pricing is about 1/10–1/30 of Claude's), and a 1M context. **For getting started and practicing API calls, DeepSeek is the top pick.**
-- **Kimi (Moonshot AI)**: K2.6 briefly took the #1 spot in the world for open-source models on SWE-Bench Pro, and long context has historically been a strength.
-- **GLM (Zhipu)**: GLM-5.1 is currently the only flagship coding model fully open-sourced under the MIT license, capable of sustained "8-hour-scale" Agent work. The default choice for on-premise deployment and academic research scenarios.
-- **MiniMax**: M2.7's killer feature is multimodality (voice, video) and the cost advantage from its extremely low activated parameter count.
+**"Who's the strongest" became genuinely contested for the first time in mid-2026**: on the official [Terminal-Bench 2.1 leaderboard](https://www.tbench.ai/leaderboard/terminal-bench/2.1) (as of 2026-07-11), Codex CLI + GPT-5.5 (83.4%) and Claude Code + Fable 5 (83.1%) are in a statistical tie, and the top spot changes hands every few weeks. So v1's "for a Coding Agent, Claude is the default choice" gets demoted to: Claude remains the reputational default for agent-engineering ecosystem, but **don't outsource the decision to any static conclusion — check the current leaderboard.**
 
-**Three pieces of honest advice on model selection:**
+**Four pieces of honest advice on model selection (these don't expire)**:
 
 1. **Bigger isn't better — use models tiered by task.** Use a cheap small model for simple intent recognition and routing; only use the flagship for complex code generation and reasoning. This is the key technique for controlling cost.
-2. Most domestic models provide an **OpenAI-compatible API endpoint** — the same code can switch models just by changing `base_url`.
+2. Most Chinese models provide an **OpenAI-compatible API endpoint** — the same code can switch models just by changing `base_url`.
 3. **Don't bet everything on a single model** — a mature project will plug into 2–3 vendors at once and route by task.
+4. **The weight of model selection is falling.** Remember the experiment in 1.3: model untouched, harness rebuilt, +13.7 points. The gap between same-tier models is often smaller than the gap between harness qualities — the time you'd spend agonizing over model names pays better spent on tool design and context engineering.
 
-### 2.2 The framework layer: what scaffolding to build with
+### 2.2 The framework / harness layer: what scaffolding to build with
 
-The mainstream choices fall into two categories: **official SDKs** and **third-party frameworks**.
+The mainstream choices fall into two categories: **official SDKs / harnesses** and **third-party frameworks**.
 
-**Official SDKs:**
+**The official camp:**
 
-- **OpenAI SDK**: the oldest and most stable. **But it can only call OpenAI's own models** — though, because the OpenAI-compatible protocol is the de facto standard, domestic models like DeepSeek / Qwen / Kimi / GLM can all be called with it by changing `base_url`.
+- **OpenAI SDK**: the oldest and most stable. **But it can only call OpenAI's own models** — though, because the OpenAI-compatible protocol is the de facto standard, Chinese models like DeepSeek / Qwen / Kimi / GLM can all be called with it by changing `base_url`.
 - **Anthropic SDK**: Claude's official SDK, and the smoothest way to wire up native capabilities like Tool Use and Computer Use.
+- **Claude Agent SDK** (renamed from the Claude Code SDK in September 2025): note this is not the same thing as the one above — it isn't a "call the model" SDK but a complete harness that **"gives the agent a computer"**: a built-in filesystem, terminal, permission system, and the gather-context → act → verify loop. If you want to build on a mature harness directly, this is one of the smoothest entry points today.
 - **Google Gen AI SDK**: Gemini's official SDK, with the most direct multimodal integration.
 
 **Third-party frameworks (in order of recommendation):**
 
-**Vercel AI SDK** (my personal top pick for getting started):
+**Vercel AI SDK** (my personal top pick for getting started — unchanged from v1, and if anything strengthened):
 
 - **Model-agnostic** — `import { anthropic } from '@ai-sdk/anthropic'` to use Claude, and switching to OpenAI / Google / DeepSeek only changes a single import while the rest of your code stays completely untouched.
-- **It's just an SDK, not a framework** — it gives you primitive-level capabilities like "streaming output," "tool calling," and "structured output," and it won't force you to organize your code around its abstractions (Chain / Graph / Node) the way LangChain / LangGraph do. How you orchestrate the Agent Loop is entirely up to you, and that degree of freedom is very friendly to anyone who genuinely wants to understand how Agents work.
+- **Light abstractions** — it gives you primitive-level capabilities like streaming, tool calling, and structured output, and won't force you to organize your code around its abstractions (Chain / Graph / Node) the way LangChain / LangGraph do. How you orchestrate the Agent Loop is entirely up to you.
+- In AI SDK 7 (June 2026), agents are first-class citizens: ToolLoopAgent (the tool loop), WorkflowAgent (durable long-running tasks), and notably **HarnessAgent — which wraps ready-made harnesses like Claude Code, Codex, Deep Agents, and OpenCode behind one interface, so you can swap harnesses the way you swap models**. (Note v7 requires Node 22 + ESM.)
 - The TypeScript / Next.js ecosystem is especially smooth.
 
-**LangChain / LangGraph**: the most established, the biggest ecosystem, the most extensive docs — but also the most frequently criticized for "abstractions that are too heavy." Unless your project specifically needs LangChain's off-the-shelf components (200+ document loaders, LangSmith evaluation), **I don't recommend it as a first stop.**
+**LangChain / LangGraph**: the most established, the biggest ecosystem, the most extensive docs — but also the most frequently criticized for "abstractions that are too heavy," and that criticism still holds in 2026. Notably, LangChain's own center of gravity has visibly shifted to **deepagents**, whose official tagline is "the batteries-included agent harness." Unless your project specifically needs LangChain's off-the-shelf components, **I don't recommend it as a first stop.**
 
-**CrewAI / AutoGen / Mastra**: aimed respectively at multi-Agent collaboration, enterprise-grade orchestration, and TypeScript full-stack — pick one once you have a concrete scenario.
+**Pydantic AI**: the lightweight Python-side counterpart to the Vercel AI SDK; its V2 (June 2026) is explicitly "harness-first" by design. **CrewAI / AutoGen / Mastra**: aimed respectively at multi-Agent collaboration, enterprise-grade orchestration, and TypeScript full-stack — pick one once you have a concrete scenario.
 
-**Advice for beginners**: for your first Agent, I recommend going straight to the **Vercel AI SDK or a vendor's official SDK** — their abstractions are light enough that they won't get in the way of you seeing clearly "what the Agent Loop is actually doing." **Don't learn a framework for the sake of "learning a framework"** — the framework itself isn't a résumé asset; "what valuable thing I built with some framework" is.
+**Advice for beginners** — there are now two validated paths, and they don't conflict:
+
+- **Path one (from v1)**: write your first Agent with the **Vercel AI SDK or a vendor's official SDK** — the abstractions are light enough not to block your view of "what the Agent Loop is actually doing."
+- **Path two (repeatedly validated through 2026)**: **from day one, use a mature harness (Claude Code or Codex) daily and treat it as a living textbook** — watch how it organizes context, how it designs permissions, when it compacts history. Philipp Schmid and Addy Osmani both argued in dedicated 2026 essays that newcomers should start from a harness. Osmani's line is worth remembering: **"a decent model with a great harness beats a great model with a bad harness."**
+
+**Don't learn a framework for the sake of "learning a framework"** — the framework itself isn't a résumé asset; "what valuable thing I built with some framework" is.
 
 ### 2.3 The protocol layer: MCP and Skills
 
 **MCP (Model Context Protocol)** is an open protocol Anthropic launched in late 2024 that gives "LLM applications" and "tools / data sources" a **standardized way to talk to each other**.
 
-An analogy — in the past, every Agent that wanted to plug in a new tool had to write its own adapter code; MCP is like the "USB standard" of the Agent world. Anthropic, OpenAI, Cursor, Cline, and Claude Code all already support MCP — **it has become the de facto standard.**
+An analogy — in the past, every Agent that wanted to plug in a new tool had to write its own adapter code; MCP is like the "USB standard" of the Agent world. And here's an important v2 update: **in December 2025, Anthropic donated MCP to the newly formed Agentic AI Foundation under the Linux Foundation (co-founded with OpenAI and Block)** — it went from "one company's protocol" to an industry standard under neutral governance, and the official registry now lists roughly ten thousand MCP servers. One more date worth noting: MCP's largest spec revision ever (a stateless redesign) is scheduled to land on **2026-07-28** — it may have just been finalized as you read this.
 
-The beginner advice is to first **use MCP Servers other people have already written** (Anthropic maintains a public list) and plug tools like Notion / GitHub / Slack directly into your Agent.
+The beginner advice is unchanged: first **use MCP Servers other people have already written** and plug tools like Notion / GitHub / Slack directly into your Agent.
 
-**Skills is an equally important concept to understand.** It's a **product form** that Anthropic officially launched in the second half of 2025 and that the industry gradually started following in 2026 — making a "packaged, reusable Agent capability module" a first-class citizen.
+**Skills is an equally important concept to understand.** It's a **product form** Anthropic launched in October 2025 — making a "packaged, reusable Agent capability module" a first-class citizen. v1 said "the industry is starting to follow"; that can now be written in the past tense: **Skills became an open standard in December 2025 ([agentskills.io](https://agentskills.io)), and by July 2026 it has 40+ adopting clients** — including OpenAI Codex, Gemini CLI, GitHub Copilot, VS Code, and Cursor.
 
 To understand Skills, first look at an engineering reality: a genuinely usable Agent often isn't just "a model + a few tools." It also needs — a set of **dedicated tools** (generating a PPT needs a pptx library), a piece of **carefully tuned prompt guidance** (when to use what, what the pitfalls are), some **examples and reference materials** (so the model knows "what good output looks like"), and sometimes **specific code snippets** as well.
 
@@ -224,61 +274,85 @@ If these are scattered across the prompt, tool descriptions, and code comments, 
 - Skills solve the problem of "infinite tools confusing the model." If an Agent plugs in 50 tools, the model is extremely likely to pick the wrong one; but if you group them into 10 Skills, the model only sees the corresponding tools in scenarios that match that Skill — this is **on-demand exposure**.
 - **Skills and MCP are complementary**: MCP solves "how a tool gets called" (interface standardization); Skills solves "how tools get organized and triggered" (capability packaging). A single Skill can internally call multiple MCP Servers.
 
-If you've looked at Anthropic's official Skills repo, you'll find it has already turned common capabilities like "create docx," "create pptx," "create xlsx," and "fill out a PDF form" into Skills — these Skills are exactly what runs behind Claude.ai's "Create Files" feature. **This trend of "turning general capabilities into Skills" is being followed by the whole industry in 2026.**
-
 **The relationship among the three:**
 
 - **Function Calling / Tool Use** actually refer to the same thing — OpenAI calls it Function Calling, Anthropic calls it Tool Use, and at bottom both are the underlying capability of "can the LLM output the instruction 'I want to call this tool.'"
 - **Skill** is another layer of abstraction — packaging a set of tools + prompt guidance + reference materials into a reusable, loadable capability module.
 
-### 2.4 The data layer: RAG, Memory, LLM Wiki
+Two more names to file away so JDs don't surprise you: **AGENTS.md** (the repo-level agent-guidance file convention, used in 60,000+ open-source repos) and **A2A** (an agent-to-agent communication protocol backed by 150+ organizations).
+
+### 2.4 The data layer: RAG, Agentic Search, Memory
 
 This layer is changing fastest in 2026 — the traditional RAG paradigm is being partially replaced by several new forms.
 
 **RAG (Retrieval-Augmented Generation)** was the most mainstream way of "giving an LLM its own knowledge" in 2023–2024. The core component is a **vector database** (Milvus, ChromaDB, Pinecone, pgvector, sqlite-vec).
 
-**But RAG is on the way out in 2026** — this is something that needs unpacking.
+Go back to the era when RAG emerged (early 2023): mainstream LLMs had a context window of only 4K–32K tokens, long documents couldn't fit, and the only option was "chunk + vector retrieval + stitch back into the prompt." Today mainstream flagships routinely support 1M tokens — for many scenarios the complex "retrieve first, then generate" pipeline isn't necessary at all, and stuffing the document straight into the context works better.
 
-Go back to the era when RAG emerged (early 2023): mainstream LLMs had a context window of only 4K–32K tokens, long documents couldn't fit, and the only option was "chunk + vector retrieval + stitch back into the prompt." Today Claude Opus 4.7 / Sonnet 4.6 already natively support 1M tokens, and DeepSeek V4 Pro and Qwen3.6-Plus are also 1M — **for many scenarios, the complex "retrieve first, then generate" pipeline isn't necessary at all**, and stuffing the document straight into the context actually works better.
+By mid-2026, the "is RAG dead" debate has mostly converged on one sentence: **naive "chunk + vector retrieval" is no longer the default architecture, but retrieval itself lives on happily as one of the Agent's tool actions.** The new pattern is called **Agentic Search (agent-as-retriever)**: build no index; let the agent explore on demand with grep / keyword search. Two landmark pieces of evidence: Claude Code still builds no vector index over your codebase — it searches live with filesystem tools; and an AWS paper at AAAI 2026 is literally titled ["Keyword search is all you need"](https://arxiv.org/abs/2602.23368) — pure keyword-based agentic retrieval reaches 90%+ of RAG's performance. But you should see the counter-evidence too: [Cursor's official experiments](https://cursor.com/blog/semsearch) show that **stacking** semantic search on top of grep still improves answer accuracy by an average of 12.5%. So the takeaway I'll teach you is: **grep / agentic search first; add embeddings when scale and recall demand it — the two stack, they don't replace each other.**
 
-In May 2026, Karpathy explicitly promoted an alternative approach — **LLM Wiki**: for an individual's or small team's medium-scale knowledge base (under 100K tokens), you can completely give up vector retrieval, organize all the content into a "Wikipedia"-style structure in Markdown, and stuff the relevant sections directly into the prompt context on demand. The upsides: no chunking errors, no retrieval-recall problems, dead-simple debugging and editing, and — by hitting the Prefix Cache — a massive cost reduction too.
+**LLM Wiki** is another pattern worth knowing in this direction: in early **April 2026** (v1 mistakenly said May — corrected), Karpathy published [the idea](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) — for an individual's or small team's medium-scale knowledge base, drop vector retrieval entirely; organize everything as a Markdown "Wikipedia" that the LLM incrementally maintains and stuffs into context on demand. Upsides: no chunking errors, no recall problems, trivially easy debugging, and Prefix-Cache-friendly. That said, the first long-term field tests two months later reached a sober conclusion: it works for narrow cases, but maintenance time roughly equals time saved. **Don't romanticize it — treat it as a pattern worth trying with your own hands** (Chapter 4 has you compare it yourself).
 
-**But RAG isn't dead.** It's still the top choice in these scenarios:
+**But traditional RAG isn't dead.** It's still the top choice in these scenarios:
 
 - **Internal enterprise scenarios that emphasize data privacy** — documents can't leave the corporate network.
-- **Ultra-large-scale knowledge bases** (millions of documents and up) — the context can't hold them.
+- **Ultra-large-scale knowledge bases** (millions of documents and up) — the context can't hold them and grep can't sweep them.
 - **Multi-user, multi-tenant scenarios** — each user's data has to be isolated.
 
-In short: **for a personal project, try LLM Wiki first; for a toB enterprise project, RAG is still the default.**
+In short: **for a personal project, try agentic search / LLM Wiki first; for a toB enterprise project, RAG is still the default.**
 
-**Memory (the memory system)** overlaps with RAG but is different — Memory places more emphasis on "personalized memory of the current user / session" (user preferences, conversation summaries, key facts), usually divided into three layers: Working / Short-term / Long-term. Chapter 5 covers it specifically.
+**Memory (the memory system)** overlaps with RAG but is different — Memory emphasizes "personalized memory of the current user / session," usually in three layers: Working / Short-term / Long-term (Chapter 5 covers it). In 2026 it graduated from concept to product layer: Anthropic's memory tool is GA (note that it's **file-based** — the agent reads and writes Markdown under a /memories directory, not an opaque vector store); OpenAI rebuilt ChatGPT's memory in June ("Dreaming" — memories update themselves as time passes); and on the open-source side Mem0 / Zep / Letta compete on memory benchmarks. **One pattern worth noticing: the memory designs that win in practice are mostly "file-based + agent-managed"** — the memory tool, CLAUDE.md, Karpathy's wiki — all the same shape.
 
-**Agentic Retrieval / Agentic Memory** is the new trend of 2025–2026: traditional RAG is a **passive pipeline** (retrieve first, then generate), whereas the Agentic mode lets the Agent decide for itself whether to retrieve, what to retrieve, whether to refine the retrieval results a second time, and whether to retrieve again. This "proactive retrieval" is rapidly replacing traditional RAG in complex scenarios.
+### 2.5 The application layer: proven scenarios, plus three mid-2026 developments
 
-### 2.5 The application layer: three mainstream landing scenarios
+After more than a year of observing the industry, the directions that get mentioned over and over and have proven out commercially are mainly these three:
 
-After nearly a year of observing the industry, the directions that get mentioned over and over and have proven out commercially are mainly these three:
+**AI search**: from Perplexity to Metaso AI to Felo, all of these are essentially Agent-ified search — no longer "keyword matching + ranking," but "understanding intent + retrieval + synthesis + generation." This direction has proven it can charge money: Perplexity's annualized revenue hit roughly $450M by March 2026.
 
-**AI search**: from Perplexity to Metaso AI to Felo, all of these are essentially Agent-ified search — no longer "keyword matching + ranking," but "understanding intent + retrieval + synthesis + generation."
+**Chat-to-BI**: letting business people query data, generate charts, and do attribution analysis in natural language. It's begun charging money in China too — Alibaba Cloud's DataWorks ChatBI switched to formal commercial billing in April 2026.
 
-**Chat-to-BI**: letting business people query data, generate charts, and do attribution analysis in natural language.
+**Vibe Coding**: from Copilot to Cursor to Claude Code — the fastest-moving direction of the past year, and the one that most directly disrupted traditional software development. Two numbers for a sense of scale: Claude Code passed a $2.5B annualized revenue run rate in February; OpenAI's Codex passed 5 million weekly active users in June, **roughly 20% of them non-developers**.
 
-**Vibe Coding**: from Copilot to Cursor to Claude Code to OpenCode to v0 — this direction has progressed the fastest over the past year and has most directly disrupted traditional software development.
+Beyond those three, there are three mid-2026 developments worth knowing when you pick a direction:
 
-**If you're thinking about which vertical to pursue for an Agent, these three are the ones with the most commercial value and the largest talent demand right now.**
+**One: Agents broke out of the developer niche.** Anthropic's own data for Claude Cowork (the desktop agent for non-technical workers) shows 90%+ of sessions are non-coding work; OpenClaw (the open-source gateway that connects a personal agent to WhatsApp / Telegram / WeChat) rocketed to 380K GitHub stars, one of the fastest star curves in GitHub history. The "agents = programmer toys" era is over.
+
+**Two: general vs. vertical — the scale is tipping toward vertical.** General agents are the battleground of model vendors and platforms — Meta's acquisition of general-agent star Manus was blocked by regulators in April and formally abandoned in June, and Manus itself is pivoting to vertical task packs; meanwhile verticals are making real money: legal agent Harvey at roughly $300M ARR, customer-service agent Sierra past $100M ARR. The jargon for this logic is the **context moat**: domain context + workflows + outcome delivery are the parts a model update can't compete away. For an individual developer, the opportunity is in verticals — I went deeper on this in [my second fan-group talk](https://www.joyehuang.me/talks/2026-ai-product-form.html) (deck in Chinese).
+
+**Three: the product form is changing generations.** In June, Karpathy offered a three-stage arc: LLM products went from "a website you visit (ChatGPT) → an app on your machine (Claude Code / Cursor) → **a persistent entity living inside an organization**." The emblem of stage three is Claude Tag, which Anthropic launched in late June: a Claude that lives in a Slack channel, has memory, takes asynchronous tasks, and is shared by the whole team. What it means for you: **the thing an "Agent engineer" builds is shifting from "a chat window" to "a digital coworker."**
 
 ### 2.6 Tech stack map
 
 | Layer | Key components | Representatives |
 |------|---------|------|
-| Application layer | AI search, Chat-to-BI, Vibe Coding | Perplexity, Cursor, Claude Code |
-| Data layer | RAG, Memory, LLM Wiki | Pinecone, Milvus, pgvector |
-| Protocol layer | MCP, Skills, Function Calling / Tool Use | Anthropic MCP, Anthropic Skills |
-| Framework layer | Agent orchestration | Vercel AI SDK, LangChain, LangGraph |
-| Model layer | LLM | Claude, GPT, Gemini, DeepSeek, Qwen, Kimi, GLM |
+| Application layer | AI search, Chat-to-BI, Vibe Coding, resident agents | Perplexity, Cursor, Claude Code, Claude Tag |
+| Data layer | RAG, Agentic Search, Memory, LLM Wiki | pgvector, Milvus, Mem0, memory tool |
+| Protocol layer | MCP, Skills, AGENTS.md | AAIF/MCP, agentskills.io |
+| Harness / framework layer | Agent orchestration & scaffolding | Claude Code, Claude Agent SDK, Vercel AI SDK, deepagents |
+| Model layer | LLM | Claude, GPT, Gemini, DeepSeek, Qwen, Kimi, GLM, MiniMax |
+
+Once more: this table is a memory aid — in real systems the boundaries between layers are crossed all the time.
 
 ---
 
+**✅ Chapter 2 self-check**
+
+1. What problem does MCP solve, and what problem does Skills solve? Why are they complementary?
+2. "Is RAG dead?" — give the mid-2026 industry consensus in two sentences.
+3. Why is "the weight of model selection falling"? What's the evidence?
+
+<details>
+<summary>Key points</summary>
+
+1. MCP solves "how a tool gets called" (interface standardization); Skills solves "how tools get organized and triggered" (capability packaging + on-demand exposure); one Skill can call multiple MCP Servers (2.3).
+
+2. Naive chunk-and-embed RAG is no longer the default architecture; but retrieval as an agent tool action (agentic search) is thriving, and RAG remains the default for enterprise-privacy, ultra-scale, and multi-tenant scenarios (2.4).
+
+3. The LangChain experiment: model untouched, harness rebuilt, +13.7 points on Terminal-Bench — the gap between same-tier models is often smaller than the gap between harness qualities (2.1 / 1.3).
+
+</details>
+
+---
 
 ## Chapter 3 | How to Think About This Direction: Trends, Mindset, and Pitfalls
 
@@ -298,9 +372,12 @@ A quick sketch of the timeline:
 - **2024** Cursor enters its commercial explosion period
 - **Late 2024** Anthropic launches MCP, and the Agent protocol layer starts taking shape
 - **2025** Agent products like Manus, Claude Code, and Devin burst onto the scene all at once
-- **2025–2026** new paradigms like the Skills system, Agentic Search, and Agentic Memory evolve rapidly
+- **October–December 2025** Anthropic launches Agent Skills; MCP is donated to the Linux Foundation; Skills becomes an open standard
+- **First half of 2026** "Harness Engineering" becomes an industry term (Anthropic's engineering blog series, LangChain's +13.7-point experiment, Osmani's naming essay)
+- **June 2026** "Loop Engineering" appears — one Steinberger post ignites it, Osmani systematizes it the same day; the same month, Claude Tag launches and agents enter their "organization-resident" form
+- **July 2026** Lilian Weng publishes a survey of harness engineering — the field is getting its first "textbook"
 
-In other words — **the so-called "senior Agent engineers" in the industry today have at most two to three years from entry to now.** That means if you start getting into it today, in three years you'll be a "veteran" too. Compared with those directions in traditional development where people have ten or twenty years of experience, this is a direction you can genuinely **catch up on through speed of learning**.
+In other words — **the so-called "senior Agent engineers" in the industry today have at most two to three years from entry to now.** Or, more pointedly: **nobody has "ten years of Loop Engineering experience" — the term appeared this June, and the most senior engineer read the same post you did, the same week you did.** Seniority expires; curiosity compounds. Compared with the directions in traditional development where people have ten or twenty years on you, this is a field you can genuinely **catch up in through speed of learning.**
 
 ### 3.2 Why now: three judgments
 
@@ -310,13 +387,15 @@ In 2023 and the first half of 2024, a huge number of Agent projects in the indus
 
 **Judgment 2: a standardization window at the infrastructure layer.**
 
-The standards for infrastructure layers like MCP, Skills, and AI Gateway are still taking shape quickly. This means that if you enter now, **you have a chance to genuinely participate in building the infrastructure of a new industry** — and that kind of window is extremely rare in traditional development.
+The standards for infrastructure layers like MCP, Skills, and AI Gateway are still taking shape quickly (MCP's biggest revision ever finalizes at the end of this very month). This means that if you enter now, **you have a chance to genuinely participate in building the infrastructure of a new industry** — and that kind of window is extremely rare in traditional development.
 
 **Judgment 3: talent demand is growing systematically.**
 
-Starting in 2026, China's top tech companies have begun systematically opening Agent engineer / LLM application engineer roles in their regular internships, summer internships, and fall recruiting — something that was a rarity just two years ago.
+In 2026 this judgment acquired hard numbers, on both sides of the ocean:
 
-A more vivid signal comes from **Y Combinator's W26 batch (Winter 2026)**: of 196 companies, about 60% are AI-native, and **41.5% are building Agent infrastructure outright** — the "selling shovels" business of authentication, testing, security, observability, context management, billing, and other Agent-adjacent work. E2B (an AI code sandbox) officially mentioned that about 10% of W26 companies run Agents on its platform. **When one of the most discerning incubators in the world places 40%+ of its bets on Agent infrastructure, the talent demand in this track is only going to keep growing.**
+- **Y Combinator**: the W26 batch (Winter 2026) was roughly 60% AI companies with over 40% building agent infrastructure; by the **P26 batch (Spring 2026, Demo Day in June), companies building LLM agents already made up about 70% (137 of 196)**. When one of the world's most discerning incubators puts seventy percent of its chips on agents, talent demand in this track only goes up.
+- **Chinese campus recruiting**: **Alibaba's class-of-2027 campus recruitment (launched March 2026) is 80%+ AI roles and, for the first time, created seven new AI job families including "AI Agent Optimization Engineer" and "Agent Infra Engineer"** — the first time "Agent engineer" has literally entered a big-tech campus job catalog; ByteDance Seed's 2027 foundation-model campus recruiting opened in April. Maimai's spring recruiting report (May 2026): AI job volume grew 8.7x year over year.
+- **Overseas data**: Stanford's AI Index 2026 added "Agentic AI" as a tracked skill cluster for the first time, with job-posting mentions up 280%+ in a year; AI Engineer topped LinkedIn's fastest-growing jobs list for the second consecutive year.
 
 ### 3.3 A few reasons you don't need to be anxious
 
@@ -332,13 +411,13 @@ But this is precisely why — **when building a "barrier-less Agent project" bec
 
 The real entry barrier has been pushed to a **deeper place**: can you pick a **problem that genuinely exists and can't be solved with off-the-shelf ChatGPT** to build a project around? Can you make **decent trade-offs** at the engineering level? Can you clearly articulate, for every technical choice, "why this one"?
 
-In short: this isn't "the barrier dropping," it's "the barrier shifting from coding ability to depth of thinking."
+In short: this isn't "the barrier dropping," it's "the barrier shifting from coding ability to depth of thinking." I later compressed this judgment into a pair of words: **knowledge is content — AI supplies it infinitely; your judgment, taste, and scars are context — and that's the moat.** The expanded version is in ["From Internship Interviews to Agent Engineering"](https://www.joyehuang.me/en/blog/20260615---frominternshipinterviewstoagentengineering/post).
 
 **Fourth, your opponent isn't other people — it's the you from last year who didn't take action.** What's truly "competitive" in the Agent field isn't your knowledge reserves, it's your "volume of doing." Reading 100 blog posts is worth less than writing one small Agent that actually runs yourself. **Even if you only start today, as long as you take action, you're already outrunning the 90% of people who "watch but don't do."**
 
-### 3.4 Six common misconceptions
+### 3.4 Seven common misconceptions
 
-These six misconceptions are the ones I run into most often in consulting; let me debunk them one by one —
+These are the misconceptions I run into most often in consulting; let me debunk them one by one —
 
 **Misconception 1: "I'm bad at math, I can't do AI."** What you want to do is **AI applications**, not **AI algorithms**. Engineering practice at the application layer basically doesn't need math.
 
@@ -348,15 +427,36 @@ These six misconceptions are the ones I run into most often in consulting; let m
 
 **Misconception 4: "I can't find a job without a big-company background."** This Agent direction happens to be **the domain of startups**. What they value is "can you do the work right away" — your project experience, GitHub, and blog matter more than your school and your last employer.
 
-**Misconception 5: "AI is moving so fast, will what I learn be obsolete immediately?"** What changes is the surface-level tooling; what stays is the underlying ideas. **The ReAct paradigm, context engineering, memory systems, tool calling, Eval systems** — these core concepts haven't changed in the past two years and won't change in essence in the next five.
+**Misconception 5: "AI is moving so fast, will what I learn be obsolete immediately?"** What changes is the surface vocabulary; what stays is the underlying objects. **The Agent Loop (ReAct is just its 2022 name), context engineering, memory systems, tool calling, Eval systems** — the words keep rotating (the Prompt → Context → Harness → Loop relay is the living proof), but these engineering objects haven't changed in years and won't change in essence in the next five.
 
 **Misconception 6: "Isn't Agent already a red ocean?"** The truly "crowded" fields are the traditional ones that have been deeply developed for twenty years. Agent penetration in fields like Coding, Research, Customer Support, BI, and Marketing is still under 10% — we've barely scratched the surface.
+
+**Misconception 7: "Multi-Agent just means piling on more Agents — the more the stronger."** (New in v2.) The industry paid tuition for this idea in 2025 — Cognition's famous "Don't Build Multi-Agents" was the reflection of that moment. By 2026 the consensus swung back to a clear pattern: **multi-agent works, but the shape is "one orchestrator + isolated subagents + single-threaded writes + subagents return only summaries."** Cognition itself published a revision of its stance in April; Anthropic built a 100,000-line C compiler with 16 parallel Claudes using exactly this pattern. What it means for a newcomer: make a single Agent reliable first; multi-agent is an **orchestration problem**, not a quantity problem.
+
+---
+
+**✅ Chapter 3 self-check**
+
+1. Someone asks you "is it too late to get in now" — what are your three arguments?
+2. Roughly what share of the latest YC batch is building agents? What does that number tell you?
+3. What does the 2026 multi-agent consensus pattern look like?
+
+<details>
+<summary>Key points</summary>
+
+1. See 3.1 / 3.3: "veterans" have only two or three years; nobody has ten years of Loop Engineering experience; first-hand best practices are all free to read; your opponent is the you who doesn't act.
+
+2. P26: about 70% (137/196) building LLM agents (3.2) — the chip distribution of a top incubator is the most direct leading indicator of talent demand.
+
+3. One orchestrator + isolated subagents + single-threaded writes + summary returns (3.4, Misconception 7).
+
+</details>
 
 ---
 
 ## Chapter 4 | How to Get Started and Prepare for the Job Hunt
 
-> This is the most hands-on chapter of this document. Everything you need to do — from "opening your IDE and writing your first LLM call" to "landing your first offer" — is here.
+> This is the most hands-on chapter of this document. Everything you need to do — from "opening your IDE and writing your first LLM call" to "landing your first offer" — is here. v2.0 adds prerequisites, minimum deliverables, acceptance criteria, and a budget to every stage — so "where exactly am I" becomes something you can verify yourself.
 
 ### 4.1 Prerequisite skills: what you need to know, and what you can skip
 
@@ -370,25 +470,54 @@ These six misconceptions are the ones I run into most often in consulting; let m
 
 **What you don't need to know (set it aside for now):** deep learning math, PyTorch / TensorFlow / model training / fine-tuning, the internals of the Transformer, and the APIs of Agent frameworks like LangChain / LangGraph (**your first Agent should not start from any of these**).
 
-**On Git and the command line:** these are an engineer's "basic hygiene," but in 2026 their learning curve has been dramatically flattened by AI tools — when you hit something you don't know, just ask Cursor / Claude Code and it'll walk you through it step by step. **Don't feel "not ready to start learning Agents yet" just because you're unfamiliar with Git — that's putting the cart before the horse.**
+**On Git and the command line:** these are an engineer's "basic hygiene," but their learning curve has been dramatically flattened by AI tools — when you hit a specific operation you don't know, ask Cursor / Claude Code and it'll walk you through it step by step. **Don't feel "not ready to start learning Agents yet" just because you're unfamiliar with Git — that's putting the cart before the horse.**
+
+**Catch-up list for absolute beginners (starting point A; plan for 1–3 weeks):**
+
+- **Python**: the first six chapters of the official Tutorial, or Harvard's CS50P (free) — goal: functions, dictionaries, exception handling.
+- **JSON + HTTP**: MDN's "JSON" and "An overview of HTTP" articles — goal: know what a request, response, status code, and request body are.
+- **Git**: GitHub Skills' "Introduction to GitHub" (interactive) — goal: clone / commit / push.
+- **Command line**: cd / ls / running a script / setting environment variables (you'll need one for your API key).
+
+How much catch-up is enough? A self-testable bar: **read a JSON file in, change one field, write it back, and push that code to your own GitHub repo** — clear that, and you're ready for Stage 1.
 
 ### 4.2 A three-stage learning roadmap
 
-At this point in 2026, I **no longer recommend** that newcomers hand-write a ReAct Loop from scratch — that kind of "hand-writing" was a necessary rite of passage three years ago, but today the abstractions of official SDKs like Vercel AI SDK and Anthropic SDK are light enough that the docs themselves are the best teaching material.
+First, restating a v1 judgment that the past year has only strengthened: I do **not** recommend that newcomers hand-write a ReAct Loop from scratch — that rite of passage made sense three years ago, but today's official SDKs are light enough that their docs are the best teaching material.
 
 **Stage 1: Get an SDK running (3–5 days)**
 
-If you're a complete beginner, the only goal for week one is to **manually get a single LLM API call working**: install Python or Node.js, sign up for an LLM vendor's API (I recommend DeepSeek — cheap enough that it won't hurt), write under 10 lines of code to send "hello" to the model, and then get it to hold a multi-turn conversation. **The biggest asset you'll own at the end of this week isn't code — it's the visceral sense that "an LLM isn't a black box; it's just an HTTP service you can call."**
+If you're a complete beginner, the only goal for week one is to **manually get a single LLM API call working**. **The biggest asset you'll own at the end of this week isn't code — it's the visceral sense that "an LLM isn't a black box; it's just an HTTP service you can call."**
 
-Then I strongly recommend going straight to the **Vercel AI SDK's official docs** — the docs themselves are an excellent piece of "Agent teaching," progressing layer by layer from "call the model once" to "streaming output," "tool calling," "multi-step loops," and "structured output." Why not start with the OpenAI Cookbook or Anthropic Cookbook? Because each of those only covers its own model, whereas the **Vercel AI SDK is model-agnostic and has the lowest migration cost**.
+Then I strongly recommend going straight to the **Vercel AI SDK's official docs** — the docs themselves are an excellent piece of "Agent teaching," progressing layer by layer from "call the model once" to streaming, tool calling, multi-step loops, and structured output. Why not start with the OpenAI Cookbook or Anthropic Cookbook? Because each of those only covers its own model, whereas the **Vercel AI SDK is model-agnostic and has the lowest migration cost**.
 
-The Python route: use the **OpenAI SDK + base_url pattern** to connect to OpenAI-compatible domestic models, or use the **Anthropic SDK** to connect to Claude. Pydantic AI is a lightweight Python SDK that's the counterpart to the Vercel AI SDK.
+The Python route: use the **OpenAI SDK + base_url pattern** to connect to OpenAI-compatible Chinese models, or use the **Anthropic SDK** to connect to Claude. Pydantic AI is the lightweight Python counterpart to the Vercel AI SDK.
+
+> **Prerequisites**: the catch-up list cleared (functions, JSON, calling an HTTP API).
+>
+> **Tasks**: sign up for the DeepSeek API (V4-Flash at $0.14/$0.28 per million tokens — you won't manage to spend $5) → send "hello" to the model in under 10 lines of code → add multi-turn conversation → follow the Vercel AI SDK docs through streaming and your first tool call.
+>
+> **Minimum deliverable**: a command-line script that holds a multi-turn conversation, on GitHub, with a README that says how to run it.
+>
+> **Acceptance criteria**: without looking anything up, you can answer — why does the full messages array get sent back every turn? What is "the model remembers the conversation" actually made of?
+>
+> **If you're stuck**: paste the raw error into an AI and ask (this is a concrete question — AI is excellent at these); check your API key and base_url; diff your code line by line against the official quickstart.
 
 **Stage 2: Understand the mechanics (1–2 weeks)**
 
 Add a few real tools to the Stage 1 Agent — web search (Tavily / SerpAPI), file read/write, third-party APIs. Focus on observing the model's **"selection behavior" under multiple tools**: when does it pick the wrong one? when does it fall into an infinite loop? Write down every failure case — these notes are the best résumé material.
 
-Then run two comparison experiments: try **LLM Wiki mode** once (organize a body of material into Markdown and stuff it straight into the system prompt), and then try **RAG mode** once (vectorize and chunk the same material with pgvector / ChromaDB). **Doing this comparison with your own hands is worth more than reading 10 blog posts.**
+Then run two comparison experiments: try **LLM Wiki / agentic search mode** once (organize a body of material into Markdown and stuff it into the system prompt, or let the model grep on demand), and then try **RAG mode** once (vectorize and chunk the same material with pgvector / ChromaDB). **Doing this comparison with your own hands is worth more than reading 10 blog posts.**
+
+> **Prerequisites**: the Stage 1 deliverable runs.
+>
+> **Tasks**: add 2–3 real tools → deliberately collect 10 failure cases (wrong tool picked, infinite loop, bad parameters) → complete the two comparison experiments above.
+>
+> **Minimum deliverable**: a write-up titled "How My Agent Failed" (publish it — your first public output), with the results and your felt conclusions from the comparison experiments.
+>
+> **Acceptance criteria**: you can draw the full lifecycle of one tool call (schema definition → model outputs call intent → program executes → result folded back into context); you can state under what conditions your Agent most often picks the wrong tool.
+>
+> **If you're stuck**: failure isn't an obstacle here — failure cases ARE this stage's output; for a genuinely stuck problem, build a minimal reproduction and take that to ask.
 
 **Stage 3: A real project (1–2 months)**
 
@@ -397,6 +526,20 @@ Pick **a real scenario you yourself would use every day** — don't build a play
 The standard for judging whether a project is "good enough" — refer to W's soul-searching question in my "Mock Interview" post: **"If it were me, I could solve this directly with Doubao / ChatGPT — so why does this have to be built?" If you can't answer, please change the scenario.**
 
 A few entry-level project directions with "résumé value": an AI topic-selection assistant (scraping trending content from Xiaohongshu / Twitter for topic suggestions), a personal Newsletter assistant (auto-summarizing your subscriptions weekly), a simple Chat-to-SQL, a personal email-classification Agent, a lightweight code-review assistant (hooked up to a GitHub Webhook).
+
+> **Prerequisites**: Stage 2 complete, and a scenario that can answer "why not just use off-the-shelf ChatGPT."
+>
+> **Tasks**: ship a minimum usable version within two weeks → write 5–10 evals for it (input + expected behavior; human scoring is fine, don't chase automation yet) → get at least one real user (a friend counts) actually using it → iterate on feedback.
+>
+> **Minimum deliverable**: a project someone else can genuinely use, plus a retrospective blog post ("what I built / what broke / how I fixed it").
+>
+> **Acceptance criteria**: it survives W's soul-searching question; the retrospective contains at least one improvement with a number attached (even a small one like "capped retries at 3 instead of unlimited — infinite-loop cost down 90%").
+>
+> **If you're stuck**: cut the scope in half. Then cut it in half again — beginner projects die of ambition, not of simplicity.
+
+**Budget for the whole roadmap**: doing all three stages on DeepSeek will almost certainly cost under **¥100 (about $14) in API fees**; add ¥100–200 if you want to feel the Claude / GPT flagships in Stage 3. **Being broke is not a barrier to entering Agents.**
+
+**A parallel path (strongly recommended)**: from Stage 1 onward, **use a mature harness (Claude Code or Codex) daily, in parallel**. Don't just let it write code for you — observe it: how does it organize context? how does it ask you for permissions? when does it compact history? how are its tools described? This is the most industrial-grade harness textbook you can watch for free, and it cross-references beautifully against the small Agent you're hand-rolling.
 
 After finishing each project, **write a blog retrospective** — "what I built," "what pitfalls I hit," "how I solved them." **This blog post is itself the strongest material for your résumé.**
 
@@ -424,7 +567,7 @@ This passage has: **a metric (60% → 85%) + a decision (Query Rewriting) + a tr
 1. **Foundational understanding**: the essential differences between LLM / Agent / Chatbot, how Function Calling works, what MCP is…
 2. **System design**: context engineering approaches, memory layering, tool-calling reliability, multi-Agent collaboration…
 3. **Engineering trade-offs**: the basis for model selection, balancing cost and quality, judgment in framework selection, failure-retry strategies…
-4. **Industry awareness**: the design philosophies of Manus / Claude Code / OpenCode, what you've read lately, which open-source projects you follow…
+4. **Industry awareness**: the design philosophies of Claude Code / Codex / OpenClaw, what "harness" and "loop" are actually about, what you've read lately, which open-source projects you follow…
 
 The first layer relies on experience, the second on understanding, the third on judgment, and the fourth on taste and how much you read. **The further down you go, the more it separates candidates.** In my "Mock Interview" post I gave concrete examples for each category — go take a look if you need them.
 
@@ -432,7 +575,7 @@ The first layer relies on experience, the second on understanding, the third on 
 
 **Detour 1: gnawing on the LangChain source code right away.** The design is complex and the source is extremely unfriendly to newcomers. Once you've shipped a few projects with an SDK and then go look at it, the experience will feel completely different.
 
-**Detour 2: rushing into model fine-tuning too early.** 99% of application scenarios don't need fine-tuning; prompt engineering + RAG / LLM Wiki already solves most problems.
+**Detour 2: rushing into model fine-tuning too early.** 99% of application scenarios don't need fine-tuning; prompt engineering + agentic search / RAG already solves most problems.
 
 **Detour 3: chasing new frameworks without building your fundamentals.** There's a new framework every two weeks. Once you form a "chase the new" habit, you'll forever be learning new things and never have a project of your own.
 
@@ -442,13 +585,43 @@ The first layer relies on experience, the second on understanding, the third on 
 
 ### 4.5 Recommended learning resources (curated)
 
-**Official docs (read in order)**: the Vercel AI SDK official docs (the best starting point for getting into TypeScript) → the Tool Use / Skills / Prompt Engineering chapters of the Anthropic official docs → the OpenAI Cookbook (a Python hands-on supplement) → the docs of whichever domestic model vendor you chose (any of DeepSeek / Qwen / Kimi / GLM).
+**Official docs (read in order)**: the Vercel AI SDK official docs (the best starting point for TypeScript) → the Tool Use / Skills / Prompt Engineering chapters of the Anthropic official docs → the OpenAI Cookbook (a Python hands-on supplement) → the docs of whichever Chinese model vendor you chose (any of DeepSeek / Qwen / Kimi / GLM).
+
+**The Harness / Loop track (new in v2; finishing it moves your understanding of this field up a full tier)**:
+
+- Philipp Schmid, ["The importance of Agent Harness in 2026"](https://www.philschmid.de/agent-harness-2026) (2026-01) — why the harness is the key layer as model gaps shrink.
+- Two Anthropic engineering posts: ["Effective harnesses for long-running agents"](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) and ["Harness design for long-running application development"](https://www.anthropic.com/engineering/harness-design-long-running-apps) — how a frontier lab designs long-task harnesses.
+- Addy Osmani, ["Agent Harness Engineering"](https://addyosmani.com/blog/agent-harness-engineering/) (2026-04) and ["Loop Engineering"](https://addyosmani.com/blog/loop-engineering/) (2026-06) — the systematic definitions of both new terms.
+- **Lilian Weng, ["Harness Engineering for Self-Improvement"](https://lilianweng.github.io/posts/2026-07-04-harness/) (2026-07)** — a systematic survey of ~40 works; the field's first "textbook-grade" material. Save it for last: digest it, and your understanding of harnesses exceeds most working engineers'.
 
 **Frontline blogs (skim weekly)**: the Anthropic Engineering Blog, the AI sections of Sequoia / a16z, and the AI section of Hacker News.
 
-**Community**: on Twitter / X, follow @karpathy, @AnthropicAI, @simonw, @\_philschmid, @jxnlco.
+**Community**: on Twitter / X, follow @karpathy, @AnthropicAI, @simonw, @\_philschmid, @lilianweng, @steipete.
+
+**How to use AI to help you learn this (important)**: AI is an excellent question-answerer, but **don't let it design your curriculum from zero** — LLMs follow your framing, and with no foundation you can't tell their hallucinations apart, so it's easy to learn a self-consistent but distorted picture. The correct order: first grab first-hand material (the official docs and blogs above, JDs for your target roles) to establish your own baseline; **then bring specific questions to the AI when you're stuck**. The expanded version is in ["From Internship Interviews to Agent Engineering"](https://www.joyehuang.me/en/blog/20260615---frominternshipinterviewstoagentengineering/post).
 
 I **don't recommend** any LLM-internals resources **at this stage** (Karpathy's "Let's build GPT" series, the various minimind-style source-code tutorials — **including my own minimind-notes**). They're all excellent, but they solve the problem of "understanding how an LLM is trained," which is a different track from building Agent applications. Once you've finished your first real project and have specific curiosity, going back to them will land much better.
+
+---
+
+**✅ Chapter 4 self-check**
+
+1. Can your first project scenario answer "why not solve this directly with off-the-shelf ChatGPT"?
+2. Without looking back: what are Stage 1's acceptance criteria?
+3. In the "problem — solution — result" project narrative, which two elements separate candidates most?
+
+<details>
+<summary>Key points</summary>
+
+1. This is the admission bar for Stage 3 (W's soul-searching question) — if it can't be answered, change the scenario.
+
+2. Explaining, without looking anything up, why the full messages array is sent every turn, and what "the model remembers the conversation" is actually made of (4.2).
+
+3. A metric that moved (with numbers) + an explicit trade-off (cost vs. quality) — see the positive-example breakdown in 4.3.
+
+</details>
+
+---
 
 ## Chapter 5 | The Few Things That Truly Matter
 
@@ -466,7 +639,7 @@ In a real project, a commercial-grade Agent might process dozens of interactions
 
 - **Structured Prompt**: use XML tags, JSON blocks, and clear delimiters instead of a stream-of-consciousness natural-language dump.
 - **Front-loading / back-loading key information**: the model pays more attention to the beginning and the end (the "Lost in the Middle" phenomenon). Put important constraints at the top of the System Prompt or at the end of the User message.
-- **Replacing verbatim history with a summary**: compress early conversation in a long dialogue into a summary.
+- **Replacing verbatim history with a summary**: compress early conversation in a long dialogue into a summary (since 2026 mainstream APIs offer server-side automatic compaction, e.g. Anthropic's compaction).
 - **Prefix-Cache-friendly context design**: put unchanging content first and changing content last, which can massively reduce cost.
 
 ### 5.2 Memory systems
@@ -487,6 +660,8 @@ There are three key decision points for long-term memory —
 
 **Forget strategy**: more long-term memory isn't better. Stale, low-value, or contradictory memories should be cleaned up or decayed.
 
+And one practical observation from 2026 (also mentioned in 2.4): **the long-term memory designs that win in practice are mostly "file-based + agent-managed"** — Anthropic's memory tool, CLAUDE.md, the LLM Wiki are all this shape. When you build a memory system, don't reach for a vector database as step one by default.
+
 ### 5.3 Tool calling
 
 **Analogy**: getting a smart but handless person to complete a task for you — you have to tell them which tools are nearby, what each one does, and how to use it.
@@ -494,21 +669,21 @@ There are three key decision points for long-term memory —
 A few common engineering difficulties:
 
 - **Tool Schema design**: the clearer you write the parameter names and descriptions, the lower the chance the model misuses them.
-- **Trade-off on the number of tools**: too few isn't enough, too many and the model can't pick correctly. Generally 10 is the upper limit — beyond that you need "tool routing" (which is exactly the problem Skills solves, discussed earlier).
-- **Failure retry and idempotency**: retrying on failure is necessary, but it needs a cap — failing after 3 tries and reporting an error beats burning money on infinite retries.
-- **Up-front constraints vs. after-the-fact fallbacks**: making the tool-usage boundaries clear at the prompt layer is far more efficient than doing permission control at the tool-execution layer.
+- **Trade-off on the number of tools**: too few isn't enough, too many and the model can't pick correctly. **"Around 10" is a common rule of thumb, not a law** — the real ceiling depends on the model and how distinguishable your tool descriptions are; beyond it you need "tool routing" (exactly the problem Skills' on-demand exposure solves).
+- **Failure retry and idempotency**: retrying on failure is necessary, but it needs a cap — **"3 tries" is a common heuristic**; the right retry policy depends on the error type and idempotency: a timeout is retryable, "insufficient balance" won't fix itself in ten thousand retries.
+- **Prompt constraints and execution-layer permissions are two different gates — install both** (v2 rewrote this item; v1's phrasing was a safety hazard): making tool-usage boundaries clear in the prompt significantly reduces mis-calls and saves a lot of cleanup cost — but it is **not a security boundary**. Any tool with side effects (placing orders, sending messages, writing to a database, deleting files) must have hard controls at the **tool-execution layer**: allowlists, parameter validation, amount/scope caps, pre-execution confirmation, idempotency keys, audit logs. In one sentence: **the prompt makes errors rarer; the program makes them impossible — the model's self-restraint is never a security mechanism.**
 
 ### 5.4 Reliability
 
 **Analogy**: writing a Demo is like cooking in your own kitchen; writing Production is like running a restaurant — what you have to handle isn't just "how good the food is," but also "will it blow up at peak hours" and "will the occasional picky customer break the process."
 
-A traditional application is a "deterministic system" — the same input always yields the same output. An Agent is a "probabilistic system" — the same input may yield different outputs, or even fail outright. **This means the "test it once and it's OK" development model completely fails to work for Agents.**
+A traditional application is (at least at the business-logic layer) approximately a "deterministic system" — the same input yields the same output. An Agent is a "probabilistic system" — the same input may yield different outputs, or even fail outright. **This means the "test it once and it's OK" development model completely fails to work for Agents.**
 
 Common reliability problems: hallucination, instruction drift, unstable formatting, infinite loops, and cascading collapses from tool failures.
 
 The core engineering ideas:
 
-- **Up-front constraints**: use the prompt to make "how it should be done" clear — lower cost than an after-the-fact fallback
+- **Up-front constraints**: use the prompt to make "how it should be done" clear — lower cost than an after-the-fact fallback (note: this is about reducing errors, and does not replace the execution-layer permission control of 5.3)
 - **Structured output + Schema validation**: validate model output with Pydantic, Zod
 - **State machine + Checkpoint**: make the Agent flow explicit as a state machine
 - **Degradation strategy**: have a fallback path when a tool fails
@@ -521,16 +696,16 @@ An Agent's cost is far higher than a traditional application's. A single complex
 
 A few high-ROI optimization techniques:
 
-- **Prefix-Cache-friendly design**: both OpenAI and Anthropic offer caching discounts for "prefix hits" (Anthropic can save up to ~90% on a hit, OpenAI about 50%). Put unchanging content first.
+- **Prefix-Cache-friendly design**: mainstream vendors give steep caching discounts for "prefix hits" (Anthropic's cache reads cost roughly one-tenth of base price; check each vendor's pricing page for specifics). Put unchanging content first.
 - **Tiered model usage**: use a cheap model for simple tasks, and only use the flagship for complex ones.
 - **Reducing the number of Agent Steps**: don't split something that can be said clearly in one step into multiple steps.
 - **Context pruning**: remove irrelevant tool results and stale conversation history from the context.
 
 ### 5.6 Evaluation (Eval)
 
-**Analogy**: traditional software can use unit tests — input 1+1, expect output 2, and if it's wrong, it's a Bug. An Agent has no "standard answer" — how do you know it did "well"?
+**Analogy**: traditional software can use unit tests — input 1+1, expect output 2, and if it's wrong, it's a Bug. On many tasks an Agent has no single "standard answer" — so how do you know it did "well"?
 
-An Agent has no "right or wrong," only "good or bad." This means you need a mechanism to answer "is my new version of the Agent better or worse than the last one?" — without that mechanism, you can optimize all day and have no idea whether you're heading in the right direction. **The Eval system is the marker of Agent engineering going from "workshop" to "industry."**
+But first, a correction of something v1 stated too strongly: an Agent "having no standard answer" **does not mean "having no decidable constraints"** — booking the wrong ticket, leaking data, calling a forbidden tool are all unambiguously wrong. So an Eval system has to cover two layers at once: **hard constraints (tests that must all pass) + a quality spectrum (the scored, comparative part)**. With that machinery in place, you can finally answer "is my new version of the Agent better or worse than the last one?" — and without it, you can optimize all day with no idea whether you're even pointed the right way. **The Eval system is the marker of Agent engineering going from "workshop" to "industry."**
 
 Mainstream evaluation methods:
 
@@ -538,6 +713,8 @@ Mainstream evaluation methods:
 - **Online evaluation**: collect real user feedback in production (thumbs up / down, dwell time, whether they keep following up)
 - **LLM as a Judge**: use a stronger model as the judge — but watch out for its own biases (a tendency to score high, a preference for long answers, etc.)
 - **Controlled experiments**: A/B Test, splitting the new and old versions to different users
+
+**A 2026 industry footnote: Eval went from "inner skill" to "hot commodity."** OpenAI's CPO says writing evals is the most important skill for a product manager in the AI era; OpenAI outright acquired the eval company Promptfoo in March; the eval platform Braintrust raised an $80M Series B; and Tencent Research Institute's "Age of the Super Individual" report lists "evaluation" among its ten keywords for AI-native work. **For a job seeker, "can build evals" is currently the best value-for-effort differentiator — building an eval suite for your internship project or your own project is the most concrete overtaking-lane advice I can give** (expanded in the "go do evals" section of ["From Internship Interviews to Agent Engineering"](https://www.joyehuang.me/en/blog/20260615---frominternshipinterviewstoagentengineering/post)).
 
 ### 5.7 These six things are an Agent engineer's true "inner skill"
 
@@ -550,7 +727,26 @@ To sum up —
 5. **Cost control**: the money really does burn
 6. **Evaluation**: Agent optimization without Eval is all guesswork
 
-If you can clearly articulate these six things in your résumé or interview, you're already ahead of 80% of applicants.
+If you can clearly articulate these six things in your résumé or interview, you're already ahead of most applicants.
+
+---
+
+**✅ Chapter 5 self-check**
+
+1. "The prompt makes errors rarer; the program makes them impossible" — illustrate with a side-effectful tool: what does each gate stop?
+2. In the long-context era (1M tokens for everyone), why did context engineering become MORE important?
+3. You changed your Agent's prompt — how do you know whether it got better or worse?
+
+<details>
+<summary>Key points</summary>
+
+1. Take "place an order": prompting "stay under ¥30, confirm with the user first" reduces mis-calls; but the amount cap, allowlist, pre-execution confirmation, and audit log must be enforced at the execution layer (5.3) — even a jailbroken or hallucinating model is stopped by the program layer.
+
+2. Attention is finite + Lost in the Middle + cost scales with length (5.1) — a bigger window means "it fits," not "it should go in."
+
+3. Run the same eval suite (hard constraints all pass + quality scores compared), not two eyeball tests (5.6).
+
+</details>
 
 ---
 
@@ -558,7 +754,7 @@ If you can clearly articulate these six things in your résumé or interview, yo
 
 If you've read this far — thank you for taking the time.
 
-**This document is free**, because I want to help everyone who wants to get into Agents. It will be updated periodically — roughly one version every 3–6 months, with "incremental patches" for major industry events. The version you're seeing is **v1.0 (Updated: 2026-05-17)**.
+**This document is free**, because I want to help everyone who wants to get into Agents. It will be updated periodically — roughly one version every 3–6 months, with "incremental patches" for major industry events. The version you're seeing is **v2.0 (Updated: 2026-07-12)** — the first major update, promise kept. The three reading paths, the end-of-chapter self-checks, and the acceptance criteria in 4.2 all came from reader feedback — so if you have thoughts, genuinely, tell me.
 
 But everyone's situation is different:
 
@@ -577,53 +773,21 @@ But everyone's situation is different:
 
 #### Service 1: Résumé revision (￥)
 
-**Who it's for**:
+**Who it's for**: you have a résumé and project experience but aren't sure how to "tell the story" so the interviewer's eyes light up; or you want to pivot toward Agents and don't know how to retarget your old résumé.
 
-- You already have a résumé and project experience, but you're not sure how to "tell the story" so the interviewer's eyes light up
-- You have projects on your résumé but can't articulate "problem — solution — result"
-- You want to pivot toward Agents, but you don't know how to retarget your old résumé
-
-**What's included**:
-
-- A detailed review of your résumé
-- Revision suggestions **down to the paragraph and sentence level** — not vague "consider highlighting your strengths," but "this paragraph should be rewritten as XXX"
-- Help reorganizing your project narrative — polishing scattered work into a story you "can tell clearly in 5 minutes of an interview"
-- Keyword suggestions targeted at your goal direction (Agent engineering / LLM applications / Multi-Agent / RAG, etc.)
-- One 30–60 minute 1-on-1 session to go over the revised version once more
+**What's included**: a detailed review of your résumé with suggestions **down to the paragraph and sentence level** (not vague "consider highlighting your strengths" but "this paragraph should be rewritten as XXX"); reorganizing your scattered work into a story you can tell clearly in 5 minutes of an interview; keyword suggestions targeted at your goal direction; and one 30–60 minute 1-on-1 session to go over the revised version.
 
 #### Service 2: 1-on-1 mock interview (￥￥)
 
-**Who it's for**:
+**Who it's for**: you're preparing for an Agent engineer role but lack real interview experience; or you're about to interview at a company you really want and would like to warm up.
 
-- You're already preparing for an Agent engineer role but lack real interview experience
-- You've debriefed your own projects, but you'd like someone to professionally "grill" you on them once
-- You're about to interview at a company you really want, and you'd like to warm up in advance
-
-**What's included**:
-
-- We communicate in advance about your résumé and target company's direction, and customize the question bank
-- A complete interview simulation covering all four dimensions: foundational understanding + system design + engineering trade-offs + industry awareness
-- **Charged by time, with a 1-hour minimum** — 1 hour is 1 hour, 1.5 hours is 1.5 hours, with the price scaling linearly with duration
-- Full audio / video recording (as you prefer)
-- If resources worth a further look (papers, blogs, open-source projects) come up during the interview, I'll compile them for you afterward
+**What's included**: advance communication about your résumé and target company to customize the question bank; a complete simulation covering all four dimensions (foundational understanding + system design + engineering trade-offs + industry awareness); **charged by time, 1-hour minimum**, price scaling linearly with duration; full audio/video recording (as you prefer); a compiled list of any resources worth following up that came up during the interview.
 
 #### Service 3: Learning roadmap / onboarding coaching (￥￥￥)
 
-**Who it's for**:
+**Who it's for**: complete beginners or people lacking direction who want systematic guidance for a while; self-studiers who get stuck or give up easily and need external pacing and Q&A; anyone who wants to ship their first show-off-able Agent project within a fixed window (1–3 months).
 
-- You're a complete beginner, or have a foundation but lack a sense of direction, and want someone to systematically guide you for a while
-- You tend to get stuck or give up when self-studying, and need external pacing, accountability, and Q&A
-- You want to hit a concrete goal within a fixed window (1–3 months), such as "build a first Agent project I can actually show off"
-
-**What's included**:
-
-- **Onboarding assessment**: a 1-on-1 to understand your current foundation, goals, and available time
-- **Customized learning roadmap**: a personalized weekly study plan tailored to your situation
-- **Weekly 1-on-1 Q&A**: a 30–60 minute sync at a fixed time each week — reviewing last week's progress, answering questions, adjusting next week's plan
-- **Project coaching**: I follow the project you're building throughout the coaching period + review it at key milestones
-- **Final deliverable**: by the end of coaching, you'll have at least one complete Agent project you can put on your résumé, plus a complete retrospective document
-
-**Typical coaching cycles**: 4 weeks / 8 weeks / 12 weeks — decided based on your goals and time.
+**What's included**: an onboarding assessment (a 1-on-1 to understand your foundation, goals, and available time); a personalized weekly study plan; a weekly 30–60 minute 1-on-1 sync for review and Q&A; full project follow-through with reviews at key milestones; and by the end, at least one complete résumé-ready Agent project plus a full retrospective document. **Typical cycles**: 4 / 8 / 12 weeks, set by your goals and time.
 
 ---
 
@@ -642,19 +806,19 @@ Or through these other channels:
 
 This document **isn't a one-and-done deal**:
 
-- **Updated roughly every 3–6 months**, revised according to the latest industry developments
+- **Updated roughly every 3–6 months**, revised according to the latest industry developments (you're reading v2.0)
 - Major industry events (a new major LLM version, a new protocol-layer standard) will get an "incremental patch"
 - For readers who've seen this document, all updated versions remain free
 
 ### About feedback
 
-If you have any opinions, suggestions, or spot any errors after reading this document, **I'd really love for you to tell me.** Through any channel — email, a comment on the site, a DM. Reader feedback is the single most important basis on which I revise this material.
+If you have any opinions, suggestions, or spot any errors after reading this document, **I'd really love for you to tell me.** Through any channel — email, a comment on the site, a DM. Reader feedback is the single most important basis on which I revise this material — most of what's new in v2.0 came exactly that way.
 
 Types of feedback I especially welcome:
 
 - A concept you feel wasn't explained clearly enough
 - A judgment you disagree with and want to discuss with me
-- You followed the roadmap in practice and found some piece of advice didn't quite apply
+- You followed the roadmap in practice and found some piece of advice didn't quite apply (or an acceptance bar too loose / too strict)
 - You worked out a good practice of your own that isn't in the document
 
 ---
@@ -671,6 +835,6 @@ If it helped you even a little, then it was worth it. And if you really do end u
 
 —— **Joye**
 
-*Updated: 2026-05-17 · v1.0*
+*Updated: 2026-07-12 · v2.0*
 
 *All rights reserved. Please contact the author for reprint permission.*
