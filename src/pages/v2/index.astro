@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+import ImmersiveHome from '@/components/home/ImmersiveHome.astro'
+
+export const prerender = true
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+    date
+  )
+
+const posts = (await getCollection('blog'))
+  .filter((post) => (import.meta.env.PROD ? !post.data.draft : true))
+  .sort(
+    (a, b) =>
+      +(b.data.updatedDate ?? b.data.publishDate) - +(a.data.updatedDate ?? a.data.publishDate)
+  )
+  .slice(0, 5)
+  .map((post) => ({
+    title: post.data.title,
+    href: `/blog/${post.id}`,
+    meta: formatDate(post.data.updatedDate ?? post.data.publishDate),
+    kind: '文章'
+  }))
+
+const notes = (await getCollection('notes'))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 5)
+  .map((note) => ({
+    title: note.data.title,
+    href: `/notes/${note.id}`,
+    meta: formatDate(note.data.updatedDate ?? note.data.date),
+    kind: note.data.type
+  }))
+
+const repoDefinitions = [
+  {
+    name: 'Learn-Open-Harness',
+    fullName: 'joyehuang/Learn-Open-Harness',
+    href: 'https://github.com/joyehuang/Learn-Open-Harness',
+    eyebrow: '独立项目 · Agent Harness',
+    description: '从零构建 Agent Harness：循环、工具、记忆与多智能体协作。',
+    fallbackStars: 297
+  },
+  {
+    name: 'minimind-notes',
+    fullName: 'joyehuang/minimind-notes',
+    href: 'https://github.com/joyehuang/minimind-notes',
+    eyebrow: '独立项目 · LLM from scratch',
+    description: '从 Transformer 到 SFT，用实验把小语言模型重新造一遍。',
+    fallbackStars: 93
+  },
+  {
+    name: 'Token Monitor',
+    fullName: 'Javis603/token-monitor',
+    href: 'https://github.com/Javis603/token-monitor',
+    eyebrow: '上游贡献 · 3 merged / 1 open',
+    description: '参与活动热力图、跨设备状态同步、限额窗口与大数 Token 展示的产品和工程改进。',
+    fallbackStars: 628
+  }
+]
+
+const repos = await Promise.all(
+  repoDefinitions.map(async (repo) => {
+    try {
+      const response = await fetch(`https://api.github.com/repos/${repo.fullName}`, {
+        headers: { Accept: 'application/vnd.github+json' }
+      })
+      if (!response.ok) return { ...repo, stars: repo.fallbackStars }
+      const data = (await response.json()) as { stargazers_count?: number }
+      return { ...repo, stars: data.stargazers_count ?? repo.fallbackStars }
+    } catch {
+      return { ...repo, stars: repo.fallbackStars }
+    }
+  })
+)
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — AI Agent Product Engineer · V2',
+    description: 'AI Agent 产品工程师：多智能体研究、AI 图像工作台与视频剪辑 Agent。'
+  }}
+  chrome={false}
+>
+  <ImmersiveHome locale='zh' {posts} {notes} {repos} />
+</PageLayout>

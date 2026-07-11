@@ -16,6 +16,8 @@ type RepoItem = {
   name: string
   description: string
   stars: number
+  href?: string
+  eyebrow?: string
 }
 
 interface Props {
@@ -33,72 +35,81 @@ const copy = isEn
   ? {
       work: 'Work',
       journal: 'Journal',
-      about: 'Evidence',
+      about: 'Practice',
       contact: 'Contact',
       role: 'AI agent & product engineer',
-      intro: 'I turn difficult AI systems into products people can actually use.',
+      intro: 'I take AI agents from promising demos to products that hold up in real workflows.',
       location: 'Melbourne · Shanghai · Remote',
       explore: 'Enter the work',
-      selected: 'Three products. Three different systems.',
+      selected: 'I do more than build the interface. I make the AI product work.',
       selectedBody:
-        'Every frame below comes from the product itself. Scroll to move through the interface, not a mood board.',
+        'From workflow modelling and agent behaviour to full-stack delivery, these are three products I helped move toward real users.',
       visit: 'Visit product',
-      evidence: 'Beyond the prompt, leave evidence.',
+      livePreview: 'Live preview',
+      staticPreview: 'Back to overview',
+      openLive: 'Open live site',
+      evidence: 'Make the thinking reusable.',
       evidenceBody:
-        'Engineering judgement becomes more useful when it is written, taught, and released. These are real outputs from that practice.',
+        'Talks, diagrams, and technical writing are how I examine decisions, teach what worked, and keep improving the way I build.',
       evidenceCta: 'Open the full talk',
-      journalTitle: 'Notes from the build',
-      journalBody: 'The decisions, failures, and patterns that survived contact with production.',
+      journalTitle: 'Writing & Notes',
+      journalBody:
+        'Long-form essays and compact research notes from the things I am building and learning.',
       essays: 'Essays',
       notes: 'Notes',
-      openSource: 'Open source',
-      sourceBody: 'Working implementations, not architecture theatre.',
-      finale: 'Bring the difficult version.',
+      openSource: 'Open source & upstream work',
+      sourceBody: 'Original projects and contributions to products maintained by other builders.',
+      finale: 'Let’s put AI into a real product.',
       finaleBody:
-        'Context, constraints, and the outcome you need. An unfinished brief is enough to start.',
-      context: 'Context',
-      constraint: 'Constraint',
-      outcome: 'Desired outcome',
-      contextValue: 'What is true today?',
-      constraintValue: 'What cannot be compromised?',
-      outcomeValue: 'What should change for the user?',
-      ready: 'Ready to shape',
-      talk: 'Send the rough brief',
+        'I’m open to AI agent and full-stack product engineering opportunities. Ask for my résumé, dig into a project, or tell me what your team is trying to ship.',
+      context: 'Team',
+      constraint: 'Hard part',
+      outcome: 'Role',
+      contextValue: 'What is your team building?',
+      constraintValue: 'What is hardest to move forward?',
+      outcomeValue: 'What should this engineer deliver?',
+      ready: 'See if we fit',
+      talk: 'Ask for my résumé',
       replay: 'Replay entrance',
       copyright: 'Designed and engineered by Joye.'
     }
   : {
       work: '作品',
       journal: '写作',
-      about: '证据',
+      about: '方法',
       contact: '联系',
-      role: 'AI Agent 与产品工程师',
-      intro: '把复杂的 AI 系统，做成真正有人愿意使用的产品。',
+      role: 'AI Agent 产品工程师 · 全栈研发',
+      intro: '把 AI Agent 从 Demo 推进到真实业务：能运行、能交付，也有人愿意用。',
       location: '墨尔本 · 上海 · 远程',
       explore: '进入作品',
-      selected: '三个产品，三套不同的系统。',
-      selectedBody: '下面每一帧都来自产品本身。滚动进入真实界面，而不是气氛图。',
+      selected: '我负责的不只是界面，而是让 AI 产品真正跑起来。',
+      selectedBody:
+        '从工作流建模、Agent 行为到全栈交付，下面是我参与推进到真实用户面前的三个产品。',
       visit: '访问产品',
-      evidence: 'Prompt 之外，留下证据。',
+      livePreview: '在线预览',
+      staticPreview: '返回概览',
+      openLive: '打开官网',
+      evidence: '把思考变成可以复用的方法。',
       evidenceBody:
-        '工程判断只有被写下来、讲出来、做成开源实现，才会继续产生价值。这些是实际产物，不是装饰。',
+        '技术分享、工程图解与写作，是我复盘决策、讲清复杂问题，并持续改进工作方式的过程。',
       evidenceCta: '查看完整分享',
-      journalTitle: '来自开发现场',
-      journalBody: '记录真正进入生产之后，仍然成立的判断、失败与方法。',
+      journalTitle: '博客与 Notes',
+      journalBody: '长文章记录完整思考，Notes 留下正在研究和实践中的小结。',
       essays: '文章',
       notes: '笔记',
-      openSource: '开源',
-      sourceBody: '可以运行的实现，而不是架构表演。',
-      finale: '把难的版本发来。',
-      finaleBody: '背景、约束、想达成的结果。一个还没整理好的 brief，就足够开始。',
-      context: '背景',
-      constraint: '约束',
-      outcome: '成功标准',
-      contextValue: '今天真实发生了什么？',
-      constraintValue: '什么绝对不能被牺牲？',
-      outcomeValue: '用户最终应该感受到什么变化？',
-      ready: '可以开始塑形',
-      talk: '发送粗糙版本',
+      openSource: '开源与上游贡献',
+      sourceBody: '既从零做自己的项目，也把改进提交到其他开发者维护的产品里。',
+      finale: '一起把 AI 做进真实产品。',
+      finaleBody:
+        '我正在寻找 AI Agent / 全栈产品工程方向的机会。想看简历、深入了解项目，或聊聊你的团队正在交付什么，欢迎联系。',
+      context: '团队',
+      constraint: '难点',
+      outcome: '角色',
+      contextValue: '你的团队正在做什么？',
+      constraintValue: '现在最难推进的是什么？',
+      outcomeValue: '希望这个角色交付什么？',
+      ready: '看看我们是否匹配',
+      talk: '索取简历 / 联系我',
       replay: '重播入场',
       copyright: 'Joye 设计与开发。'
     }
@@ -115,31 +126,34 @@ const projects = isEn
         image: '/images/landing/playyy-ui.png',
         alt: 'Playyy product interface from the public website',
         domain: 'playyy.ai',
-        accent: '#659eb9'
+        accent: '#659eb9',
+        embeddable: true
       },
       {
         index: '02',
         key: 'atypica',
         title: 'atypica',
         role: 'Commercial research multi-agent system',
-        body: 'Clarification, persona interviews, and analysis are coordinated into a research workflow that can recover from asynchronous tool work.',
+        body: 'At Tezign, I worked on a commercial-research agent workflow spanning clarification, persona interviews, memory, and resilient asynchronous tool execution.',
         href: 'https://atypica.ai/',
         image: '/images/landing/atypica-site.png',
         alt: 'Atypica public website showing the research agent interface',
         domain: 'atypica.ai',
-        accent: '#18f52f'
+        accent: '#69c978',
+        embeddable: false
       },
       {
         index: '03',
         key: 'aixcut',
         title: 'AIXCut',
         role: 'Agent-assisted video editing',
-        body: 'A video workflow where the agent helps shape scripts, locate edits, and turn a large source library into a finished cut.',
+        body: 'I worked across the product and full-stack workflow that helps an editing agent shape scripts, organise source footage, and move toward a deliverable cut.',
         href: 'https://aixcut.cn/',
         image: '/images/landing/aixcut-site.png',
         alt: 'AIXCut public website showing the video editing product',
         domain: 'aixcut.cn',
-        accent: '#28ffa9'
+        accent: '#50d8b1',
+        embeddable: false
       }
     ]
   : [
@@ -148,36 +162,39 @@ const projects = isEn
         key: 'playyy',
         title: 'Playyy',
         role: '品牌感知的 AI 图像工作台',
-        body: '把品牌上下文、图像生成与迭代放进同一个真实创作界面。',
+        body: '在 Adastra Labs 参与品牌感知 AI 图像工作台的产品与工程研发，把品牌上下文、生成与迭代放进同一个创作界面。',
         href: 'https://playyy.ai/',
         image: '/images/landing/playyy-ui.png',
         alt: 'Playyy 官网公开的产品界面',
         domain: 'playyy.ai',
-        accent: '#659eb9'
+        accent: '#659eb9',
+        embeddable: true
       },
       {
         index: '02',
         key: 'atypica',
         title: 'atypica',
         role: '商业研究多智能体系统',
-        body: '把澄清式反问、Persona 访谈与分析组织成可恢复的异步研究工作流。',
+        body: '在 Tezign AIGC 研发团队参与商业研究 Multi-Agent，覆盖澄清式反问、Persona 访谈、分层记忆与异步工具调用。',
         href: 'https://atypica.ai/',
         image: '/images/landing/atypica-site.png',
         alt: 'Atypica 官网展示的研究 Agent 产品界面',
         domain: 'atypica.ai',
-        accent: '#18f52f'
+        accent: '#69c978',
+        embeddable: false
       },
       {
         index: '03',
         key: 'aixcut',
         title: 'AIXCut',
         role: 'Agent 辅助视频剪辑',
-        body: '让 Agent 参与脚本塑形、定位剪辑与素材组织，把庞大的源视频推进到可交付成片。',
+        body: '参与 Agent 辅助视频剪辑产品与全栈流程，把脚本塑形、素材组织和剪辑定位推进到可交付的成片工作流。',
         href: 'https://aixcut.cn/',
         image: '/images/landing/aixcut-site.png',
         alt: 'AIXCut 官网展示的视频剪辑产品界面',
         domain: 'aixcut.cn',
-        accent: '#28ffa9'
+        accent: '#50d8b1',
+        embeddable: false
       }
     ]
 
@@ -222,16 +239,16 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
 <IntroOverlay locale={locale} />
 
-<visual-home class='visual-home'>
+<visual-home class='visual-home' data-locale={locale}>
   <nav class='home-nav' aria-label={isEn ? 'Primary navigation' : '主导航'}>
-    <a class='home-nav__brand' href={prefix || '/'}>Joye Huang</a>
+    <a class='home-nav__brand' href={isEn ? '/en/v2' : '/v2'}>Joye Huang / V2</a>
     <div class='home-nav__links'>
       <a href='#work'>{copy.work}</a>
       <a href='#evidence'>{copy.about}</a>
       <a href='#journal'>{copy.journal}</a>
     </div>
     <div class='home-nav__end'>
-      <a href={isEn ? '/' : '/en'}>{isEn ? '中文' : 'EN'}</a>
+      <a href={isEn ? '/v2' : '/en/v2'}>{isEn ? '中文' : 'EN'}</a>
       <a href={`${prefix}/contact`}>{copy.contact} ↗</a>
     </div>
   </nav>
@@ -320,13 +337,42 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
                     </>
                   </span>
                   <em>{project.domain}</em>
-                  <b>LIVE / 0{index + 1}</b>
+                  <div class='product-plane__actions'>
+                    {project.embeddable ? (
+                      <button
+                        type='button'
+                        data-live-toggle
+                        aria-pressed='false'
+                        aria-label={copy.livePreview}
+                      >
+                        <span data-preview-label='static'>{copy.livePreview}</span>
+                        <span data-preview-label='live'>{copy.staticPreview}</span>
+                      </button>
+                    ) : (
+                      <a href={project.href} target='_blank' rel='noopener noreferrer'>
+                        {copy.openLive} ↗
+                      </a>
+                    )}
+                    <b>0{index + 1}</b>
+                  </div>
                 </div>
-                <img
-                  src={project.image}
-                  alt={project.alt}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                />
+                <div class='product-plane__viewport'>
+                  <img
+                    src={project.image}
+                    alt={project.alt}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                  />
+                  {project.embeddable && (
+                    <iframe
+                      title={`${project.title} live landing page`}
+                      data-live-frame
+                      data-src={project.href}
+                      loading='lazy'
+                      sandbox='allow-scripts allow-same-origin allow-forms allow-popups'
+                      referrerpolicy='strict-origin-when-cross-origin'
+                    />
+                  )}
+                </div>
               </figure>
               <aside class='case-study__depth' data-depth-card>
                 <span>SYSTEM LAYER</span>
@@ -378,7 +424,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           </div>
           {
             posts.slice(0, 4).map((post) => (
-              <a href={`${prefix}${post.href}`}>
+              <a href={post.href}>
                 <>
                   <span>{post.meta}</span>
                   <h3>{post.title}</h3>
@@ -394,7 +440,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           </div>
           {
             notes.slice(0, 4).map((note) => (
-              <a href={`${prefix}${note.href}`}>
+              <a href={note.href}>
                 <>
                   <span>{note.meta}</span>
                   <h3>{note.title}</h3>
@@ -408,42 +454,42 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     </section>
 
     <section class='source' data-reveal>
-      <div class='source__visual'>
-        <img
-          src='/talks/2026-from-interview-to-agent/agent-legwork-crop.png'
-          alt='Agent engineering work map'
-          loading='lazy'
-        />
-      </div>
-      <div class='source__copy'>
+      <header class='source__copy'>
         <span>06 / SOURCE</span>
         <h2>{copy.openSource}</h2>
         <p>{copy.sourceBody}</p>
         <strong>{totalStars}+ GitHub Stars</strong>
-        <ul>
-          {
-            repos.slice(0, 3).map((repo) => (
-              <li>
-                <a
-                  href={`https://github.com/joyehuang/${repo.name}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                >
-                  <>
-                    <span>{repo.name}</span>
-                    <i>★ {repo.stars} ↗</i>
-                  </>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
+      </header>
+      <div class='source__repos'>
+        {
+          repos.slice(0, 3).map((repo, index) => (
+            <a
+              class='repo-card'
+              href={repo.href ?? `https://github.com/joyehuang/${repo.name}`}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              <span>{repo.eyebrow ?? (isEn ? 'Original project' : '独立项目')}</span>
+              <div>
+                <i>0{index + 1}</i>
+                <strong>{repo.name}</strong>
+              </div>
+              <p>{repo.description}</p>
+              <footer>
+                <>
+                  <span>★ {repo.stars}</span>
+                  <em>GitHub ↗</em>
+                </>
+              </footer>
+            </a>
+          ))
+        }
       </div>
     </section>
 
     <section class='finale' data-finale>
       <div class='finale__copy'>
-        <span>07 / START WITH THE MESS</span>
+        <span>07 / OPEN TO OPPORTUNITIES</span>
         <h2>{copy.finale}</h2>
         <p>{copy.finaleBody}</p>
         <div>
@@ -732,6 +778,26 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       replay?.addEventListener('click', playIntro)
       this.cleanups.push(() => replay?.removeEventListener('click', playIntro))
 
+      this.querySelectorAll<HTMLButtonElement>('[data-live-toggle]').forEach((button) => {
+        const plane = button.closest<HTMLElement>('.product-plane')
+        const frame = plane?.querySelector<HTMLIFrameElement>('[data-live-frame]')
+        if (!plane || !frame) return
+
+        const togglePreview = () => {
+          const nextLive = plane.dataset.live !== 'true'
+          if (nextLive && !frame.src) frame.src = frame.dataset.src ?? ''
+          plane.dataset.live = String(nextLive)
+          button.setAttribute('aria-pressed', String(nextLive))
+          const nextLabel = button.querySelector<HTMLElement>(
+            `[data-preview-label='${nextLive ? 'live' : 'static'}']`
+          )
+          if (nextLabel?.textContent) button.setAttribute('aria-label', nextLabel.textContent)
+        }
+
+        button.addEventListener('click', togglePreview)
+        this.cleanups.push(() => button.removeEventListener('click', togglePreview))
+      })
+
       requestAnimationFrame(() => ScrollTrigger.refresh())
     }
 
@@ -764,6 +830,9 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     overflow: clip;
     color: var(--home-fg);
     background: var(--home-bg);
+    font-family:
+      'Satoshi', 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif;
+    text-rendering: optimizeLegibility;
   }
 
   .visual-home * {
@@ -1108,11 +1177,17 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     aspect-ratio: 1;
     border-radius: 50%;
     background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--case-accent), transparent 64%),
-      transparent 69%
+      ellipse,
+      color-mix(in srgb, var(--case-accent), transparent 76%),
+      transparent 70%
     );
-    filter: blur(30px);
+    filter: blur(42px);
+  }
+
+  .case-study--atypica .case-study__halo {
+    background: radial-gradient(ellipse, rgb(105 201 120 / 14%), transparent 72%);
+    filter: blur(54px);
+    transform: scale(1.18, 0.78);
   }
 
   .product-plane {
@@ -1161,17 +1236,103 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   }
 
   .product-plane__bar b {
-    justify-self: end;
     color: var(--case-accent);
     font-weight: 500;
   }
 
-  .product-plane > img {
+  .product-plane__actions {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    justify-self: end;
+  }
+
+  .product-plane__actions button,
+  .product-plane__actions a {
+    position: relative;
+    min-width: 6.6rem;
+    padding: 0.32rem 0.5rem;
+    overflow: hidden;
+    color: rgb(255 255 255 / 72%);
+    border: 1px solid rgb(255 255 255 / 16%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 5%);
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .product-plane__actions button span {
+    display: block;
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .product-plane__actions button span:last-child {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+
+  .product-plane[data-live='true'] [data-preview-label='static'] {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+
+  .product-plane[data-live='true'] [data-preview-label='live'] {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+
+  .product-plane__viewport {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #08090b;
+  }
+
+  .product-plane__viewport > img,
+  .product-plane__viewport > iframe {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 100%;
+    border: 0;
     object-fit: cover;
     object-position: top;
+    transition:
+      opacity 0.35s ease,
+      filter 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  .product-plane__viewport > iframe {
+    opacity: 0;
+    background: white;
+    filter: blur(6px);
+    transform: scale(0.97);
+  }
+
+  .product-plane[data-live='true'] .product-plane__viewport > img {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(1.03);
+    pointer-events: none;
+  }
+
+  .product-plane[data-live='true'] .product-plane__viewport > iframe {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
   }
 
   .case-study__depth {
@@ -1251,6 +1412,27 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     font-weight: 520;
     letter-spacing: -0.07em;
     line-height: 0.9;
+  }
+
+  .visual-home[data-locale='zh'] .work-intro h2,
+  .visual-home[data-locale='zh'] .evidence h2,
+  .visual-home[data-locale='zh'] .journal h2,
+  .visual-home[data-locale='zh'] .source h2,
+  .visual-home[data-locale='zh'] .finale h2 {
+    font-weight: 410;
+    letter-spacing: -0.042em;
+    line-height: 0.98;
+  }
+
+  .visual-home[data-locale='zh'] .hero__copy > p,
+  .visual-home[data-locale='zh'] .work-intro p,
+  .visual-home[data-locale='zh'] .case-study__copy p,
+  .visual-home[data-locale='zh'] .evidence header p,
+  .visual-home[data-locale='zh'] .journal__intro p,
+  .visual-home[data-locale='zh'] .finale__copy p {
+    font-weight: 390;
+    letter-spacing: 0.01em;
+    line-height: 1.72;
   }
 
   .evidence header p {
@@ -1395,34 +1577,18 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   .source {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-columns: 0.72fr 1.28fr;
+    gap: clamp(3rem, 6vw, 8rem);
     min-height: 90svh;
+    padding: clamp(7rem, 11vw, 11rem) clamp(1rem, 4vw, 4rem);
     border-top: 1px solid var(--home-border);
-  }
-
-  .source__visual {
-    display: grid;
-    place-items: center;
-    min-height: 55vh;
-    overflow: hidden;
-    padding: clamp(2rem, 5vw, 6rem);
-    background: color-mix(in srgb, var(--home-accent), var(--home-bg) 88%);
-  }
-
-  .source__visual img {
-    display: block;
-    width: min(100%, 54rem);
-    border: 1px solid var(--home-border);
-    border-radius: 0.65rem;
-    box-shadow: 0 2rem 6rem color-mix(in srgb, var(--home-fg), transparent 82%);
   }
 
   .source__copy {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: clamp(4rem, 7vw, 8rem);
-    border-left: 1px solid var(--home-border);
+    justify-content: flex-start;
+    padding: 0;
   }
 
   .source__copy p {
@@ -1430,7 +1596,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   }
 
   .source__copy > strong {
-    margin: 2rem 0 3rem;
+    margin: 2rem 0 0;
     color: var(--home-accent);
     font-family: ui-monospace, monospace;
     font-size: 0.72rem;
@@ -1438,24 +1604,80 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     text-transform: uppercase;
   }
 
-  .source ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  .source__repos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     border-top: 1px solid var(--home-border);
-  }
-
-  .source li a {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem 0;
     border-bottom: 1px solid var(--home-border);
   }
 
-  .source li i {
+  .repo-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 32rem;
+    padding: 1.3rem;
+    border-right: 1px solid var(--home-border);
+    transition:
+      color 0.25s ease,
+      background 0.25s ease,
+      transform 0.35s ease;
+  }
+
+  .repo-card:last-child {
+    border-right: 0;
+  }
+
+  .repo-card:hover {
+    color: var(--home-fg);
+    background: color-mix(in srgb, var(--home-accent), transparent 91%);
+    transform: translateY(-0.35rem);
+  }
+
+  .repo-card > span,
+  .repo-card footer,
+  .repo-card i {
     color: var(--home-muted);
     font-family: ui-monospace, monospace;
     font-size: 0.58rem;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .repo-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: auto;
+  }
+
+  .repo-card > div i {
+    color: var(--home-accent);
+  }
+
+  .repo-card > div strong {
+    overflow-wrap: anywhere;
+    font-size: clamp(1.6rem, 2.4vw, 3rem);
+    font-weight: 480;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+  }
+
+  .repo-card > p {
+    min-height: 7.6rem;
+    margin: 1.3rem 0;
+    color: var(--home-muted);
+    line-height: 1.55;
+  }
+
+  .repo-card footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .repo-card footer em {
     font-style: normal;
   }
 
@@ -1684,8 +1906,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       padding-left: 0;
     }
     .source__copy {
-      border-top: 1px solid var(--home-border);
-      border-left: 0;
+      border: 0;
     }
     .finale__copy {
       align-self: start;
@@ -1775,6 +1996,12 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     .product-plane__bar {
       height: 2.2rem;
     }
+    .product-plane__actions button,
+    .product-plane__actions a {
+      min-width: 5.4rem;
+      padding-inline: 0.35rem;
+      font-size: 0.48rem;
+    }
     .case-study__depth {
       display: none;
     }
@@ -1825,9 +2052,26 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     .journal__column > a span {
       grid-column: 1 / -1;
     }
-    .source__visual,
+    .source {
+      gap: 3rem;
+      padding: 6rem 1rem;
+    }
     .source__copy {
-      padding: 3rem 1rem;
+      padding: 0;
+    }
+    .source__repos {
+      grid-template-columns: 1fr;
+    }
+    .repo-card {
+      min-height: 20rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--home-border);
+    }
+    .repo-card:last-child {
+      border-bottom: 0;
+    }
+    .repo-card > p {
+      min-height: auto;
     }
     .finale {
       min-height: auto;
