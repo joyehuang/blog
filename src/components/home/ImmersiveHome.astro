@@ -52,9 +52,9 @@ const copy = isEn
       livePreview: 'Live preview',
       staticPreview: 'Back to overview',
       openLive: 'Open live site',
-      evidence: 'Make the thinking reusable.',
+      evidence: 'Turn experience into methods others can use.',
       evidenceBody:
-        'Talks, diagrams, and technical writing are how I examine decisions, teach what worked, and keep improving the way I build.',
+        'I break complex engineering work into talks, diagrams, and public notes—not just to present an answer, but to expose a process that others can test, discuss, and reuse.',
       evidenceCta: 'Open the full talk',
       journalTitle: 'Writing & Notes',
       journalBody:
@@ -93,10 +93,10 @@ const copy = isEn
       livePreview: '在线预览',
       staticPreview: '返回概览',
       openLive: '打开官网',
-      evidence: '把思考变成可以复用的方法。',
+      evidence: '把经验拆成别人也能用的方法。',
       evidenceBody:
-        '技术分享、工程图解与写作，是我复盘决策、讲清复杂问题，并持续改进工作方式的过程。',
-      evidenceCta: '查看完整分享',
+        '我把复杂工程拆成讲稿、图解和公开笔记：不是展示答案，而是留下可以验证、讨论和复用的过程。',
+      evidenceCta: '查看完整演讲',
       journalTitle: '博客与 Notes',
       journalBody: '长文章记录完整思考，Notes 留下正在研究和实践中的小结。',
       essays: '文章',
@@ -237,16 +237,22 @@ const evidence = isEn
       {
         label: 'Talk / Engineering scope',
         title: 'What agent engineering actually contains',
+        summary:
+          'Map the real boundary from prompt and context to harnesses, loops, and production behaviour.',
         image: '/talks/2026-from-interview-to-agent/engineering-scope.png'
       },
       {
         label: 'Method / Growth loop',
         title: 'A repeatable loop from interview to production',
+        summary:
+          'Make projects, judgement, and failed paths visible so learning becomes testable and repeatable.',
         image: '/talks/2026-from-interview-to-agent/growth-loop.png'
       },
       {
         label: 'Practice / Agent legwork',
         title: 'The unglamorous work behind reliable agents',
+        summary:
+          'Give repetitive information work to an agent and reserve human attention for judgement and craft.',
         image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
       }
     ]
@@ -254,16 +260,19 @@ const evidence = isEn
       {
         label: '分享 / 工程边界',
         title: 'Agent 工程真正包含什么',
+        summary: '从 Prompt、Context 到 Harness 与 Loop，拆清 Agent 工程真正需要负责的边界。',
         image: '/talks/2026-from-interview-to-agent/engineering-scope.png'
       },
       {
         label: '方法 / 成长回路',
         title: '从面试到生产的可重复成长路径',
+        summary: '公开项目、判断与失败路径，让学习过程变得可验证，也能被下一次复用。',
         image: '/talks/2026-from-interview-to-agent/growth-loop.png'
       },
       {
         label: '实践 / Agent 苦工',
         title: '可靠 Agent 背后那些不光鲜的工作',
+        summary: '让 Agent 接管重复的信息筛选，把人的注意力留给判断、创造和真正困难的问题。',
         image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
       }
     ]
@@ -476,22 +485,41 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
     <section class='evidence' id='evidence' data-evidence>
       <div class='evidence__sticky'>
-        <header>
-          <span>04 / PUBLIC PRACTICE</span>
-          <h2>{copy.evidence}</h2>
-          <p>{copy.evidenceBody}</p>
-          <a href={`${prefix}/talks`}>{copy.evidenceCta} ↗</a>
-        </header>
+        <div class='evidence__copy'>
+          <header>
+            <span>04 / PUBLIC THINKING</span>
+            <h2>{copy.evidence}</h2>
+            <p>{copy.evidenceBody}</p>
+            <a href={`${prefix}/talks`}>{copy.evidenceCta} ↗</a>
+          </header>
+
+          <ol class='evidence__index' aria-label={isEn ? 'Talk chapters' : '演讲章节'}>
+            {
+              evidence.map((item, index) => (
+                <li data-evidence-index>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.summary}</p>
+                  </div>
+                  <i data-evidence-index-line />
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
         <div class='evidence__scene' data-evidence-scene>
           {
             evidence.map((item, index) => (
               <figure class={`evidence-card evidence-card--${index + 1}`} data-evidence-card>
                 <img src={item.image} alt={item.title} loading='lazy' />
                 <figcaption>
-                  <>
-                    <span>{item.label}</span>
-                    <strong>{item.title}</strong>
-                  </>
+                  <span>
+                    {String(index + 1).padStart(2, '0')} /{' '}
+                    {String(evidence.length).padStart(2, '0')} · {item.label}
+                  </span>
+                  <strong>{item.title}</strong>
                 </figcaption>
               </figure>
             ))
@@ -812,40 +840,74 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
         const evidenceSection = this.querySelector<HTMLElement>('[data-evidence]')
         const evidenceCards = gsap.utils.toArray<HTMLElement>('[data-evidence-card]', this)
+        const evidenceIndexItems = gsap.utils.toArray<HTMLElement>('[data-evidence-index]', this)
+        const evidenceIndexLines = gsap.utils.toArray<HTMLElement>(
+          '[data-evidence-index-line]',
+          this
+        )
         if (evidenceSection && evidenceCards.length && !compact) {
+          gsap.set(evidenceCards, {
+            autoAlpha: 0,
+            clipPath: 'inset(0 0 0 100%)',
+            filter: 'blur(0px)',
+            zIndex: 0
+          })
+          gsap.set(evidenceCards[0], {
+            autoAlpha: 1,
+            clipPath: 'inset(0 0% 0 0)',
+            zIndex: 1
+          })
+          gsap.set(evidenceIndexItems, { opacity: 0.28 })
+          gsap.set(evidenceIndexItems[0], { opacity: 1 })
+          gsap.set(evidenceIndexLines, { scaleX: 0 })
+          gsap.set(evidenceIndexLines[0], { scaleX: 1 })
+
           const evidenceTimeline = gsap.timeline({
             scrollTrigger: {
               trigger: evidenceSection,
               start: 'top top',
               end: 'bottom bottom',
-              scrub: 1
+              scrub: 1.15
             }
           })
+
+          evidenceTimeline.addLabel('chapterTwo', 0.35)
           evidenceTimeline
-            .fromTo(
-              evidenceCards,
-              { opacity: 0, y: 110, scale: 0.9 },
-              {
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                stagger: 0.12,
-                duration: 0.56,
-                ease: 'power3.out'
-              }
-            )
             .to(
-              evidenceCards,
-              {
-                x: (i) => (i - 1) * 230,
-                rotation: (i) => (i - 1) * -2.5,
-                scale: (i) => (i === 1 ? 1 : 0.92),
-                opacity: (i) => (i === 1 ? 1 : 0.42),
-                duration: 0.52,
-                ease: 'power2.inOut'
-              },
-              0.5
+              evidenceCards[0],
+              { autoAlpha: 0.08, filter: 'blur(10px)', duration: 0.42, ease: 'power2.inOut' },
+              'chapterTwo'
             )
+            .set(evidenceCards[1], { zIndex: 2 }, 'chapterTwo')
+            .fromTo(
+              evidenceCards[1],
+              { autoAlpha: 1, clipPath: 'inset(0 0 0 100%)' },
+              { clipPath: 'inset(0 0 0 0%)', duration: 0.52, ease: 'power3.inOut' },
+              'chapterTwo'
+            )
+            .to(evidenceIndexItems[0], { opacity: 0.28, duration: 0.2 }, 'chapterTwo')
+            .to(evidenceIndexLines[0], { scaleX: 0, duration: 0.24 }, 'chapterTwo')
+            .to(evidenceIndexItems[1], { opacity: 1, duration: 0.24 }, 'chapterTwo+=0.08')
+            .to(evidenceIndexLines[1], { scaleX: 1, duration: 0.3 }, 'chapterTwo+=0.08')
+
+          evidenceTimeline.addLabel('chapterThree', 1.08)
+          evidenceTimeline
+            .to(
+              evidenceCards[1],
+              { autoAlpha: 0.08, filter: 'blur(10px)', duration: 0.42, ease: 'power2.inOut' },
+              'chapterThree'
+            )
+            .set(evidenceCards[2], { zIndex: 3 }, 'chapterThree')
+            .fromTo(
+              evidenceCards[2],
+              { autoAlpha: 1, clipPath: 'inset(0 0 0 100%)' },
+              { clipPath: 'inset(0 0 0 0%)', duration: 0.52, ease: 'power3.inOut' },
+              'chapterThree'
+            )
+            .to(evidenceIndexItems[1], { opacity: 0.28, duration: 0.2 }, 'chapterThree')
+            .to(evidenceIndexLines[1], { scaleX: 0, duration: 0.24 }, 'chapterThree')
+            .to(evidenceIndexItems[2], { opacity: 1, duration: 0.24 }, 'chapterThree+=0.08')
+            .to(evidenceIndexLines[2], { scaleX: 1, duration: 0.3 }, 'chapterThree+=0.08')
         }
 
         gsap.utils.toArray<HTMLElement>('[data-reveal]', this).forEach((element) => {
@@ -1595,13 +1657,13 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   .evidence {
     position: relative;
-    height: 220vh;
+    height: 260vh;
     border-top: 1px solid var(--home-border);
     background:
       radial-gradient(
-        circle at 50% 58%,
-        color-mix(in srgb, var(--home-accent), transparent 78%),
-        transparent 32%
+        circle at 78% 52%,
+        color-mix(in srgb, var(--home-accent), transparent 84%),
+        transparent 36%
       ),
       var(--home-bg);
   }
@@ -1609,18 +1671,25 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   .evidence__sticky {
     position: sticky;
     top: 0;
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.68fr) minmax(0, 1.32fr);
+    gap: clamp(3rem, 6vw, 7rem);
+    align-items: center;
     height: 100svh;
     overflow: hidden;
-    padding: 7rem clamp(1rem, 4vw, 4rem) 3rem;
+    padding: 6.5rem clamp(1rem, 4vw, 4rem) 3.5rem;
+  }
+
+  .evidence__copy {
+    position: relative;
+    z-index: 5;
+    min-width: 0;
   }
 
   .evidence header {
-    position: relative;
-    z-index: 5;
-    width: min(32rem, 33vw);
+    width: min(31rem, 100%);
   }
 
-  .evidence h2,
   .journal h2,
   .source h2,
   .finale h2 {
@@ -1631,14 +1700,28 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     line-height: 0.9;
   }
 
+  .evidence h2 {
+    max-width: 10ch;
+    margin: 1rem 0 1.2rem;
+    font-size: clamp(2.8rem, 3.6vw, 4.4rem);
+    font-weight: 390;
+    letter-spacing: -0.055em;
+    line-height: 1.02;
+  }
+
   .visual-home[data-locale='zh'] .work-intro h2,
-  .visual-home[data-locale='zh'] .evidence h2,
   .visual-home[data-locale='zh'] .journal h2,
   .visual-home[data-locale='zh'] .source h2,
   .visual-home[data-locale='zh'] .finale h2 {
     font-weight: 360;
     letter-spacing: -0.032em;
     line-height: 1.04;
+  }
+
+  .visual-home[data-locale='zh'] .evidence h2 {
+    font-weight: 350;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
   }
 
   .visual-home[data-locale='zh'] .hero__copy > p,
@@ -1653,8 +1736,11 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   }
 
   .evidence header p {
+    max-width: 30rem;
+    margin: 0;
     color: var(--home-muted);
-    line-height: 1.55;
+    font-size: 0.92rem;
+    line-height: 1.65;
   }
 
   .evidence header a {
@@ -1668,27 +1754,87 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     text-transform: uppercase;
   }
 
-  .evidence__scene {
+  .evidence__index {
+    width: min(31rem, 100%);
+    margin: clamp(2rem, 4vh, 3rem) 0 0;
+    padding: 0;
+    border-top: 1px solid var(--home-border);
+    list-style: none;
+  }
+
+  .evidence__index li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 0.9rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--home-border);
+    opacity: 0.28;
+    will-change: opacity;
+  }
+
+  .evidence__index li > span {
+    padding-top: 0.12rem;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+
+  .evidence__index strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 480;
+    line-height: 1.35;
+  }
+
+  .evidence__index p {
+    margin: 0.34rem 0 0;
+    color: var(--home-muted);
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .evidence__index i {
     position: absolute;
-    inset: 7rem 3vw 3rem 37vw;
-    perspective: 1600px;
-    transform-style: preserve-3d;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    background: var(--home-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+  }
+
+  .evidence__scene {
+    position: relative;
+    height: min(66vh, 46vw);
+    min-height: 31rem;
   }
 
   .evidence-card {
     position: absolute;
     top: 50%;
-    left: 50%;
-    width: min(47vw, 51rem);
+    left: 0;
+    width: 100%;
     margin: 0;
     overflow: hidden;
     border: 1px solid var(--home-border);
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     background: var(--home-card);
-    box-shadow: 0 3rem 8rem color-mix(in srgb, var(--home-fg), transparent 78%);
-    transform: translate(-50%, -50%);
-    transform-style: preserve-3d;
-    will-change: transform, opacity;
+    box-shadow: 0 2.5rem 7rem color-mix(in srgb, var(--home-fg), transparent 84%);
+    clip-path: inset(0 0 0 100%);
+    opacity: 0;
+    transform: translateY(-50%);
+    visibility: hidden;
+    will-change: clip-path, filter, opacity;
+  }
+
+  .evidence-card:first-child {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    visibility: visible;
   }
 
   .evidence-card img {
@@ -1700,10 +1846,12 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   .evidence-card figcaption {
     display: grid;
-    grid-template-columns: 0.7fr 1.3fr;
+    grid-template-columns: minmax(10rem, 0.75fr) 1.25fr;
     gap: 1rem;
-    padding: 1rem;
+    align-items: center;
+    padding: 1rem 1.15rem;
     border-top: 1px solid var(--home-border);
+    background: color-mix(in srgb, var(--home-card), transparent 4%);
   }
 
   .evidence-card figcaption span {
@@ -1716,7 +1864,8 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   .evidence-card figcaption strong {
     font-size: 0.92rem;
-    font-weight: 520;
+    font-weight: 480;
+    line-height: 1.35;
   }
 
   .journal {
@@ -2116,14 +2265,31 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     .case-study__depth {
       width: min(18rem, 40vw);
     }
-    .evidence header {
-      width: min(38rem, 86vw);
+    .evidence__sticky {
+      grid-template-columns: minmax(15rem, 0.78fr) minmax(0, 1.22fr);
+      gap: 2rem;
+      padding-right: 2rem;
+      padding-left: 2rem;
+    }
+    .evidence header,
+    .evidence__index {
+      width: 100%;
+    }
+    .evidence h2 {
+      font-size: clamp(2.7rem, 5.5vw, 3.8rem);
+    }
+    .evidence__index {
+      margin-top: 1.6rem;
+    }
+    .evidence__index p {
+      display: none;
     }
     .evidence__scene {
-      inset: 42% 4vw 2rem;
+      height: min(58vh, 52vw);
+      min-height: 25rem;
     }
     .evidence-card {
-      width: min(66vw, 44rem);
+      width: 100%;
     }
     .journal__columns,
     .source,
@@ -2270,27 +2436,36 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     }
     .evidence__sticky {
       position: relative;
+      display: block;
       height: auto;
       padding: 6rem 1rem;
     }
     .evidence h2 {
-      font-size: 3.8rem;
+      max-width: 11ch;
+      font-size: 2.8rem;
+    }
+    .evidence__index {
+      display: none;
     }
     .evidence__scene {
       position: relative;
       inset: auto;
       display: grid;
       gap: 1rem;
+      height: auto;
+      min-height: 0;
       margin-top: 3rem;
-      perspective: none;
     }
     .evidence-card {
       position: relative;
       top: auto;
       left: auto;
       width: 100%;
+      clip-path: none !important;
+      filter: none !important;
       transform: none !important;
       opacity: 1 !important;
+      visibility: visible !important;
     }
     .evidence-card figcaption {
       grid-template-columns: 1fr;
