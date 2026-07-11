@@ -1,0 +1,436 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-VariableItalic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDba2o-flEEny0FZhsfKu5WU4xD-IQ-PuZJJXxfpAO-LflOQ.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 400;
+    }
+    @font-face { font-family: "PingFang SC"; src: local("PingFang SC"); }
+    @font-face { font-family: "Microsoft YaHei"; src: local("Microsoft YaHei"); }
+    @font-face { font-family: "Noto Sans SC"; src: local("Noto Sans SC"); }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    #beat-4-popular-post {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-4-popular-post .paper-fill {
+      position: absolute;
+      inset: 0;
+      background: #FCFCFD;
+    }
+
+    #beat-4-popular-post .background-type {
+      position: absolute;
+      top: 20px;
+      right: -10px;
+      color: rgba(11, 82, 132, 0.035);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 390px;
+      font-weight: 600;
+      letter-spacing: -0.12em;
+    }
+
+    #beat-4-popular-post .background-lines {
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 63px,
+        rgba(11, 82, 132, 0.045) 64px
+      );
+      mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 83%, transparent);
+    }
+
+    #beat-4-popular-post .camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 47%;
+    }
+
+    #beat-4-popular-post .section-label {
+      position: absolute;
+      top: 92px;
+      left: 72px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 23px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    #beat-4-popular-post .section-label::before {
+      width: 34px;
+      height: 8px;
+      border-radius: 999px;
+      background: #7DD3FC;
+      content: "";
+    }
+
+    #beat-4-popular-post .article-sheet {
+      position: absolute;
+      top: 174px;
+      left: 72px;
+      width: 936px;
+      height: 1574px;
+      overflow: hidden;
+      border: 1px solid #DFDFE2;
+      border-radius: 16px;
+      background: #FFFFFF;
+      clip-path: inset(0 0 78.05% 0 round 16px);
+    }
+
+    #beat-4-popular-post .paper-fold {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 122px;
+      height: 122px;
+      border-bottom: 1px solid #DFDFE2;
+      border-left: 1px solid #DFDFE2;
+      background: linear-gradient(225deg, #FCFCFD 0 49%, #E8F6FD 50% 100%);
+      transform-origin: 100% 0;
+    }
+
+    #beat-4-popular-post .article-meta {
+      position: absolute;
+      top: 52px;
+      left: 54px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.09em;
+    }
+
+    #beat-4-popular-post .article-rule {
+      position: absolute;
+      top: 105px;
+      left: 54px;
+      width: 828px;
+      height: 2px;
+      background: #DFDFE2;
+    }
+
+    #beat-4-popular-post .toc {
+      position: absolute;
+      top: 174px;
+      left: 48px;
+      width: 196px;
+      padding-left: 22px;
+      border-left: 3px solid #DFDFE2;
+    }
+
+    #beat-4-popular-post .toc-title {
+      margin-bottom: 20px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+    }
+
+    #beat-4-popular-post .toc-item {
+      display: flex;
+      align-items: center;
+      width: 166px;
+      height: 58px;
+      margin-bottom: 13px;
+      padding: 0 17px;
+      border: 1px solid #DFDFE2;
+      border-radius: 12px;
+      background: #F2F2F3;
+      color: #45454A;
+      font-size: 24px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    #beat-4-popular-post .main-column {
+      position: absolute;
+      top: 168px;
+      left: 286px;
+      width: 590px;
+    }
+
+    #beat-4-popular-post .kicker {
+      display: inline-flex;
+      align-items: center;
+      height: 42px;
+      margin-bottom: 30px;
+      padding: 0 17px;
+      border: 1px dashed #DFDFE2;
+      border-radius: 999px;
+      background: #F2F2F3;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    #beat-4-popular-post .title-mask {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    #beat-4-popular-post .title-line {
+      display: block;
+      color: #09090B;
+      font-size: 80px;
+      font-weight: 790;
+      line-height: 1.04;
+      letter-spacing: -0.055em;
+      white-space: nowrap;
+    }
+
+    #beat-4-popular-post .title-line.agent {
+      color: #0B5284;
+      font-family: "JetBrains Mono", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 84px;
+      font-weight: 600;
+      letter-spacing: -0.065em;
+    }
+
+    #beat-4-popular-post .summary {
+      width: 536px;
+      margin-top: 38px;
+      color: #45454A;
+      font-size: 28px;
+      font-weight: 520;
+      line-height: 1.62;
+    }
+
+    #beat-4-popular-post .summary span {
+      display: block;
+    }
+
+    #beat-4-popular-post .article-lines {
+      width: 538px;
+      margin-top: 34px;
+    }
+
+    #beat-4-popular-post .article-line {
+      height: 11px;
+      margin-bottom: 19px;
+      border-radius: 999px;
+      background: #F2F2F3;
+    }
+
+    #beat-4-popular-post .article-line:nth-child(2) { width: 88%; }
+    #beat-4-popular-post .article-line:nth-child(3) { width: 95%; }
+    #beat-4-popular-post .article-line:nth-child(4) { width: 72%; }
+
+    #beat-4-popular-post .stamps {
+      position: absolute;
+      top: 1050px;
+      left: 286px;
+      display: flex;
+      gap: 22px;
+    }
+
+    #beat-4-popular-post .stamp {
+      width: 264px;
+      height: 148px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 4px solid #F59E0B;
+      border-radius: 16px;
+      color: #A35F00;
+      font-family: "JetBrains Mono", "PingFang SC", "Microsoft YaHei", sans-serif;
+      transform: rotate(-4deg);
+    }
+
+    #beat-4-popular-post .stamp:nth-child(2) {
+      transform: rotate(4deg);
+    }
+
+    #beat-4-popular-post .stamp strong {
+      font-size: 45px;
+      font-weight: 600;
+      letter-spacing: -0.055em;
+    }
+
+    #beat-4-popular-post .stamp small {
+      margin-top: 8px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    #beat-4-popular-post .scan-line {
+      position: absolute;
+      top: 170px;
+      left: 42px;
+      width: 208px;
+      height: 5px;
+      border-radius: 999px;
+      background: #7DD3FC;
+      box-shadow: 0 0 22px rgba(125, 211, 252, 0.48);
+    }
+
+    #beat-4-popular-post .page-number {
+      position: absolute;
+      right: 54px;
+      bottom: 48px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 18px;
+      letter-spacing: 0.12em;
+    }
+  </style>
+
+  <div data-hf-id="hf-n2fv" id="beat-4-popular-post" data-composition-id="beat-4-popular-post" data-duration="5.56" data-width="1080" data-height="1920">
+    <div data-hf-id="hf-h0oo" class="paper-fill"></div>
+    <div data-hf-id="hf-r886" class="background-type">01</div>
+    <div data-hf-id="hf-diya" class="background-lines"></div>
+
+    <div data-hf-id="hf-g4sl" class="camera">
+      <div data-hf-id="hf-5rad" class="section-label">MOST READ / AGENT GUIDE</div>
+
+      <article data-hf-id="hf-1py3" class="article-sheet">
+        <div data-hf-id="hf-85ty" class="paper-fold"></div>
+        <div data-hf-id="hf-x2a3" class="article-meta">JOYEHUANG.ME · 2026 / AGENT</div>
+        <div data-hf-id="hf-geg1" class="article-rule"></div>
+
+        <aside data-hf-id="hf-89fz" class="toc">
+          <div data-hf-id="hf-n90x" class="toc-title">ON THIS PAGE</div>
+          <div data-hf-id="hf-tsqz" class="toc-item toc-1">是什么</div>
+          <div data-hf-id="hf-6j0r" class="toc-item toc-2">生态地图</div>
+          <div data-hf-id="hf-p2sk" class="toc-item toc-3">心态</div>
+          <div data-hf-id="hf-gye0" class="toc-item toc-4">入门求职</div>
+          <div data-hf-id="hf-hegu" class="toc-item toc-5">内功</div>
+        </aside>
+
+        <main data-hf-id="hf-2qie" class="main-column">
+          <div data-hf-id="hf-1p61" class="kicker">MOST POPULAR POST</div>
+          <div data-hf-id="hf-o7vz" class="title-mask"><span data-hf-id="hf-ihbf" class="title-line">《写给所有</span></div>
+          <div data-hf-id="hf-z4en" class="title-mask"><span data-hf-id="hf-uu0s" class="title-line">“想入门</span></div>
+          <div data-hf-id="hf-yq3m" class="title-mask"><span data-hf-id="hf-6vak" class="title-line agent">Agent</span></div>
+          <div data-hf-id="hf-ybsl" class="title-mask"><span data-hf-id="hf-od65" class="title-line">但不知道</span></div>
+          <div data-hf-id="hf-13xs" class="title-mask"><span data-hf-id="hf-26cg" class="title-line">从哪开始”</span></div>
+          <div data-hf-id="hf-0pmr" class="title-mask"><span data-hf-id="hf-0gvj" class="title-line">的人》</span></div>
+
+          <p data-hf-id="hf-lh8h" class="summary">
+            <span data-hf-id="hf-e1k2">从生态地图到入门求职，</span>
+            <span data-hf-id="hf-1tor">一篇讲清 Agent 的实践路线。</span>
+          </p>
+          <div data-hf-id="hf-r6jg" class="article-lines">
+            <div data-hf-id="hf-0zp1" class="article-line"></div>
+            <div data-hf-id="hf-ycix" class="article-line"></div>
+            <div data-hf-id="hf-zjg0" class="article-line"></div>
+            <div data-hf-id="hf-z54z" class="article-line"></div>
+          </div>
+        </main>
+
+        <div data-hf-id="hf-1mkc" class="stamps">
+          <div data-hf-id="hf-876c" class="stamp stamp-words"><strong data-hf-id="hf-dhu1">11,000 字</strong><small data-hf-id="hf-ontw">LONGFORM</small></div>
+          <div data-hf-id="hf-gkys" class="stamp stamp-reads"><strong data-hf-id="hf-rp6w">2,008 阅读</strong><small data-hf-id="hf-dt70">WALINE VIEWS</small></div>
+        </div>
+
+        <div data-hf-id="hf-d3te" class="scan-line"></div>
+        <div data-hf-id="hf-ddoa" class="page-number">01 / 05</div>
+      </article>
+    </div>
+
+    <script>
+      (function () {
+        var BEAT = 5.56;
+        var root = document.getElementById("beat-4-popular-post");
+        if (!root) return;
+
+        var camera = root.querySelector(".camera");
+        var backgroundType = root.querySelector(".background-type");
+        var sheet = root.querySelector(".article-sheet");
+        var fold = root.querySelector(".paper-fold");
+        var titleLines = root.querySelectorAll(".title-line");
+        var tocItems = root.querySelectorAll(".toc-item");
+        var scanLine = root.querySelector(".scan-line");
+        var summary = root.querySelector(".summary");
+        var articleLines = root.querySelectorAll(".article-line");
+        var wordsStamp = root.querySelector(".stamp-words");
+        var readsStamp = root.querySelector(".stamp-reads");
+
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(camera, { scale: 1, y: 0 }, { scale: 1.06, y: -28, duration: BEAT, ease: "none" }, 0);
+        tl.fromTo(backgroundType, { x: 36, y: -22 }, { x: -34, y: 52, duration: BEAT, ease: "none" }, 0);
+        tl.fromTo(sheet, { clipPath: "inset(0 0 78.05% 0 round 16px)" }, { clipPath: "inset(0 0 0% 0 round 16px)", duration: 1.04, ease: "expo.inOut" }, 0.18);
+        tl.fromTo(fold, { rotationY: -82, rotationX: 18 }, { rotationY: 0, rotationX: 0, duration: 0.86, ease: "power4.out" }, 0.28);
+
+        tl.fromTo(titleLines, { clipPath: "inset(0 100% 0 0)", x: -38 }, { clipPath: "inset(0 0% 0 0)", x: 0, duration: 0.56, ease: "power4.out", stagger: 0.14 }, 0.72);
+        tl.fromTo(summary, { opacity: 0, y: 42 }, { opacity: 1, y: 0, duration: 0.48, ease: "expo.out" }, 1.90);
+        tl.fromTo(articleLines, { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.48, ease: "power4.out", stagger: 0.09 }, 2.10);
+
+        tl.fromTo(scanLine, { y: 0, opacity: 0 }, { y: 0, opacity: 1, duration: 0.16, ease: "none" }, 1.18);
+        tl.to(tocItems[0], { backgroundColor: "#DFF4FF", color: "#0B5284", duration: 0.20, ease: "power1.out" }, 1.22);
+        tl.to(scanLine, { y: 71, duration: 0.28, ease: "power1.inOut" }, 1.46);
+        tl.to(tocItems[1], { backgroundColor: "#DFF4FF", color: "#0B5284", duration: 0.20, ease: "power1.out" }, 1.54);
+        tl.to(scanLine, { y: 142, duration: 0.28, ease: "power1.inOut" }, 1.78);
+        tl.to(tocItems[2], { backgroundColor: "#DFF4FF", color: "#0B5284", duration: 0.20, ease: "power1.out" }, 1.86);
+        tl.to(scanLine, { y: 213, duration: 0.28, ease: "power1.inOut" }, 2.10);
+        tl.to(tocItems[3], { backgroundColor: "#DFF4FF", color: "#0B5284", duration: 0.20, ease: "power1.out" }, 2.18);
+        tl.to(scanLine, { y: 284, duration: 0.28, ease: "power1.inOut" }, 2.42);
+        tl.to(tocItems[4], { backgroundColor: "#DFF4FF", color: "#0B5284", duration: 0.20, ease: "power1.out" }, 2.50);
+        tl.to(scanLine, { opacity: 0, duration: 0.22, ease: "none" }, 2.82);
+
+        tl.fromTo(wordsStamp, { opacity: 0, scale: 1.42, rotation: -12 }, { opacity: 1, scale: 1, rotation: -4, duration: 0.66, ease: "back.out(1.7)" }, 3.02);
+        tl.fromTo(readsStamp, { opacity: 0, scale: 1.42, rotation: 12 }, { opacity: 1, scale: 1, rotation: 4, duration: 0.66, ease: "back.out(1.7)" }, 3.48);
+        tl.to(wordsStamp, { y: -14, rotation: -6, duration: 1.28, ease: "power1.inOut" }, 4.20);
+        tl.to(readsStamp, { y: -14, rotation: 6, duration: 1.28, ease: "power1.inOut" }, 4.20);
+        tl.to(sheet, { y: -12, duration: 1.10, ease: "none" }, 4.46);
+
+        window.__timelines["beat-4-popular-post"] = tl;
+      })();
+    </script>
+  </div>
+</template>

@@ -1,0 +1,420 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Microsoft YaHei";
+      src: local("Microsoft YaHei");
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: local("Noto Sans SC");
+      font-style: normal;
+    }
+
+    #beat-8-cta,
+    #beat-8-cta * {
+      box-sizing: border-box;
+    }
+
+    #beat-8-cta {
+      width: 1080px;
+      height: 1920px;
+      position: relative;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-8-cta .b8-fill {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #FCFCFD;
+    }
+
+    #beat-8-cta .b8-grid {
+      position: absolute;
+      inset: -140px;
+      background-image:
+        linear-gradient(rgba(223, 223, 226, .40) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 223, 226, .40) 1px, transparent 1px);
+      background-size: 84px 84px;
+      transform-origin: 50% 52%;
+    }
+
+    #beat-8-cta .b8-glow {
+      position: absolute;
+      left: 50%;
+      top: 560px;
+      width: 760px;
+      height: 760px;
+      margin-left: -380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(125, 211, 252, .30), rgba(125, 211, 252, .08) 42%, rgba(125, 211, 252, 0) 72%);
+    }
+
+    #beat-8-cta .b8-rule-one,
+    #beat-8-cta .b8-rule-two {
+      position: absolute;
+      height: 2px;
+      background: #DFDFE2;
+      transform-origin: left;
+    }
+
+    #beat-8-cta .b8-rule-one { left: 0; right: 0; top: 326px; }
+    #beat-8-cta .b8-rule-two { left: 76px; right: 76px; bottom: 214px; }
+
+    #beat-8-cta .b8-header {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      top: 104px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #beat-8-cta .b8-kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #0B5284;
+      font: 600 23px/1 "JetBrains Mono", monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    #beat-8-cta .b8-kicker::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 3px solid #0B5284;
+      border-radius: 50%;
+      background: #7DD3FC;
+    }
+
+    #beat-8-cta .b8-header-note {
+      color: #45454A;
+      font: 400 20px/1 "JetBrains Mono", monospace;
+      letter-spacing: .04em;
+    }
+
+    #beat-8-cta .b8-rig {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 48%;
+    }
+
+    #beat-8-cta .b8-address-wrap {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      top: 412px;
+      display: grid;
+      grid-template-columns: 148px 1fr;
+      align-items: center;
+      gap: 28px;
+    }
+
+    #beat-8-cta .b8-avatar-shell {
+      width: 148px;
+      height: 148px;
+      padding: 7px;
+      overflow: hidden;
+      border: 2px solid #0B5284;
+      border-radius: 50%;
+      background: #FCFCFD;
+    }
+
+    #beat-8-cta .b8-avatar-shell img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    #beat-8-cta .b8-address {
+      display: flex;
+      align-items: baseline;
+      color: #09090B;
+      font: 600 101px/.92 "Satoshi Variable", "Microsoft YaHei", sans-serif;
+      font-size: 101px;
+      letter-spacing: -.072em;
+      white-space: nowrap;
+    }
+
+    #beat-8-cta .b8-letter {
+      display: inline-block;
+    }
+
+    #beat-8-cta .b8-letter-dot {
+      color: #0B5284;
+    }
+
+    #beat-8-cta .b8-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 92px;
+      margin-left: 14px;
+      background: #7DD3FC;
+    }
+
+    #beat-8-cta .b8-invite {
+      position: absolute;
+      left: 76px;
+      top: 620px;
+      color: #45454A;
+      font-size: 38px;
+      font-weight: 620;
+      letter-spacing: -.025em;
+    }
+
+    #beat-8-cta .b8-platforms {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      top: 735px;
+      display: grid;
+      gap: 18px;
+    }
+
+    #beat-8-cta .b8-pill {
+      height: 126px;
+      display: grid;
+      grid-template-columns: 76px 1fr 42px;
+      align-items: center;
+      gap: 22px;
+      padding: 0 30px;
+      border: 1px solid #DFDFE2;
+      border-radius: 999px;
+      background: #F2F2F3;
+      color: #09090B;
+    }
+
+    #beat-8-cta .b8-icon-shell {
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #DFDFE2;
+      border-radius: 50%;
+      background: #FCFCFD;
+      color: #0B5284;
+      font: 600 20px/1 "JetBrains Mono", monospace;
+    }
+
+    #beat-8-cta .b8-icon-shell img {
+      display: block;
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    #beat-8-cta .b8-icon-shell svg {
+      display: block;
+      width: 31px;
+      height: 31px;
+      color: #0B5284;
+    }
+
+    #beat-8-cta .b8-source-asset {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #beat-8-cta .b8-platform-copy {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    #beat-8-cta .b8-platform-name {
+      color: #45454A;
+      font-size: 25px;
+      font-weight: 620;
+      white-space: nowrap;
+    }
+
+    #beat-8-cta .b8-platform-id {
+      overflow: hidden;
+      color: #09090B;
+      font: 600 31px/1.34 "JetBrains Mono", "Microsoft YaHei", monospace;
+      min-height: 42px;
+      letter-spacing: -.04em;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    #beat-8-cta .b8-pill-arrow {
+      color: #0B5284;
+      font: 400 32px/1 "JetBrains Mono", monospace;
+    }
+
+    #beat-8-cta .b8-slogan {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      bottom: 250px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    #beat-8-cta .b8-slogan-main {
+      color: #09090B;
+      font-size: 58px;
+      font-weight: 720;
+      line-height: 1;
+      letter-spacing: -.05em;
+    }
+
+    #beat-8-cta .b8-slogan-sub {
+      color: #0B5284;
+      font: 600 19px/1 "JetBrains Mono", monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #beat-8-cta .b8-hold {
+      position: absolute;
+      right: 76px;
+      bottom: 104px;
+      color: #45454A;
+      font: 400 18px/1 "JetBrains Mono", monospace;
+      letter-spacing: .06em;
+    }
+  </style>
+
+  <div data-hf-id="hf-9ge8" id="beat-8-cta" data-composition-id="beat-8-cta" data-width="1080" data-height="1920" style="width:1080px;height:1920px;position:relative;overflow:hidden;">
+    <div data-hf-id="hf-52rk" class="b8-fill">
+      <div data-hf-id="hf-n1g3" class="b8-grid"></div>
+      <div data-hf-id="hf-a9j0" class="b8-glow"></div>
+      <div data-hf-id="hf-hxou" class="b8-rule-one"></div>
+      <div data-hf-id="hf-ts4g" class="b8-rule-two"></div>
+
+      <div data-hf-id="hf-h3e0" class="b8-header">
+        <span data-hf-id="hf-4iiw" class="b8-kicker">继续看真实实践</span>
+        <span data-hf-id="hf-08w3" class="b8-header-note">FIND JOYE ONLINE</span>
+      </div>
+
+      <div data-hf-id="hf-uc2j" class="b8-rig">
+        <div data-hf-id="hf-6b9m" class="b8-address-wrap">
+          <div data-hf-id="hf-g65h" class="b8-avatar-shell">
+            <img data-hf-id="hf-920k" src="capture/assets/joye.png" alt="Joye">
+          </div>
+          <div data-hf-id="hf-ai44" class="b8-address" aria-label="joyehuang.me">
+            <span data-hf-id="hf-ebna" class="b8-letter">j</span><span data-hf-id="hf-cc45" class="b8-letter">o</span><span data-hf-id="hf-l2ur" class="b8-letter">y</span><span data-hf-id="hf-9y9z" class="b8-letter">e</span><span data-hf-id="hf-f49c" class="b8-letter">h</span><span data-hf-id="hf-gb6f" class="b8-letter">u</span><span data-hf-id="hf-bji3" class="b8-letter">a</span><span data-hf-id="hf-cqf6" class="b8-letter">n</span><span data-hf-id="hf-95nx" class="b8-letter">g</span><span data-hf-id="hf-gqnl" class="b8-letter b8-letter-dot">.</span><span data-hf-id="hf-d4q7" class="b8-letter">m</span><span data-hf-id="hf-u1gn" class="b8-letter">e</span><span data-hf-id="hf-hyvq" class="b8-cursor"></span>
+          </div>
+        </div>
+
+        <p data-hf-id="hf-xj1x" class="b8-invite">Agent 工程、求职复盘和开源实践，都在这里。</p>
+
+        <div data-hf-id="hf-ojxl" class="b8-platforms">
+          <div data-hf-id="hf-u5hy" class="b8-pill">
+            <span data-hf-id="hf-354p" class="b8-icon-shell">RED</span>
+            <span data-hf-id="hf-5vet" class="b8-platform-copy"><span data-hf-id="hf-sbzl" class="b8-platform-name">小红书 ·</span><span data-hf-id="hf-xkw8" class="b8-platform-id">Joye</span></span>
+            <span data-hf-id="hf-8xfy" class="b8-pill-arrow">↗</span>
+          </div>
+          <div data-hf-id="hf-9np6" class="b8-pill">
+            <span data-hf-id="hf-1be0" class="b8-icon-shell">B</span>
+            <span data-hf-id="hf-wkgp" class="b8-platform-copy"><span data-hf-id="hf-k7tr" class="b8-platform-name">B站 ·</span><span data-hf-id="hf-kcaj" class="b8-platform-id">UID 3546914882587480</span></span>
+            <span data-hf-id="hf-bas2" class="b8-pill-arrow">↗</span>
+          </div>
+          <div data-hf-id="hf-a207" class="b8-pill">
+            <span data-hf-id="hf-aqt6" class="b8-icon-shell">
+              <img data-hf-id="hf-oxzp" class="b8-source-asset" src="capture/assets/svgs/svg-a0b4ad49.svg" alt="">
+              <svg data-hf-id="hf-2e6l" viewBox="0 0 24 24" aria-label="GitHub"><g data-hf-id="hf-b83d" fill="none"><path data-hf-id="hf-jz2w" d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" /><path data-hf-id="hf-agly" fill="currentColor" d="M6.315 6.176c-.25-.638-.24-1.367-.129-2.034a6.8 6.8 0 0 1 2.12 1.07c.28.214.647.283.989.18A9.3 9.3 0 0 1 12 5c.961 0 1.874.14 2.703.391c.342.104.709.034.988-.18a6.8 6.8 0 0 1 2.119-1.07c.111.667.12 1.396-.128 2.033c-.15.384-.075.826.208 1.14C18.614 8.117 19 9.04 19 10c0 2.114-1.97 4.187-5.134 4.818c-.792.158-1.101 1.155-.495 1.726c.389.366.629.882.629 1.456v3a1 1 0 0 0 2 0v-3c0-.57-.12-1.112-.334-1.603C18.683 15.35 21 12.993 21 10c0-1.347-.484-2.585-1.287-3.622c.21-.82.191-1.646.111-2.28c-.071-.568-.17-1.312-.57-1.756c-.595-.659-1.58-.271-2.28-.032a9 9 0 0 0-2.125 1.045A11.4 11.4 0 0 0 12 3c-.994 0-1.953.125-2.851.356a9 9 0 0 0-2.125-1.045c-.7-.24-1.686-.628-2.281.031c-.408.452-.493 1.137-.566 1.719l-.005.038c-.08.635-.098 1.462.112 2.283C3.484 7.418 3 8.654 3 10c0 2.992 2.317 5.35 5.334 6.397A4 4 0 0 0 8 17.98l-.168.034c-.717.099-1.176.01-1.488-.122c-.76-.322-1.152-1.133-1.63-1.753c-.298-.385-.732-.866-1.398-1.088a1 1 0 0 0-.632 1.898c.558.186.944 1.142 1.298 1.566c.373.448.869.916 1.58 1.218c.682.29 1.483.393 2.438.276V21a1 1 0 0 0 2 0v-3c0-.574.24-1.09.629-1.456c.607-.572.297-1.568-.495-1.726C6.969 14.187 5 12.114 5 10c0-.958.385-1.881 1.108-2.684c.283-.314.357-.756.207-1.14" /></g></svg>
+            </span>
+            <span data-hf-id="hf-xrds" class="b8-platform-copy"><span data-hf-id="hf-ks2t" class="b8-platform-name">GitHub ·</span><span data-hf-id="hf-en73" class="b8-platform-id">@joyehuang</span></span>
+            <span data-hf-id="hf-bp33" class="b8-pill-arrow">↗</span>
+          </div>
+          <div data-hf-id="hf-agb8" class="b8-pill">
+            <span data-hf-id="hf-xo7y" class="b8-icon-shell"><img data-hf-id="hf-2n3x" src="capture/assets/svgs/svg-baab9268.svg" alt="X"></span>
+            <span data-hf-id="hf-xd2r" class="b8-platform-copy"><span data-hf-id="hf-658k" class="b8-platform-name">X ·</span><span data-hf-id="hf-k4ds" class="b8-platform-id">@deshiou0604</span></span>
+            <span data-hf-id="hf-c3e4" class="b8-pill-arrow">↗</span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-7hyt" class="b8-slogan">
+          <span data-hf-id="hf-ewfh" class="b8-slogan-main">Build fast, learn faster.</span>
+          <span data-hf-id="hf-buuu" class="b8-slogan-sub">See you there ↗</span>
+        </div>
+      </div>
+
+      <span data-hf-id="hf-1u5e" class="b8-hold">joyehuang.me / 2026</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var BEAT = 11.81;
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      var root = document.getElementById("beat-8-cta");
+      if (!root) return;
+
+      var grid = root.querySelector(".b8-grid");
+      var glow = root.querySelector(".b8-glow");
+      var header = root.querySelector(".b8-header");
+      var rig = root.querySelector(".b8-rig");
+      var avatar = root.querySelector(".b8-avatar-shell");
+      var letters = root.querySelectorAll(".b8-letter");
+      var cursor = root.querySelector(".b8-cursor");
+      var invite = root.querySelector(".b8-invite");
+      var pills = root.querySelectorAll(".b8-pill");
+      var slogan = root.querySelector(".b8-slogan");
+      var hold = root.querySelector(".b8-hold");
+      var rules = root.querySelectorAll(".b8-rule-one, .b8-rule-two");
+
+      tl.fromTo(grid, { x: -50, y: 50, scale: 1 }, { x: 34, y: -40, scale: 1.075, duration: BEAT, ease: "none" }, 0);
+      tl.fromTo(rig, { x: -24, y: 54, scale: .965 }, { x: 20, y: -28, scale: 1.02, duration: 9.31, ease: "none" }, 0);
+      tl.fromTo(glow, { scale: .78, opacity: .18 }, { scale: 1.15, opacity: .34, duration: 9.31, ease: "sine.inOut" }, 0);
+      tl.fromTo(header, { x: 88, opacity: .46 }, { x: 0, opacity: 1, duration: .72, ease: "expo.out" }, .04);
+      tl.fromTo(rules, { scaleX: 0 }, { scaleX: 1, duration: .88, stagger: .14, ease: "power1.out" }, .08);
+      tl.fromTo(avatar, { scale: .52, rotation: -12, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: .74, ease: "back.out(1.7)" }, .16);
+      tl.fromTo(letters, { y: 66, opacity: 0 }, { y: 0, opacity: 1, duration: .18, stagger: .043, ease: "power4.out" }, .18);
+      tl.fromTo(cursor, { opacity: 0 }, { opacity: 1, duration: .10, ease: "steps(1)" }, .18);
+      tl.to(cursor, { opacity: .22, duration: .16, yoyo: true, repeat: 19, ease: "steps(1)" }, .82);
+      tl.fromTo(invite, { y: 54, opacity: 0 }, { y: 0, opacity: 1, duration: .64, ease: "expo.out" }, 1.08);
+      tl.fromTo(pills, { x: 190, opacity: 0, scale: .94 }, { x: 0, opacity: 1, scale: 1, duration: .72, stagger: .10, ease: "power4.out" }, 2.02);
+      tl.fromTo(slogan, { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: .82, ease: "expo.out" }, 4.18);
+      tl.fromTo(hold, { opacity: 0 }, { opacity: 1, duration: .58, ease: "power1.out" }, 5.20);
+
+      tl.to(pills, { x: 10, duration: 3.1, stagger: .08, ease: "sine.inOut" }, 5.72);
+      tl.to(avatar, { rotation: 4, scale: 1.04, duration: 3.0, ease: "sine.inOut" }, 6.10);
+      tl.to(glow, { opacity: .42, scale: 1.20, duration: 2.5, ease: "sine.inOut" }, 9.31);
+      tl.to(rig, { x: 26, y: -38, scale: 1.03, duration: 2.5, ease: "none" }, 9.31);
+
+      window.__timelines["beat-8-cta"] = tl;
+    })();
+  </script>
+</template>

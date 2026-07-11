@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html><head></head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "Satoshi Variable";
+          src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+          font-weight: 100 900;
+          font-display: block;
+        }
+        @font-face {
+          font-family: "Microsoft YaHei";
+          src: local("Microsoft YaHei");
+          font-weight: 100 900;
+          font-display: block;
+        }
+
+        #captions-root {
+          position: absolute;
+          inset: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+          pointer-events: none;
+          font-family: "Satoshi Variable", "Microsoft YaHei", sans-serif;
+        }
+
+        .caption-stage {
+          position: absolute;
+          inset: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: visible;
+        }
+
+        .caption-group {
+          position: absolute;
+          left: 72px;
+          right: 72px;
+          bottom: 430px;
+          min-height: 104px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px 34px 22px;
+          border: 1px solid rgba(45, 56, 67, 0.25);
+          border-radius: 24px;
+          background: rgba(252, 252, 253, 0.94);
+          box-shadow: 0 18px 52px rgba(9, 9, 11, 0.14);
+          color: #09090b;
+          font-size: 52px;
+          font-weight: 750;
+          line-height: 1.15;
+          letter-spacing: 0.01em;
+          text-align: center;
+          opacity: 0;
+          visibility: hidden;
+          overflow: visible;
+          will-change: transform, opacity;
+        }
+
+        .caption-group.emphasis {
+          color: #0b5284;
+          border-color: rgba(11, 82, 132, 0.35);
+          box-shadow: 0 18px 52px rgba(11, 82, 132, 0.16);
+        }
+      </style>
+
+      <div data-hf-id="hf-2uuq" id="captions-root" data-composition-id="captions" data-width="1080" data-height="1920" data-duration="59.91">
+        <div data-hf-id="hf-zypl" id="captions-stage" class="caption-stage"></div>
+      </div>
+
+      <script>
+        (function () {
+          var GROUPS = [
+            ["大二",2.00,3.10,1], ["面过一百多家 AI 公司",3.10,4.72,1], ["拿到三十多个 offer",4.72,5.95,1],
+            ["我把踩过的坑",5.95,6.65,0], ["全写进一个网站",6.65,7.44,0], ["我是 Joye",7.44,8.68,1],
+            ["墨尔本大学",8.68,10.02,0], ["计算与软件工程在读",10.02,11.62,0], ["AI Agent 全栈开发者",11.62,13.20,1],
+            ["商业研究 Multi-Agent",13.20,14.62,0], ["视频剪辑 Agent",14.62,15.92,0], ["还有虚拟试衣",15.92,17.12,0],
+            ["十三篇博客",17.12,18.28,1], ["十一篇 Notes",18.28,19.30,1], ["两场公开分享",19.30,20.42,1],
+            ["总浏览量 24,752",20.42,22.68,1], ["最受欢迎的",22.68,23.78,0], ["1.1 万字 Agent 入门指南",23.78,26.28,1],
+            ["已有 2,008 次阅读",26.28,28.24,1], ["我把 Agent 讲成四件事",28.24,29.72,0],
+            ["大脑 · 工具 · 记忆",29.72,31.16,1], ["还有一个会自己循环的身体",31.16,33.00,0],
+            ["入门不用追完所有名词",36.14,37.72,0], ["先跑通 SDK",37.72,39.08,1], ["再理解机制",39.08,40.38,0],
+            ["最后做一个你真的会用的项目",40.38,42.86,1], ["做过的事要公开",42.86,44.20,0],
+            ["踩过的坑要复盘",44.20,45.62,0], ["minimind-notes",45.62,46.72,1], ["有 146 颗星",46.72,48.10,1],
+            ["想继续看 Agent 工程",48.10,49.42,0], ["求职复盘和开源实践",49.42,50.72,0],
+            ["来 joyehuang.me",50.72,52.32,1], ["小红书 · B站 · GitHub · X",52.32,54.68,1],
+            ["都能找到我",54.68,55.62,0], ["Build fast, learn faster.",55.62,57.41,1]
+          ];
+          var stage = document.getElementById("captions-stage");
+          if (!stage) return;
+          GROUPS.forEach(function (group, index) {
+            var el = document.createElement("div");
+            el.id = "captions-group-" + index;
+            el.className = "caption-group" + (group[3] ? " emphasis" : "");
+            el.textContent = group[0];
+            stage.appendChild(el);
+          });
+
+          window.__timelines = window.__timelines || {};
+          var tl = gsap.timeline({ paused: true });
+          GROUPS.forEach(function (group, index) {
+            var el = document.getElementById("captions-group-" + index);
+            var start = group[1];
+            var end = group[2];
+            var exitAt = Math.max(start + 0.18, end - 0.14);
+            tl.set(el, { visibility: "visible" }, start);
+            tl.fromTo(el,
+              { opacity: 0, y: 34, scale: 0.94 },
+              { opacity: 1, y: 0, scale: group[3] ? 1.035 : 1, duration: 0.16, ease: group[3] ? "back.out(1.7)" : "power4.out", overwrite: "auto" },
+              start
+            );
+            tl.to(el, { opacity: 0, y: -18, scale: 0.97, duration: 0.12, ease: "power2.in", overwrite: "auto" }, exitAt);
+            tl.set(el, { opacity: 0, visibility: "hidden" }, end);
+          });
+          window.__timelines["captions"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

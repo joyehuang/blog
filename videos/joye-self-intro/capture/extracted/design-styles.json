@@ -1,0 +1,337 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "Satoshi",
+      "fontSize": "30px",
+      "fontWeight": "700",
+      "lineHeight": "36px",
+      "letterSpacing": "normal",
+      "color": "#09090B",
+      "sampleText": "Joye"
+    },
+    {
+      "role": "heading",
+      "fontFamily": "Satoshi",
+      "fontSize": "20px",
+      "fontWeight": "600",
+      "lineHeight": "28px",
+      "letterSpacing": "normal",
+      "color": "#09090B",
+      "sampleText": "About"
+    },
+    {
+      "role": "heading-2",
+      "fontFamily": "Satoshi",
+      "fontSize": "18px",
+      "fontWeight": "500",
+      "lineHeight": "28px",
+      "letterSpacing": "normal",
+      "color": "#09090B",
+      "sampleText": "一场面试，反推 AI 时代的产品形态"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Satoshi",
+      "fontSize": "16px",
+      "fontWeight": "500",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#09090B",
+      "sampleText": "Languages"
+    },
+    {
+      "role": "body",
+      "fontFamily": "Satoshi",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#09090B",
+      "sampleText": "Melbourne, Australia"
+    },
+    {
+      "role": "label",
+      "fontFamily": "JetBrains Mono",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "letterSpacing": "normal",
+      "color": "#09090B",
+      "sampleText": "sample"
+    },
+    {
+      "role": "code",
+      "fontFamily": "ui-monospace",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "20px",
+      "letterSpacing": "-0.3px",
+      "color": "#45454A",
+      "sampleText": "$_"
+    }
+  ],
+  "spacing": {
+    "observed": [
+      2,
+      4,
+      6,
+      7,
+      8,
+      10,
+      12,
+      14,
+      16,
+      20,
+      24,
+      28,
+      40
+    ],
+    "baseUnit": 4
+  },
+  "radius": [
+    "6px",
+    "8px",
+    "16px",
+    "999px",
+    "9999px"
+  ],
+  "shadows": [
+    {
+      "value": "rgba(125, 211, 252, 0.41) 0px 0px 16.48px -2.99637px",
+      "count": 1
+    },
+    {
+      "value": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px",
+      "count": 1
+    }
+  ],
+  "buttons": [
+    {
+      "label": "切换语言 EN",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#09090B",
+      "padding": "6px",
+      "borderRadius": "6px",
+      "border": "1px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "height": "20px"
+    },
+    {
+      "label": "进入 ~/joye →",
+      "background": "#7DD3FC",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#DBEEFB",
+      "padding": "11px 18px",
+      "borderRadius": "10px",
+      "border": "1px solid rgba(125, 211, 252, 0.4)",
+      "boxShadow": "rgba(125, 211, 252, 0.41) 0px 0px 16.48px -2.99637px",
+      "fontSize": "13px",
+      "fontWeight": "400",
+      "height": "43.5px"
+    },
+    {
+      "label": "跳过 →",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#9AA6B2",
+      "padding": "7px 12px",
+      "borderRadius": "8px",
+      "border": "1px solid rgba(255, 255, 255, 0.12)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "height": "34px"
+    },
+    {
+      "label": "↻ 重播入场",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "blur(6px)",
+      "color": "#45454A",
+      "padding": "6px 12px",
+      "borderRadius": "999px",
+      "border": "1px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "11px",
+      "fontWeight": "400",
+      "height": "30.5px"
+    },
+    {
+      "label": "button",
+      "background": "#F2F2F3",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#45454A",
+      "padding": "0px",
+      "borderRadius": "999px",
+      "border": "1px solid rgba(9, 9, 11, 0.18)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "height": "11px"
+    },
+    {
+      "label": "TypeScript",
+      "background": "#F2F2F3",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#45454A",
+      "padding": "4px 8px",
+      "borderRadius": "8px",
+      "border": "1px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "height": "30px"
+    }
+  ],
+  "cards": [
+    {
+      "label": "card",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#09090B",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "border": "0px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "228.5px"
+    },
+    {
+      "label": "card",
+      "background": "transparent",
+      "backgroundImage": "linear-gradient(to right bottom, rgba(250, 204, 21, 0.1), rgba(245, 158, 11, 0.04), rgba(249, 115, 22, 0.08))",
+      "backdropFilter": "",
+      "color": "#09090B",
+      "padding": "24px",
+      "borderRadius": "16px",
+      "border": "1px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "142.75px"
+    },
+    {
+      "label": "card",
+      "background": "#FCFCFD",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#09090B",
+      "padding": "0px",
+      "borderRadius": "16px",
+      "border": "1px solid rgb(223, 223, 226)",
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "200px"
+    }
+  ],
+  "nav": null,
+  "chips": [
+    {
+      "label": "sample",
+      "background": "transparent",
+      "color": "#09090B",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "border": "0px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "height": "16.5px"
+    },
+    {
+      "label": "// power user?",
+      "background": "#F2F2F3",
+      "color": "#45454A",
+      "padding": "2px 8px",
+      "borderRadius": "999px",
+      "border": "1px dashed rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "11.5px",
+      "fontWeight": "400",
+      "height": "23.25px"
+    },
+    {
+      "label": "第一届",
+      "background": "#F59E0B",
+      "color": "#B45309",
+      "padding": "2px 8px",
+      "borderRadius": "9999px",
+      "border": "1px solid rgba(245, 158, 11, 0.4)",
+      "boxShadow": "none",
+      "fontSize": "12px",
+      "fontWeight": "500",
+      "height": "22px"
+    },
+    {
+      "label": "进去看看 →",
+      "background": "transparent",
+      "color": "#09090B",
+      "padding": "8px 16px",
+      "borderRadius": "9999px",
+      "border": "1px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "14px",
+      "fontWeight": "500",
+      "height": "38px"
+    }
+  ],
+  "statCells": [],
+  "tabs": [
+    {
+      "label": "13",
+      "background": "transparent",
+      "color": "#09090B",
+      "padding": "0px",
+      "borderRadius": "0px",
+      "border": "0px solid rgb(223, 223, 226)",
+      "boxShadow": "none",
+      "fontSize": "24px",
+      "fontWeight": "500",
+      "height": "32px"
+    }
+  ],
+  "backgrounds": [
+    {
+      "value": "linear-gradient(rgb(101, 158, 185), rgba(0, 0, 0, 0))",
+      "area": 2073600
+    },
+    {
+      "value": "linear-gradient(140deg, rgba(11, 82, 132, 0.35), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 70%, rgba(11, 82, 132, 0.18))",
+      "area": 34666
+    },
+    {
+      "value": "linear-gradient(rgba(9, 9, 11, 0.024) 1px, rgba(0, 0, 0, 0) 1px), linear-gradient(90deg, rgba(9, 9, 11, 0.024) 1px, rgba(0, 0, 0, 0) 1px)",
+      "area": 34666
+    },
+    {
+      "value": "linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.88))",
+      "area": 34666
+    },
+    {
+      "value": "linear-gradient(rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.72) 30%)",
+      "area": 29366
+    }
+  ],
+  "glass": [
+    {
+      "backdropFilter": "blur(18px) saturate(1.4)",
+      "background": "linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.88))",
+      "border": "1px solid rgba(45, 56, 67, 0.32)",
+      "borderRadius": "13.6px",
+      "boxShadow": "rgba(45, 56, 67, 0.192) 0px 0px 0px 1px, rgba(252, 252, 253, 0.6) 0px 1px 0px 0px inset, rgba(9, 9, 11, 0.28) 0px 24px 48px -28px, rgba(9, 9, 11, 0.18) 0px 8px 24px -16px",
+      "area": 34666
+    }
+  ]
+}

@@ -1,0 +1,333 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-VariableItalic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDba2o-flEEny0FZhsfKu5WU4xD-IQ-PuZJJXxfpAO-LflOQ.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "PingFang SC";
+      src: local("PingFang SC");
+    }
+    @font-face {
+      font-family: "Microsoft YaHei";
+      src: local("Microsoft YaHei");
+    }
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: local("Noto Sans SC");
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    #beat-1-hook {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-1-hook .paper-fill {
+      position: absolute;
+      inset: 0;
+      background: #FCFCFD;
+    }
+
+    #beat-1-hook .grid-plane {
+      position: absolute;
+      inset: -100px;
+      background-image:
+        linear-gradient(rgba(11, 82, 132, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(11, 82, 132, 0.055) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: linear-gradient(to bottom, transparent 2%, #000 22%, #000 78%, transparent 98%);
+    }
+
+    #beat-1-hook .camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 49%;
+    }
+
+    #beat-1-hook .eyebrow {
+      position: absolute;
+      top: 126px;
+      left: 84px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 25px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #beat-1-hook .boot-cursor {
+      width: 15px;
+      height: 31px;
+      border-radius: 3px;
+      background: #7DD3FC;
+    }
+
+    #beat-1-hook .cards {
+      position: absolute;
+      top: 270px;
+      left: 72px;
+      width: 936px;
+      height: 1050px;
+    }
+
+    #beat-1-hook .metric-card {
+      position: absolute;
+      left: 0;
+      width: 936px;
+      height: 284px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: 34px 44px 36px 50px;
+      border: 1px solid #DFDFE2;
+      border-radius: 16px;
+      background: #F2F2F3;
+      transform-origin: 50% 50%;
+    }
+
+    #beat-1-hook .card-one { top: 0; }
+    #beat-1-hook .card-two { top: 328px; }
+    #beat-1-hook .card-three { top: 656px; }
+
+    #beat-1-hook .metric-main {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      white-space: nowrap;
+      font-family: "JetBrains Mono", "PingFang SC", "Microsoft YaHei", monospace;
+      font-variant-numeric: tabular-nums;
+      line-height: 0.84;
+    }
+
+    #beat-1-hook .metric-number {
+      color: #09090B;
+      font-size: 174px;
+      font-weight: 600;
+      letter-spacing: -0.09em;
+    }
+
+    #beat-1-hook .card-one .metric-number {
+      font-family: "Satoshi Variable", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 168px;
+      font-weight: 780;
+      letter-spacing: -0.08em;
+    }
+
+    #beat-1-hook .metric-unit {
+      color: #0B5284;
+      font-size: 45px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+    }
+
+    #beat-1-hook .metric-index {
+      align-self: flex-start;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+    }
+
+    #beat-1-hook .accent-rule {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: #7DD3FC;
+      transform-origin: 0 50%;
+    }
+
+    #beat-1-hook .address-bar {
+      position: absolute;
+      top: 1148px;
+      left: 72px;
+      width: 936px;
+      height: 132px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding: 0 46px;
+      border: 1px solid rgba(45, 56, 67, 0.32);
+      border-radius: 16px;
+      background: linear-gradient(rgba(255,255,255,.95), rgba(255,255,255,.88));
+      backdrop-filter: blur(18px) saturate(1.4);
+    }
+
+    #beat-1-hook .address-prompt {
+      margin-right: 22px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 42px;
+      font-weight: 600;
+    }
+
+    #beat-1-hook .address-reveal {
+      position: relative;
+      display: block;
+      width: 650px;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 55px;
+      font-weight: 600;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      white-space: nowrap;
+      clip-path: inset(0 100% 0 0);
+    }
+
+    #beat-1-hook .address-cursor {
+      width: 9px;
+      height: 62px;
+      margin-left: 7px;
+      border-radius: 2px;
+      background: #7DD3FC;
+    }
+
+  </style>
+
+  <div data-hf-id="hf-42x8" id="beat-1-hook" data-composition-id="beat-1-hook" data-duration="7.44" data-width="1080" data-height="1920">
+    <div data-hf-id="hf-h0oo" class="paper-fill"></div>
+    <div data-hf-id="hf-4orp" class="grid-plane"></div>
+
+    <div data-hf-id="hf-g4sl" class="camera">
+      <div data-hf-id="hf-rk6h" class="eyebrow">
+        <span data-hf-id="hf-3jlc" class="boot-cursor"></span>
+        <span data-hf-id="hf-hl2l">THREE NUMBERS / JOYE</span>
+      </div>
+
+      <div data-hf-id="hf-5cwd" class="cards">
+        <div data-hf-id="hf-fpd4" class="metric-card card-one">
+          <div data-hf-id="hf-91h2" class="metric-main"><span data-hf-id="hf-ottq" class="metric-number">大二</span></div>
+          <span data-hf-id="hf-1qo0" class="metric-index">01 / NOW</span>
+          <span data-hf-id="hf-chr6" class="accent-rule"></span>
+        </div>
+        <div data-hf-id="hf-ddqq" class="metric-card card-two">
+          <div data-hf-id="hf-jhui" class="metric-main">
+            <span data-hf-id="hf-zes5" class="metric-number">100+</span>
+            <span data-hf-id="hf-1ofu" class="metric-unit">AI 公司</span>
+          </div>
+          <span data-hf-id="hf-198f" class="metric-index">02 / INTERVIEWS</span>
+          <span data-hf-id="hf-j9ae" class="accent-rule"></span>
+        </div>
+        <div data-hf-id="hf-kuho" class="metric-card card-three">
+          <div data-hf-id="hf-jw5j" class="metric-main">
+            <span data-hf-id="hf-s5pj" class="metric-number">30+</span>
+            <span data-hf-id="hf-h2wr" class="metric-unit">offers</span>
+          </div>
+          <span data-hf-id="hf-s1zk" class="metric-index">03 / RESULTS</span>
+          <span data-hf-id="hf-jnlf" class="accent-rule"></span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-fkfk" class="address-bar">
+        <span data-hf-id="hf-9rug" class="address-prompt">›</span>
+        <span data-hf-id="hf-b1id" class="address-reveal">joyehuang.me</span>
+        <span data-hf-id="hf-83di" class="address-cursor"></span>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var BEAT = 7.44;
+        var root = document.getElementById("beat-1-hook");
+        if (!root) return;
+
+        var camera = root.querySelector(".camera");
+        var grid = root.querySelector(".grid-plane");
+        var bootCursor = root.querySelector(".boot-cursor");
+        var cards = root.querySelectorAll(".metric-card");
+        var cardOne = root.querySelector(".card-one");
+        var cardTwo = root.querySelector(".card-two");
+        var cardThree = root.querySelector(".card-three");
+        var contents = root.querySelectorAll(".metric-main, .metric-index");
+        var rules = root.querySelectorAll(".accent-rule");
+        var address = root.querySelector(".address-bar");
+        var addressText = root.querySelector(".address-reveal");
+        var addressCursor = root.querySelector(".address-cursor");
+
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(camera, { scale: 1, y: 0 }, { scale: 1.065, y: -18, duration: BEAT, ease: "none" }, 0);
+        tl.fromTo(grid, { x: -26, y: -42 }, { x: 26, y: 42, duration: BEAT, ease: "none" }, 0);
+        tl.fromTo(bootCursor, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 0);
+        tl.to(bootCursor, { opacity: 0.2, duration: 0.18, ease: "none" }, 0.36);
+        tl.to(bootCursor, { opacity: 1, duration: 0.18, ease: "none" }, 0.72);
+        tl.to(bootCursor, { opacity: 0.2, duration: 0.18, ease: "none" }, 1.08);
+        tl.to(bootCursor, { opacity: 1, duration: 0.18, ease: "none" }, 1.44);
+
+        tl.fromTo(cardOne, { y: 330, opacity: 0, rotation: -4 }, { y: 0, opacity: 1, rotation: 0, duration: 0.72, ease: "back.out(1.4)" }, 0.30);
+        tl.fromTo(cardTwo, { y: 330, opacity: 0, rotation: 4 }, { y: 0, opacity: 1, rotation: 0, duration: 0.72, ease: "back.out(1.4)" }, 1.40);
+        tl.fromTo(cardThree, { y: 330, opacity: 0, rotation: -4 }, { y: 0, opacity: 1, rotation: 0, duration: 0.72, ease: "back.out(1.4)" }, 2.50);
+        tl.fromTo(rules, { scaleX: 0 }, { scaleX: 1, duration: 0.54, ease: "power4.out", stagger: 0.10 }, 2.88);
+
+        tl.to(contents, { opacity: 0, duration: 0.18, ease: "power1.out" }, 4.54);
+        tl.to(cardOne, { y: 890, scaleY: 0.46, duration: 0.78, ease: "expo.inOut" }, 4.20);
+        tl.to(cardTwo, { y: 562, scaleY: 0.46, duration: 0.78, ease: "expo.inOut" }, 4.20);
+        tl.to(cardThree, { y: 234, scaleY: 0.46, duration: 0.78, ease: "expo.inOut" }, 4.20);
+        tl.to(cards, { opacity: 0, duration: 0.18, ease: "none", stagger: 0.04 }, 4.82);
+        tl.fromTo(address, { opacity: 0, y: 80, scaleX: 0.88 }, { opacity: 1, y: 0, scaleX: 1, duration: 0.54, ease: "back.out(1.4)" }, 4.64);
+        tl.fromTo(addressText, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.52, ease: "steps(12)" }, 4.68);
+        tl.fromTo(addressCursor, { x: -620, opacity: 1 }, { x: 0, opacity: 1, duration: 0.52, ease: "steps(12)" }, 4.68);
+        tl.to(addressCursor, { opacity: 0.15, duration: 0.16, ease: "none" }, 5.36);
+        tl.to(addressCursor, { opacity: 1, duration: 0.16, ease: "none" }, 5.70);
+        tl.to(addressCursor, { opacity: 0.15, duration: 0.16, ease: "none" }, 6.04);
+        tl.to(addressCursor, { opacity: 1, duration: 0.16, ease: "none" }, 6.38);
+        tl.to(address, { scale: 1.055, y: -18, duration: 1.06, ease: "power1.inOut" }, 6.38);
+        tl.to(addressCursor, { opacity: 1, duration: 0.01, ease: "none" }, 7.43);
+
+        window.__timelines["beat-1-hook"] = tl;
+      })();
+    </script>
+  </div>
+</template>

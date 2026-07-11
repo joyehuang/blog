@@ -1,0 +1,400 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Microsoft YaHei";
+      src: local("Microsoft YaHei");
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: local("Noto Sans SC");
+      font-style: normal;
+    }
+
+    #beat-6-roadmap,
+    #beat-6-roadmap * {
+      box-sizing: border-box;
+    }
+
+    #beat-6-roadmap {
+      width: 1080px;
+      height: 1920px;
+      position: relative;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-6-roadmap .b6-fill {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #FCFCFD;
+    }
+
+    #beat-6-roadmap .b6-grid {
+      position: absolute;
+      inset: -120px;
+      background-image:
+        linear-gradient(rgba(223, 223, 226, .42) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 223, 226, .42) 1px, transparent 1px);
+      background-size: 84px 84px;
+      transform-origin: 50% 70%;
+    }
+
+    #beat-6-roadmap .b6-term {
+      position: absolute;
+      color: #DFDFE2;
+      font: 600 90px/1 "JetBrains Mono", monospace;
+      font-size: 90px;
+      letter-spacing: -.06em;
+      white-space: nowrap;
+    }
+
+    #beat-6-roadmap .b6-term-prompt { left: -40px; top: 274px; transform: rotate(-7deg); }
+    #beat-6-roadmap .b6-term-mcp { right: 72px; top: 426px; transform: rotate(5deg); }
+    #beat-6-roadmap .b6-term-rag { left: 128px; top: 1126px; transform: rotate(4deg); }
+    #beat-6-roadmap .b6-term-skills { right: -50px; top: 1380px; transform: rotate(-8deg); }
+
+    #beat-6-roadmap .b6-header {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      top: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #DFDFE2;
+    }
+
+    #beat-6-roadmap .b6-kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #0B5284;
+      font: 600 23px/1 "JetBrains Mono", monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    #beat-6-roadmap .b6-kicker::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 3px solid #0B5284;
+      border-radius: 50%;
+      background: #7DD3FC;
+    }
+
+    #beat-6-roadmap .b6-header-index {
+      color: #45454A;
+      font: 400 20px/1 "JetBrains Mono", monospace;
+    }
+
+    #beat-6-roadmap .b6-stage {
+      position: absolute;
+      left: 56px;
+      right: 56px;
+      top: 320px;
+      height: 1270px;
+      transform-origin: 56% 72%;
+    }
+
+    #beat-6-roadmap .b6-path {
+      position: absolute;
+      left: 42px;
+      top: 190px;
+      width: 840px;
+      height: 880px;
+      overflow: visible;
+    }
+
+    #beat-6-roadmap .b6-path-base {
+      fill: none;
+      stroke: #DFDFE2;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    #beat-6-roadmap .b6-path-live {
+      fill: none;
+      stroke: #0B5284;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1900;
+      stroke-dashoffset: 1900;
+    }
+
+    #beat-6-roadmap .b6-step {
+      position: absolute;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px 32px 28px;
+      border: 1px solid #DFDFE2;
+      border-radius: 18px;
+      background: #F2F2F3;
+      transform-origin: left bottom;
+    }
+
+    #beat-6-roadmap .b6-step::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 7px;
+      background: #7DD3FC;
+      transform-origin: left;
+    }
+
+    #beat-6-roadmap .b6-step-one {
+      left: 18px;
+      top: 760px;
+      width: 332px;
+      height: 340px;
+    }
+
+    #beat-6-roadmap .b6-step-two {
+      left: 326px;
+      top: 456px;
+      width: 334px;
+      height: 440px;
+    }
+
+    #beat-6-roadmap .b6-step-three {
+      left: 636px;
+      top: 82px;
+      width: 334px;
+      height: 520px;
+      background: #09090B;
+      border-color: #09090B;
+      color: #FCFCFD;
+    }
+
+    #beat-6-roadmap .b6-step-three::before {
+      background: #7DD3FC;
+    }
+
+    #beat-6-roadmap .b6-step-num {
+      color: #0B5284;
+      font: 600 19px/1 "JetBrains Mono", monospace;
+      letter-spacing: .10em;
+    }
+
+    #beat-6-roadmap .b6-step-three .b6-step-num {
+      color: #7DD3FC;
+    }
+
+    #beat-6-roadmap .b6-step-time {
+      font: 600 59px/.95 "JetBrains Mono", monospace;
+      letter-spacing: -.08em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #beat-6-roadmap .b6-step-title {
+      max-width: 260px;
+      font-size: 43px;
+      font-weight: 720;
+      line-height: 1.08;
+      letter-spacing: -.045em;
+    }
+
+    #beat-6-roadmap .b6-step-one .b6-step-title { font-size: 47px; }
+
+    #beat-6-roadmap .b6-progress {
+      width: 100%;
+      height: 12px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #DFDFE2;
+    }
+
+    #beat-6-roadmap .b6-step-three .b6-progress {
+      background: #2D3843;
+    }
+
+    #beat-6-roadmap .b6-progress > span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: #0B5284;
+      transform-origin: left;
+    }
+
+    #beat-6-roadmap .b6-step-three .b6-progress > span {
+      background: #7DD3FC;
+    }
+
+    #beat-6-roadmap .b6-marker {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border: 7px solid #FCFCFD;
+      border-radius: 50%;
+      background: #0B5284;
+      box-shadow: 0 0 0 3px #0B5284;
+    }
+
+    #beat-6-roadmap .b6-marker-one { left: 330px; top: 910px; }
+    #beat-6-roadmap .b6-marker-two { left: 640px; top: 592px; }
+    #beat-6-roadmap .b6-marker-three { left: 928px; top: 270px; background: #7DD3FC; box-shadow: 0 0 0 3px #0B5284; }
+
+    #beat-6-roadmap .b6-footer {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      bottom: 174px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      border-top: 2px solid #DFDFE2;
+    }
+
+    #beat-6-roadmap .b6-footer-copy {
+      color: #45454A;
+      font-size: 28px;
+      font-weight: 620;
+      letter-spacing: -.02em;
+    }
+
+    #beat-6-roadmap .b6-publish {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 14px 20px;
+      border: 1px solid #DFDFE2;
+      border-radius: 999px;
+      background: #F2F2F3;
+      color: #0B5284;
+      font: 600 19px/1 "JetBrains Mono", monospace;
+      letter-spacing: .06em;
+    }
+
+    #beat-6-roadmap .b6-publish-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #7DD3FC;
+    }
+  </style>
+
+  <div data-hf-id="hf-s1sw" id="beat-6-roadmap" data-composition-id="beat-6-roadmap" data-width="1080" data-height="1920" style="width:1080px;height:1920px;position:relative;overflow:hidden;">
+    <div data-hf-id="hf-o8lu" class="b6-fill">
+      <div data-hf-id="hf-6tsp" class="b6-grid"></div>
+      <span data-hf-id="hf-gom5" class="b6-term b6-term-prompt" data-layout-ignore="">Prompt</span>
+      <span data-hf-id="hf-vvfv" class="b6-term b6-term-mcp" data-layout-ignore="">MCP</span>
+      <span data-hf-id="hf-pv67" class="b6-term b6-term-rag" data-layout-ignore="">RAG</span>
+      <span data-hf-id="hf-i56x" class="b6-term b6-term-skills" data-layout-ignore="">Skills</span>
+
+      <div data-hf-id="hf-9pg2" class="b6-header">
+        <span data-hf-id="hf-0zzv" class="b6-kicker">不要追完所有名词</span>
+        <span data-hf-id="hf-6nn0" class="b6-header-index">03 STEPS</span>
+      </div>
+
+      <div data-hf-id="hf-9xv5" class="b6-stage">
+        <svg data-hf-id="hf-secj" class="b6-path" viewBox="0 0 840 880" aria-hidden="true">
+          <path data-hf-id="hf-4w2r" class="b6-path-base" d="M24 820 H280 V542 H580 V248 H816" />
+          <path data-hf-id="hf-9xtg" class="b6-path-live" d="M24 820 H280 V542 H580 V248 H816" />
+        </svg>
+
+        <section data-hf-id="hf-by7f" class="b6-step b6-step-one">
+          <span data-hf-id="hf-j1b8" class="b6-step-num">01 / RUN</span>
+          <span data-hf-id="hf-fv36" class="b6-step-time">3–5天</span>
+          <span data-hf-id="hf-744m" class="b6-step-title">跑通 SDK</span>
+          <span data-hf-id="hf-sw6v" class="b6-progress"><span data-hf-id="hf-uckh"></span></span>
+        </section>
+
+        <section data-hf-id="hf-aftl" class="b6-step b6-step-two">
+          <span data-hf-id="hf-vqtv" class="b6-step-num">02 / KNOW</span>
+          <span data-hf-id="hf-b6pg" class="b6-step-time">1–2周</span>
+          <span data-hf-id="hf-mm1i" class="b6-step-title">理解机制</span>
+          <span data-hf-id="hf-wut3" class="b6-progress"><span data-hf-id="hf-l73p"></span></span>
+        </section>
+
+        <section data-hf-id="hf-398r" class="b6-step b6-step-three">
+          <span data-hf-id="hf-tten" class="b6-step-num">03 / BUILD</span>
+          <span data-hf-id="hf-4uc4" class="b6-step-time">1–2月</span>
+          <span data-hf-id="hf-unc7" class="b6-step-title">真实项目</span>
+          <span data-hf-id="hf-wgi2" class="b6-progress"><span data-hf-id="hf-me0s"></span></span>
+        </section>
+
+        <span data-hf-id="hf-wvys" class="b6-marker b6-marker-one"></span>
+        <span data-hf-id="hf-8wgu" class="b6-marker b6-marker-two"></span>
+        <span data-hf-id="hf-wh3s" class="b6-marker b6-marker-three"></span>
+      </div>
+
+      <div data-hf-id="hf-j2g4" class="b6-footer">
+        <span data-hf-id="hf-16lc" class="b6-footer-copy">先跑通，再理解，最后真正交付。</span>
+        <span data-hf-id="hf-0rgy" class="b6-publish"><span data-hf-id="hf-8xwx" class="b6-publish-dot"></span>PUBLIC BUILD</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var BEAT = 6.72;
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      var root = document.getElementById("beat-6-roadmap");
+      if (!root) return;
+
+      var grid = root.querySelector(".b6-grid");
+      var terms = root.querySelectorAll(".b6-term");
+      var header = root.querySelector(".b6-header");
+      var stage = root.querySelector(".b6-stage");
+      var path = root.querySelector(".b6-path-live");
+      var steps = root.querySelectorAll(".b6-step");
+      var markers = root.querySelectorAll(".b6-marker");
+      var bars = root.querySelectorAll(".b6-progress > span");
+      var footer = root.querySelector(".b6-footer");
+      var publish = root.querySelector(".b6-publish");
+
+      tl.fromTo(grid, { x: -50, y: 65, scale: 1 }, { x: 30, y: -44, scale: 1.08, duration: BEAT, ease: "none" }, 0);
+      tl.fromTo(stage, { x: -34, y: 96, scale: .92 }, { x: 30, y: -54, scale: 1.075, duration: BEAT, ease: "none" }, 0);
+      tl.fromTo(terms, { opacity: .52, x: 0 }, { opacity: .12, x: -86, duration: 5.55, stagger: .08, ease: "power1.out" }, 0);
+      tl.fromTo(header, { y: 70, opacity: .5 }, { y: 0, opacity: 1, duration: .72, ease: "expo.out" }, .04);
+
+      tl.fromTo(path, { strokeDashoffset: 1900 }, { strokeDashoffset: 0, duration: 4.5, ease: "power1.inOut" }, .48);
+      tl.fromTo(steps, { scaleY: .08, y: 150, opacity: 0 }, { scaleY: 1, y: 0, opacity: 1, duration: .82, stagger: 1.22, ease: "power4.out" }, .38);
+      tl.fromTo(markers, { scale: .15, opacity: 0 }, { scale: 1, opacity: 1, duration: .48, stagger: 1.22, ease: "back.out(1.7)" }, 1.02);
+      tl.fromTo(bars, { scaleX: 0 }, { scaleX: 1, duration: .72, stagger: 1.22, ease: "power1.out" }, 1.06);
+
+      tl.fromTo(footer, { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: .72, ease: "expo.out" }, 4.50);
+      tl.fromTo(publish, { scale: .78, backgroundColor: "#F2F2F3" }, { scale: 1, backgroundColor: "#FCFCFD", duration: .56, ease: "back.out(1.7)" }, 5.02);
+      tl.to(terms, { y: -90, opacity: 0, duration: .58, ease: "power2.in" }, 5.78);
+      tl.to(steps, { x: 116, y: -76, duration: .64, stagger: .04, ease: "power2.in" }, 6.04);
+      tl.to(header, { x: 90, opacity: 0, duration: .5, ease: "power2.in" }, 6.16);
+      tl.to(footer, { x: 120, opacity: 0, duration: .48, ease: "power2.in" }, 6.24);
+
+      window.__timelines["beat-6-roadmap"] = tl;
+    })();
+  </script>
+</template>

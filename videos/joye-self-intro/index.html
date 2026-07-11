@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joye｜60 秒自我介绍</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #06090d; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+      #backdrop { position: absolute; inset: 0; width: 1080px; height: 1920px; background: #fcfcfd; }
+      .scene { position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden; }
+      #captions { z-index: 100; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-l2xi" id="root" data-composition-id="main" data-start="0" data-duration="59.91" data-width="1080" data-height="1920">
+      <div data-hf-id="hf-mwvj" id="backdrop"></div>
+
+      <div data-hf-id="hf-s3su" id="beat-1-hook" class="scene" data-composition-id="beat-1-hook" data-composition-src="compositions/beat-1-hook.html" data-start="0" data-duration="7.44" data-track-index="1" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-tesa" id="beat-2-identity" class="scene" data-composition-id="beat-2-identity" data-composition-src="compositions/beat-2-identity.html" data-start="7.44" data-duration="9.68" data-track-index="2" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-s45a" id="beat-3-stats" class="scene" data-composition-id="beat-3-stats" data-composition-src="compositions/beat-3-stats.html" data-start="17.12" data-duration="5.56" data-track-index="3" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-zm46" id="beat-4-popular-post" class="scene" data-composition-id="beat-4-popular-post" data-composition-src="compositions/beat-4-popular-post.html" data-start="22.68" data-duration="5.56" data-track-index="4" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-hcti" id="beat-5-agent-four" class="scene" data-composition-id="beat-5-agent-four" data-composition-src="compositions/beat-5-agent-four.html" data-start="28.24" data-duration="7.90" data-track-index="5" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-5zhz" id="beat-6-roadmap" class="scene" data-composition-id="beat-6-roadmap" data-composition-src="compositions/beat-6-roadmap.html" data-start="36.14" data-duration="6.72" data-track-index="6" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-6hk1" id="beat-7-open-source" class="scene" data-composition-id="beat-7-open-source" data-composition-src="compositions/beat-7-open-source.html" data-start="42.86" data-duration="5.24" data-track-index="7" data-width="1080" data-height="1920"></div>
+      <div data-hf-id="hf-vik8" id="beat-8-cta" class="scene" data-composition-id="beat-8-cta" data-composition-src="compositions/beat-8-cta.html" data-start="48.10" data-duration="11.81" data-track-index="8" data-width="1080" data-height="1920"></div>
+
+      <div data-hf-id="hf-vdju" id="captions" class="scene" data-composition-id="captions" data-composition-src="compositions/captions.html" data-start="0" data-duration="59.91" data-track-index="90" data-width="1080" data-height="1920"></div>
+
+      <audio data-hf-id="hf-wko9" id="narration" src="narration.wav" data-start="0" data-duration="59.906667" data-track-index="100" data-volume="1"></audio>
+      <audio data-hf-id="hf-assp" id="bgm" src=".media/audio/bgm/bgm_001.wav" data-start="0" data-duration="60" data-track-index="101" data-volume="0.10"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      tl.fromTo("#backdrop", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+      tl.fromTo("#bgm", { volume: 0 }, { volume: 0.10, duration: 1.8, ease: "power1.out" }, 0);
+      tl.to("#bgm", { volume: 0.065, duration: 0.2, ease: "power1.out" }, 2.0);
+      tl.to("#bgm", { volume: 0.085, duration: 0.35, ease: "power1.out" }, 57.41);
+      tl.to("#bgm", { volume: 0, duration: 2.15, ease: "power1.in" }, 57.76);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

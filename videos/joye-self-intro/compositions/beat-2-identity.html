@@ -1,0 +1,398 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+    }
+
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    @font-face {
+      font-family: "PingFang SC";
+      src: local("PingFang SC");
+    }
+
+    @font-face {
+      font-family: "Microsoft YaHei";
+      src: local("Microsoft YaHei");
+    }
+
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: local("Noto Sans SC");
+    }
+
+    #beat-2-identity,
+    #beat-2-identity * {
+      box-sizing: border-box;
+    }
+
+    #beat-2-identity {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-2-identity .b2-fill {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #FCFCFD;
+    }
+
+    #beat-2-identity .b2-grid {
+      position: absolute;
+      inset: -90px;
+      background-image:
+        linear-gradient(rgba(11, 82, 132, 0.10) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(11, 82, 132, 0.10) 2px, transparent 2px);
+      background-size: 96px 96px;
+      -webkit-mask-image: radial-gradient(circle at 28% 42%, #000 0%, rgba(0,0,0,.64) 34%, transparent 74%);
+      mask-image: radial-gradient(circle at 28% 42%, #000 0%, rgba(0,0,0,.64) 34%, transparent 74%);
+    }
+
+    #beat-2-identity .b2-signal {
+      position: absolute;
+      left: -180px;
+      top: 248px;
+      width: 760px;
+      height: 760px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(125,211,252,.28) 0%, rgba(125,211,252,.14) 42%, rgba(125,211,252,0) 72%);
+    }
+
+    #beat-2-identity .b2-camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 44%;
+    }
+
+    #beat-2-identity .b2-kicker {
+      position: absolute;
+      top: 112px;
+      left: 110px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    #beat-2-identity .b2-kicker-mark {
+      width: 42px;
+      height: 12px;
+      background: #7DD3FC;
+      border: 2px solid #0B5284;
+    }
+
+    #beat-2-identity .b2-identity {
+      position: absolute;
+      top: 166px;
+      left: 470px;
+      right: 70px;
+    }
+
+    #beat-2-identity .b2-name {
+      margin: 0;
+      font-size: 122px;
+      line-height: .92;
+      font-weight: 850;
+      letter-spacing: -.055em;
+    }
+
+    #beat-2-identity .b2-role {
+      margin-top: 26px;
+      color: #0B5284;
+      font-size: 34px;
+      line-height: 1.25;
+      font-weight: 740;
+    }
+
+    #beat-2-identity .b2-location {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 22px;
+      line-height: 1.4;
+    }
+
+    #beat-2-identity .b2-location-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #7DD3FC;
+      border: 3px solid #0B5284;
+    }
+
+    #beat-2-identity .b2-portrait-shell {
+      position: absolute;
+      left: 24px;
+      top: 434px;
+      width: 454px;
+      height: 454px;
+      border-radius: 50%;
+      border: 4px solid #0B5284;
+      background: #7DD3FC;
+      overflow: hidden;
+    }
+
+    #beat-2-identity .b2-portrait {
+      position: absolute;
+      inset: -4px;
+      width: calc(100% + 8px);
+      height: calc(100% + 8px);
+      object-fit: cover;
+      transform-origin: 50% 58%;
+    }
+
+    #beat-2-identity .b2-curtain {
+      position: absolute;
+      inset: -8px;
+      background: #FCFCFD;
+      border-left: 4px solid #7DD3FC;
+    }
+
+    #beat-2-identity .b2-orbit {
+      position: absolute;
+      left: -8px;
+      top: 402px;
+      width: 518px;
+      height: 518px;
+      border: 2px dashed rgba(11,82,132,.44);
+      border-radius: 50%;
+    }
+
+    #beat-2-identity .b2-orbit-dot {
+      position: absolute;
+      top: 55px;
+      left: 412px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #0B5284;
+      box-shadow: 0 0 0 10px rgba(125,211,252,.35);
+    }
+
+    #beat-2-identity .b2-tracks {
+      position: absolute;
+      top: 560px;
+      left: 472px;
+      width: 470px;
+      display: grid;
+      gap: 64px;
+    }
+
+    #beat-2-identity .b2-track {
+      position: relative;
+      height: 146px;
+    }
+
+    #beat-2-identity .b2-company {
+      position: relative;
+      z-index: 2;
+      font-size: 34px;
+      line-height: 1.15;
+      font-weight: 780;
+      letter-spacing: -.02em;
+    }
+
+    #beat-2-identity .b2-index {
+      position: absolute;
+      top: 4px;
+      right: 0;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    #beat-2-identity .b2-rail {
+      position: absolute;
+      left: 0;
+      top: 63px;
+      width: 100%;
+      height: 4px;
+      background: #0B5284;
+      transform-origin: 0 50%;
+    }
+
+    #beat-2-identity .b2-node {
+      position: absolute;
+      left: -4px;
+      top: 53px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #FCFCFD;
+      border: 4px solid #0B5284;
+    }
+
+    #beat-2-identity .b2-tag {
+      position: absolute;
+      right: 0;
+      top: 82px;
+      padding: 10px 18px 11px;
+      border-radius: 999px;
+      background: #7DD3FC;
+      border: 2px solid #0B5284;
+      color: #09090B;
+      font-size: 25px;
+      line-height: 1;
+      font-weight: 760;
+      transform-origin: 86% 50%;
+    }
+
+    #beat-2-identity .b2-side-rule {
+      position: absolute;
+      left: 442px;
+      top: 470px;
+      width: 2px;
+      height: 1116px;
+      background: linear-gradient(#0B5284 0 18%, #DFDFE2 18% 100%);
+      transform-origin: 50% 0;
+    }
+
+    #beat-2-identity .b2-foot {
+      position: absolute;
+      left: 104px;
+      right: 104px;
+      bottom: 208px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 22px;
+      border-top: 2px solid #DFDFE2;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      letter-spacing: .04em;
+    }
+
+    #beat-2-identity .b2-foot strong {
+      color: #0B5284;
+      font-weight: 600;
+    }
+  </style>
+
+  <div data-hf-id="hf-ej4c" id="beat-2-identity" data-composition-id="beat-2-identity" data-width="1080" data-height="1920" data-duration="9.68">
+    <div data-hf-id="hf-qjvy" class="b2-fill">
+      <div data-hf-id="hf-os59" class="b2-grid"></div>
+      <div data-hf-id="hf-ge29" class="b2-signal"></div>
+
+      <div data-hf-id="hf-s550" class="b2-camera">
+        <div data-hf-id="hf-u50y" class="b2-kicker"><span data-hf-id="hf-qdv9" class="b2-kicker-mark"></span>IDENTITY / PRACTICE</div>
+
+        <section data-hf-id="hf-xwnx" class="b2-identity" aria-label="Joye identity">
+          <h2 data-hf-id="hf-nz2s" class="b2-name">Joye</h2>
+          <div data-hf-id="hf-oumw" class="b2-role">AI Agent 全栈开发者</div>
+          <div data-hf-id="hf-iypb" class="b2-location"><span data-hf-id="hf-33ud" class="b2-location-dot"></span>墨尔本大学 · 计算与软件工程</div>
+        </section>
+
+        <div data-hf-id="hf-fhzr" class="b2-orbit"><span data-hf-id="hf-qktg" class="b2-orbit-dot"></span></div>
+        <div data-hf-id="hf-a971" class="b2-portrait-shell">
+          <img data-hf-id="hf-4woy" class="b2-portrait" src="capture/assets/joye.png" alt="Joye portrait">
+          <div data-hf-id="hf-aap9" class="b2-curtain"></div>
+        </div>
+
+        <div data-hf-id="hf-tbfv" class="b2-side-rule"></div>
+
+        <div data-hf-id="hf-6d28" class="b2-tracks" aria-label="Experience tracks">
+          <article data-hf-id="hf-hmqn" class="b2-track">
+            <div data-hf-id="hf-zq7g" class="b2-company">Adastra Labs</div><div data-hf-id="hf-uogw" class="b2-index">01</div>
+            <div data-hf-id="hf-0dcx" class="b2-rail"></div><div data-hf-id="hf-3t21" class="b2-node"></div><div data-hf-id="hf-31s7" class="b2-tag">图像生成</div>
+          </article>
+          <article data-hf-id="hf-pk9r" class="b2-track">
+            <div data-hf-id="hf-cum1" class="b2-company">Tezign</div><div data-hf-id="hf-thjt" class="b2-index">02</div>
+            <div data-hf-id="hf-7w6t" class="b2-rail"></div><div data-hf-id="hf-ysvh" class="b2-node"></div><div data-hf-id="hf-trrx" class="b2-tag">商业研究</div>
+          </article>
+          <article data-hf-id="hf-p5yq" class="b2-track">
+            <div data-hf-id="hf-1wfo" class="b2-company">AIXCut</div><div data-hf-id="hf-tvuu" class="b2-index">03</div>
+            <div data-hf-id="hf-933w" class="b2-rail"></div><div data-hf-id="hf-zzsk" class="b2-node"></div><div data-hf-id="hf-jq5f" class="b2-tag">视频 Agent</div>
+          </article>
+          <article data-hf-id="hf-ornp" class="b2-track">
+            <div data-hf-id="hf-7jhv" class="b2-company">fAIshion.ai</div><div data-hf-id="hf-soxr" class="b2-index">04</div>
+            <div data-hf-id="hf-8osv" class="b2-rail"></div><div data-hf-id="hf-zlhj" class="b2-node"></div><div data-hf-id="hf-rsls" class="b2-tag">虚拟试衣</div>
+          </article>
+        </div>
+
+        <div data-hf-id="hf-6l7l" class="b2-foot"><span data-hf-id="hf-n2al">FULL-STACK · MULTI-AGENT</span><strong data-hf-id="hf-tdfi">MELBOURNE / 2026</strong></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var BEAT = 9.68;
+        var root = document.getElementById("beat-2-identity");
+        if (!root) return;
+
+        var camera = root.querySelector(".b2-camera");
+        var grid = root.querySelector(".b2-grid");
+        var signal = root.querySelector(".b2-signal");
+        var kicker = root.querySelector(".b2-kicker");
+        var identity = root.querySelector(".b2-identity");
+        var portrait = root.querySelector(".b2-portrait");
+        var curtain = root.querySelector(".b2-curtain");
+        var orbit = root.querySelector(".b2-orbit");
+        var orbitDot = root.querySelector(".b2-orbit-dot");
+        var sideRule = root.querySelector(".b2-side-rule");
+        var tracks = root.querySelectorAll(".b2-track");
+        var rails = root.querySelectorAll(".b2-rail");
+        var nodes = root.querySelectorAll(".b2-node");
+        var tags = root.querySelectorAll(".b2-tag");
+        var foot = root.querySelector(".b2-foot");
+
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(camera, { scale: 1, x: 0, y: 14 }, { scale: 1.06, x: -14, y: -18, duration: BEAT - 0.10, ease: "sine.inOut" }, 0.10);
+        tl.fromTo(grid, { x: -28, y: 0 }, { x: 34, y: -46, duration: BEAT - 0.22, ease: "none" }, 0.22);
+        tl.fromTo(signal, { scale: 0.92, opacity: 0.32 }, { scale: 1.14, opacity: 0.62, duration: 4.7, repeat: 1, yoyo: true, ease: "sine.inOut" }, 0.18);
+
+        tl.fromTo(kicker, { x: -48, opacity: 0 }, { x: 0, opacity: 1, duration: 0.58, ease: "expo.out" }, 0.18);
+        tl.fromTo(identity, { x: 62, opacity: 0 }, { x: 0, opacity: 1, duration: 0.82, ease: "power3.out" }, 0.34);
+        tl.fromTo(curtain, { x: 0 }, { x: 486, duration: 0.50, ease: "power4.inOut" }, 0.16);
+        tl.fromTo(orbit, { scale: 0.78, rotation: -22, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.94, ease: "back.out(1.35)" }, 0.24);
+        tl.fromTo(portrait, { scale: 1 }, { scale: 1.03, duration: BEAT - 0.58, ease: "sine.inOut" }, 0.58);
+        tl.fromTo(orbitDot, { scale: 0.6 }, { scale: 1.18, duration: 1.2, repeat: 6, yoyo: true, ease: "sine.inOut" }, 0.86);
+        tl.fromTo(sideRule, { scaleY: 0 }, { scaleY: 1, duration: 1.06, ease: "power2.out" }, 0.94);
+
+        var starts = [1.56, 3.02, 4.52, 6.02];
+        for (var i = 0; i < tracks.length; i += 1) {
+          tl.fromTo(tracks[i], { x: 58, opacity: 0 }, { x: 0, opacity: 1, duration: 0.46, ease: "power3.out" }, starts[i]);
+          tl.fromTo(rails[i], { scaleX: 0 }, { scaleX: 1, duration: 0.72, ease: "expo.inOut" }, starts[i] + 0.18);
+          tl.fromTo(nodes[i], { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.34, ease: "back.out(1.8)" }, starts[i] + 0.28);
+          tl.fromTo(tags[i], { scale: 0.54, x: 36, opacity: 0 }, { scale: 1, x: 0, opacity: 1, duration: 0.38, ease: "back.out(1.7)" }, starts[i] + 0.72);
+        }
+
+        tl.fromTo(foot, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.62, ease: "power2.out" }, 7.42);
+        tl.to(orbit, { rotation: 8, duration: 0.72, ease: "power2.inOut" }, 8.84);
+
+        window.__timelines["beat-2-identity"] = tl;
+      })();
+    </script>
+  </div>
+</template>

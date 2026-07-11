@@ -1,0 +1,45 @@
+[
+  { "id": "c0", "text": "大二", "start": 2.00, "end": 3.10 },
+  { "id": "c1", "text": "面过一百多家 AI 公司", "start": 3.10, "end": 4.72 },
+  { "id": "c2", "text": "拿到三十多个 offer", "start": 4.72, "end": 5.95 },
+  { "id": "c3", "text": "我把踩过的坑", "start": 5.95, "end": 6.65 },
+  { "id": "c4", "text": "全写进一个网站", "start": 6.65, "end": 7.44 },
+
+  { "id": "c5", "text": "我是 Joye", "start": 7.44, "end": 8.68 },
+  { "id": "c6", "text": "墨尔本大学", "start": 8.68, "end": 10.02 },
+  { "id": "c7", "text": "计算与软件工程在读", "start": 10.02, "end": 11.62 },
+  { "id": "c8", "text": "AI Agent 全栈开发者", "start": 11.62, "end": 13.20 },
+  { "id": "c9", "text": "商业研究 Multi-Agent", "start": 13.20, "end": 14.62 },
+  { "id": "c10", "text": "视频剪辑 Agent", "start": 14.62, "end": 15.92 },
+  { "id": "c11", "text": "还有虚拟试衣", "start": 15.92, "end": 17.12 },
+
+  { "id": "c12", "text": "十三篇博客", "start": 17.12, "end": 18.28 },
+  { "id": "c13", "text": "十一篇 Notes", "start": 18.28, "end": 19.30 },
+  { "id": "c14", "text": "两场公开分享", "start": 19.30, "end": 20.42 },
+  { "id": "c15", "text": "总浏览量 24,752", "start": 20.42, "end": 22.68 },
+
+  { "id": "c16", "text": "最受欢迎的", "start": 22.68, "end": 23.78 },
+  { "id": "c17", "text": "1.1 万字 Agent 入门指南", "start": 23.78, "end": 26.28 },
+  { "id": "c18", "text": "已有 2,008 次阅读", "start": 26.28, "end": 28.24 },
+
+  { "id": "c19", "text": "我把 Agent 讲成四件事", "start": 28.24, "end": 29.72 },
+  { "id": "c20", "text": "大脑 · 工具 · 记忆", "start": 29.72, "end": 31.16 },
+  { "id": "c21", "text": "还有一个会自己循环的身体", "start": 31.16, "end": 33.00 },
+
+  { "id": "c22", "text": "入门不用追完所有名词", "start": 36.14, "end": 37.72 },
+  { "id": "c23", "text": "先跑通 SDK", "start": 37.72, "end": 39.08 },
+  { "id": "c24", "text": "再理解机制", "start": 39.08, "end": 40.38 },
+  { "id": "c25", "text": "最后做一个你真的会用的项目", "start": 40.38, "end": 42.86 },
+
+  { "id": "c26", "text": "做过的事要公开", "start": 42.86, "end": 44.20 },
+  { "id": "c27", "text": "踩过的坑要复盘", "start": 44.20, "end": 45.62 },
+  { "id": "c28", "text": "minimind-notes", "start": 45.62, "end": 46.72 },
+  { "id": "c29", "text": "有 146 颗星", "start": 46.72, "end": 48.10 },
+
+  { "id": "c30", "text": "想继续看 Agent 工程", "start": 48.10, "end": 49.42 },
+  { "id": "c31", "text": "求职复盘和开源实践", "start": 49.42, "end": 50.72 },
+  { "id": "c32", "text": "来 joyehuang.me", "start": 50.72, "end": 52.32 },
+  { "id": "c33", "text": "小红书 · B站 · GitHub · X", "start": 52.32, "end": 54.68 },
+  { "id": "c34", "text": "都能找到我", "start": 54.68, "end": 55.62 },
+  { "id": "c35", "text": "Build fast, learn faster.", "start": 55.62, "end": 57.41 }
+]

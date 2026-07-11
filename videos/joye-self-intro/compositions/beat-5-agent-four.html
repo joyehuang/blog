@@ -1,0 +1,380 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+    }
+
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    @font-face { font-family: "PingFang SC"; src: local("PingFang SC"); }
+    @font-face { font-family: "Microsoft YaHei"; src: local("Microsoft YaHei"); }
+    @font-face { font-family: "Noto Sans SC"; src: local("Noto Sans SC"); }
+
+    #beat-5-agent-four,
+    #beat-5-agent-four * {
+      box-sizing: border-box;
+    }
+
+    #beat-5-agent-four {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-5-agent-four .b5-fill {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #FCFCFD;
+    }
+
+    #beat-5-agent-four .b5-grid {
+      position: absolute;
+      inset: -100px;
+      background-image:
+        linear-gradient(rgba(11,82,132,.09) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(11,82,132,.09) 2px, transparent 2px);
+      background-size: 88px 88px;
+      -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 0%, rgba(0,0,0,.62) 44%, transparent 82%);
+      mask-image: radial-gradient(circle at 50% 45%, #000 0%, rgba(0,0,0,.62) 44%, transparent 82%);
+    }
+
+    #beat-5-agent-four .b5-glow {
+      position: absolute;
+      left: 196px;
+      top: 498px;
+      width: 688px;
+      height: 688px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(125,211,252,.32) 0%, rgba(125,211,252,.13) 44%, rgba(125,211,252,0) 74%);
+    }
+
+    #beat-5-agent-four .b5-camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 43%;
+    }
+
+    #beat-5-agent-four .b5-header {
+      position: absolute;
+      top: 108px;
+      left: 84px;
+      right: 84px;
+    }
+
+    #beat-5-agent-four .b5-kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: .08em;
+    }
+
+    #beat-5-agent-four .b5-kicker::before {
+      content: "";
+      width: 44px;
+      height: 12px;
+      background: #7DD3FC;
+      border: 2px solid #0B5284;
+    }
+
+    #beat-5-agent-four .b5-title {
+      margin: 22px 0 0;
+      font-size: 88px;
+      line-height: .98;
+      letter-spacing: -.045em;
+      font-weight: 850;
+    }
+
+    #beat-5-agent-four .b5-diagram {
+      position: absolute;
+      left: 72px;
+      top: 374px;
+      width: 936px;
+      height: 938px;
+    }
+
+    #beat-5-agent-four .b5-wires {
+      position: absolute;
+      inset: 0;
+      width: 936px;
+      height: 938px;
+      overflow: visible;
+    }
+
+    #beat-5-agent-four .b5-wire,
+    #beat-5-agent-four .b5-loop {
+      fill: none;
+      vector-effect: non-scaling-stroke;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    #beat-5-agent-four .b5-wire {
+      stroke: #0B5284;
+      stroke-width: 5;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+
+    #beat-5-agent-four .b5-loop-bed {
+      fill: none;
+      stroke: #DFDFE2;
+      stroke-width: 3;
+      stroke-dasharray: 10 18;
+      vector-effect: non-scaling-stroke;
+    }
+
+    #beat-5-agent-four .b5-loop {
+      stroke: #7DD3FC;
+      stroke-width: 9;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      filter: drop-shadow(0 0 8px rgba(125,211,252,.45));
+    }
+
+    #beat-5-agent-four .b5-flow {
+      fill: none;
+      stroke: #0B5284;
+      stroke-width: 4;
+      stroke-dasharray: 18 28;
+      stroke-dashoffset: 0;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    #beat-5-agent-four .b5-core {
+      position: absolute;
+      left: 340px;
+      top: 346px;
+      width: 256px;
+      height: 256px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #09090B;
+      border: 10px solid #7DD3FC;
+      color: #FCFCFD;
+      box-shadow: 0 0 0 16px rgba(125,211,252,.25);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 72px;
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: -.06em;
+    }
+
+    #beat-5-agent-four .b5-core small {
+      position: absolute;
+      bottom: 44px;
+      font-size: 16px;
+      letter-spacing: .12em;
+      color: #7DD3FC;
+    }
+
+    #beat-5-agent-four .b5-node {
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #F2F2F3;
+      border: 4px solid #0B5284;
+      color: #09090B;
+      font-size: 42px;
+      font-weight: 780;
+      letter-spacing: -.02em;
+    }
+
+    #beat-5-agent-four .b5-node::after {
+      content: attr(data-index);
+      position: absolute;
+      top: 22px;
+      right: 24px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    #beat-5-agent-four .b5-node-sense { left: 28px; top: 76px; }
+    #beat-5-agent-four .b5-node-tool { right: 28px; top: 76px; }
+    #beat-5-agent-four .b5-node-memory { right: 28px; bottom: 70px; }
+    #beat-5-agent-four .b5-node-loop { left: 28px; bottom: 70px; }
+
+    #beat-5-agent-four .b5-phrase {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      top: 1328px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 26px 28px 28px;
+      background: #F2F2F3;
+      border: 2px solid #DFDFE2;
+      border-radius: 16px;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 760;
+    }
+
+    #beat-5-agent-four .b5-word {
+      white-space: nowrap;
+    }
+
+    #beat-5-agent-four .b5-arrow {
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 34px;
+      font-weight: 600;
+    }
+
+    #beat-5-agent-four .b5-progress {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      bottom: 214px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 19px;
+      letter-spacing: .05em;
+    }
+
+    #beat-5-agent-four .b5-progress-line {
+      flex: 1;
+      height: 3px;
+      background: #DFDFE2;
+      overflow: hidden;
+    }
+
+    #beat-5-agent-four .b5-progress-fill {
+      width: 100%;
+      height: 100%;
+      background: #0B5284;
+      transform-origin: 0 50%;
+    }
+  </style>
+
+  <div data-hf-id="hf-xtgp" id="beat-5-agent-four" data-composition-id="beat-5-agent-four" data-width="1080" data-height="1920" data-duration="7.90">
+    <div data-hf-id="hf-wgkn" class="b5-fill">
+      <div data-hf-id="hf-pcpw" class="b5-grid"></div>
+      <div data-hf-id="hf-x6kn" class="b5-glow"></div>
+
+      <div data-hf-id="hf-tort" class="b5-camera">
+        <header data-hf-id="hf-2kv7" class="b5-header">
+          <div data-hf-id="hf-qx6u" class="b5-kicker">AGENT SYSTEM / 04 PARTS</div>
+          <h2 data-hf-id="hf-9gig" class="b5-title">Agent 的四件套</h2>
+        </header>
+
+        <div data-hf-id="hf-mb5n" class="b5-diagram">
+          <svg data-hf-id="hf-4q5j" class="b5-wires" viewBox="0 0 936 938" aria-hidden="true">
+            <defs data-hf-id="hf-mh0t">
+              <marker data-hf-id="hf-abg3" id="b5-arrowhead" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+                <path data-hf-id="hf-ep6b" d="M1,1 L10,6 L1,11 Z" fill="#0B5284" />
+              </marker>
+            </defs>
+            <path data-hf-id="hf-aijp" class="b5-loop-bed" d="M123 171 C123 88 190 42 276 42 H660 C746 42 813 88 813 171 V767 C813 850 746 896 660 896 H276 C190 896 123 850 123 767 Z" />
+            <path data-hf-id="hf-c4e4" class="b5-loop" pathLength="1" d="M123 171 C123 88 190 42 276 42 H660 C746 42 813 88 813 171 V767 C813 850 746 896 660 896 H276 C190 896 123 850 123 767 Z" />
+            <path data-hf-id="hf-6b1q" class="b5-flow" d="M123 171 C123 88 190 42 276 42 H660 C746 42 813 88 813 171 V767 C813 850 746 896 660 896 H276 C190 896 123 850 123 767 Z" marker-end="url(#b5-arrowhead)" />
+            <path data-hf-id="hf-7d7x" class="b5-wire" pathLength="1" d="M382 391 C329 322 268 250 201 195" />
+            <path data-hf-id="hf-wbf1" class="b5-wire" pathLength="1" d="M554 391 C607 322 668 250 735 195" />
+            <path data-hf-id="hf-t8xo" class="b5-wire" pathLength="1" d="M554 557 C607 626 668 698 735 773" />
+            <path data-hf-id="hf-qvgk" class="b5-wire" pathLength="1" d="M382 557 C329 626 268 698 201 773" />
+          </svg>
+
+          <div data-hf-id="hf-ksz0" class="b5-core">LLM<small data-hf-id="hf-5uhr">REASONING CORE</small></div>
+          <div data-hf-id="hf-yup6" class="b5-node b5-node-sense" data-index="01">感知</div>
+          <div data-hf-id="hf-7ptv" class="b5-node b5-node-tool" data-index="02">工具</div>
+          <div data-hf-id="hf-8clv" class="b5-node b5-node-memory" data-index="03">记忆</div>
+          <div data-hf-id="hf-an2m" class="b5-node b5-node-loop" data-index="04">循环</div>
+        </div>
+
+        <div data-hf-id="hf-1ocz" class="b5-phrase">
+          <span data-hf-id="hf-xlr5" class="b5-word">想一下</span><span data-hf-id="hf-5eys" class="b5-arrow">→</span>
+          <span data-hf-id="hf-2t4u" class="b5-word">做一下</span><span data-hf-id="hf-q1bw" class="b5-arrow">→</span>
+          <span data-hf-id="hf-rdwb" class="b5-word">直到完成</span>
+        </div>
+
+        <div data-hf-id="hf-flzh" class="b5-progress"><span data-hf-id="hf-05c1">LOOP STATUS · RUNNING</span><span data-hf-id="hf-nh2d" class="b5-progress-line"><span data-hf-id="hf-e6o0" class="b5-progress-fill"></span></span><span data-hf-id="hf-ztyi">04/04</span></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var BEAT = 7.90;
+        var root = document.getElementById("beat-5-agent-four");
+        if (!root) return;
+
+        var camera = root.querySelector(".b5-camera");
+        var grid = root.querySelector(".b5-grid");
+        var glow = root.querySelector(".b5-glow");
+        var header = root.querySelector(".b5-header");
+        var core = root.querySelector(".b5-core");
+        var nodes = root.querySelectorAll(".b5-node");
+        var wires = root.querySelectorAll(".b5-wire");
+        var loop = root.querySelector(".b5-loop");
+        var flow = root.querySelector(".b5-flow");
+        var phrase = root.querySelector(".b5-phrase");
+        var words = root.querySelectorAll(".b5-word, .b5-arrow");
+        var progress = root.querySelector(".b5-progress");
+        var progressFill = root.querySelector(".b5-progress-fill");
+
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(camera, { scale: 1, rotation: -1.4, x: -10, y: 16 }, { scale: 1.065, rotation: 1.2, x: 12, y: -22, duration: BEAT - 0.12, ease: "sine.inOut" }, 0.12);
+        tl.fromTo(grid, { x: -30, y: 18 }, { x: 42, y: -40, duration: BEAT - 0.20, ease: "none" }, 0.20);
+        tl.fromTo(glow, { scale: 0.86, opacity: 0.24 }, { scale: 1.16, opacity: 0.56, duration: 1.94, repeat: 3, yoyo: true, ease: "sine.inOut" }, 0.14);
+
+        tl.fromTo(header, { x: -56, opacity: 0 }, { x: 0, opacity: 1, duration: 0.68, ease: "expo.out" }, 0.18);
+        tl.fromTo(core, { scale: 0.48, rotation: -12, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.74, ease: "back.out(1.55)" }, 0.34);
+
+        var starts = [0.98, 1.76, 2.58, 3.38];
+        for (var i = 0; i < nodes.length; i += 1) {
+          tl.fromTo(wires[i], { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.54, ease: "power1.out" }, starts[i]);
+          tl.fromTo(nodes[i], { scale: 0.44, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.48, ease: "back.out(1.7)" }, starts[i] + 0.24);
+        }
+
+        tl.fromTo(loop, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.10, ease: "expo.inOut" }, 3.66);
+        tl.fromTo(phrase, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.58, ease: "power3.out" }, 4.16);
+        tl.fromTo(words, { y: 32, opacity: 0 }, { y: 0, opacity: 1, duration: 0.36, stagger: 0.07, ease: "back.out(1.45)" }, 4.30);
+        tl.fromTo(progress, { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.46, ease: "power2.out" }, 4.56);
+        tl.fromTo(progressFill, { scaleX: 0 }, { scaleX: 1, duration: 3.14, ease: "none" }, 4.76);
+
+        tl.fromTo(flow, { strokeDashoffset: 0 }, { strokeDashoffset: -184, duration: 0.76, repeat: 3, ease: "none" }, 4.76);
+        for (var j = 0; j < nodes.length; j += 1) {
+          tl.fromTo(nodes[j], { scale: 1 }, { scale: 1.10, duration: 0.34, repeat: 5, yoyo: true, ease: "sine.inOut", immediateRender: false }, 4.76 + j * 0.18);
+        }
+        tl.fromTo(core, { scale: 1 }, { scale: 1.05, duration: 0.39, repeat: 7, yoyo: true, ease: "sine.inOut", immediateRender: false }, 4.76);
+
+        window.__timelines["beat-5-agent-four"] = tl;
+      })();
+    </script>
+  </div>
+</template>

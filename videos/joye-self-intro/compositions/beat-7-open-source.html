@@ -1,0 +1,529 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-VariableItalic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 100 900;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDba2o-flEEny0FZhsfKu5WU4xD-IQ-PuZJJXxfpAO-LflOQ.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 400;
+    }
+    @font-face { font-family: "PingFang SC"; src: local("PingFang SC"); }
+    @font-face { font-family: "Microsoft YaHei"; src: local("Microsoft YaHei"); }
+    @font-face { font-family: "Noto Sans SC"; src: local("Noto Sans SC"); }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    #beat-7-open-source {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-7-open-source .paper-fill {
+      position: absolute;
+      inset: 0;
+      background: #FCFCFD;
+    }
+
+    #beat-7-open-source .graph-grid {
+      position: absolute;
+      inset: -80px;
+      background-image:
+        linear-gradient(rgba(11, 82, 132, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(11, 82, 132, 0.045) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    }
+
+    #beat-7-open-source .camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 47%;
+    }
+
+    #beat-7-open-source .eyebrow {
+      position: absolute;
+      top: 92px;
+      left: 72px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    #beat-7-open-source .github-mark {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      color: #0B5284;
+    }
+
+    #beat-7-open-source .github-mark svg {
+      display: block;
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
+    }
+
+    #beat-7-open-source .headline {
+      position: absolute;
+      top: 160px;
+      left: 72px;
+      width: 936px;
+      color: #09090B;
+      font-size: 92px;
+      font-weight: 790;
+      line-height: 1.05;
+      letter-spacing: -0.055em;
+    }
+
+    #beat-7-open-source .headline .accent {
+      color: #0B5284;
+    }
+
+    #beat-7-open-source .commit-flow {
+      position: absolute;
+      top: 364px;
+      left: 72px;
+      width: 936px;
+      height: 136px;
+      padding: 30px 28px 22px;
+      border: 1px solid #DFDFE2;
+      border-radius: 16px;
+      background: #F2F2F3;
+    }
+
+    #beat-7-open-source .commit-copy {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #09090B;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 31px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    #beat-7-open-source .commit-word {
+      display: inline-block;
+    }
+
+    #beat-7-open-source .commit-arrow {
+      color: #0B5284;
+    }
+
+    #beat-7-open-source .commit-track {
+      position: absolute;
+      left: 42px;
+      right: 42px;
+      bottom: 22px;
+      height: 3px;
+      background: #DFDFE2;
+    }
+
+    #beat-7-open-source .commit-progress {
+      position: absolute;
+      inset: 0;
+      background: #7DD3FC;
+      transform-origin: 0 50%;
+    }
+
+    #beat-7-open-source .commit-node {
+      position: absolute;
+      top: -8px;
+      width: 19px;
+      height: 19px;
+      border: 3px solid #FFFFFF;
+      border-radius: 50%;
+      background: #DFDFE2;
+    }
+
+    #beat-7-open-source .node-1 { left: 0; }
+    #beat-7-open-source .node-2 { left: 33%; }
+    #beat-7-open-source .node-3 { left: 66%; }
+    #beat-7-open-source .node-4 { right: 0; }
+
+    #beat-7-open-source .repo-stage {
+      position: absolute;
+      top: 566px;
+      left: 0;
+      width: 1080px;
+      height: 680px;
+      overflow: hidden;
+    }
+
+    #beat-7-open-source .repo-card {
+      position: absolute;
+      top: 0;
+      width: 842px;
+      height: 568px;
+      overflow: hidden;
+      padding: 42px 44px;
+      border: 1px solid #DFDFE2;
+      border-radius: 16px;
+      background: #FFFFFF;
+    }
+
+    #beat-7-open-source .repo-primary { left: 72px; }
+    #beat-7-open-source .repo-secondary { left: 118px; }
+
+    #beat-7-open-source .repo-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 34px;
+    }
+
+    #beat-7-open-source .repo-owner {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+    }
+
+    #beat-7-open-source .visibility-pill {
+      padding: 8px 13px;
+      border: 1px dashed #DFDFE2;
+      border-radius: 999px;
+      background: #F2F2F3;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    #beat-7-open-source .repo-name {
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 54px;
+      font-weight: 600;
+      letter-spacing: -0.055em;
+      line-height: 1.08;
+    }
+
+    #beat-7-open-source .repo-desc {
+      width: 650px;
+      margin-top: 24px;
+      color: #45454A;
+      font-size: 27px;
+      font-weight: 520;
+      line-height: 1.48;
+    }
+
+    #beat-7-open-source .repo-meta {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-top: 34px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    #beat-7-open-source .language {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    #beat-7-open-source .language::before {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #7DD3FC;
+      content: "";
+    }
+
+    #beat-7-open-source .star-box {
+      position: absolute;
+      right: 42px;
+      bottom: 38px;
+      display: flex;
+      align-items: baseline;
+      gap: 15px;
+      color: #09090B;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    #beat-7-open-source .star-symbol {
+      color: #F59E0B;
+      font-size: 52px;
+    }
+
+    #beat-7-open-source .star-count {
+      min-width: 118px;
+      font-size: 84px;
+      font-weight: 600;
+      letter-spacing: -0.07em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #beat-7-open-source .repo-footer {
+      position: absolute;
+      left: 44px;
+      right: 44px;
+      bottom: 47px;
+      color: #45454A;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 17px;
+      letter-spacing: 0.06em;
+    }
+
+    #beat-7-open-source .diff-panel {
+      width: 650px;
+      margin-top: 30px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      line-height: 1.8;
+    }
+
+    #beat-7-open-source .diff-line {
+      padding: 0 14px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    #beat-7-open-source .diff-line.minus {
+      margin-bottom: 7px;
+      background: rgba(245, 158, 11, 0.10);
+      color: #8A5800;
+    }
+
+    #beat-7-open-source .diff-line.plus {
+      background: rgba(125, 211, 252, 0.22);
+      color: #0B5284;
+    }
+
+    #beat-7-open-source .diff-curtain {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, rgba(245,158,11,.14) 0 50%, rgba(125,211,252,.20) 50% 100%),
+        #FFFFFF;
+      transform-origin: 0 50%;
+    }
+
+    #beat-7-open-source .principle {
+      position: absolute;
+      top: 1336px;
+      left: 72px;
+      width: 936px;
+      color: #09090B;
+      font-size: 46px;
+      font-weight: 720;
+      line-height: 1.32;
+      letter-spacing: -0.025em;
+      text-align: center;
+    }
+
+    #beat-7-open-source .proof-chip {
+      position: absolute;
+      top: 1238px;
+      left: 255px;
+      width: 570px;
+      height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 22px;
+      border: 1px solid #DFDFE2;
+      border-radius: 999px;
+      background: #F2F2F3;
+      color: #0B5284;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 25px;
+      font-weight: 600;
+    }
+
+    #beat-7-open-source .proof-chip strong {
+      color: #A35F00;
+      font-size: 29px;
+    }
+
+    #beat-7-open-source .principle span {
+      color: #0B5284;
+    }
+  </style>
+
+  <div data-hf-id="hf-mcsa" id="beat-7-open-source" data-composition-id="beat-7-open-source" data-duration="5.24" data-width="1080" data-height="1920">
+    <div data-hf-id="hf-h0oo" class="paper-fill"></div>
+    <div data-hf-id="hf-d8rp" class="graph-grid"></div>
+
+    <div data-hf-id="hf-g4sl" class="camera">
+      <div data-hf-id="hf-rk6h" class="eyebrow">
+        <span data-hf-id="hf-4of0" class="github-mark" data-asset-src="capture/assets/svgs/svg-a0b4ad49.svg" aria-label="GitHub">
+          <svg data-hf-id="hf-cku8" viewBox="0 0 24 24" aria-hidden="true">
+            <path data-hf-id="hf-dh1w" d="M6.315 6.176c-.25-.638-.24-1.367-.129-2.034a6.8 6.8 0 0 1 2.12 1.07c.28.214.647.283.989.18A9.3 9.3 0 0 1 12 5c.961 0 1.874.14 2.703.391c.342.104.709.034.988-.18a6.8 6.8 0 0 1 2.119-1.07c.111.667.12 1.396-.128 2.033c-.15.384-.075.826.208 1.14C18.614 8.117 19 9.04 19 10c0 2.114-1.97 4.187-5.134 4.818c-.792.158-1.101 1.155-.495 1.726c.389.366.629.882.629 1.456v3a1 1 0 0 0 2 0v-3c0-.57-.12-1.112-.334-1.603C18.683 15.35 21 12.993 21 10c0-1.347-.484-2.585-1.287-3.622c.21-.82.191-1.646.111-2.28c-.071-.568-.17-1.312-.57-1.756c-.595-.659-1.58-.271-2.28-.032a9 9 0 0 0-2.125 1.045A11.4 11.4 0 0 0 12 3c-.994 0-1.953.125-2.851.356a9 9 0 0 0-2.125-1.045c-.7-.24-1.686-.628-2.281.031c-.408.452-.493 1.137-.566 1.719l-.005.038c-.08.635-.098 1.462.112 2.283C3.484 7.418 3 8.654 3 10c0 2.992 2.317 5.35 5.334 6.397A4 4 0 0 0 8 17.98l-.168.034c-.717.099-1.176.01-1.488-.122c-.76-.322-1.152-1.133-1.63-1.753c-.298-.385-.732-.866-1.398-1.088a1 1 0 0 0-.632 1.898c.558.186.944 1.142 1.298 1.566c.373.448.869.916 1.58 1.218c.682.29 1.483.393 2.438.276V21a1 1 0 0 0 2 0v-3c0-.574.24-1.09.629-1.456c.607-.572.297-1.568-.495-1.726C6.969 14.187 5 12.114 5 10c0-.958.385-1.881 1.108-2.684c.283-.314.357-.756.207-1.14" />
+          </svg>
+        </span>
+        <span data-hf-id="hf-95ti">OPEN SOURCE / PUBLIC LOG</span>
+      </div>
+
+      <h1 data-hf-id="hf-vlpp" class="headline">公开 · 复盘 · <span data-hf-id="hf-rklb" class="accent">开源</span></h1>
+
+      <div data-hf-id="hf-pws8" class="commit-flow">
+        <div data-hf-id="hf-ef53" class="commit-copy">
+          <span data-hf-id="hf-r0v1" class="commit-word word-1">build</span>
+          <span data-hf-id="hf-8sj7" class="commit-arrow arrow-1">→</span>
+          <span data-hf-id="hf-rkf4" class="commit-word word-2">fail</span>
+          <span data-hf-id="hf-54q6" class="commit-arrow arrow-2">→</span>
+          <span data-hf-id="hf-1i3e" class="commit-word word-3">reflect</span>
+          <span data-hf-id="hf-xrzt" class="commit-arrow arrow-3">→</span>
+          <span data-hf-id="hf-want" class="commit-word word-4">share</span>
+        </div>
+        <div data-hf-id="hf-1uzh" class="commit-track">
+          <div data-hf-id="hf-ryj5" class="commit-progress"></div>
+          <span data-hf-id="hf-g01n" class="commit-node node-1"></span>
+          <span data-hf-id="hf-7c5s" class="commit-node node-2"></span>
+          <span data-hf-id="hf-83tl" class="commit-node node-3"></span>
+          <span data-hf-id="hf-x8by" class="commit-node node-4"></span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-ewsl" class="repo-stage">
+        <article data-hf-id="hf-fl9h" class="repo-card repo-primary">
+          <div data-hf-id="hf-gnh2" class="repo-top">
+            <div data-hf-id="hf-w47m" class="repo-owner">
+              <span data-hf-id="hf-aom4">joyehuang / repository</span>
+            </div>
+            <span data-hf-id="hf-jb82" class="visibility-pill">PUBLIC</span>
+          </div>
+          <h2 data-hf-id="hf-kb0q" class="repo-name">minimind-notes</h2>
+          <p data-hf-id="hf-p61h" class="repo-desc">从模型训练到工程复盘，把踩过的坑写成公开学习轨迹。</p>
+          <div data-hf-id="hf-0yt6" class="repo-meta">
+            <span data-hf-id="hf-4rta" class="language">Markdown</span>
+            <span data-hf-id="hf-v0l9">updated 2026-07-11</span>
+          </div>
+          <div data-hf-id="hf-5b63" class="repo-footer">main · 146 stars · open learning</div>
+          <div data-hf-id="hf-s0nk" class="star-box"><span data-hf-id="hf-bn29" class="star-symbol">★</span><span data-hf-id="hf-ujhs" class="star-count count-primary">146</span></div>
+        </article>
+
+        <article data-hf-id="hf-ia49" class="repo-card repo-secondary">
+          <div data-hf-id="hf-oo1m" class="repo-top">
+            <div data-hf-id="hf-8y3a" class="repo-owner">
+              <span data-hf-id="hf-9zx0">joyehuang / repository</span>
+            </div>
+            <span data-hf-id="hf-8us6" class="visibility-pill">PUBLIC</span>
+          </div>
+          <h2 data-hf-id="hf-eoml" class="repo-name">Learn-Open-Harness</h2>
+          <div data-hf-id="hf-vppw" class="diff-panel">
+            <div data-hf-id="hf-jdc4" class="diff-line minus">− private experiment</div>
+            <div data-hf-id="hf-q9ie" class="diff-line plus">+ public harness + notes</div>
+          </div>
+          <div data-hf-id="hf-rl1f" class="repo-footer">main · 19 stars · share the process</div>
+          <div data-hf-id="hf-yalk" class="star-box"><span data-hf-id="hf-rs0l" class="star-symbol">★</span><span data-hf-id="hf-zh19" class="star-count count-secondary">19</span></div>
+          <div data-hf-id="hf-pw7k" class="diff-curtain"></div>
+        </article>
+      </div>
+
+      <div data-hf-id="hf-im0p" class="proof-chip"><span data-hf-id="hf-ep42">minimind-notes</span><strong data-hf-id="hf-4jki">★146</strong></div>
+      <div data-hf-id="hf-w55j" class="principle">做过的事要公开，<span data-hf-id="hf-qhqm">踩过的坑要复盘。</span></div>
+    </div>
+
+    <script>
+      (function () {
+        var BEAT = 5.24;
+        var root = document.getElementById("beat-7-open-source");
+        if (!root) return;
+
+        var camera = root.querySelector(".camera");
+        var grid = root.querySelector(".graph-grid");
+        var headline = root.querySelector(".headline");
+        var words = root.querySelectorAll(".commit-word, .commit-arrow");
+        var progress = root.querySelector(".commit-progress");
+        var nodes = root.querySelectorAll(".commit-node");
+        var primary = root.querySelector(".repo-primary");
+        var secondary = root.querySelector(".repo-secondary");
+        var primaryCount = root.querySelector(".count-primary");
+        var secondaryCount = root.querySelector(".count-secondary");
+        var primaryStar = root.querySelector(".repo-primary .star-box");
+        var secondaryStar = root.querySelector(".repo-secondary .star-box");
+        var diffCurtain = root.querySelector(".diff-curtain");
+        var proofChip = root.querySelector(".proof-chip");
+        var principle = root.querySelector(".principle");
+
+        window.__timelines = window.__timelines || {};
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(camera, { scale: 1, y: 0 }, { scale: 1.06, y: -24, duration: BEAT, ease: "none" }, 0);
+        tl.fromTo(grid, { x: -30, y: -34 }, { x: 34, y: 38, duration: BEAT, ease: "none" }, 0);
+        tl.fromTo(headline, { opacity: 0, y: 56 }, { opacity: 1, y: 0, duration: 0.62, ease: "power4.out" }, 0.10);
+        tl.fromTo(words, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.30, ease: "power4.out", stagger: 0.15 }, 0.42);
+        tl.fromTo(progress, { scaleX: 0 }, { scaleX: 1, duration: 1.28, ease: "power1.inOut" }, 0.58);
+        tl.fromTo(nodes, { backgroundColor: "#DFDFE2", scale: 0.72 }, { backgroundColor: "#0B5284", scale: 1, duration: 0.24, ease: "back.out(1.7)", stagger: 0.32 }, 0.58);
+
+        tl.fromTo(primary, { x: 720, opacity: 0, rotation: 4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.78, ease: "back.out(1.4)" }, 0.72);
+        tl.set(primaryCount, { textContent: "0" }, 0);
+        tl.set(primaryCount, { textContent: "36" }, 1.18);
+        tl.set(primaryCount, { textContent: "79" }, 1.42);
+        tl.set(primaryCount, { textContent: "118" }, 1.66);
+        tl.set(primaryCount, { textContent: "146" }, 1.90);
+        tl.fromTo(primaryStar, { scale: 0.82 }, { scale: 1.08, duration: 0.26, ease: "back.out(1.7)" }, 1.88);
+        tl.to(primaryStar, { scale: 1, duration: 0.22, ease: "power2.out" }, 2.14);
+
+        tl.fromTo(secondary, { x: 1080, opacity: 1, rotation: 4 }, { x: 0, opacity: 1, rotation: 0, duration: 0.88, ease: "expo.inOut" }, 2.54);
+        tl.to(primary, { x: -950, rotation: -4, duration: 0.88, ease: "expo.inOut" }, 2.54);
+        tl.fromTo(diffCurtain, { scaleX: 1 }, { scaleX: 0, duration: 0.62, ease: "power4.inOut" }, 3.14);
+        tl.set(secondaryCount, { textContent: "0" }, 0);
+        tl.set(secondaryCount, { textContent: "5" }, 3.52);
+        tl.set(secondaryCount, { textContent: "12" }, 3.72);
+        tl.set(secondaryCount, { textContent: "19" }, 3.92);
+        tl.fromTo(secondaryStar, { scale: 0.82 }, { scale: 1.08, duration: 0.26, ease: "back.out(1.7)" }, 3.90);
+        tl.to(secondaryStar, { scale: 1, duration: 0.22, ease: "power2.out" }, 4.16);
+
+        tl.fromTo(proofChip, { opacity: 0, x: -56 }, { opacity: 1, x: 0, duration: 0.48, ease: "power4.out" }, 3.40);
+        tl.fromTo(principle, { opacity: 0, y: 46 }, { opacity: 1, y: 0, duration: 0.48, ease: "power4.out" }, 3.66);
+        tl.to(secondary, { x: -18, y: -16, duration: 1.00, ease: "power1.inOut" }, 4.24);
+        tl.to(principle, { y: -12, duration: 1.00, ease: "none" }, 4.24);
+
+        window.__timelines["beat-7-open-source"] = tl;
+      })();
+    </script>
+  </div>
+</template>

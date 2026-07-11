@@ -1,0 +1,154 @@
+[a] Joye Personal Blog
+[a] Blog
+[a] Notes
+[a] Talks
+[a] Projects
+[a] Links
+[a] About
+[a] Contact
+[span] Search
+[span] 切换语言
+[span] Dark Theme
+[span] Menu
+[span] sample
+[span] refine
+[span] decode
+[div] Joye
+[button] 进入 ~/joye →
+[button] 跳过 →
+[button] ↻ 重播入场
+[h1] Joye
+[p] Melbourne, Australia
+[p] GitHub
+[p] Connect Me!
+[span] // power user?
+[span] Skip the scroll — try the interactive CLI. Type
+[code] help
+[code] design
+[span] , or
+[code] ls /blog
+[div] click or
+[div] to open
+[span] wterm v0.1 · joye.sh
+[span] an interactive shell into this site — try
+[code] help
+[code] chat
+[code] ls blog
+[span] type 'help' to get started · 'whoami' for the short version
+[span] joye
+[span] joye.devserver
+[span] click or press
+[span] then type
+[span] help
+[h2] About
+[p] AI Agent & Full-Stack Developer
+[p] 墨尔本大学在读，专注 AI Agent 产品开发 —— 从 Adastra Labs（石墨文档海外）的
+          Playyy.ai、特赞 Tezign 的 atypica（商业研究 Multi-Agent），到 fAIshion.ai 与
+          Goshu Tech 的全栈与剪辑 Agent，都是这条线上的实践。 在意 LLM
+          的底层机制，也在意产品能不能真正跑起来。 Build fast, learn faster —
+          平时弹琴、拉大提琴、玩摄影。
+[p] More about me
+[span] 第一届
+[span] Joye 粉丝 Agent 比赛 · 比赛进行中
+[h3] Summer of Agents
+[p] 组队已经截止，各队正在开发中。感兴趣欢迎进群围观，说不定还会有第二届 😄
+[span] 进去看看 →
+[h2] Blog
+[time] 2026年6月15日
+[div] 从实习面试到 Agent 开发：名词换得比模型还快，我为什么不焦虑
+[time] 2026年5月28日
+[div] 我又拷打了一个 Agent 候选人：46 分钟模拟面试全程复盘
+[time] 2026年5月23日
+[div] 面试不是考试，是双向选择——我面了 100+ 家 Agent 岗位后想分享的心态心法
+[time] 2026年5月17日
+[div] 写给所有"想入门 Agent 但不知道从哪开始"的人
+[time] 2026年5月12日
+[div] 一场 1 小时 19 分钟的 Agent 工程师模拟面试，我们到底聊了什么
+[p] More blogs
+[h2] Notes
+[div] Hermes Agent 记忆架构：从 L0 到 L2 的四层设计
+[div] Prompt Caching 工程实践：Anthropic 的缓存设计与 defer_loading 模式
+[div] Hermes Agent memory 系统的工程安全机制
+[div] Faiss vs Chroma 向量库选型取舍
+[p] More notes
+[h2] Talks
+[p] 群里每周一次的线上交流会，轮流分享技术、求职和 AI 行业 ——
+              每期的内容与幻灯片都公开沉淀在这里。
+[h2] 一场面试，反推 AI 时代的产品形态
+[p] 从一家“文档协作 → AI 版 Canva”公司的面试聊起 —— 软件、Agent，与垂类的未来。
+[p] 最新一期 · 2026年6月27日
+[p] 全部分享
+[h2] Experience
+[h2] Adastra Labs（石墨文档海外）
+[p] AI 全栈工程师
+[li] 参与 Playyy.ai —— AI 图像生成与品牌设计平台的产品与工程研发
+[h2] 上海特赞 Tezign
+[p] AIGC 研发部门全栈实习生
+[li] 参与 atypica.ai —— 面向商业研究场景的 Multi-Agent 系统
+[h2] AIXCut
+[p] AI 全栈研发
+[li] 参与 AI 视频剪辑 Agent 的设计与工程化落地
+[h2] fAIshion.ai
+[p] AI 全栈工程师（远程）
+[li] AI 虚拟试衣与服装搭配平台的全栈开发与模型集成
+[h2] Open Source
+[h2] Learn-Open-Harness
+[p] OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent
+[p] ⭐ 19
+[h2] minimind-notes
+[p] 从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验
+[p] ⭐ 145
+[h2] Education
+[h2] 墨尔本大学
+[p] 理学学士 - 计算与软件工程
+[p] 2月 2024 - 6月 2027
+[h2] Skills
+[h3] Languages
+[p] TypeScript
+[p] JavaScript
+[p] Python
+[p] SQL
+[h3] Frontend
+[p] React
+[p] Next.js
+[p] Tailwind CSS
+[p] Remotion
+[p] Vite
+[h3] Backend
+[p] Node.js
+[p] Vercel
+[p] Supabase
+[p] AWS
+[p] Stripe
+[p] Inngest
+[h3] AI & Agent
+[p] Claude Code
+[p] LLM
+[p] Transformer
+[p] Multi-Agent
+[p] RAG
+[p] Function Calling
+[p] Prompt Engineering
+[h3] Tools
+[p] Cursor
+[p] Git
+[p] Docker
+[p] Bun
+[p] Figma
+[p] ESLint/Prettier
+[h2] 站点统计
+[div] 24,293
+[div] 浏览量
+[p] Loading...
+[pre] ╭──────╮
+[pre] ╰─┬──┬─╯
+[pre] │  │
+[pre] ╵  ╵
+[span] 第一届
+[span] Joye 粉丝 Agent 比赛
+[h2] Summer of Agents
+[span] 组队已经截止，各队正在开发中。感兴趣欢迎进群围观，说不定还会有第二届 😄
+[a] 去围观
+[a] 活动详情 ↗
+[div] © 2026 Joye
+[span] theme powered

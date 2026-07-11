@@ -1,0 +1,355 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Satoshi Variable";
+      src: url("capture/assets/fonts/Satoshi-Variable.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: "Microsoft YaHei";
+      src: local("Microsoft YaHei");
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Noto Sans SC";
+      src: local("Noto Sans SC");
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf") format("truetype");
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #beat-3-stats,
+    #beat-3-stats * {
+      box-sizing: border-box;
+    }
+
+    #beat-3-stats {
+      width: 1080px;
+      height: 1920px;
+      position: relative;
+      overflow: hidden;
+      color: #09090B;
+      font-family: "Satoshi Variable", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+
+    #beat-3-stats .b3-fill {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #FCFCFD;
+    }
+
+    #beat-3-stats .b3-grid {
+      position: absolute;
+      inset: -100px;
+      background-image:
+        linear-gradient(rgba(223, 223, 226, .34) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(223, 223, 226, .34) 1px, transparent 1px);
+      background-size: 84px 84px;
+      transform-origin: center;
+    }
+
+    #beat-3-stats .b3-kicker {
+      position: absolute;
+      top: 118px;
+      left: 76px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: #0B5284;
+      font: 600 24px/1 "JetBrains Mono", monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    #beat-3-stats .b3-kicker-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #7DD3FC;
+      border: 3px solid #0B5284;
+    }
+
+    #beat-3-stats .b3-stream {
+      position: absolute;
+      left: 52px;
+      right: 52px;
+      top: 252px;
+      display: grid;
+      gap: 18px;
+      transform-origin: 50% 50%;
+    }
+
+    #beat-3-stats .b3-row {
+      height: 124px;
+      display: grid;
+      grid-template-columns: 118px 1fr 48px;
+      align-items: center;
+      gap: 22px;
+      padding: 0 30px;
+      border: 1px solid #DFDFE2;
+      border-radius: 14px;
+      background: rgba(252, 252, 253, .86);
+      color: #09090B;
+    }
+
+    #beat-3-stats .b3-row-type {
+      color: #0B5284;
+      font: 600 19px/1 "JetBrains Mono", monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    #beat-3-stats .b3-row-title {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 29px;
+      font-weight: 610;
+      letter-spacing: -.025em;
+    }
+
+    #beat-3-stats .b3-row-arrow {
+      color: #0B5284;
+      font: 400 34px/1 "JetBrains Mono", monospace;
+    }
+
+    #beat-3-stats .b3-scrim {
+      position: absolute;
+      inset: 212px 0 88px;
+      background: linear-gradient(180deg, rgba(252,252,253,.12), rgba(252,252,253,.76) 18%, rgba(252,252,253,.78) 82%, rgba(252,252,253,.2));
+    }
+
+    #beat-3-stats .b3-stat-grid {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      top: 530px;
+      height: 858px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
+      transform-origin: 50% 58%;
+    }
+
+    #beat-3-stats .b3-stat {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 34px 34px;
+      border: 1px solid #DFDFE2;
+      border-radius: 18px;
+      background: #F2F2F3;
+    }
+
+    #beat-3-stats .b3-stat::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 7px;
+      background: #7DD3FC;
+      transform-origin: left;
+    }
+
+    #beat-3-stats .b3-stat-index {
+      color: #0B5284;
+      font: 600 21px/1 "JetBrains Mono", monospace;
+      letter-spacing: .08em;
+    }
+
+    #beat-3-stats .b3-stat-value {
+      position: relative;
+      z-index: 2;
+      color: #09090B;
+      font: 600 104px/.92 "JetBrains Mono", monospace;
+      letter-spacing: -.08em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #beat-3-stats .b3-stat-value.b3-wide {
+      font-size: 82px;
+      letter-spacing: -.075em;
+    }
+
+    #beat-3-stats .b3-stat-label {
+      color: #45454A;
+      font-size: 30px;
+      font-weight: 650;
+      letter-spacing: -.02em;
+    }
+
+    #beat-3-stats .b3-burst {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 420px;
+      height: 420px;
+      margin: -210px 0 0 -210px;
+      border-radius: 50%;
+      border: 5px solid #7DD3FC;
+      background: rgba(125, 211, 252, .18);
+      pointer-events: none;
+    }
+
+    #beat-3-stats .b3-proof {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      bottom: 208px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 26px;
+      border-top: 2px solid #DFDFE2;
+      color: #45454A;
+      font: 400 21px/1.4 "JetBrains Mono", monospace;
+    }
+
+    #beat-3-stats .b3-proof strong {
+      color: #0B5284;
+      font-weight: 600;
+    }
+
+    #beat-3-stats .b3-next {
+      position: absolute;
+      left: 52px;
+      right: 52px;
+      bottom: 56px;
+      height: 116px;
+      display: grid;
+      grid-template-columns: 126px 1fr 48px;
+      align-items: center;
+      gap: 22px;
+      padding: 0 30px;
+      border: 1px solid #DFDFE2;
+      border-radius: 14px;
+      background: #FCFCFD;
+    }
+  </style>
+
+  <div data-hf-id="hf-qcy8" id="beat-3-stats" data-composition-id="beat-3-stats" data-width="1080" data-height="1920" style="width:1080px;height:1920px;position:relative;overflow:hidden;">
+    <div data-hf-id="hf-99q1" class="b3-fill">
+      <div data-hf-id="hf-7e2a" class="b3-grid"></div>
+      <div data-hf-id="hf-pys5" class="b3-kicker"><span data-hf-id="hf-useg" class="b3-kicker-dot"></span><span data-hf-id="hf-60ny">Joye / Knowledge Base</span></div>
+
+      <div data-hf-id="hf-njzx" class="b3-stream" aria-hidden="true">
+        <div data-hf-id="hf-gdna" class="b3-row"><span data-hf-id="hf-fovk" class="b3-row-type">BLOG</span><span data-hf-id="hf-plwy" class="b3-row-title">写给所有想入门 Agent 的人</span><span data-hf-id="hf-xx14" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-hrei" class="b3-row"><span data-hf-id="hf-u4yw" class="b3-row-type">NOTE</span><span data-hf-id="hf-t5oz" class="b3-row-title">Build fast, learn faster</span><span data-hf-id="hf-20r4" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-i5pj" class="b3-row"><span data-hf-id="hf-p1h6" class="b3-row-type">TALK</span><span data-hf-id="hf-u2p9" class="b3-row-title">AI Agent 工程实践分享</span><span data-hf-id="hf-0tu1" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-ik0k" class="b3-row"><span data-hf-id="hf-jwqw" class="b3-row-type">BLOG</span><span data-hf-id="hf-7j51" class="b3-row-title">从零构建 Multi-Agent 系统</span><span data-hf-id="hf-1852" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-iybl" class="b3-row"><span data-hf-id="hf-o2w0" class="b3-row-type">NOTE</span><span data-hf-id="hf-yvjx" class="b3-row-title">把踩过的坑写成路径</span><span data-hf-id="hf-017z" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-jcmm" class="b3-row"><span data-hf-id="hf-iptt" class="b3-row-type">BLOG</span><span data-hf-id="hf-fkvx" class="b3-row-title">Agent 求职与项目复盘</span><span data-hf-id="hf-0fj0" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-jqxn" class="b3-row"><span data-hf-id="hf-b90e" class="b3-row-type">TALK</span><span data-hf-id="hf-icyw" class="b3-row-title">开源、复盘与公开学习</span><span data-hf-id="hf-z8lx" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-k58o" class="b3-row"><span data-hf-id="hf-mvyx" class="b3-row-type">NOTE</span><span data-hf-id="hf-x8pw" class="b3-row-title">工具、记忆与循环</span><span data-hf-id="hf-zmwy" class="b3-row-arrow">↗</span></div>
+        <div data-hf-id="hf-kjjp" class="b3-row"><span data-hf-id="hf-j44u" class="b3-row-type">BLOG</span><span data-hf-id="hf-wr32" class="b3-row-title">真实项目比术语更重要</span><span data-hf-id="hf-yfzv" class="b3-row-arrow">↗</span></div>
+      </div>
+
+      <div data-hf-id="hf-qc2c" class="b3-scrim"></div>
+
+      <div data-hf-id="hf-68wd" class="b3-stat-grid">
+        <div data-hf-id="hf-aca4" class="b3-stat">
+          <span data-hf-id="hf-ecbq" class="b3-stat-index">01 / BLOG</span>
+          <span data-hf-id="hf-jfgj" id="beat-3-stats-posts" class="b3-stat-value">0</span>
+          <span data-hf-id="hf-07mr" class="b3-stat-label">篇博客</span>
+        </div>
+        <div data-hf-id="hf-rtxg" class="b3-stat">
+          <span data-hf-id="hf-jb0i" class="b3-stat-index">02 / NOTES</span>
+          <span data-hf-id="hf-09bx" id="beat-3-stats-notes" class="b3-stat-value">0</span>
+          <span data-hf-id="hf-9en2" class="b3-stat-label">篇 Notes</span>
+        </div>
+        <div data-hf-id="hf-qn0d" class="b3-stat">
+          <span data-hf-id="hf-ph2j" class="b3-stat-index">03 / TALKS</span>
+          <span data-hf-id="hf-dosn" id="beat-3-stats-talks" class="b3-stat-value">0</span>
+          <span data-hf-id="hf-gpej" class="b3-stat-label">场公开分享</span>
+        </div>
+        <div data-hf-id="hf-o1bl" class="b3-stat b3-stat-views">
+          <span data-hf-id="hf-cm5z" class="b3-stat-index">04 / VIEWS</span>
+          <span data-hf-id="hf-jt23" id="beat-3-stats-views" class="b3-stat-value b3-wide">0</span>
+          <span data-hf-id="hf-605h" class="b3-stat-label">总浏览量</span>
+          <span data-hf-id="hf-0g1x" class="b3-burst"></span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-6e0g" class="b3-proof"><span data-hf-id="hf-v3i8">repo content + Waline /api/stats</span><strong data-hf-id="hf-w32x">2026.07.11</strong></div>
+      <div data-hf-id="hf-weux" class="b3-next">
+        <span data-hf-id="hf-zh2h" class="b3-row-type">POPULAR</span>
+        <span data-hf-id="hf-usqe" class="b3-row-title">写给所有想入门 Agent 的人</span>
+        <span data-hf-id="hf-yuaw" class="b3-row-arrow">↗</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var BEAT = 5.56;
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      var root = document.getElementById("beat-3-stats");
+      if (!root) return;
+
+      var rows = root.querySelectorAll(".b3-row");
+      var stats = root.querySelectorAll(".b3-stat");
+      var grid = root.querySelector(".b3-grid");
+      var stream = root.querySelector(".b3-stream");
+      var statGrid = root.querySelector(".b3-stat-grid");
+      var kicker = root.querySelector(".b3-kicker");
+      var proof = root.querySelector(".b3-proof");
+      var next = root.querySelector(".b3-next");
+      var burst = root.querySelector(".b3-burst");
+      var posts = document.getElementById("beat-3-stats-posts");
+      var notes = document.getElementById("beat-3-stats-notes");
+      var talks = document.getElementById("beat-3-stats-talks");
+      var views = document.getElementById("beat-3-stats-views");
+
+      tl.fromTo(grid, { x: -44, y: 70, scale: 1 }, { x: 28, y: -32, scale: 1.07, duration: BEAT, ease: "none" }, 0);
+      tl.fromTo(stream, { y: 310, scale: .98 }, { y: -370, scale: 1.04, duration: BEAT, ease: "none" }, 0);
+      tl.fromTo(rows, { x: 160, opacity: .18 }, { x: 0, opacity: .68, duration: .66, stagger: .08, ease: "power4.out" }, .06);
+      tl.fromTo(kicker, { x: 90, opacity: .6 }, { x: 0, opacity: 1, duration: .72, ease: "expo.out" }, .05);
+      tl.fromTo(stats, { y: 240, opacity: .12, scale: .92 }, { y: 0, opacity: 1, scale: 1, duration: .76, stagger: .12, ease: "back.out(1.7)" }, .22);
+      tl.fromTo(statGrid, { y: 0, scale: 1 }, { y: -42, scale: 1.065, duration: 4.1, ease: "none" }, 1.05);
+
+      tl.set(posts, { textContent: "4" }, .42);
+      tl.set(posts, { textContent: "9" }, .62);
+      tl.set(posts, { textContent: "13" }, .84);
+      tl.set(notes, { textContent: "3" }, .56);
+      tl.set(notes, { textContent: "7" }, .77);
+      tl.set(notes, { textContent: "11" }, 1.00);
+      tl.set(talks, { textContent: "1" }, .78);
+      tl.set(talks, { textContent: "2" }, 1.18);
+      tl.set(views, { textContent: "6,188" }, .94);
+      tl.set(views, { textContent: "12,376" }, 1.16);
+      tl.set(views, { textContent: "18,564" }, 1.38);
+      tl.set(views, { textContent: "24,752" }, 1.62);
+
+      tl.fromTo(burst, { scale: .1, opacity: 0 }, { scale: 1.9, opacity: .72, duration: .72, ease: "expo.out" }, 1.55);
+      tl.to(burst, { scale: 2.6, opacity: 0, duration: .68, ease: "power2.out" }, 2.27);
+      tl.fromTo(proof, { y: 54, opacity: 0 }, { y: 0, opacity: 1, duration: .72, ease: "power4.out" }, 2.05);
+      tl.fromTo(next, { y: 180, opacity: 0 }, { y: 0, opacity: 1, duration: .74, ease: "expo.out" }, 4.24);
+      tl.to(stats, { y: -150, opacity: 0, duration: .46, stagger: .035, ease: "power2.in" }, 5.02);
+      tl.to(kicker, { y: -70, opacity: 0, duration: .42, ease: "power2.in" }, 5.08);
+      tl.to(proof, { y: -64, opacity: 0, duration: .38, ease: "power2.in" }, 5.12);
+      tl.to(next, { y: -690, scale: 1.07, duration: .54, ease: "power2.in" }, 5.02);
+
+      window.__timelines["beat-3-stats"] = tl;
+    })();
+  </script>
+</template>

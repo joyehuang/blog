@@ -1,0 +1,9 @@
+.hyperframes/
+.thumbnails/
+.waveform-cache/
+preview.*.log
+test-*.wav
+renders/verify-5fps/
+snapshots/**/*.jpg
+snapshots/**/*.png
+sfx/
