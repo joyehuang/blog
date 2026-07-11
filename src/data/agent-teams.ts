@@ -24,7 +24,7 @@ export const activity = {
   name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
   subtitle: '比赛进行中',
-  tagline: '组队已经截止啦，现在各队都在开发中。围观、追进度、找灵感都欢迎，对 Agent 感兴趣就来看看 👀',
+  tagline: '组队已经截止啦，现在各队都在开发中。围观、追进度、找灵感都欢迎，对 Agent 感兴趣就来看看 🤖',
   /** 组队截止日（YYYY-MM-DD，测试会校验格式） */
   deadline: '2026-07-10',
   /** 组队截止时刻（北京时间 7/10 晚 12 点）——过点后 API 与看板同时关闭报名/建队 */
