@@ -1,0 +1,51 @@
+---
+import { getCollection } from 'astro:content'
+import { getPortfolioRepos } from '@/data/portfolio-repos'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+import ImmersiveHome from '@/components/home/ImmersiveHome.astro'
+
+export const prerender = true
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+    date
+  )
+
+const posts = (await getCollection('blog'))
+  .filter((post) => (import.meta.env.PROD ? !post.data.draft : true))
+  .sort(
+    (a, b) =>
+      +(b.data.updatedDate ?? b.data.publishDate) - +(a.data.updatedDate ?? a.data.publishDate)
+  )
+  .slice(0, 5)
+  .map((post) => ({
+    title: post.data.title,
+    href: `/blog/${post.id}`,
+    meta: formatDate(post.data.updatedDate ?? post.data.publishDate),
+    kind: '文章'
+  }))
+
+const notes = (await getCollection('notes'))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => +(b.data.updatedDate ?? b.data.date) - +(a.data.updatedDate ?? a.data.date))
+  .slice(0, 5)
+  .map((note) => ({
+    title: note.data.title,
+    href: `/notes/${note.id}`,
+    meta: formatDate(note.data.updatedDate ?? note.data.date),
+    kind: note.data.type
+  }))
+
+const repos = await getPortfolioRepos('zh')
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — AI Agent Product Engineer · V2',
+    description: 'AI Agent 产品工程师：多智能体研究、AI 图像工作台与视频剪辑 Agent。'
+  }}
+  chrome={false}
+>
+  <ImmersiveHome locale='zh' {posts} {notes} {repos} />
+</PageLayout>

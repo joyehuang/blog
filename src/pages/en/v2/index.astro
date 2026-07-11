@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content'
+import { getPortfolioRepos } from '@/data/portfolio-repos'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+import ImmersiveHome from '@/components/home/ImmersiveHome.astro'
+
+export const prerender = true
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('en-AU', { year: 'numeric', month: 'short', day: '2-digit' }).format(date)
+
+const posts = (await getCollection('blogEn'))
+  .filter((post) => (import.meta.env.PROD ? !post.data.draft : true) && post.data.translationKey)
+  .sort(
+    (a, b) =>
+      +(b.data.updatedDate ?? b.data.publishDate) - +(a.data.updatedDate ?? a.data.publishDate)
+  )
+  .slice(0, 5)
+  .map((post) => ({
+    title: post.data.title,
+    href: `/en/blog/${post.data.translationKey}`,
+    meta: formatDate(post.data.updatedDate ?? post.data.publishDate),
+    kind: 'Essay'
+  }))
+
+const notes = (await getCollection('notesEn'))
+  .filter((note) => !note.data.draft && note.data.translationKey)
+  .sort((a, b) => +(b.data.updatedDate ?? b.data.date) - +(a.data.updatedDate ?? a.data.date))
+  .slice(0, 5)
+  .map((note) => ({
+    title: note.data.title,
+    href: `/en/notes/${note.data.translationKey}`,
+    meta: formatDate(note.data.updatedDate ?? note.data.date),
+    kind: note.data.type
+  }))
+
+const repos = await getPortfolioRepos('en')
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — AI Agent Product Engineer · V2',
+    description:
+      'AI agent product engineer working across multi-agent research, image creation, and video editing.'
+  }}
+  chrome={false}
+>
+  <ImmersiveHome locale='en' {posts} {notes} {repos} />
+</PageLayout>

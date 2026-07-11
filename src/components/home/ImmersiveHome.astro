@@ -1,0 +1,2606 @@
+---
+import { Image } from 'astro:assets'
+import avatar from 'src/assets/avatar.png'
+
+import '@fontsource-variable/geist'
+
+import IntroOverlay from '@/components/intro/IntroOverlay.astro'
+import JoJo from '@/components/mascot/JoJo'
+
+type FeedItem = {
+  title: string
+  href: string
+  meta: string
+  kind: string
+}
+
+type RepoItem = {
+  name: string
+  description: string
+  stars: number
+  href?: string
+  eyebrow?: string
+  image?: string
+  imageAlt?: string
+}
+
+interface Props {
+  locale: 'zh' | 'en'
+  posts: FeedItem[]
+  notes: FeedItem[]
+  repos: RepoItem[]
+}
+
+const { locale, posts, notes, repos } = Astro.props
+const isEn = locale === 'en'
+const prefix = isEn ? '/en' : ''
+
+const copy = isEn
+  ? {
+      work: 'Work',
+      journal: 'Journal',
+      about: 'Practice',
+      contact: 'Contact',
+      role: 'AI agent & product engineer',
+      intro: 'I take AI agents from promising demos to products that hold up in real workflows.',
+      location: 'Melbourne · Shanghai · Remote',
+      explore: 'Enter the work',
+      selected: 'I do more than build the interface. I make the AI product work.',
+      selectedBody:
+        'From workflow modelling and agent behaviour to full-stack delivery, these are three products I helped move toward real users.',
+      visit: 'Visit product',
+      livePreview: 'Live preview',
+      staticPreview: 'Back to overview',
+      openLive: 'Open live site',
+      evidence: 'Turn experience into methods others can use.',
+      evidenceBody:
+        'I break complex engineering work into talks, diagrams, and public notes—not just to present an answer, but to expose a process that others can test, discuss, and reuse.',
+      evidenceCta: 'Open the full talk',
+      journalTitle: 'Writing & Notes',
+      journalBody:
+        'Long-form essays and compact research notes from the things I am building and learning.',
+      essays: 'Essays',
+      notes: 'Notes',
+      openSource: 'Open source & upstream work',
+      sourceBody: 'Original projects and contributions to products maintained by other builders.',
+      finale: 'Let’s put AI into a real product.',
+      finaleBody:
+        'I’m open to AI agent and full-stack product engineering opportunities. Ask for my résumé, dig into a project, or tell me what your team is trying to ship.',
+      context: 'Team',
+      constraint: 'Hard part',
+      outcome: 'Role',
+      contextValue: 'What is your team building?',
+      constraintValue: 'What is hardest to move forward?',
+      outcomeValue: 'What should this engineer deliver?',
+      ready: 'See if we fit',
+      talk: 'Ask for my résumé',
+      replay: 'Replay entrance',
+      copyright: 'Designed and engineered by Joye.'
+    }
+  : {
+      work: '作品',
+      journal: '写作',
+      about: '方法',
+      contact: '联系',
+      role: 'AI Agent 产品工程师 · 全栈研发',
+      intro: '把 AI Agent 从 Demo 推进到真实业务：能运行、能交付，也有人愿意用。',
+      location: '墨尔本 · 上海 · 远程',
+      explore: '进入作品',
+      selected: '我负责的不只是界面，而是让 AI 产品真正跑起来。',
+      selectedBody:
+        '从工作流建模、Agent 行为到全栈交付，下面是我参与推进到真实用户面前的三个产品。',
+      visit: '访问产品',
+      livePreview: '在线预览',
+      staticPreview: '返回概览',
+      openLive: '打开官网',
+      evidence: '把经验拆成别人也能用的方法。',
+      evidenceBody:
+        '我把复杂工程拆成讲稿、图解和公开笔记：不是展示答案，而是留下可以验证、讨论和复用的过程。',
+      evidenceCta: '查看完整演讲',
+      journalTitle: '博客与 Notes',
+      journalBody: '长文章记录完整思考，Notes 留下正在研究和实践中的小结。',
+      essays: '文章',
+      notes: '笔记',
+      openSource: '开源与上游贡献',
+      sourceBody: '既从零做自己的项目，也把改进提交到其他开发者维护的产品里。',
+      finale: '一起把 AI 做进真实产品。',
+      finaleBody:
+        '我正在寻找 AI Agent / 全栈产品工程方向的机会。想看简历、深入了解项目，或聊聊你的团队正在交付什么，欢迎联系。',
+      context: '团队',
+      constraint: '难点',
+      outcome: '角色',
+      contextValue: '你的团队正在做什么？',
+      constraintValue: '现在最难推进的是什么？',
+      outcomeValue: '希望这个角色交付什么？',
+      ready: '看看我们是否匹配',
+      talk: '索取简历 / 联系我',
+      replay: '重播入场',
+      copyright: 'Joye 设计与开发。'
+    }
+
+const projects = isEn
+  ? [
+      {
+        index: '01',
+        key: 'playyy',
+        title: 'Playyy',
+        role: 'Brand-aware AI image workspace',
+        body: 'A creative environment that keeps brand context, generation, and iteration in one product surface.',
+        metrics: [
+          ['10+', 'AI creation tools'],
+          ['4K', 'export ready'],
+          ['02', 'frontier image models']
+        ],
+        href: 'https://playyy.ai/',
+        image: '/images/landing/playyy-ui.png',
+        alt: 'Playyy product interface from the public website',
+        domain: 'playyy.ai',
+        accent: '#659eb9',
+        embeddable: true
+      },
+      {
+        index: '02',
+        key: 'atypica',
+        title: 'atypica',
+        role: 'Commercial research multi-agent system',
+        body: 'At Tezign, I worked on a commercial-research agent workflow spanning clarification, persona interviews, memory, and resilient asynchronous tool execution.',
+        metrics: [
+          ['300K', 'AI personas'],
+          ['1M+', 'interviews'],
+          ['<30m', 'per research']
+        ],
+        href: 'https://atypica.ai/',
+        image: '/images/landing/atypica-site.png',
+        alt: 'Atypica public website showing the research agent interface',
+        domain: 'atypica.ai',
+        accent: '#69c978',
+        embeddable: false
+      },
+      {
+        index: '03',
+        key: 'aixcut',
+        title: 'AIXCut',
+        role: 'Agent-assisted video editing',
+        body: 'I worked across the product and full-stack workflow that helps an editing agent shape scripts, organise source footage, and move toward a deliverable cut.',
+        metrics: [
+          ['03', 'workflow stages'],
+          ['01', 'continuous agent loop'],
+          ['FULL', 'stack delivery']
+        ],
+        href: 'https://aixcut.cn/',
+        image: '/images/landing/aixcut-site.png',
+        alt: 'AIXCut public website showing the video editing product',
+        domain: 'aixcut.cn',
+        accent: '#50d8b1',
+        embeddable: false
+      }
+    ]
+  : [
+      {
+        index: '01',
+        key: 'playyy',
+        title: 'Playyy',
+        role: '品牌感知的 AI 图像工作台',
+        body: '在 Adastra Labs 参与品牌感知 AI 图像工作台的产品与工程研发，把品牌上下文、生成与迭代放进同一个创作界面。',
+        metrics: [
+          ['10+', 'AI 创作工具'],
+          ['4K', '高清输出'],
+          ['02', '前沿图像模型']
+        ],
+        href: 'https://playyy.ai/',
+        image: '/images/landing/playyy-ui.png',
+        alt: 'Playyy 官网公开的产品界面',
+        domain: 'playyy.ai',
+        accent: '#659eb9',
+        embeddable: true
+      },
+      {
+        index: '02',
+        key: 'atypica',
+        title: 'atypica',
+        role: '商业研究多智能体系统',
+        body: '在 Tezign AIGC 研发团队参与商业研究 Multi-Agent，覆盖澄清式反问、Persona 访谈、分层记忆与异步工具调用。',
+        metrics: [
+          ['300K', 'AI Personas'],
+          ['1M+', '完成访谈'],
+          ['<30m', '单次研究']
+        ],
+        href: 'https://atypica.ai/',
+        image: '/images/landing/atypica-site.png',
+        alt: 'Atypica 官网展示的研究 Agent 产品界面',
+        domain: 'atypica.ai',
+        accent: '#69c978',
+        embeddable: false
+      },
+      {
+        index: '03',
+        key: 'aixcut',
+        title: 'AIXCut',
+        role: 'Agent 辅助视频剪辑',
+        body: '参与 Agent 辅助视频剪辑产品与全栈流程，把脚本塑形、素材组织和剪辑定位推进到可交付的成片工作流。',
+        metrics: [
+          ['03', '核心流程阶段'],
+          ['01', '连续 Agent 闭环'],
+          ['FULL', '全栈交付']
+        ],
+        href: 'https://aixcut.cn/',
+        image: '/images/landing/aixcut-site.png',
+        alt: 'AIXCut 官网展示的视频剪辑产品界面',
+        domain: 'aixcut.cn',
+        accent: '#50d8b1',
+        embeddable: false
+      }
+    ]
+
+const evidence = isEn
+  ? [
+      {
+        label: 'Talk / Engineering scope',
+        title: 'What agent engineering actually contains',
+        summary:
+          'Map the real boundary from prompt and context to harnesses, loops, and production behaviour.',
+        image: '/talks/2026-from-interview-to-agent/engineering-scope.png'
+      },
+      {
+        label: 'Method / Growth loop',
+        title: 'A repeatable loop from interview to production',
+        summary:
+          'Make projects, judgement, and failed paths visible so learning becomes testable and repeatable.',
+        image: '/talks/2026-from-interview-to-agent/growth-loop.png'
+      },
+      {
+        label: 'Practice / Agent legwork',
+        title: 'The unglamorous work behind reliable agents',
+        summary:
+          'Give repetitive information work to an agent and reserve human attention for judgement and craft.',
+        image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
+      }
+    ]
+  : [
+      {
+        label: '分享 / 工程边界',
+        title: 'Agent 工程真正包含什么',
+        summary: '从 Prompt、Context 到 Harness 与 Loop，拆清 Agent 工程真正需要负责的边界。',
+        image: '/talks/2026-from-interview-to-agent/engineering-scope.png'
+      },
+      {
+        label: '方法 / 成长回路',
+        title: '从面试到生产的可重复成长路径',
+        summary: '公开项目、判断与失败路径，让学习过程变得可验证，也能被下一次复用。',
+        image: '/talks/2026-from-interview-to-agent/growth-loop.png'
+      },
+      {
+        label: '实践 / Agent 苦工',
+        title: '可靠 Agent 背后那些不光鲜的工作',
+        summary: '让 Agent 接管重复的信息筛选，把人的注意力留给判断、创造和真正困难的问题。',
+        image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
+      }
+    ]
+
+const capabilities = isEn
+  ? [
+      {
+        index: '01',
+        title: 'Product judgement',
+        body: 'Turn an ambiguous need into a workflow with explicit users, constraints, and success criteria.'
+      },
+      {
+        index: '02',
+        title: 'Agent systems',
+        body: 'Design clarification, memory, tools, retries, and state recovery as one dependable loop.'
+      },
+      {
+        index: '03',
+        title: 'Full-stack delivery',
+        body: 'Carry the product from interaction and APIs through asynchronous jobs and production behaviour.'
+      }
+    ]
+  : [
+      {
+        index: '01',
+        title: '产品判断',
+        body: '把模糊需求拆成明确的用户、约束、工作流与成功标准。'
+      },
+      {
+        index: '02',
+        title: 'Agent 系统',
+        body: '把澄清、记忆、工具、重试和状态恢复设计成可靠闭环。'
+      },
+      {
+        index: '03',
+        title: '全栈交付',
+        body: '从交互与 API 一直做到异步任务和生产环境中的真实行为。'
+      }
+    ]
+
+const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
+---
+
+<IntroOverlay locale={locale} />
+
+<visual-home class='visual-home' data-locale={locale}>
+  <nav class='home-nav' aria-label={isEn ? 'Primary navigation' : '主导航'}>
+    <a class='home-nav__brand' href={isEn ? '/en/v2' : '/v2'}>Joye Huang / V2</a>
+    <div class='home-nav__links'>
+      <a href='#work'>{copy.work}</a>
+      <a href='#evidence'>{copy.about}</a>
+      <a href='#journal'>{copy.journal}</a>
+    </div>
+    <div class='home-nav__end'>
+      <a href={isEn ? '/v2' : '/en/v2'}>{isEn ? '中文' : 'EN'}</a>
+      <a href={`${prefix}/contact`}>{copy.contact} ↗</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class='hero' id='top' data-hero>
+      <div class='hero__copy'>
+        <div class='hero__eyebrow'><span>{copy.role}</span><span>{copy.location}</span></div>
+        <h1>Joye<br />Huang</h1>
+        <p>{copy.intro}</p>
+        <a href='#work'><i></i>{copy.explore}</a>
+      </div>
+
+      <div class='hero__world' aria-label={isEn ? 'Selected product interfaces' : '代表产品界面'}>
+        <div class='hero__stage' data-hero-stage>
+          <figure class='hero-screen hero-screen--playyy'>
+            <img
+              src='/images/landing/playyy-ui.png'
+              alt='Playyy product interface'
+              loading='eager'
+            />
+            <figcaption>01 / PLAYYY</figcaption>
+          </figure>
+          <figure class='hero-screen hero-screen--atypica'>
+            <img
+              src='/images/landing/atypica-site.png'
+              alt='atypica public product page'
+              loading='eager'
+            />
+            <figcaption>02 / ATYPICA</figcaption>
+          </figure>
+          <figure class='hero-screen hero-screen--aixcut'>
+            <img
+              src='/images/landing/aixcut-site.png'
+              alt='AIXCut public product page'
+              loading='eager'
+            />
+            <figcaption>03 / AIXCUT</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class='hero__portrait'>
+        <Image
+          src={avatar}
+          alt={isEn ? 'Portrait of Joye' : 'Joye 的头像'}
+          data-intro-target='avatar'
+        />
+      </div>
+      <span class='hero__index'>PORTFOLIO / 2026</span>
+    </section>
+
+    <section class='work-intro' id='work'>
+      <span>01—03 / PRODUCTS</span>
+      <h2>{copy.selected}</h2>
+      <p>{copy.selectedBody}</p>
+      <div class='work-intro__capabilities' data-reveal>
+        {
+          capabilities.map((item) => (
+            <article>
+              <span>{item.index}</span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    {
+      projects.map((project, index) => (
+        <section
+          class:list={['case-study', `case-study--${project.key}`]}
+          style={`--case-accent:${project.accent}`}
+          data-case
+        >
+          <div class='case-study__sticky'>
+            <div class='case-study__copy' data-case-copy>
+              <span>{project.index} / 2025—26</span>
+              <h2>{project.title}</h2>
+              <strong>{project.role}</strong>
+              <p>{project.body}</p>
+              <dl class='case-study__metrics'>
+                {project.metrics.map(([value, label]) => (
+                  <div>
+                    <dt>{value}</dt>
+                    <dd>{label}</dd>
+                  </div>
+                ))}
+              </dl>
+              <a href={project.href} target='_blank' rel='noopener noreferrer'>
+                {copy.visit} ↗
+              </a>
+            </div>
+
+            <div class='case-study__scene' data-case-scene>
+              <div class='case-study__halo' aria-hidden='true' />
+              <figure class='product-plane' data-case-screen>
+                <div class='product-plane__bar'>
+                  <span>
+                    <>
+                      <i />
+                      <i />
+                      <i />
+                    </>
+                  </span>
+                  <em>{project.domain}</em>
+                  <div class='product-plane__actions'>
+                    {project.embeddable ? (
+                      <button
+                        type='button'
+                        data-live-toggle
+                        aria-pressed='false'
+                        aria-label={copy.livePreview}
+                      >
+                        <span data-preview-label='static'>{copy.livePreview}</span>
+                        <span data-preview-label='live'>{copy.staticPreview}</span>
+                      </button>
+                    ) : (
+                      <a href={project.href} target='_blank' rel='noopener noreferrer'>
+                        {copy.openLive} ↗
+                      </a>
+                    )}
+                    <b>0{index + 1}</b>
+                  </div>
+                </div>
+                <div class='product-plane__viewport'>
+                  <img
+                    src={project.image}
+                    alt={project.alt}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                  />
+                  {project.embeddable && (
+                    <iframe
+                      title={`${project.title} live landing page`}
+                      data-live-frame
+                      data-src={project.href}
+                      aria-hidden='true'
+                      tabindex='-1'
+                      inert
+                      loading='lazy'
+                      sandbox='allow-scripts allow-same-origin allow-forms allow-popups'
+                      referrerpolicy='strict-origin-when-cross-origin'
+                    />
+                  )}
+                </div>
+              </figure>
+              <aside class='case-study__depth' data-depth-card>
+                <span>SYSTEM LAYER</span>
+                <strong>{project.role}</strong>
+                <i>{project.index}</i>
+              </aside>
+            </div>
+          </div>
+        </section>
+      ))
+    }
+
+    <section class='evidence' id='evidence' data-evidence>
+      <div class='evidence__sticky'>
+        <div class='evidence__copy'>
+          <header>
+            <span>04 / PUBLIC THINKING</span>
+            <h2>{copy.evidence}</h2>
+            <p>{copy.evidenceBody}</p>
+            <a href='/talks'>{copy.evidenceCta} ↗</a>
+          </header>
+
+          <ol class='evidence__index' aria-label={isEn ? 'Talk chapters' : '演讲章节'}>
+            {
+              evidence.map((item, index) => (
+                <li data-evidence-index>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.summary}</p>
+                  </div>
+                  <i data-evidence-index-line />
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
+        <div class='evidence__scene' data-evidence-scene>
+          {
+            evidence.map((item, index) => (
+              <figure class={`evidence-card evidence-card--${index + 1}`} data-evidence-card>
+                <img src={item.image} alt={item.title} loading='lazy' />
+                <figcaption>
+                  <span>
+                    {String(index + 1).padStart(2, '0')} /{' '}
+                    {String(evidence.length).padStart(2, '0')} · {item.label}
+                  </span>
+                  <strong>{item.title}</strong>
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class='journal' id='journal'>
+      <header class='journal__intro' data-reveal>
+        <span>05 / JOURNAL</span>
+        <h2>{copy.journalTitle}</h2>
+        <p>{copy.journalBody}</p>
+      </header>
+      <div class='journal__columns'>
+        <section class='journal__column' data-reveal>
+          <div>
+            <span>{copy.essays}</span><strong>{posts.length.toString().padStart(2, '0')}</strong>
+          </div>
+          {
+            posts.slice(0, 4).map((post) => (
+              <a href={post.href}>
+                <>
+                  <span>{post.meta}</span>
+                  <h3>{post.title}</h3>
+                  <i>↗</i>
+                </>
+              </a>
+            ))
+          }
+        </section>
+        <section class='journal__column' data-reveal>
+          <div>
+            <span>{copy.notes}</span><strong>{notes.length.toString().padStart(2, '0')}</strong>
+          </div>
+          {
+            notes.slice(0, 4).map((note) => (
+              <a href={note.href}>
+                <>
+                  <span>{note.meta}</span>
+                  <h3>{note.title}</h3>
+                  <i>↗</i>
+                </>
+              </a>
+            ))
+          }
+        </section>
+      </div>
+    </section>
+
+    <section class='source' data-reveal>
+      <header class='source__copy'>
+        <span>06 / SOURCE</span>
+        <h2>{copy.openSource}</h2>
+        <p>{copy.sourceBody}</p>
+        <strong>{totalStars}+ GitHub Stars</strong>
+      </header>
+      <div class='source__repos'>
+        {
+          repos.slice(0, 3).map((repo, index) => (
+            <a
+              class='repo-card'
+              href={repo.href ?? `https://github.com/joyehuang/${repo.name}`}
+              target='_blank'
+              rel='noopener noreferrer'
+            >
+              <span>{repo.eyebrow ?? (isEn ? 'Original project' : '独立项目')}</span>
+              {repo.image && (
+                <figure class='repo-card__visual'>
+                  <img src={repo.image} alt={repo.imageAlt ?? repo.name} loading='lazy' />
+                </figure>
+              )}
+              <div>
+                <i>0{index + 1}</i>
+                <strong>{repo.name}</strong>
+              </div>
+              <p>{repo.description}</p>
+              <footer>
+                <>
+                  <span>★ {repo.stars}</span>
+                  <em>GitHub ↗</em>
+                </>
+              </footer>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class='finale' data-finale>
+      <div class='finale__copy'>
+        <span>07 / OPEN TO OPPORTUNITIES</span>
+        <h2>{copy.finale}</h2>
+        <p>{copy.finaleBody}</p>
+        <div>
+          <a href={`${prefix}/contact`}>{copy.talk} ↗</a>
+          <button type='button' data-replay-intro>{copy.replay} ↻</button>
+        </div>
+      </div>
+
+      <div
+        class='problem-portal'
+        data-problem-portal
+        aria-label={isEn ? 'Brief structure' : 'Brief 结构'}
+      >
+        <div class='problem-card problem-card--context' data-problem-layer>
+          <span>01 / {copy.context}</span><p>{copy.contextValue}</p>
+        </div>
+        <div class='problem-card problem-card--constraint' data-problem-layer>
+          <span>02 / {copy.constraint}</span><p>{copy.constraintValue}</p>
+        </div>
+        <div class='problem-card problem-card--outcome' data-problem-layer>
+          <span>03 / {copy.outcome}</span><p>{copy.outcomeValue}</p>
+        </div>
+        <div class='problem-card problem-card--ready' data-solution>
+          <i></i><strong>{copy.ready}</strong><span>JOYE / 2026</span>
+        </div>
+      </div>
+
+      <footer>
+        <span>© {new Date().getFullYear()} JOYE HUANG</span>
+        <span>{copy.copyright}</span>
+        <a href='#top'>TOP ↑</a>
+      </footer>
+    </section>
+  </main>
+
+  <div id='home-jojo' class='home-jojo'><JoJo client:load size='md' quipPool='idle' /></div>
+</visual-home>
+
+<script>
+  import { gsap } from 'gsap'
+  import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+  gsap.registerPlugin(ScrollTrigger)
+
+  class VisualHome extends HTMLElement {
+    private context?: gsap.Context
+    private cleanups: Array<() => void> = []
+
+    connectedCallback() {
+      if (this.context) return
+
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const compact = window.matchMedia('(max-width: 600px)').matches
+
+      this.context = gsap.context(() => {
+        if (reduced) return
+
+        const hero = this.querySelector<HTMLElement>('[data-hero]')
+        const heroStage = this.querySelector<HTMLElement>('[data-hero-stage]')
+        const heroScreens = this.querySelectorAll<HTMLElement>('.hero-screen')
+
+        gsap
+          .timeline({ defaults: { ease: 'power3.out' } })
+          .from('.hero__eyebrow, .hero__copy h1, .hero__copy > p, .hero__copy > a', {
+            opacity: 0,
+            y: 28,
+            duration: 0.9,
+            stagger: 0.08
+          })
+          .from(
+            heroScreens,
+            {
+              opacity: 0,
+              z: -700,
+              rotationY: 28,
+              duration: 1.35,
+              stagger: 0.12
+            },
+            0.12
+          )
+          .from(
+            '.hero__portrait',
+            { opacity: 0, scale: 0.72, y: -18, duration: 0.9, ease: 'back.out(1.2)' },
+            0.32
+          )
+
+        if (hero && heroStage) {
+          gsap.to(heroStage, {
+            rotationX: -12,
+            rotationY: 8,
+            z: -320,
+            yPercent: 20,
+            ease: 'none',
+            scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 1.1 }
+          })
+
+          const toX = gsap.quickTo(heroStage, 'rotationY', { duration: 0.8, ease: 'power3.out' })
+          const toY = gsap.quickTo(heroStage, 'rotationX', { duration: 0.8, ease: 'power3.out' })
+          const move = (event: PointerEvent) => {
+            const rect = hero.getBoundingClientRect()
+            if (rect.bottom < 0) return
+            toX(((event.clientX - rect.width / 2) / rect.width) * 10)
+            toY(((event.clientY - rect.height / 2) / rect.height) * -7)
+          }
+          hero.addEventListener('pointermove', move)
+          this.cleanups.push(() => hero.removeEventListener('pointermove', move))
+        }
+
+        this.querySelectorAll<HTMLElement>('[data-case]').forEach((section) => {
+          const screen = section.querySelector<HTMLElement>('[data-case-screen]')
+          const copy = section.querySelector<HTMLElement>('[data-case-copy]')
+          const depth = section.querySelector<HTMLElement>('[data-depth-card]')
+          if (!screen || !copy || !depth) return
+
+          if (compact) {
+            gsap.from(screen, {
+              opacity: 0,
+              y: 32,
+              scale: 0.94,
+              rotationX: 8,
+              duration: 0.85,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: section, start: 'top 72%', once: true }
+            })
+            gsap.from(copy, {
+              opacity: 0,
+              y: 24,
+              duration: 0.75,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: section, start: 'top 78%', once: true }
+            })
+            return
+          }
+
+          const timeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 1.15
+            }
+          })
+
+          if (section.classList.contains('case-study--playyy')) {
+            timeline
+              .fromTo(
+                screen,
+                { opacity: 0, scale: 0.78, yPercent: 18, rotationX: 15 },
+                {
+                  opacity: 1,
+                  scale: 1,
+                  yPercent: 0,
+                  rotationX: 0,
+                  duration: 0.56,
+                  ease: 'power3.out'
+                }
+              )
+              .fromTo(
+                copy,
+                { opacity: 0, y: 42 },
+                { opacity: 1, y: 0, duration: 0.36, ease: 'power2.out' },
+                0.1
+              )
+              .fromTo(
+                depth,
+                { opacity: 0, y: 70, scale: 0.88 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.4 },
+                0.24
+              )
+          } else if (section.classList.contains('case-study--atypica')) {
+            timeline
+              .fromTo(
+                screen,
+                { opacity: 0, xPercent: -24, scale: 0.96 },
+                {
+                  opacity: 1,
+                  xPercent: 0,
+                  scale: 1,
+                  duration: 0.6,
+                  ease: 'expo.out'
+                }
+              )
+              .fromTo(
+                copy,
+                { opacity: 0, xPercent: 14 },
+                { opacity: 1, xPercent: 0, duration: 0.38, ease: 'power2.out' },
+                0.12
+              )
+              .fromTo(
+                depth,
+                { opacity: 0, scale: 0.72, rotation: -5 },
+                { opacity: 1, scale: 1, rotation: 0, duration: 0.42 },
+                0.26
+              )
+          } else {
+            timeline
+              .fromTo(
+                screen,
+                { opacity: 0, xPercent: 14, clipPath: 'inset(0% 0% 0% 100% round .85rem)' },
+                {
+                  opacity: 1,
+                  xPercent: 0,
+                  clipPath: 'inset(0% 0% 0% 0% round .85rem)',
+                  duration: 0.62,
+                  ease: 'power3.inOut'
+                }
+              )
+              .fromTo(
+                copy,
+                { opacity: 0, yPercent: -12 },
+                { opacity: 1, yPercent: 0, duration: 0.36, ease: 'power2.out' },
+                0.12
+              )
+              .fromTo(
+                depth,
+                { opacity: 0, scaleX: 0.3, transformOrigin: 'left center' },
+                { opacity: 1, scaleX: 1, duration: 0.42 },
+                0.28
+              )
+          }
+
+          timeline
+            .to(screen, { opacity: 0.36, scale: 0.96, duration: 0.18 }, 0.88)
+            .to(copy, { opacity: 0.12, y: -24, duration: 0.16 }, 0.9)
+        })
+
+        const evidenceSection = this.querySelector<HTMLElement>('[data-evidence]')
+        const evidenceCards = gsap.utils.toArray<HTMLElement>('[data-evidence-card]', this)
+        const evidenceIndexItems = gsap.utils.toArray<HTMLElement>('[data-evidence-index]', this)
+        const evidenceIndexLines = gsap.utils.toArray<HTMLElement>(
+          '[data-evidence-index-line]',
+          this
+        )
+        if (evidenceSection && evidenceCards.length && !compact) {
+          gsap.set(evidenceCards, {
+            autoAlpha: 0,
+            clipPath: 'inset(0 0 0 100%)',
+            filter: 'blur(0px)',
+            zIndex: 0
+          })
+          gsap.set(evidenceCards[0], {
+            autoAlpha: 1,
+            clipPath: 'inset(0 0% 0 0)',
+            zIndex: 1
+          })
+          gsap.set(evidenceIndexItems, { opacity: 0.28 })
+          gsap.set(evidenceIndexItems[0], { opacity: 1 })
+          gsap.set(evidenceIndexLines, { scaleX: 0 })
+          gsap.set(evidenceIndexLines[0], { scaleX: 1 })
+
+          const evidenceTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: evidenceSection,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 1.15
+            }
+          })
+
+          evidenceTimeline.addLabel('chapterTwo', 0.35)
+          evidenceTimeline
+            .to(
+              evidenceCards[0],
+              { autoAlpha: 0.08, filter: 'blur(10px)', duration: 0.42, ease: 'power2.inOut' },
+              'chapterTwo'
+            )
+            .set(evidenceCards[1], { zIndex: 2 }, 'chapterTwo')
+            .fromTo(
+              evidenceCards[1],
+              { autoAlpha: 1, clipPath: 'inset(0 0 0 100%)' },
+              { clipPath: 'inset(0 0 0 0%)', duration: 0.52, ease: 'power3.inOut' },
+              'chapterTwo'
+            )
+            .to(evidenceIndexItems[0], { opacity: 0.28, duration: 0.2 }, 'chapterTwo')
+            .to(evidenceIndexLines[0], { scaleX: 0, duration: 0.24 }, 'chapterTwo')
+            .to(evidenceIndexItems[1], { opacity: 1, duration: 0.24 }, 'chapterTwo+=0.08')
+            .to(evidenceIndexLines[1], { scaleX: 1, duration: 0.3 }, 'chapterTwo+=0.08')
+
+          evidenceTimeline.addLabel('chapterThree', 1.08)
+          evidenceTimeline
+            .to(
+              evidenceCards[1],
+              { autoAlpha: 0.08, filter: 'blur(10px)', duration: 0.42, ease: 'power2.inOut' },
+              'chapterThree'
+            )
+            .set(evidenceCards[2], { zIndex: 3 }, 'chapterThree')
+            .fromTo(
+              evidenceCards[2],
+              { autoAlpha: 1, clipPath: 'inset(0 0 0 100%)' },
+              { clipPath: 'inset(0 0 0 0%)', duration: 0.52, ease: 'power3.inOut' },
+              'chapterThree'
+            )
+            .to(evidenceIndexItems[1], { opacity: 0.28, duration: 0.2 }, 'chapterThree')
+            .to(evidenceIndexLines[1], { scaleX: 0, duration: 0.24 }, 'chapterThree')
+            .to(evidenceIndexItems[2], { opacity: 1, duration: 0.24 }, 'chapterThree+=0.08')
+            .to(evidenceIndexLines[2], { scaleX: 1, duration: 0.3 }, 'chapterThree+=0.08')
+        }
+
+        gsap.utils.toArray<HTMLElement>('[data-reveal]', this).forEach((element) => {
+          gsap.from(element, {
+            opacity: 0,
+            y: 48,
+            duration: 0.9,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: element, start: 'top 86%', once: true }
+          })
+        })
+
+        const finale = this.querySelector<HTMLElement>('[data-finale]')
+        const problemLayers = gsap.utils.toArray<HTMLElement>('[data-problem-layer]', this)
+        const solution = this.querySelector<HTMLElement>('[data-solution]')
+        if (finale && solution && problemLayers.length && compact) {
+          gsap.from(problemLayers, {
+            opacity: 0,
+            y: 34,
+            rotationX: 8,
+            duration: 0.75,
+            stagger: 0.08,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: finale, start: 'top 70%', once: true }
+          })
+          gsap.from(solution, {
+            opacity: 0,
+            scale: 0.86,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: finale, start: 'top 62%', once: true }
+          })
+        } else if (finale && solution && problemLayers.length) {
+          const problemTimeline = gsap.timeline({
+            scrollTrigger: { trigger: finale, start: 'top 78%', end: 'center 44%', scrub: 1.8 }
+          })
+          problemTimeline
+            .fromTo(
+              problemLayers,
+              {
+                opacity: 0,
+                z: -520,
+                rotationY: (i) => (i - 1) * 28,
+                xPercent: (i) => (i - 1) * 44
+              },
+              {
+                opacity: 1,
+                z: (i) => i * 55,
+                rotationY: (i) => (i - 1) * 8,
+                xPercent: (i) => (i - 1) * 13,
+                stagger: 0.14,
+                duration: 1.05,
+                ease: 'power2.out'
+              }
+            )
+            .fromTo(
+              solution,
+              { opacity: 0, scale: 0.72, z: -260 },
+              { opacity: 1, scale: 1, z: 180, duration: 0.7, ease: 'power2.out' },
+              0.86
+            )
+        }
+      }, this)
+
+      const replay = this.querySelector<HTMLButtonElement>('[data-replay-intro]')
+      const playIntro = () => window.__joyeIntro?.play('jojo', 'replay')
+      replay?.addEventListener('click', playIntro)
+      this.cleanups.push(() => replay?.removeEventListener('click', playIntro))
+
+      this.querySelectorAll<HTMLButtonElement>('[data-live-toggle]').forEach((button) => {
+        const plane = button.closest<HTMLElement>('.product-plane')
+        const frame = plane?.querySelector<HTMLIFrameElement>('[data-live-frame]')
+        if (!plane || !frame) return
+
+        const togglePreview = () => {
+          const nextLive = plane.dataset.live !== 'true'
+          if (nextLive && !frame.src) frame.src = frame.dataset.src ?? ''
+          plane.dataset.live = String(nextLive)
+          button.setAttribute('aria-pressed', String(nextLive))
+          frame.toggleAttribute('inert', !nextLive)
+          frame.tabIndex = nextLive ? 0 : -1
+          frame.setAttribute('aria-hidden', String(!nextLive))
+          const nextLabel = button.querySelector<HTMLElement>(
+            `[data-preview-label='${nextLive ? 'live' : 'static'}']`
+          )
+          if (nextLabel?.textContent) button.setAttribute('aria-label', nextLabel.textContent)
+        }
+
+        button.addEventListener('click', togglePreview)
+        this.cleanups.push(() => button.removeEventListener('click', togglePreview))
+      })
+
+      requestAnimationFrame(() => ScrollTrigger.refresh())
+    }
+
+    disconnectedCallback() {
+      this.cleanups.forEach((cleanup) => cleanup())
+      this.cleanups = []
+      this.context?.revert()
+      this.context = undefined
+    }
+  }
+
+  if (!customElements.get('visual-home')) customElements.define('visual-home', VisualHome)
+
+  declare global {
+    interface Window {
+      __joyeIntro?: {
+        play(variant: 'focus' | 'line' | 'jojo', trigger?: 'event' | 'replay'): void
+      }
+    }
+  }
+</script>
+
+<style>
+  .visual-home {
+    --home-bg: hsl(var(--background));
+    --home-fg: hsl(var(--foreground));
+    --home-card: hsl(var(--card));
+    --home-muted: hsl(var(--muted-foreground));
+    --home-border: hsl(var(--border));
+    --home-accent: hsl(var(--primary));
+    display: block;
+    overflow: clip;
+    color: var(--home-fg);
+    background: var(--home-bg);
+    font-family:
+      'Geist Variable', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans CJK SC', system-ui,
+      sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+
+  .visual-home * {
+    box-sizing: border-box;
+  }
+
+  .visual-home a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .home-nav {
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: 100%;
+    padding: 1.15rem clamp(1rem, 3vw, 3rem);
+    border-bottom: 1px solid color-mix(in srgb, var(--home-border), transparent 25%);
+    background: color-mix(in srgb, var(--home-bg), transparent 18%);
+    backdrop-filter: blur(18px);
+    font-family: ui-monospace, monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-nav__brand {
+    font-family: inherit;
+    font-weight: 700;
+  }
+
+  .home-nav__links,
+  .home-nav__end {
+    display: flex;
+    gap: 1.8rem;
+  }
+
+  .home-nav__end {
+    justify-self: end;
+  }
+
+  .home-nav a {
+    transition: color 0.25s ease;
+  }
+
+  .home-nav a:hover {
+    color: var(--home-accent);
+  }
+
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    padding: 8.5rem clamp(1rem, 4vw, 4rem) 4rem;
+    background:
+      linear-gradient(color-mix(in srgb, var(--home-border), transparent 72%) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--home-border), transparent 72%) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 72% 42%,
+        color-mix(in srgb, var(--home-accent), transparent 73%),
+        transparent 38%
+      );
+    background-size:
+      4.5rem 4.5rem,
+      4.5rem 4.5rem,
+      auto;
+  }
+
+  .hero__copy {
+    position: relative;
+    z-index: 4;
+    width: min(43rem, 56vw);
+    padding-top: 6.4rem;
+  }
+
+  .hero__eyebrow {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    margin: clamp(2.3rem, 4vh, 3.8rem) 0 1.8rem;
+    font-size: clamp(5.2rem, 10vw, 9.5rem);
+    font-weight: 380;
+    letter-spacing: -0.075em;
+    line-height: 0.78;
+  }
+
+  .hero__copy > p {
+    width: min(31rem, 86%);
+    margin: 0 0 2.2rem;
+    color: var(--home-muted);
+    font-size: clamp(1rem, 1.45vw, 1.3rem);
+    line-height: 1.48;
+  }
+
+  .hero__copy > a {
+    display: inline-flex;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--home-border);
+    border-radius: 999px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .hero__copy > a i {
+    width: 0.45rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--home-accent);
+    box-shadow: 0 0 1.2rem var(--home-accent);
+  }
+
+  .hero__world {
+    position: absolute;
+    z-index: 2;
+    inset: 9rem -5vw 2rem 38vw;
+    perspective: 1500px;
+  }
+
+  .hero__stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .hero-screen {
+    position: absolute;
+    width: min(53vw, 58rem);
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--home-border), white 15%);
+    border-radius: 0.7rem;
+    background: #090b0e;
+    box-shadow: 0 2.5rem 7rem color-mix(in srgb, var(--home-fg), transparent 76%);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  .hero-screen img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .hero-screen figcaption {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.65rem;
+    padding: 0.38rem 0.55rem;
+    color: white;
+    background: rgb(0 0 0 / 70%);
+    font-family: ui-monospace, monospace;
+    font-size: 0.54rem;
+    letter-spacing: 0.11em;
+  }
+
+  .hero-screen--playyy {
+    top: 7%;
+    left: 10%;
+    transform: translateZ(40px) rotateY(-13deg) rotateX(4deg);
+  }
+
+  .hero-screen--atypica {
+    top: 28%;
+    left: 25%;
+    transform: translateZ(150px) rotateY(-7deg) rotateX(2deg);
+  }
+
+  .hero-screen--aixcut {
+    top: 49%;
+    left: 4%;
+    transform: translateZ(280px) rotateY(8deg) rotateX(-3deg);
+  }
+
+  .hero__portrait {
+    position: absolute;
+    z-index: 6;
+    top: 8.4rem;
+    left: clamp(1rem, 4vw, 4rem);
+    width: 5.8rem;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--home-accent), var(--home-border) 45%);
+    border-radius: 50%;
+    box-shadow:
+      0 1.5rem 4rem rgb(0 0 0 / 28%),
+      0 0 0 0.45rem color-mix(in srgb, var(--home-card), transparent 24%);
+  }
+
+  .hero__portrait :global(img) {
+    display: block;
+    width: 100%;
+  }
+
+  .hero__index {
+    position: absolute;
+    bottom: 2.8rem;
+    left: clamp(1rem, 4vw, 4rem);
+    font-family: ui-monospace, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+
+  .work-intro {
+    display: grid;
+    grid-template-columns: 0.55fr 1.45fr 0.9fr;
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 4vw, 4rem);
+    border-top: 1px solid var(--home-border);
+  }
+
+  .work-intro > span,
+  .case-study__copy > span,
+  .evidence header > span,
+  .journal__intro > span,
+  .source__copy > span,
+  .finale__copy > span {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .work-intro h2 {
+    max-width: 52rem;
+    margin: 0;
+    font-size: clamp(3rem, 5.8vw, 6.2rem);
+    font-weight: 360;
+    letter-spacing: -0.05em;
+    line-height: 1.02;
+  }
+
+  .work-intro p {
+    max-width: 28rem;
+    margin: 0;
+    color: var(--home-muted);
+    line-height: 1.5;
+  }
+
+  .work-intro__capabilities {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: clamp(4rem, 7vw, 7rem);
+    border-top: 1px solid var(--home-border);
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .work-intro__capabilities article {
+    min-height: 13rem;
+    padding: 1.35rem 1.4rem 1.5rem 0;
+    border-right: 1px solid var(--home-border);
+  }
+
+  .work-intro__capabilities article + article {
+    padding-left: 1.4rem;
+  }
+
+  .work-intro__capabilities article:last-child {
+    border-right: 0;
+  }
+
+  .work-intro__capabilities span {
+    color: var(--home-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+  }
+
+  .work-intro__capabilities h3 {
+    margin: 3.2rem 0 0.65rem;
+    font-size: clamp(1.2rem, 1.7vw, 1.65rem);
+    font-weight: 430;
+    letter-spacing: -0.025em;
+  }
+
+  .work-intro__capabilities p {
+    max-width: 23rem;
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .case-study {
+    --case-accent: var(--home-accent);
+    position: relative;
+    height: 190vh;
+    border-top: 1px solid var(--home-border);
+    background:
+      radial-gradient(
+        circle at 70% 50%,
+        color-mix(in srgb, var(--case-accent), transparent 82%),
+        transparent 35%
+      ),
+      var(--home-bg);
+  }
+
+  .case-study__sticky {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+    perspective: 1600px;
+  }
+
+  .case-study__copy {
+    position: absolute;
+    z-index: 4;
+    top: 50%;
+    left: clamp(1rem, 4vw, 4rem);
+    width: min(31rem, 33vw);
+    transform: translateY(-50%);
+    transform-style: preserve-3d;
+  }
+
+  .case-study__copy h2 {
+    margin: 1.15rem 0 1.35rem;
+    font-size: clamp(4.2rem, 7.4vw, 7.8rem);
+    font-weight: 390;
+    letter-spacing: -0.07em;
+    line-height: 0.94;
+  }
+
+  .case-study__copy strong {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--case-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.45;
+    text-transform: uppercase;
+  }
+
+  .case-study__copy p {
+    max-width: 27rem;
+    margin: 0 0 1.4rem;
+    color: var(--home-muted);
+    font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+    line-height: 1.55;
+  }
+
+  .case-study__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0 0 1.3rem;
+    border-top: 1px solid color-mix(in srgb, var(--case-accent), transparent 70%);
+    border-bottom: 1px solid color-mix(in srgb, var(--case-accent), transparent 78%);
+  }
+
+  .case-study__metrics > div {
+    min-width: 0;
+    padding: 0.7rem 0.25rem 0.7rem 0;
+  }
+
+  .case-study__metrics dt {
+    font-size: clamp(1.15rem, 1.55vw, 1.5rem);
+    font-weight: 430;
+    letter-spacing: -0.035em;
+  }
+
+  .case-study__metrics dd {
+    margin: 0.22rem 0 0;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.46rem;
+    letter-spacing: 0.06em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .case-study__copy a {
+    display: inline-block;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--case-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .case-study__scene {
+    position: absolute;
+    z-index: 2;
+    inset: 7rem 2vw 4rem 35vw;
+    display: grid;
+    place-items: center;
+    perspective: 1500px;
+    transform-style: preserve-3d;
+  }
+
+  .case-study__halo {
+    position: absolute;
+    width: min(48vw, 48rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse,
+      color-mix(in srgb, var(--case-accent), transparent 76%),
+      transparent 70%
+    );
+    filter: blur(42px);
+  }
+
+  .case-study--atypica .case-study__halo {
+    background: radial-gradient(ellipse, rgb(105 201 120 / 14%), transparent 72%);
+    filter: blur(54px);
+    transform: scale(1.18, 0.78);
+  }
+
+  .product-plane {
+    position: relative;
+    z-index: 2;
+    width: min(62vw, 70rem);
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--case-accent), var(--home-border) 65%);
+    border-radius: 0.85rem;
+    background: #08090b;
+    box-shadow:
+      0 4rem 10rem color-mix(in srgb, var(--home-fg), transparent 78%),
+      0 0 0 0.5rem color-mix(in srgb, var(--home-card), transparent 35%);
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+  }
+
+  .product-plane__bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 2.7rem;
+    padding: 0 0.9rem;
+    color: rgb(255 255 255 / 60%);
+    border-bottom: 1px solid rgb(255 255 255 / 12%);
+    font-family: ui-monospace, monospace;
+    font-size: 0.54rem;
+    letter-spacing: 0.08em;
+  }
+
+  .product-plane__bar > span {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .product-plane__bar i {
+    width: 0.42rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .product-plane__bar em {
+    font-style: normal;
+  }
+
+  .product-plane__bar b {
+    color: var(--case-accent);
+    font-weight: 500;
+  }
+
+  .product-plane__actions {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    justify-self: end;
+  }
+
+  .product-plane__actions button,
+  .product-plane__actions a {
+    position: relative;
+    min-width: 6.6rem;
+    padding: 0.32rem 0.5rem;
+    overflow: hidden;
+    color: rgb(255 255 255 / 72%);
+    border: 1px solid rgb(255 255 255 / 16%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 5%);
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .product-plane__actions button span {
+    display: block;
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .product-plane__actions button span:last-child {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+
+  .product-plane[data-live='true'] [data-preview-label='static'] {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+
+  .product-plane[data-live='true'] [data-preview-label='live'] {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+
+  .product-plane__viewport {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #08090b;
+  }
+
+  .product-plane__viewport > img,
+  .product-plane__viewport > iframe {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+    object-position: top;
+    transition:
+      opacity 0.35s ease,
+      filter 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  .product-plane__viewport > iframe {
+    opacity: 0;
+    background: white;
+    filter: blur(6px);
+    transform: scale(0.97);
+    pointer-events: none;
+  }
+
+  .product-plane[data-live='true'] .product-plane__viewport > img {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(1.03);
+    pointer-events: none;
+  }
+
+  .product-plane[data-live='true'] .product-plane__viewport > iframe {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  .case-study__depth {
+    position: absolute;
+    z-index: 1;
+    right: 2%;
+    bottom: 2%;
+    display: grid;
+    width: min(20rem, 26vw);
+    min-height: 9rem;
+    padding: 1.2rem;
+    color: var(--home-fg);
+    border: 1px solid color-mix(in srgb, var(--case-accent), transparent 50%);
+    background: color-mix(in srgb, var(--home-card), transparent 9%);
+    box-shadow: 0 2rem 5rem color-mix(in srgb, var(--home-fg), transparent 85%);
+    transform-style: preserve-3d;
+  }
+
+  .case-study__depth span,
+  .case-study__depth strong {
+    font-family: ui-monospace, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .case-study__depth strong {
+    max-width: 13rem;
+    color: var(--home-muted);
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  .case-study__depth i {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.35rem;
+    color: color-mix(in srgb, var(--case-accent), transparent 25%);
+    font-size: 4.5rem;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  .evidence {
+    position: relative;
+    height: 260vh;
+    border-top: 1px solid var(--home-border);
+    background:
+      radial-gradient(
+        circle at 78% 52%,
+        color-mix(in srgb, var(--home-accent), transparent 84%),
+        transparent 36%
+      ),
+      var(--home-bg);
+  }
+
+  .evidence__sticky {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.68fr) minmax(0, 1.32fr);
+    gap: clamp(3rem, 6vw, 7rem);
+    align-items: center;
+    height: 100svh;
+    overflow: hidden;
+    padding: 6.5rem clamp(1rem, 4vw, 4rem) 3.5rem;
+  }
+
+  .evidence__copy {
+    position: relative;
+    z-index: 5;
+    min-width: 0;
+  }
+
+  .evidence header {
+    width: min(31rem, 100%);
+  }
+
+  .journal h2,
+  .source h2,
+  .finale h2 {
+    margin: 1rem 0 1.2rem;
+    font-size: clamp(3.4rem, 7vw, 7.5rem);
+    font-weight: 520;
+    letter-spacing: -0.07em;
+    line-height: 0.9;
+  }
+
+  .evidence h2 {
+    max-width: 10ch;
+    margin: 1rem 0 1.2rem;
+    font-size: clamp(2.8rem, 3.6vw, 4.4rem);
+    font-weight: 390;
+    letter-spacing: -0.055em;
+    line-height: 1.02;
+  }
+
+  .visual-home[data-locale='zh'] .work-intro h2,
+  .visual-home[data-locale='zh'] .journal h2,
+  .visual-home[data-locale='zh'] .source h2,
+  .visual-home[data-locale='zh'] .finale h2 {
+    font-weight: 360;
+    letter-spacing: -0.032em;
+    line-height: 1.04;
+  }
+
+  .visual-home[data-locale='zh'] .evidence h2 {
+    font-weight: 350;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+
+  .visual-home[data-locale='zh'] .hero__copy > p,
+  .visual-home[data-locale='zh'] .work-intro p,
+  .visual-home[data-locale='zh'] .case-study__copy p,
+  .visual-home[data-locale='zh'] .evidence header p,
+  .visual-home[data-locale='zh'] .journal__intro p,
+  .visual-home[data-locale='zh'] .finale__copy p {
+    font-weight: 360;
+    letter-spacing: 0.01em;
+    line-height: 1.72;
+  }
+
+  .evidence header p {
+    max-width: 30rem;
+    margin: 0;
+    color: var(--home-muted);
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .evidence header a {
+    display: inline-block;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--home-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .evidence__index {
+    width: min(31rem, 100%);
+    margin: clamp(2rem, 4vh, 3rem) 0 0;
+    padding: 0;
+    border-top: 1px solid var(--home-border);
+    list-style: none;
+  }
+
+  .evidence__index li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.2rem 1fr;
+    gap: 0.9rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--home-border);
+    opacity: 0.28;
+    will-change: opacity;
+  }
+
+  .evidence__index li > span {
+    padding-top: 0.12rem;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+
+  .evidence__index strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 480;
+    line-height: 1.35;
+  }
+
+  .evidence__index p {
+    margin: 0.34rem 0 0;
+    color: var(--home-muted);
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .evidence__index i {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    background: var(--home-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+  }
+
+  .evidence__scene {
+    position: relative;
+    height: min(66vh, 46vw);
+    min-height: 31rem;
+  }
+
+  .evidence-card {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--home-border);
+    border-radius: 1rem;
+    background: var(--home-card);
+    box-shadow: 0 2.5rem 7rem color-mix(in srgb, var(--home-fg), transparent 84%);
+    clip-path: inset(0 0 0 100%);
+    opacity: 0;
+    transform: translateY(-50%);
+    visibility: hidden;
+    will-change: clip-path, filter, opacity;
+  }
+
+  .evidence-card:first-child {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .evidence-card img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .evidence-card figcaption {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.75fr) 1.25fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.15rem;
+    border-top: 1px solid var(--home-border);
+    background: color-mix(in srgb, var(--home-card), transparent 4%);
+  }
+
+  .evidence-card figcaption span {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .evidence-card figcaption strong {
+    font-size: 0.92rem;
+    font-weight: 480;
+    line-height: 1.35;
+  }
+
+  .journal {
+    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 4vw, 4rem);
+    border-top: 1px solid var(--home-border);
+  }
+
+  .journal__intro {
+    display: grid;
+    grid-template-columns: 0.55fr 1.45fr 0.9fr;
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+    margin-bottom: 7rem;
+  }
+
+  .journal__intro h2 {
+    margin: 0;
+  }
+
+  .journal__intro p {
+    margin: 0;
+    color: var(--home-muted);
+    line-height: 1.5;
+  }
+
+  .journal__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .journal__column:first-child {
+    padding-right: 3vw;
+    border-right: 1px solid var(--home-border);
+  }
+
+  .journal__column:last-child {
+    padding-left: 3vw;
+  }
+
+  .journal__column > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 1.1rem 0 2.2rem;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .journal__column > a {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr auto;
+    gap: 1rem;
+    align-items: start;
+    padding: 1.35rem 0;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .journal__column > a span,
+  .journal__column > a i {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    font-style: normal;
+  }
+
+  .journal__column h3 {
+    margin: 0;
+    font-size: clamp(1rem, 1.35vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.28;
+  }
+
+  .source {
+    display: grid;
+    grid-template-columns: 0.72fr 1.28fr;
+    gap: clamp(3rem, 6vw, 8rem);
+    min-height: 90svh;
+    padding: clamp(7rem, 11vw, 11rem) clamp(1rem, 4vw, 4rem);
+    border-top: 1px solid var(--home-border);
+  }
+
+  .source__copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 0;
+  }
+
+  .source__copy p {
+    color: var(--home-muted);
+  }
+
+  .source__copy > strong {
+    margin: 2rem 0 0;
+    color: var(--home-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .source__repos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--home-border);
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .repo-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 32rem;
+    padding: 1.3rem;
+    border-right: 1px solid var(--home-border);
+    transition:
+      color 0.25s ease,
+      background 0.25s ease,
+      transform 0.35s ease;
+  }
+
+  .repo-card:last-child {
+    border-right: 0;
+  }
+
+  .repo-card:hover {
+    color: var(--home-fg);
+    background: color-mix(in srgb, var(--home-accent), transparent 91%);
+    transform: translateY(-0.35rem);
+  }
+
+  .repo-card > span,
+  .repo-card footer,
+  .repo-card i {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.58rem;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .repo-card__visual {
+    margin: 1.15rem 0 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--home-border), white 8%);
+    border-radius: 0.55rem;
+    background: #07080a;
+  }
+
+  .repo-card__visual img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .repo-card > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: auto;
+  }
+
+  .repo-card > div i {
+    color: var(--home-accent);
+  }
+
+  .repo-card > div strong {
+    overflow-wrap: anywhere;
+    font-size: clamp(1.6rem, 2.4vw, 3rem);
+    font-weight: 480;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+  }
+
+  .repo-card > p {
+    min-height: 7.6rem;
+    margin: 1.3rem 0;
+    color: var(--home-muted);
+    line-height: 1.55;
+  }
+
+  .repo-card footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .repo-card footer em {
+    font-style: normal;
+  }
+
+  .finale {
+    position: relative;
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    min-height: 105svh;
+    overflow: hidden;
+    padding: 8rem clamp(1rem, 4vw, 4rem) 6rem;
+    border-top: 1px solid var(--home-border);
+    background:
+      linear-gradient(color-mix(in srgb, var(--home-border), transparent 78%) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--home-border), transparent 78%) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 70% 50%,
+        color-mix(in srgb, var(--home-accent), transparent 70%),
+        transparent 34%
+      ),
+      var(--home-bg);
+    background-size:
+      4rem 4rem,
+      4rem 4rem,
+      auto,
+      auto;
+  }
+
+  .finale__copy {
+    position: relative;
+    z-index: 4;
+    align-self: center;
+    width: min(35rem, 90%);
+  }
+
+  .finale__copy p {
+    max-width: 31rem;
+    color: var(--home-muted);
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+
+  .finale__copy > div {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .finale__copy a,
+  .finale__copy button {
+    padding: 0.9rem 1.1rem;
+    color: var(--home-fg);
+    border: 1px solid var(--home-border);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--home-bg), transparent 12%);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .finale__copy a {
+    color: var(--home-bg);
+    border-color: var(--home-accent);
+    background: var(--home-accent);
+  }
+
+  .problem-portal {
+    position: relative;
+    min-height: 38rem;
+    perspective: 1500px;
+    transform-style: preserve-3d;
+  }
+
+  .problem-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(28rem, 36vw);
+    min-height: 11rem;
+    padding: 1.3rem;
+    border: 1px solid var(--home-border);
+    background: color-mix(in srgb, var(--home-card), transparent 4%);
+    box-shadow: 0 2rem 5rem color-mix(in srgb, var(--home-fg), transparent 85%);
+    transform: translate(-50%, -50%);
+    transform-style: preserve-3d;
+  }
+
+  .problem-card > span,
+  .problem-card--ready strong {
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .problem-card p {
+    margin: 3.3rem 0 0;
+    font-size: 1.15rem;
+  }
+
+  .problem-card--context {
+    margin: -10rem 0 0 -11rem;
+  }
+
+  .problem-card--constraint {
+    margin: 0 0 0 9rem;
+  }
+
+  .problem-card--outcome {
+    margin: 9rem 0 0 -6rem;
+  }
+
+  .problem-card--ready {
+    z-index: 5;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.8rem;
+    align-items: center;
+    min-height: auto;
+    color: var(--home-bg);
+    border-color: var(--home-accent);
+    background: var(--home-accent);
+  }
+
+  .problem-card--ready i {
+    width: 0.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .problem-card--ready span {
+    font-size: 0.52rem;
+  }
+
+  .finale footer {
+    position: absolute;
+    right: clamp(1rem, 4vw, 4rem);
+    bottom: 1.5rem;
+    left: clamp(1rem, 4vw, 4rem);
+    display: flex;
+    justify-content: space-between;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-jojo {
+    position: fixed;
+    z-index: 20;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .home-nav {
+      grid-template-columns: 1fr auto;
+    }
+    .home-nav__links {
+      display: none;
+    }
+    .hero {
+      min-height: 110svh;
+      padding-top: 7rem;
+    }
+    .hero__copy {
+      width: 90%;
+    }
+    .hero__world {
+      inset: 46% -12vw 3rem 8vw;
+    }
+    .hero-screen {
+      width: min(76vw, 44rem);
+    }
+    .work-intro,
+    .journal__intro {
+      grid-template-columns: 1fr;
+    }
+    .case-study__copy {
+      top: 18%;
+      width: 84vw;
+      transform: none;
+    }
+    .case-study__copy h2 {
+      margin: 0.8rem 0;
+      font-size: clamp(4rem, 12vw, 7rem);
+    }
+    .case-study__copy p {
+      max-width: 34rem;
+    }
+    .case-study__scene {
+      inset: 39% 3vw 4rem 3vw;
+    }
+    .product-plane {
+      width: min(88vw, 60rem);
+    }
+    .case-study__depth {
+      width: min(18rem, 40vw);
+    }
+    .evidence__sticky {
+      grid-template-columns: minmax(15rem, 0.78fr) minmax(0, 1.22fr);
+      gap: 2rem;
+      padding-right: 2rem;
+      padding-left: 2rem;
+    }
+    .evidence header,
+    .evidence__index {
+      width: 100%;
+    }
+    .evidence h2 {
+      font-size: clamp(2.7rem, 5.5vw, 3.8rem);
+    }
+    .evidence__index {
+      margin-top: 1.6rem;
+    }
+    .evidence__index p {
+      display: none;
+    }
+    .evidence__scene {
+      height: min(58vh, 52vw);
+      min-height: 25rem;
+    }
+    .evidence-card {
+      width: 100%;
+    }
+    .journal__columns,
+    .source,
+    .finale {
+      grid-template-columns: 1fr;
+    }
+    .journal__column:first-child {
+      padding-right: 0;
+      border-right: 0;
+    }
+    .journal__column:last-child {
+      padding-left: 0;
+    }
+    .source__copy {
+      border: 0;
+    }
+    .finale__copy {
+      align-self: start;
+    }
+    .problem-portal {
+      min-height: 35rem;
+    }
+    .problem-card {
+      width: min(27rem, 52vw);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .home-nav__end a:first-child {
+      display: none;
+    }
+    .hero {
+      min-height: 100svh;
+      padding: 6.7rem 1rem 2rem;
+    }
+    .hero__copy {
+      padding-top: 3.6rem;
+    }
+    .hero__eyebrow span:last-child {
+      display: none;
+    }
+    .hero h1 {
+      margin-top: 1.8rem;
+      font-size: clamp(4.8rem, 25vw, 7rem);
+      line-height: 0.82;
+    }
+    .hero__world {
+      inset: 52% -24vw 2rem 2vw;
+    }
+    .hero-screen {
+      width: 84vw;
+    }
+    .hero-screen--playyy {
+      top: 2%;
+      left: 7%;
+    }
+    .hero-screen--atypica {
+      top: 24%;
+      left: 18%;
+    }
+    .hero-screen--aixcut {
+      top: 46%;
+      left: 0;
+    }
+    .hero__index {
+      display: none;
+    }
+    .hero__portrait {
+      top: 6.8rem;
+      right: 1rem;
+      left: auto;
+      display: block;
+      width: 4.2rem;
+    }
+    .work-intro {
+      padding: 6rem 1rem;
+    }
+    .work-intro h2 {
+      font-size: 3.25rem;
+    }
+    .work-intro__capabilities {
+      grid-template-columns: 1fr;
+      margin-top: 3.5rem;
+    }
+    .work-intro__capabilities article,
+    .work-intro__capabilities article + article {
+      min-height: auto;
+      padding: 1.2rem 0 1.5rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--home-border);
+    }
+    .work-intro__capabilities article:last-child {
+      border-bottom: 0;
+    }
+    .work-intro__capabilities h3 {
+      margin-top: 1.8rem;
+    }
+    .case-study {
+      height: auto;
+      min-height: 100svh;
+    }
+    .case-study__sticky {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      min-height: 100svh;
+      padding: 6rem 1rem 3rem;
+    }
+    .case-study__copy {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+    }
+    .case-study__copy h2 {
+      font-size: 4.1rem;
+      line-height: 1;
+    }
+    .case-study__scene {
+      position: relative;
+      inset: auto;
+      height: 46vh;
+      min-height: 22rem;
+      margin-top: 2rem;
+    }
+    .product-plane {
+      width: 100%;
+    }
+    .product-plane__bar {
+      height: 2.2rem;
+    }
+    .product-plane__actions button,
+    .product-plane__actions a {
+      min-width: 5.4rem;
+      padding-inline: 0.35rem;
+      font-size: 0.48rem;
+    }
+    .case-study__depth {
+      display: none;
+    }
+    .evidence {
+      height: auto;
+    }
+    .evidence__sticky {
+      position: relative;
+      display: block;
+      height: auto;
+      padding: 6rem 1rem;
+    }
+    .evidence h2 {
+      max-width: 11ch;
+      font-size: 2.8rem;
+    }
+    .evidence__index {
+      display: none;
+    }
+    .evidence__scene {
+      position: relative;
+      inset: auto;
+      display: grid;
+      gap: 1rem;
+      height: auto;
+      min-height: 0;
+      margin-top: 3rem;
+    }
+    .evidence-card {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+      clip-path: none !important;
+      filter: none !important;
+      transform: none !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    .evidence-card figcaption {
+      grid-template-columns: 1fr;
+    }
+    .journal {
+      padding: 6rem 1rem;
+    }
+    .journal__intro {
+      margin-bottom: 4rem;
+    }
+    .journal h2,
+    .source h2,
+    .finale h2 {
+      font-size: 3.8rem;
+    }
+    .journal__column > a {
+      grid-template-columns: 1fr auto;
+    }
+    .journal__column > a span {
+      grid-column: 1 / -1;
+    }
+    .source {
+      gap: 3rem;
+      padding: 6rem 1rem;
+    }
+    .source__copy {
+      padding: 0;
+    }
+    .source__repos {
+      grid-template-columns: 1fr;
+    }
+    .repo-card {
+      min-height: 20rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--home-border);
+    }
+    .repo-card:last-child {
+      border-bottom: 0;
+    }
+    .repo-card > p {
+      min-height: auto;
+    }
+    .finale {
+      min-height: auto;
+      padding: 6rem 1rem 5rem;
+    }
+    .finale__copy {
+      width: 100%;
+    }
+    .finale__copy > div {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .problem-portal {
+      min-height: 30rem;
+      margin-top: 2rem;
+    }
+    .problem-card {
+      width: 74vw;
+      min-height: 8rem;
+    }
+    .problem-card p {
+      margin-top: 2rem;
+      font-size: 0.95rem;
+    }
+    .problem-card--context {
+      margin: -7rem 0 0 -2rem;
+    }
+    .problem-card--constraint {
+      margin: 0 0 0 2rem;
+    }
+    .problem-card--outcome {
+      margin: 7rem 0 0 -2rem;
+    }
+    .problem-card--ready {
+      min-height: auto;
+    }
+    .finale footer span:nth-child(2) {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .visual-home *,
+    .visual-home *::before,
+    .visual-home *::after {
+      scroll-behavior: auto !important;
+      transition: none !important;
+      animation: none !important;
+    }
+    [data-hero-stage],
+    [data-case-screen],
+    [data-case-copy],
+    [data-depth-card],
+    [data-problem-layer],
+    [data-solution] {
+      opacity: 1 !important;
+    }
+    .evidence {
+      height: auto !important;
+    }
+    .evidence__sticky {
+      position: relative !important;
+      display: block !important;
+      height: auto !important;
+    }
+    .evidence__index {
+      display: none !important;
+    }
+    .evidence__scene {
+      display: grid !important;
+      gap: 1rem !important;
+      height: auto !important;
+      min-height: 0 !important;
+      margin-top: 3rem !important;
+    }
+    [data-evidence-card] {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      clip-path: none !important;
+      filter: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
+    }
+  }
+</style>

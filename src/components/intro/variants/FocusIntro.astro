@@ -1,0 +1,598 @@
+---
+import { Image } from 'astro:assets'
+
+import avatar from '@/assets/avatar.png'
+---
+
+<section data-intro-variant='focus' class='intro-variant intro-focus' aria-hidden='true' hidden>
+  <div class='focus-veil' aria-hidden='true'></div>
+
+  <div class='focus-stage' aria-hidden='true'>
+    <div class='focus-orbit focus-orbit--outer'></div>
+    <div class='focus-orbit focus-orbit--inner'></div>
+
+    <div class='focus-mark focus-mark--code'>
+      <span class='focus-mark-index'>01</span>
+      <span>&lt;/CODE&gt;</span>
+    </div>
+    <div class='focus-mark focus-mark--agent'>
+      <span class='focus-mark-index'>02</span>
+      <span>AGENT</span>
+    </div>
+    <div class='focus-mark focus-mark--music'>
+      <span class='focus-mark-index'>03</span>
+      <span>MUSIC</span>
+    </div>
+    <div class='focus-mark focus-mark--place'>
+      <span class='focus-mark-index'>04</span>
+      <span>MEL / 37.8°S</span>
+    </div>
+
+    <div class='focus-optic'>
+      <div class='focus-ticks focus-ticks--minor'></div>
+      <div class='focus-ticks focus-ticks--major'></div>
+      <div class='focus-lens-ring focus-lens-ring--outer'></div>
+      <div class='focus-lens-ring focus-lens-ring--inner'></div>
+
+      <svg class='focus-iris' viewBox='0 0 320 320' role='presentation'>
+        <g class='focus-blades'>
+          <path
+            class='focus-blade'
+            d='M160 160 C128 117 104 69 118 21 C169 10 220 30 250 73 C221 94 187 121 160 160Z'
+          ></path>
+          <path
+            class='focus-blade'
+            d='M160 160 C128 117 104 69 118 21 C169 10 220 30 250 73 C221 94 187 121 160 160Z'
+            transform='rotate(60 160 160)'></path>
+          <path
+            class='focus-blade'
+            d='M160 160 C128 117 104 69 118 21 C169 10 220 30 250 73 C221 94 187 121 160 160Z'
+            transform='rotate(120 160 160)'></path>
+          <path
+            class='focus-blade'
+            d='M160 160 C128 117 104 69 118 21 C169 10 220 30 250 73 C221 94 187 121 160 160Z'
+            transform='rotate(180 160 160)'></path>
+          <path
+            class='focus-blade'
+            d='M160 160 C128 117 104 69 118 21 C169 10 220 30 250 73 C221 94 187 121 160 160Z'
+            transform='rotate(240 160 160)'></path>
+          <path
+            class='focus-blade'
+            d='M160 160 C128 117 104 69 118 21 C169 10 220 30 250 73 C221 94 187 121 160 160Z'
+            transform='rotate(300 160 160)'></path>
+        </g>
+      </svg>
+
+      <div class='focus-reticle'>
+        <span class='focus-corner focus-corner--tl'></span>
+        <span class='focus-corner focus-corner--tr'></span>
+        <span class='focus-corner focus-corner--br'></span>
+        <span class='focus-corner focus-corner--bl'></span>
+        <span class='focus-cross focus-cross--x'></span>
+        <span class='focus-cross focus-cross--y'></span>
+      </div>
+
+      <div class='focus-lock-ring'></div>
+      <span class='focus-index-mark'></span>
+    </div>
+
+    <div class='focus-proxy'>
+      <Image
+        class='focus-avatar-proxy'
+        src={avatar}
+        alt=''
+        width={192}
+        height={192}
+        format='webp'
+        loading='eager'
+        decoding='async'
+      />
+      <span class='focus-proxy-glass'></span>
+    </div>
+
+    <div class='focus-exposure'>
+      <span>F / 1.4</span>
+      <span class='focus-exposure-rule'></span>
+      <span>50 MM</span>
+    </div>
+
+    <div class='focus-readout'>
+      <span class='focus-state focus-state--manual'>MANUAL FOCUS</span>
+      <span class='focus-state focus-state--locked'>FOCUS LOCKED</span>
+      <i></i>
+      <span>ISO 100 · 1/200</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .intro-focus {
+    --focus-optic-size: min(66vmin, 520px);
+    --focus-proxy-size: clamp(128px, 20vmin, 176px);
+    --focus-hole: 0px;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    isolation: isolate;
+    color: hsl(var(--foreground));
+    pointer-events: none;
+    contain: strict;
+  }
+
+  .intro-focus[hidden] {
+    display: none;
+  }
+
+  .focus-veil {
+    position: absolute;
+    inset: -2px;
+    z-index: 0;
+    background:
+      radial-gradient(circle at 50% 47%, hsl(var(--primary) / 0.1), transparent 31%),
+      hsl(var(--background));
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 50%,
+      transparent 0 var(--focus-hole),
+      #000 calc(var(--focus-hole) + 1.5px)
+    );
+    mask-image: radial-gradient(
+      circle at 50% 50%,
+      transparent 0 var(--focus-hole),
+      #000 calc(var(--focus-hole) + 1.5px)
+    );
+    will-change:
+      opacity,
+      -webkit-mask-image,
+      mask-image;
+  }
+
+  .focus-veil::before,
+  .focus-veil::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+  }
+
+  .focus-veil::before {
+    opacity: 0.48;
+    background-image:
+      linear-gradient(hsl(var(--foreground) / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--foreground) / 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    background-position: calc(50% - 21px) calc(50% - 21px);
+  }
+
+  .focus-veil::after {
+    opacity: 0.32;
+    background: radial-gradient(circle, transparent 42%, hsl(var(--foreground) / 0.07) 100%);
+  }
+
+  .focus-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-optic {
+    position: absolute;
+    inset: 0;
+    width: var(--focus-optic-size);
+    height: var(--focus-optic-size);
+    margin: auto;
+    border-radius: 50%;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-orbit {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    border: 1px solid hsl(var(--foreground) / 0.07);
+    border-radius: 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-orbit--outer {
+    width: calc(var(--focus-optic-size) + 23vmin);
+    height: calc(var(--focus-optic-size) + 23vmin);
+    border-style: dashed;
+  }
+
+  .focus-orbit--inner {
+    width: calc(var(--focus-optic-size) + 10vmin);
+    height: calc(var(--focus-optic-size) + 10vmin);
+  }
+
+  .focus-ticks,
+  .focus-lens-ring,
+  .focus-iris,
+  .focus-reticle,
+  .focus-lock-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  .focus-ticks {
+    will-change: transform, opacity;
+  }
+
+  .focus-ticks--minor {
+    background: repeating-conic-gradient(
+      from -0.5deg,
+      hsl(var(--foreground) / 0.38) 0deg 0.34deg,
+      transparent 0.34deg 3deg
+    );
+    -webkit-mask: radial-gradient(
+      circle,
+      transparent calc(50% - 15px),
+      #000 calc(50% - 14px) calc(50% - 11px),
+      transparent calc(50% - 10px)
+    );
+    mask: radial-gradient(
+      circle,
+      transparent calc(50% - 15px),
+      #000 calc(50% - 14px) calc(50% - 11px),
+      transparent calc(50% - 10px)
+    );
+  }
+
+  .focus-ticks--major {
+    background: repeating-conic-gradient(
+      hsl(var(--primary) / 0.86) 0deg 0.7deg,
+      transparent 0.7deg 15deg
+    );
+    -webkit-mask: radial-gradient(
+      circle,
+      transparent calc(50% - 21px),
+      #000 calc(50% - 20px) calc(50% - 10px),
+      transparent calc(50% - 9px)
+    );
+    mask: radial-gradient(
+      circle,
+      transparent calc(50% - 21px),
+      #000 calc(50% - 20px) calc(50% - 10px),
+      transparent calc(50% - 9px)
+    );
+  }
+
+  .focus-lens-ring {
+    box-sizing: border-box;
+  }
+
+  .focus-lens-ring--outer {
+    inset: 21px;
+    border: 1px solid hsl(var(--foreground) / 0.17);
+    box-shadow:
+      inset 0 0 0 5px hsl(var(--background) / 0.46),
+      inset 0 0 42px hsl(var(--foreground) / 0.055),
+      0 0 0 1px hsl(var(--background) / 0.72);
+  }
+
+  .focus-lens-ring--inner {
+    inset: 28%;
+    border: 1px solid hsl(var(--primary) / 0.42);
+    box-shadow:
+      0 0 0 7px hsl(var(--background) / 0.68),
+      0 0 0 8px hsl(var(--foreground) / 0.11);
+  }
+
+  .focus-iris {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    -webkit-mask: radial-gradient(circle, transparent 0 26%, #000 26.4% 100%);
+    mask: radial-gradient(circle, transparent 0 26%, #000 26.4% 100%);
+  }
+
+  .focus-blades {
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-blade {
+    fill: hsl(var(--muted) / 0.94);
+    stroke: hsl(var(--foreground) / 0.16);
+    stroke-width: 0.65;
+    vector-effect: non-scaling-stroke;
+    will-change: opacity;
+  }
+
+  .focus-blade:nth-child(even) {
+    fill: hsl(var(--secondary) / 0.96);
+  }
+
+  .focus-proxy {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: var(--focus-proxy-size);
+    height: var(--focus-proxy-size);
+    margin: auto;
+    border-radius: 50%;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-avatar-proxy {
+    display: block;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid hsl(var(--foreground) / 0.2);
+    border-radius: 50%;
+    background: hsl(var(--card));
+    object-fit: cover;
+    box-shadow:
+      0 0 0 5px hsl(var(--background) / 0.86),
+      0 0 0 6px hsl(var(--primary) / 0.24),
+      0 20px 48px hsl(var(--foreground) / 0.15);
+    will-change: filter;
+  }
+
+  .focus-proxy-glass {
+    position: absolute;
+    inset: 1px;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+
+  .focus-proxy-glass::before {
+    position: absolute;
+    top: 10%;
+    left: 16%;
+    width: 28%;
+    height: 12%;
+    border-radius: 50%;
+    background: hsl(var(--background) / 0.3);
+    content: '';
+    opacity: 0.7;
+    transform: rotate(-28deg);
+  }
+
+  .focus-reticle {
+    z-index: 4;
+    inset: 25%;
+    border-radius: 0;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-corner {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: hsl(var(--primary) / 0.92);
+    border-style: solid;
+  }
+
+  .focus-corner--tl {
+    top: 0;
+    left: 0;
+    border-width: 1.5px 0 0 1.5px;
+  }
+
+  .focus-corner--tr {
+    top: 0;
+    right: 0;
+    border-width: 1.5px 1.5px 0 0;
+  }
+
+  .focus-corner--br {
+    right: 0;
+    bottom: 0;
+    border-width: 0 1.5px 1.5px 0;
+  }
+
+  .focus-corner--bl {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 1.5px 1.5px;
+  }
+
+  .focus-cross {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: hsl(var(--primary) / 0.88);
+    transform: translate(-50%, -50%);
+  }
+
+  .focus-cross--x {
+    width: 18px;
+    height: 1px;
+  }
+
+  .focus-cross--y {
+    width: 1px;
+    height: 18px;
+  }
+
+  .focus-lock-ring {
+    z-index: 5;
+    inset: 30%;
+    border: 1.5px solid hsl(var(--primary) / 0.8);
+    box-shadow: 0 0 0 1px hsl(var(--background) / 0.7);
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .focus-index-mark {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    border: 1px solid hsl(var(--background) / 0.9);
+    border-radius: 50%;
+    background: #df987d;
+    box-shadow: 0 0 0 1px hsl(var(--foreground) / 0.16);
+    transform: translateX(-50%);
+  }
+
+  .focus-mark,
+  .focus-exposure,
+  .focus-readout {
+    position: absolute;
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+    color: hsl(var(--muted-foreground));
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    will-change: transform, opacity;
+  }
+
+  .focus-mark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .focus-mark::before {
+    width: 18px;
+    height: 1px;
+    background: hsl(var(--foreground) / 0.22);
+    content: '';
+  }
+
+  .focus-mark-index {
+    color: hsl(var(--primary));
+    font-size: 8px;
+  }
+
+  .focus-mark--code {
+    top: calc(50% - var(--focus-optic-size) * 0.48);
+    left: calc(50% - var(--focus-optic-size) * 0.72);
+  }
+
+  .focus-mark--agent {
+    top: calc(50% - var(--focus-optic-size) * 0.28);
+    right: calc(50% - var(--focus-optic-size) * 0.75);
+  }
+
+  .focus-mark--music {
+    bottom: calc(50% - var(--focus-optic-size) * 0.42);
+    left: calc(50% - var(--focus-optic-size) * 0.7);
+  }
+
+  .focus-mark--place {
+    right: calc(50% - var(--focus-optic-size) * 0.76);
+    bottom: calc(50% - var(--focus-optic-size) * 0.27);
+  }
+
+  .focus-exposure {
+    top: calc(50% - var(--focus-optic-size) * 0.62);
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: hsl(var(--foreground) / 0.76);
+    transform: translateX(-50%);
+  }
+
+  .focus-exposure-rule {
+    width: 28px;
+    height: 1px;
+    background: hsl(var(--primary) / 0.62);
+  }
+
+  .focus-readout {
+    bottom: calc(50% - var(--focus-optic-size) * 0.64);
+    left: 50%;
+    display: grid;
+    grid-template-columns: minmax(96px, auto) 20px auto;
+    align-items: center;
+    min-width: 252px;
+    transform: translateX(-50%);
+  }
+
+  .focus-readout i {
+    justify-self: center;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+  }
+
+  .focus-state {
+    grid-area: 1 / 1;
+    color: hsl(var(--foreground) / 0.78);
+  }
+
+  .focus-state--locked {
+    color: hsl(var(--primary));
+  }
+
+  @media (max-width: 680px) {
+    .intro-focus {
+      --focus-optic-size: min(88vw, 410px);
+      --focus-proxy-size: clamp(116px, 34vw, 148px);
+    }
+
+    .focus-veil::before {
+      opacity: 0.24;
+      background-size: 34px 34px;
+    }
+
+    .focus-veil::after,
+    .focus-ticks--minor,
+    .focus-orbit--outer,
+    .focus-mark--music,
+    .focus-mark--agent {
+      display: none;
+    }
+
+    .focus-iris {
+      opacity: 0.72;
+    }
+
+    .focus-mark--code {
+      top: 17%;
+      left: 7%;
+    }
+
+    .focus-mark--place {
+      right: 7%;
+      bottom: 18%;
+    }
+
+    .focus-exposure {
+      top: calc(50% - var(--focus-optic-size) * 0.61);
+    }
+
+    .focus-readout {
+      bottom: calc(50% - var(--focus-optic-size) * 0.64);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .focus-orbit,
+    .focus-ticks,
+    .focus-iris,
+    .focus-reticle,
+    .focus-lock-ring,
+    .focus-mark,
+    .focus-index-mark {
+      display: none;
+    }
+
+    .focus-veil::before,
+    .focus-veil::after {
+      opacity: 0;
+    }
+
+    .focus-avatar-proxy {
+      filter: none !important;
+      box-shadow:
+        0 0 0 4px hsl(var(--background)),
+        0 0 0 5px hsl(var(--border));
+    }
+  }
+</style>

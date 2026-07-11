@@ -1,0 +1,732 @@
+<section data-intro-variant='jojo' class='intro-variant intro-jojo' aria-hidden='true' hidden>
+  <div class='intro-jojo__sheet intro-jojo__sheet--far' data-jojo-paper-layer aria-hidden='true'>
+  </div>
+  <div class='intro-jojo__sheet intro-jojo__sheet--mid' data-jojo-paper-layer aria-hidden='true'>
+  </div>
+
+  <div class='intro-jojo__sheet intro-jojo__paper' data-jojo-paper aria-hidden='true'>
+    <div class='intro-jojo__grain'></div>
+
+    <div class='intro-jojo__media'>
+      <figure>
+        <img data-intro-src='/images/landing/playyy-ui.png' alt='' decoding='async' />
+        <figcaption>PLAYYY / PRODUCT</figcaption>
+      </figure>
+      <figure>
+        <img data-intro-src='/images/landing/atypica-site.png' alt='' decoding='async' />
+        <figcaption>ATYPICA / AGENTS</figcaption>
+      </figure>
+      <figure>
+        <img data-intro-src='/images/landing/aixcut-site.png' alt='' decoding='async' />
+        <figcaption>AIXCUT / VIDEO</figcaption>
+      </figure>
+    </div>
+
+    <div class='intro-jojo__structure' aria-hidden='true'>
+      <span class='intro-jojo__structure-frame'></span>
+      <span class='intro-jojo__axis intro-jojo__axis--x'></span>
+      <span class='intro-jojo__axis intro-jojo__axis--y'></span>
+      <span class='intro-jojo__orbit intro-jojo__orbit--outer'></span>
+      <span class='intro-jojo__orbit intro-jojo__orbit--inner'></span>
+      <span class='intro-jojo__structure-index intro-jojo__structure-index--start'>00</span>
+      <span class='intro-jojo__structure-index intro-jojo__structure-index--end'>01</span>
+    </div>
+
+    <div class='intro-jojo__register intro-jojo__register--top'>
+      <span>JY / PROJECT REEL</span>
+      <span class='intro-jojo__live'><i></i> REAL WORK</span>
+      <span>03 / LIVE</span>
+    </div>
+
+    <div class='intro-jojo__monogram'>J.</div>
+
+    <div class='intro-jojo__register intro-jojo__register--bottom'>
+      <span>PLAYYY</span>
+      <span>ATYPICA</span>
+      <span>AIXCUT</span>
+    </div>
+
+    <i class='intro-jojo__fold intro-jojo__fold--one' data-jojo-fold></i>
+    <i class='intro-jojo__fold intro-jojo__fold--two' data-jojo-fold></i>
+    <i class='intro-jojo__fold intro-jojo__fold--three' data-jojo-fold></i>
+
+    <div class='intro-jojo__edge'>
+      <span class='intro-jojo__tension' data-jojo-tension></span>
+    </div>
+  </div>
+
+  <div class='intro-jojo__agent' data-jojo-agent aria-hidden='true'>
+    <span class='intro-jojo__agent-label' data-jojo-label>JOJO / 01</span>
+
+    <div class='intro-jojo__body'>
+      <pre
+        class='intro-jojo__ascii'><span data-jojo-part="crown">  .-------.  </span><span data-jojo-part="frame">  |       |  </span><span data-jojo-part="core">  |   -   |  </span><span data-jojo-part="base">  '---+---'  </span><span data-jojo-part="legs" data-jojo-detail>     | |     </span><span data-jojo-part="feet">    /   \    </span></pre>
+      <span class='intro-jojo__eyes' data-jojo-eyes>o&nbsp;&nbsp;&nbsp;o</span>
+    </div>
+
+    <span class='intro-jojo__arm' data-jojo-arm>
+      <i></i>
+      <b data-jojo-grip>]</b>
+    </span>
+  </div>
+
+  <span class='intro-jojo__snap' data-jojo-snap aria-hidden='true'></span>
+</section>
+
+<style>
+  .intro-jojo {
+    --jojo-steel: #659eb9;
+    --jojo-peach: #e4a08b;
+    --jojo-peek: clamp(1.4rem, 3.2vw, 3.25rem);
+    --jojo-arm: clamp(4.5rem, 8vw, 7rem);
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+    isolation: isolate;
+    color: hsl(var(--foreground));
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    opacity: 1;
+  }
+
+  .intro-jojo[hidden] {
+    display: none !important;
+  }
+
+  .intro-jojo__sheet {
+    position: absolute;
+    inset: 0 var(--jojo-peek) 0 0;
+    transform-origin: 0 50%;
+    will-change: transform, opacity, clip-path;
+  }
+
+  .intro-jojo__sheet--far {
+    z-index: 1;
+    background: hsl(var(--background));
+    background: color-mix(in oklab, hsl(var(--background)) 84%, var(--jojo-steel) 16%);
+    box-shadow: 20px 0 52px rgb(12 25 34 / 20%);
+    transform: translate3d(12px, 0, 0);
+  }
+
+  .intro-jojo__sheet--mid {
+    z-index: 2;
+    background: hsl(var(--background));
+    background: color-mix(in oklab, hsl(var(--background)) 91%, var(--jojo-steel) 9%);
+    box-shadow: 14px 0 36px rgb(12 25 34 / 18%);
+    transform: translate3d(6px, 0, 0);
+  }
+
+  .intro-jojo__paper {
+    z-index: 3;
+    overflow: hidden;
+    background-color: hsl(var(--background));
+    background-color: color-mix(in oklab, hsl(var(--background)) 94%, var(--jojo-steel) 6%);
+    background-image:
+      radial-gradient(ellipse at 48% 48%, rgb(101 158 185 / 12%) 0, transparent 36%),
+      linear-gradient(90deg, transparent 0 49.94%, rgb(101 158 185 / 10%) 50%, transparent 50.06%),
+      linear-gradient(0deg, transparent 0 49.94%, rgb(101 158 185 / 8%) 50%, transparent 50.06%);
+    box-shadow:
+      10px 0 0 color-mix(in oklab, hsl(var(--background)) 74%, var(--jojo-steel) 26%),
+      22px 0 52px rgb(8 18 24 / 28%);
+  }
+
+  .intro-jojo__media {
+    position: absolute;
+    inset: clamp(4.7rem, 9vh, 6.5rem) clamp(2rem, 5vw, 5rem);
+    z-index: 0;
+    display: grid;
+    grid-template-columns: 0.92fr 0.72fr 1.2fr;
+    gap: clamp(0.45rem, 1vw, 1rem);
+  }
+
+  .intro-jojo__media::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(3 6 8 / 10%), rgb(3 6 8 / 52%));
+    content: '';
+    pointer-events: none;
+  }
+
+  .intro-jojo__media figure {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 18%);
+    background: #080b0d;
+  }
+
+  .intro-jojo__media figure:nth-child(2) {
+    transform: translateY(7%);
+  }
+
+  .intro-jojo__media img {
+    width: 100%;
+    height: 100%;
+    opacity: 0.86;
+    filter: saturate(0.78) contrast(1.08);
+    object-fit: cover;
+  }
+
+  .intro-jojo__media figcaption {
+    position: absolute;
+    right: 0.7rem;
+    bottom: 0.65rem;
+    left: 0.7rem;
+    z-index: 1;
+    color: rgb(255 255 255 / 78%);
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+
+  .intro-jojo__grain {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0.18;
+    background-image: radial-gradient(circle, rgb(101 158 185 / 24%) 0 0.65px, transparent 0.8px);
+    background-size: 22px 22px;
+    mask-image: linear-gradient(115deg, transparent 8%, #000 48%, transparent 92%);
+  }
+
+  .intro-jojo__structure {
+    position: absolute;
+    inset: clamp(4.8rem, 10vh, 7.5rem) clamp(2.5rem, 7vw, 7.5rem);
+    z-index: 1;
+    color: var(--jojo-steel);
+    opacity: 0.22;
+  }
+
+  .intro-jojo__structure::before {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background-image:
+      linear-gradient(
+        90deg,
+        transparent 0 19.9%,
+        rgb(101 158 185 / 8%) 20%,
+        transparent 20.1% 79.9%,
+        rgb(101 158 185 / 8%) 80%,
+        transparent 80.1%
+      ),
+      linear-gradient(
+        0deg,
+        transparent 0 24.9%,
+        rgb(101 158 185 / 7%) 25%,
+        transparent 25.1% 74.9%,
+        rgb(101 158 185 / 7%) 75%,
+        transparent 75.1%
+      );
+  }
+
+  .intro-jojo__structure::after {
+    position: absolute;
+    bottom: 10%;
+    left: 6%;
+    width: min(24vw, 17rem);
+    height: 3.25rem;
+    content: '';
+    opacity: 0.5;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0 0.48rem,
+      rgb(101 158 185 / 16%) 0.5rem 0.55rem
+    );
+    mask-image: linear-gradient(90deg, #000, transparent);
+  }
+
+  .intro-jojo__structure-frame {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgb(101 158 185 / 12%);
+    box-shadow:
+      0 0 0 1px rgb(101 158 185 / 3%) inset,
+      0 0 52px rgb(101 158 185 / 3%) inset;
+  }
+
+  .intro-jojo__structure-frame::before,
+  .intro-jojo__structure-frame::after {
+    position: absolute;
+    width: 1.2rem;
+    height: 1.2rem;
+    content: '';
+    border-color: rgb(101 158 185 / 46%);
+  }
+
+  .intro-jojo__structure-frame::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .intro-jojo__structure-frame::after {
+    right: -1px;
+    bottom: -1px;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
+  }
+
+  .intro-jojo__axis {
+    position: absolute;
+    display: block;
+    opacity: 0.72;
+  }
+
+  .intro-jojo__axis::after {
+    position: absolute;
+    width: 0.32rem;
+    height: 0.32rem;
+    border: 1px solid rgb(101 158 185 / 48%);
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  .intro-jojo__axis--x {
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(101 158 185 / 24%), transparent);
+  }
+
+  .intro-jojo__axis--x::after {
+    top: -0.16rem;
+    left: calc(50% - 0.16rem);
+  }
+
+  .intro-jojo__axis--y {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: linear-gradient(0deg, transparent, rgb(101 158 185 / 20%), transparent);
+  }
+
+  .intro-jojo__axis--y::after {
+    top: calc(50% - 0.16rem);
+    left: -0.16rem;
+  }
+
+  .intro-jojo__orbit {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    aspect-ratio: 1;
+    border: 1px solid rgb(101 158 185 / 11%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .intro-jojo__orbit--outer {
+    width: min(32vw, 26rem);
+    box-shadow: 0 0 46px rgb(101 158 185 / 4%) inset;
+  }
+
+  .intro-jojo__orbit--inner {
+    width: min(19vw, 15rem);
+    border-color: rgb(101 158 185 / 18%);
+  }
+
+  .intro-jojo__structure-index {
+    position: absolute;
+    font-size: 0.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    color: color-mix(in oklab, hsl(var(--foreground)) 38%, var(--jojo-steel) 62%);
+  }
+
+  .intro-jojo__structure-index--start {
+    top: 0.85rem;
+    left: 0.9rem;
+  }
+
+  .intro-jojo__structure-index--end {
+    right: 0.9rem;
+    bottom: 0.85rem;
+  }
+
+  .intro-jojo__register {
+    position: absolute;
+    right: clamp(1.25rem, 4vw, 4rem);
+    left: clamp(1.25rem, 4vw, 4rem);
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    font-size: clamp(0.52rem, 0.72vw, 0.66rem);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    color: color-mix(in oklab, hsl(var(--foreground)) 56%, var(--jojo-steel) 44%);
+  }
+
+  .intro-jojo__register span:last-child {
+    text-align: right;
+  }
+
+  .intro-jojo__register--top {
+    top: clamp(1.35rem, 4vw, 3.4rem);
+  }
+
+  .intro-jojo__register--bottom {
+    bottom: clamp(1.35rem, 4vw, 3.4rem);
+  }
+
+  .intro-jojo__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .intro-jojo__live i {
+    width: 0.34rem;
+    height: 0.34rem;
+    border-radius: 50%;
+    background: var(--jojo-steel);
+    box-shadow: 0 0 0 4px rgb(101 158 185 / 10%);
+  }
+
+  .intro-jojo__monogram {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: var(--jojo-steel);
+    font-family: 'Satoshi', Inter, system-ui, sans-serif;
+    font-size: min(52vw, 66vh);
+    font-weight: 900;
+    line-height: 0.7;
+    letter-spacing: -0.11em;
+    opacity: 0;
+    transform: translate(-52%, -50%);
+    user-select: none;
+  }
+
+  .intro-jojo__fold {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: clamp(2.75rem, 7vw, 7rem);
+    opacity: 0.08;
+    transform-origin: 100% 50%;
+    will-change: transform, opacity;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(101 158 185 / 3%) 38%,
+      rgb(101 158 185 / 18%) 50%,
+      rgb(255 255 255 / 5%) 52%,
+      transparent
+    );
+  }
+
+  .intro-jojo__fold--one {
+    right: 0;
+  }
+
+  .intro-jojo__fold--two {
+    right: clamp(2rem, 5vw, 5rem);
+  }
+
+  .intro-jojo__fold--three {
+    right: clamp(5rem, 11vw, 11rem);
+  }
+
+  .intro-jojo__edge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    width: 3px;
+    background: color-mix(in oklab, var(--jojo-steel) 82%, hsl(var(--foreground)) 18%);
+    box-shadow:
+      -1px 0 rgb(255 255 255 / 18%),
+      7px 0 26px rgb(101 158 185 / 22%),
+      12px 0 34px rgb(8 18 24 / 34%);
+  }
+
+  .intro-jojo__edge::before {
+    position: absolute;
+    top: clamp(1.25rem, 8vh, 4.5rem);
+    left: -1.05rem;
+    content: 'PULL / 01';
+    color: color-mix(in oklab, hsl(var(--foreground)) 58%, var(--jojo-steel) 42%);
+    font-size: 0.48rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .intro-jojo__tension {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    width: 0.44rem;
+    height: 0.44rem;
+    border: 1px solid color-mix(in oklab, var(--jojo-peach) 74%, hsl(var(--foreground)) 26%);
+    background: var(--jojo-peach);
+    box-shadow: 0 0 0 5px rgb(228 160 139 / 10%);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+    will-change: transform, opacity;
+  }
+
+  .intro-jojo__agent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 8;
+    font-size: clamp(0.82rem, 1.2vw, 1rem);
+    line-height: 1.15;
+    color: color-mix(in oklab, var(--jojo-steel) 76%, hsl(var(--foreground)) 24%);
+    isolation: isolate;
+    text-shadow: 0 0 18px rgb(101 158 185 / 18%);
+    transform-origin: 50% 70%;
+    will-change: transform, opacity;
+  }
+
+  .intro-jojo__agent::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: -1;
+    width: clamp(10rem, 22vw, 15rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    content: '';
+    opacity: 0.56;
+    background: radial-gradient(circle, rgb(101 158 185 / 13%), transparent 66%);
+    transform: translate(-50%, -50%);
+  }
+
+  .intro-jojo__agent-label {
+    display: block;
+    margin: 0 0 0.55rem 1.45rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    opacity: 0;
+    color: color-mix(in oklab, var(--jojo-steel) 58%, hsl(var(--foreground)) 42%);
+    will-change: transform, opacity;
+  }
+
+  .intro-jojo__body {
+    position: relative;
+    perspective: 520px;
+    transform-style: preserve-3d;
+  }
+
+  .intro-jojo__ascii {
+    display: block;
+    margin: 0;
+    font: inherit;
+    font-weight: 560;
+    letter-spacing: 0.045em;
+    white-space: pre;
+  }
+
+  .intro-jojo__ascii > span {
+    display: block;
+    opacity: 0;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+
+  .intro-jojo__eyes {
+    position: absolute;
+    top: 1.15em;
+    left: 3.8ch;
+    display: inline-block;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0;
+    opacity: 0;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+
+  .intro-jojo__arm {
+    position: absolute;
+    top: 3.95rem;
+    left: calc(100% - 1.45rem);
+    display: flex;
+    align-items: center;
+    width: var(--jojo-arm);
+    height: 1rem;
+    opacity: 0;
+    transform-origin: 0 50%;
+    will-change: transform, opacity;
+  }
+
+  .intro-jojo__arm i {
+    flex: 1;
+    height: 1.5px;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--jojo-steel) 72%, hsl(var(--foreground)) 28%),
+      rgb(101 158 185 / 62%)
+    );
+  }
+
+  .intro-jojo__arm b {
+    display: inline-block;
+    margin-left: -0.05rem;
+    color: var(--jojo-peach);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 0 12px rgb(228 160 139 / 24%);
+  }
+
+  .intro-jojo__snap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 7;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid rgb(101 158 185 / 62%);
+    border-radius: 50%;
+    opacity: 0;
+    transform-origin: 50% 50%;
+    box-shadow:
+      0 0 0 1px rgb(228 160 139 / 14%) inset,
+      0 0 24px rgb(101 158 185 / 16%);
+    will-change: transform, opacity;
+  }
+
+  @media (max-width: 640px) {
+    .intro-jojo {
+      --jojo-peek: 1.45rem;
+      --jojo-arm: 4.5rem;
+    }
+
+    .intro-jojo__paper {
+      background-color: color-mix(in oklab, hsl(var(--background)) 91%, var(--jojo-steel) 9%);
+      background-image:
+        radial-gradient(ellipse at 48% 48%, rgb(101 158 185 / 17%) 0, transparent 40%),
+        linear-gradient(
+          90deg,
+          transparent 0 49.88%,
+          rgb(101 158 185 / 13%) 50%,
+          transparent 50.12%
+        ),
+        linear-gradient(0deg, transparent 0 49.92%, rgb(101 158 185 / 10%) 50%, transparent 50.08%);
+    }
+
+    .intro-jojo__media {
+      inset: 4.8rem 1rem 4.8rem;
+      grid-template-columns: 1fr 0.65fr;
+    }
+
+    .intro-jojo__media figure:last-child {
+      display: none;
+    }
+
+    .intro-jojo__structure {
+      inset: 5.1rem 1.7rem 5.4rem;
+      opacity: 0.96;
+    }
+
+    .intro-jojo__structure::after {
+      bottom: 8%;
+      width: 42%;
+    }
+
+    .intro-jojo__orbit--outer {
+      width: min(68vw, 16.5rem);
+      border-color: rgb(101 158 185 / 18%);
+    }
+
+    .intro-jojo__orbit--inner {
+      width: min(42vw, 10rem);
+      border-color: rgb(101 158 185 / 25%);
+    }
+
+    .intro-jojo__monogram {
+      top: 32%;
+      left: 23%;
+      font-size: 44vw;
+      opacity: 0.065;
+    }
+
+    .intro-jojo__agent {
+      font-size: 1.1rem;
+      color: color-mix(in oklab, var(--jojo-steel) 62%, hsl(var(--foreground)) 38%);
+      text-shadow: 0 0 22px rgb(101 158 185 / 28%);
+    }
+
+    .intro-jojo__agent::before {
+      width: 13.5rem;
+      opacity: 0.7;
+      background: radial-gradient(circle, rgb(101 158 185 / 18%), transparent 68%);
+    }
+
+    .intro-jojo__agent-label {
+      margin-bottom: 0.65rem;
+      font-size: 0.7rem;
+    }
+
+    .intro-jojo__register {
+      grid-template-columns: 1fr auto;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      color: color-mix(in oklab, hsl(var(--foreground)) 64%, var(--jojo-steel) 36%);
+    }
+
+    .intro-jojo__register span:nth-child(2) {
+      display: none;
+    }
+
+    .intro-jojo__register span:last-child {
+      text-align: right;
+    }
+
+    .intro-jojo__register--bottom span:first-child {
+      display: none;
+    }
+
+    .intro-jojo__ascii [data-jojo-detail] {
+      display: none;
+    }
+
+    .intro-jojo__arm {
+      top: 4.2rem;
+    }
+
+    .intro-jojo__tension {
+      top: 50%;
+      width: 0.52rem;
+      height: 0.52rem;
+    }
+
+    .intro-jojo__fold--three {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-jojo,
+    .intro-jojo * {
+      scroll-behavior: auto !important;
+      transition: none !important;
+      animation: none !important;
+    }
+
+    .intro-jojo__sheet {
+      box-shadow: none;
+    }
+  }
+</style>

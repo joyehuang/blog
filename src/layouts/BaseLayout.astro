@@ -20,11 +20,13 @@ import '@/assets/styles/app.css'
 interface Props {
   meta: SiteMeta & { noindex?: boolean }
   highlightColor?: string
+  chrome?: boolean
 }
 
 const {
   meta: { articleDate, description = config.description, noindex, ogImage, title },
   highlightColor,
+  chrome = true,
   ...props
 } = Astro.props
 
@@ -48,10 +50,10 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
         />
       )
     }
-    <div class='w-full max-w-[70rem] px-4 sm:px-7 lg:px-10'>
-      <Header lang={lang} />
+    <div class:list={['w-full', chrome && 'max-w-[70rem] px-4 sm:px-7 lg:px-10']}>
+      {chrome && <Header lang={lang} />}
       <slot />
-      <Footer />
+      {chrome && <Footer />}
     </div>
     <DevModeHost client:only='react' />
     <Analytics />
