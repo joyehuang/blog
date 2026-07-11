@@ -1,10 +1,6 @@
 ---
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
-import interior from 'src/assets/projects/alex-tyson-2BAXJ7ha74s-unsplash.jpg'
-import architectureGrid from 'src/assets/projects/angelica-teran-Bk9hpaXHK4o-unsplash.jpg'
-import flowers from 'src/assets/projects/kseniia-zapiatkina-yATU3rg8tNI-unsplash.jpg'
-import architectureLight from 'src/assets/projects/wen-qiao-g_w8I64FiO0-unsplash.jpg'
 
 import IntroOverlay from '@/components/intro/IntroOverlay.astro'
 import JoJo from '@/components/mascot/JoJo'
@@ -37,77 +33,189 @@ const copy = isEn
   ? {
       work: 'Work',
       journal: 'Journal',
-      about: 'About',
+      about: 'Evidence',
       contact: 'Contact',
       role: 'AI agent & product engineer',
-      intro: 'I make intelligent products feel tangible.',
+      intro: 'I turn difficult AI systems into products people can actually use.',
       location: 'Melbourne · Shanghai · Remote',
-      explore: 'Scroll to explore',
-      selected: 'Selected work',
-      playyyRole: 'AI image generation / product engineering',
-      playyyBody:
-        'A brand-aware creative workspace for teams that need more than another prompt box.',
-      atypicaRole: 'Multi-agent research / full-stack engineering',
-      aixcutRole: 'AI video editing / agent experience',
-      engineering: 'Selected engineering',
-      engineeringNote:
-        'Interfaces intentionally omitted. These entries describe engineering work, not visual case studies.',
-      atypicaDetail:
-        'Counter-questioning, layered memory, and resilient asynchronous tool execution for commercial research agents.',
-      aixcutDetail:
-        'Product and full-stack engineering for an agent-assisted video editing workflow.',
-      nonPublic: 'Interface not displayed',
-      visit: 'Visit project',
-      personal: 'Outside the prompt',
-      personalBody:
-        'Architecture, photography, piano and the small visual decisions that make software feel human.',
-      journalTitle: 'Notes from building',
-      journalBody: 'No content cards. Just the latest useful things I learned while shipping.',
+      explore: 'Enter the work',
+      selected: 'Three products. Three different systems.',
+      selectedBody:
+        'Every frame below comes from the product itself. Scroll to move through the interface, not a mood board.',
+      visit: 'Visit product',
+      evidence: 'Beyond the prompt, leave evidence.',
+      evidenceBody:
+        'Engineering judgement becomes more useful when it is written, taught, and released. These are real outputs from that practice.',
+      evidenceCta: 'Open the full talk',
+      journalTitle: 'Notes from the build',
+      journalBody: 'The decisions, failures, and patterns that survived contact with production.',
       essays: 'Essays',
       notes: 'Notes',
       openSource: 'Open source',
-      sourceBody:
-        'Learning in public, from agent harnesses to language models rebuilt from scratch.',
-      finale: 'Have something difficult in mind?',
-      finaleBody: 'Send the unfinished version. That is usually where the interesting work starts.',
-      talk: 'Start a conversation',
+      sourceBody: 'Working implementations, not architecture theatre.',
+      finale: 'Bring the difficult version.',
+      finaleBody:
+        'Context, constraints, and the outcome you need. An unfinished brief is enough to start.',
+      context: 'Context',
+      constraint: 'Constraint',
+      outcome: 'Desired outcome',
+      contextValue: 'What is true today?',
+      constraintValue: 'What cannot be compromised?',
+      outcomeValue: 'What should change for the user?',
+      ready: 'Ready to shape',
+      talk: 'Send the rough brief',
       replay: 'Replay entrance',
-      copyright: 'Built by Joye, with code and a camera.'
+      copyright: 'Designed and engineered by Joye.'
     }
   : {
       work: '作品',
       journal: '写作',
-      about: '关于',
+      about: '证据',
       contact: '联系',
       role: 'AI Agent 与产品工程师',
-      intro: '让智能产品变得具体、可用、可感知。',
+      intro: '把复杂的 AI 系统，做成真正有人愿意使用的产品。',
       location: '墨尔本 · 上海 · 远程',
-      explore: '向下探索',
-      selected: '代表作品',
-      playyyRole: 'AI 图像生成 / 产品工程',
-      playyyBody: '为真实创意团队打造的品牌感知工作台——不只是另一个 Prompt 输入框。',
-      atypicaRole: '多智能体研究 / 全栈工程',
-      aixcutRole: 'AI 视频剪辑 / Agent 体验',
-      engineering: '工程项目',
-      engineeringNote: '界面未公开展示。这里只描述可以确认的工程工作，不伪装成视觉案例。',
-      atypicaDetail: '为商业研究 Agent 构建澄清式反问、分层记忆与可恢复的异步工具调用。',
-      aixcutDetail: '参与 Agent 辅助视频剪辑工作流的产品与全栈工程。',
-      nonPublic: '不展示产品界面',
-      visit: '访问项目',
-      personal: 'Prompt 之外',
-      personalBody: '建筑、摄影、钢琴，以及那些让软件重新有人味的细小视觉决定。',
+      explore: '进入作品',
+      selected: '三个产品，三套不同的系统。',
+      selectedBody: '下面每一帧都来自产品本身。滚动进入真实界面，而不是气氛图。',
+      visit: '访问产品',
+      evidence: 'Prompt 之外，留下证据。',
+      evidenceBody:
+        '工程判断只有被写下来、讲出来、做成开源实现，才会继续产生价值。这些是实际产物，不是装饰。',
+      evidenceCta: '查看完整分享',
       journalTitle: '来自开发现场',
-      journalBody: '不再堆内容卡片，只留下最近真正有用的文章与笔记。',
+      journalBody: '记录真正进入生产之后，仍然成立的判断、失败与方法。',
       essays: '文章',
       notes: '笔记',
       openSource: '开源',
-      sourceBody: '公开学习：从 Agent Harness 到从零重建语言模型。',
-      finale: '有个难题？',
-      finaleBody: '把还没整理好的版本发来。最有意思的合作通常从那里开始。',
-      talk: '聊聊看',
+      sourceBody: '可以运行的实现，而不是架构表演。',
+      finale: '把难的版本发来。',
+      finaleBody: '背景、约束、想达成的结果。一个还没整理好的 brief，就足够开始。',
+      context: '背景',
+      constraint: '约束',
+      outcome: '成功标准',
+      contextValue: '今天真实发生了什么？',
+      constraintValue: '什么绝对不能被牺牲？',
+      outcomeValue: '用户最终应该感受到什么变化？',
+      ready: '可以开始塑形',
+      talk: '发送粗糙版本',
       replay: '重播入场',
-      copyright: 'Joye 用代码与相机完成。'
+      copyright: 'Joye 设计与开发。'
     }
+
+const projects = isEn
+  ? [
+      {
+        index: '01',
+        key: 'playyy',
+        title: 'Playyy',
+        role: 'Brand-aware AI image workspace',
+        body: 'A creative environment that keeps brand context, generation, and iteration in one product surface.',
+        href: 'https://playyy.ai/',
+        image: '/images/landing/playyy-ui.png',
+        alt: 'Playyy product interface from the public website',
+        domain: 'playyy.ai',
+        accent: '#659eb9'
+      },
+      {
+        index: '02',
+        key: 'atypica',
+        title: 'atypica',
+        role: 'Commercial research multi-agent system',
+        body: 'Clarification, persona interviews, and analysis are coordinated into a research workflow that can recover from asynchronous tool work.',
+        href: 'https://atypica.ai/',
+        image: '/images/landing/atypica-site.png',
+        alt: 'Atypica public website showing the research agent interface',
+        domain: 'atypica.ai',
+        accent: '#18f52f'
+      },
+      {
+        index: '03',
+        key: 'aixcut',
+        title: 'AIXCut',
+        role: 'Agent-assisted video editing',
+        body: 'A video workflow where the agent helps shape scripts, locate edits, and turn a large source library into a finished cut.',
+        href: 'https://aixcut.cn/',
+        image: '/images/landing/aixcut-site.png',
+        alt: 'AIXCut public website showing the video editing product',
+        domain: 'aixcut.cn',
+        accent: '#28ffa9'
+      }
+    ]
+  : [
+      {
+        index: '01',
+        key: 'playyy',
+        title: 'Playyy',
+        role: '品牌感知的 AI 图像工作台',
+        body: '把品牌上下文、图像生成与迭代放进同一个真实创作界面。',
+        href: 'https://playyy.ai/',
+        image: '/images/landing/playyy-ui.png',
+        alt: 'Playyy 官网公开的产品界面',
+        domain: 'playyy.ai',
+        accent: '#659eb9'
+      },
+      {
+        index: '02',
+        key: 'atypica',
+        title: 'atypica',
+        role: '商业研究多智能体系统',
+        body: '把澄清式反问、Persona 访谈与分析组织成可恢复的异步研究工作流。',
+        href: 'https://atypica.ai/',
+        image: '/images/landing/atypica-site.png',
+        alt: 'Atypica 官网展示的研究 Agent 产品界面',
+        domain: 'atypica.ai',
+        accent: '#18f52f'
+      },
+      {
+        index: '03',
+        key: 'aixcut',
+        title: 'AIXCut',
+        role: 'Agent 辅助视频剪辑',
+        body: '让 Agent 参与脚本塑形、定位剪辑与素材组织，把庞大的源视频推进到可交付成片。',
+        href: 'https://aixcut.cn/',
+        image: '/images/landing/aixcut-site.png',
+        alt: 'AIXCut 官网展示的视频剪辑产品界面',
+        domain: 'aixcut.cn',
+        accent: '#28ffa9'
+      }
+    ]
+
+const evidence = isEn
+  ? [
+      {
+        label: 'Talk / Engineering scope',
+        title: 'What agent engineering actually contains',
+        image: '/talks/2026-from-interview-to-agent/engineering-scope.png'
+      },
+      {
+        label: 'Method / Growth loop',
+        title: 'A repeatable loop from interview to production',
+        image: '/talks/2026-from-interview-to-agent/growth-loop.png'
+      },
+      {
+        label: 'Practice / Agent legwork',
+        title: 'The unglamorous work behind reliable agents',
+        image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
+      }
+    ]
+  : [
+      {
+        label: '分享 / 工程边界',
+        title: 'Agent 工程真正包含什么',
+        image: '/talks/2026-from-interview-to-agent/engineering-scope.png'
+      },
+      {
+        label: '方法 / 成长回路',
+        title: '从面试到生产的可重复成长路径',
+        image: '/talks/2026-from-interview-to-agent/growth-loop.png'
+      },
+      {
+        label: '实践 / Agent 苦工',
+        title: '可靠 Agent 背后那些不光鲜的工作',
+        image: '/talks/2026-from-interview-to-agent/agent-legwork.png'
+      }
+    ]
 
 const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 ---
@@ -115,146 +223,162 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 <IntroOverlay locale={locale} />
 
 <visual-home class='visual-home'>
-  <nav class='reel-nav' aria-label={isEn ? 'Primary navigation' : '主导航'}>
-    <a class='reel-nav__brand' href={prefix || '/'}>Joye Huang</a>
-    <div class='reel-nav__links'>
+  <nav class='home-nav' aria-label={isEn ? 'Primary navigation' : '主导航'}>
+    <a class='home-nav__brand' href={prefix || '/'}>Joye Huang</a>
+    <div class='home-nav__links'>
       <a href='#work'>{copy.work}</a>
+      <a href='#evidence'>{copy.about}</a>
       <a href='#journal'>{copy.journal}</a>
-      <a href={`${prefix}/about`}>{copy.about}</a>
     </div>
-    <div class='reel-nav__end'>
+    <div class='home-nav__end'>
       <a href={isEn ? '/' : '/en'}>{isEn ? '中文' : 'EN'}</a>
       <a href={`${prefix}/contact`}>{copy.contact} ↗</a>
     </div>
   </nav>
 
   <main>
-    <section class='cover' id='top' data-cover>
-      <div class='cover__media' data-cover-media>
-        <Image
-          src={architectureGrid}
-          width={1600}
-          alt={isEn ? 'Concrete architectural rhythm' : '混凝土建筑节奏'}
-        />
-      </div>
-      <div class='cover__veil'></div>
-      <div class='cover__topline'>
-        <span>PORTFOLIO / 2026</span>
-        <span>{copy.location}</span>
-      </div>
-      <div class='cover__identity'>
-        <div class='cover__portrait'>
-          <Image
-            src={avatar}
-            alt={isEn ? 'Portrait of Joye' : 'Joye 的头像'}
-            data-intro-target='avatar'
-            loading='eager'
-          />
-        </div>
-        <p>{copy.role}</p>
-      </div>
-      <div class='cover__title'>
-        <h1>Joye Huang</h1>
+    <section class='hero' id='top' data-hero>
+      <div class='hero__copy'>
+        <div class='hero__eyebrow'><span>{copy.role}</span><span>{copy.location}</span></div>
+        <h1>Joye<br />Huang</h1>
         <p>{copy.intro}</p>
+        <a href='#work'><i></i>{copy.explore}</a>
       </div>
-      <a class='cover__scroll' href='#work'><span></span>{copy.explore}</a>
-    </section>
 
-    <section class='work-index' id='work'>
-      <div class='work-index__header'>
-        <p>01 — 03</p>
-        <h2>{copy.selected}</h2>
-        <p>2025 — 2026</p>
-      </div>
-    </section>
-
-    <section class='project-reel project-reel--playyy' data-project-reel>
-      <div class='project-reel__sticky'>
-        <div class='project-reel__copy'>
-          <span>01</span>
-          <p>{copy.playyyRole}</p>
-          <h2>Playyy</h2>
-          <p class='project-reel__body'>{copy.playyyBody}</p>
-          <a href='https://playyy.ai/' target='_blank' rel='noopener noreferrer'>{copy.visit} ↗</a>
-        </div>
-        <div class='project-reel__media project-reel__media--playyy'>
-          <Image src={architectureLight} width={1400} alt='' class='project-reel__backdrop' />
-          <figure class='browser-frame'>
-            <div class='browser-frame__bar'><i></i><i></i><i></i><span>playyy.ai</span></div>
-            <img src='/images/landing/playyy-ui.png' alt='Playyy product interface' />
+      <div class='hero__world' aria-label={isEn ? 'Selected product interfaces' : '代表产品界面'}>
+        <div class='hero__stage' data-hero-stage>
+          <figure class='hero-screen hero-screen--playyy'>
+            <img
+              src='/images/landing/playyy-ui.png'
+              alt='Playyy product interface'
+              loading='eager'
+            />
+            <figcaption>01 / PLAYYY</figcaption>
+          </figure>
+          <figure class='hero-screen hero-screen--atypica'>
+            <img
+              src='/images/landing/atypica-site.png'
+              alt='atypica public product page'
+              loading='eager'
+            />
+            <figcaption>02 / ATYPICA</figcaption>
+          </figure>
+          <figure class='hero-screen hero-screen--aixcut'>
+            <img
+              src='/images/landing/aixcut-site.png'
+              alt='AIXCut public product page'
+              loading='eager'
+            />
+            <figcaption>03 / AIXCUT</figcaption>
           </figure>
         </div>
       </div>
+
+      <div class='hero__portrait'>
+        <Image
+          src={avatar}
+          alt={isEn ? 'Portrait of Joye' : 'Joye 的头像'}
+          data-intro-target='avatar'
+        />
+      </div>
+      <span class='hero__index'>PORTFOLIO / 2026</span>
     </section>
 
-    <section class='engineering-list'>
-      <header>
-        <span>02 — 03</span>
-        <h2>{copy.engineering}</h2>
-        <p>{copy.engineeringNote}</p>
-      </header>
-      <a href='https://atypica.ai/' target='_blank' rel='noopener noreferrer'>
-        <span>02 / 2025</span>
-        <div><h3>atypica</h3><p>{copy.atypicaDetail}</p></div>
-        <strong>{copy.atypicaRole}</strong>
-        <em>{copy.nonPublic} ↗</em>
-      </a>
-      <a href='https://aixcut.cn/' target='_blank' rel='noopener noreferrer'>
-        <span>03 / 2026</span>
-        <div><h3>AIXCut</h3><p>{copy.aixcutDetail}</p></div>
-        <strong>{copy.aixcutRole}</strong>
-        <em>{copy.nonPublic} ↗</em>
-      </a>
+    <section class='work-intro' id='work'>
+      <span>01—03 / PRODUCTS</span>
+      <h2>{copy.selected}</h2>
+      <p>{copy.selectedBody}</p>
     </section>
 
-    <section class='personal-reel' id='about' data-personal-reel>
-      <div class='personal-reel__sticky'>
-        <div class='personal-reel__heading'>
-          <span>04 / PERSONAL</span>
-          <h2>{copy.personal}</h2>
-          <p>{copy.personalBody}</p>
-        </div>
-        <div class='personal-reel__viewport'>
-          <div class='personal-reel__track' data-gallery-track>
-            <figure>
-              <Image src={architectureGrid} width={900} alt='Architectural rhythm' /><figcaption>
-                RHYTHM
-              </figcaption>
-            </figure>
-            <figure>
-              <Image src={flowers} width={900} alt='White hydrangea flowers' /><figcaption>
-                DETAIL
-              </figcaption>
-            </figure>
-            <figure>
-              <Image src={interior} width={900} alt='Quiet interior' /><figcaption>
-                LIGHT
-              </figcaption>
-            </figure>
-            <figure>
-              <Image
-                src={architectureLight}
-                width={900}
-                alt='White architectural curves'
-              /><figcaption>SPACE</figcaption>
-            </figure>
+    {
+      projects.map((project, index) => (
+        <section
+          class:list={['case-study', `case-study--${project.key}`]}
+          style={`--case-accent:${project.accent}`}
+          data-case
+        >
+          <div class='case-study__sticky'>
+            <div class='case-study__copy' data-case-copy>
+              <span>{project.index} / 2025—26</span>
+              <h2>{project.title}</h2>
+              <strong>{project.role}</strong>
+              <p>{project.body}</p>
+              <a href={project.href} target='_blank' rel='noopener noreferrer'>
+                {copy.visit} ↗
+              </a>
+            </div>
+
+            <div class='case-study__scene' data-case-scene>
+              <div class='case-study__halo' aria-hidden='true' />
+              <figure class='product-plane' data-case-screen>
+                <div class='product-plane__bar'>
+                  <span>
+                    <>
+                      <i />
+                      <i />
+                      <i />
+                    </>
+                  </span>
+                  <em>{project.domain}</em>
+                  <b>LIVE / 0{index + 1}</b>
+                </div>
+                <img
+                  src={project.image}
+                  alt={project.alt}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              </figure>
+              <aside class='case-study__depth' data-depth-card>
+                <span>SYSTEM LAYER</span>
+                <strong>{project.role}</strong>
+                <i>{project.index}</i>
+              </aside>
+            </div>
           </div>
+        </section>
+      ))
+    }
+
+    <section class='evidence' id='evidence' data-evidence>
+      <div class='evidence__sticky'>
+        <header>
+          <span>04 / PUBLIC PRACTICE</span>
+          <h2>{copy.evidence}</h2>
+          <p>{copy.evidenceBody}</p>
+          <a href={`${prefix}/talks`}>{copy.evidenceCta} ↗</a>
+        </header>
+        <div class='evidence__scene' data-evidence-scene>
+          {
+            evidence.map((item, index) => (
+              <figure class={`evidence-card evidence-card--${index + 1}`} data-evidence-card>
+                <img src={item.image} alt={item.title} loading='lazy' />
+                <figcaption>
+                  <>
+                    <span>{item.label}</span>
+                    <strong>{item.title}</strong>
+                  </>
+                </figcaption>
+              </figure>
+            ))
+          }
         </div>
       </div>
     </section>
 
     <section class='journal' id='journal'>
-      <div class='journal__intro'>
+      <header class='journal__intro' data-reveal>
         <span>05 / JOURNAL</span>
         <h2>{copy.journalTitle}</h2>
         <p>{copy.journalBody}</p>
-      </div>
+      </header>
       <div class='journal__columns'>
-        <div class='journal__column'>
-          <header><span>{copy.essays}</span><span>{posts.length}</span></header>
+        <section class='journal__column' data-reveal>
+          <div>
+            <span>{copy.essays}</span><strong>{posts.length.toString().padStart(2, '0')}</strong>
+          </div>
           {
             posts.slice(0, 4).map((post) => (
-              <a href={post.href}>
+              <a href={`${prefix}${post.href}`}>
                 <>
                   <span>{post.meta}</span>
                   <h3>{post.title}</h3>
@@ -263,29 +387,32 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
               </a>
             ))
           }
-        </div>
-        <div class='journal__column'>
-          <header><span>{copy.notes}</span><span>{notes.length}</span></header>
+        </section>
+        <section class='journal__column' data-reveal>
+          <div>
+            <span>{copy.notes}</span><strong>{notes.length.toString().padStart(2, '0')}</strong>
+          </div>
           {
             notes.slice(0, 4).map((note) => (
-              <a href={note.href}>
+              <a href={`${prefix}${note.href}`}>
                 <>
-                  <span>{note.kind}</span>
+                  <span>{note.meta}</span>
                   <h3>{note.title}</h3>
                   <i>↗</i>
                 </>
               </a>
             ))
           }
-        </div>
+        </section>
       </div>
     </section>
 
-    <section class='source'>
-      <div class='source__image'>
+    <section class='source' data-reveal>
+      <div class='source__visual'>
         <img
-          src='/talks/2026-from-interview-to-agent/engineering-scope.png'
-          alt={isEn ? 'Agent engineering system diagram' : 'Agent 工程系统图'}
+          src='/talks/2026-from-interview-to-agent/agent-legwork-crop.png'
+          alt='Agent engineering work map'
+          loading='lazy'
         />
       </div>
       <div class='source__copy'>
@@ -295,7 +422,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
         <strong>{totalStars}+ GitHub Stars</strong>
         <ul>
           {
-            repos.map((repo) => (
+            repos.slice(0, 3).map((repo) => (
               <li>
                 <a
                   href={`https://github.com/joyehuang/${repo.name}`}
@@ -304,7 +431,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
                 >
                   <>
                     <span>{repo.name}</span>
-                    <span>★ {repo.stars} ↗</span>
+                    <i>★ {repo.stars} ↗</i>
                   </>
                 </a>
               </li>
@@ -314,10 +441,9 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       </div>
     </section>
 
-    <section class='finale'>
-      <Image src={flowers} width={1600} alt='' class='finale__image' />
-      <div class='finale__veil'></div>
+    <section class='finale' data-finale>
       <div class='finale__copy'>
+        <span>07 / START WITH THE MESS</span>
         <h2>{copy.finale}</h2>
         <p>{copy.finaleBody}</p>
         <div>
@@ -325,10 +451,30 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           <button type='button' data-replay-intro>{copy.replay} ↻</button>
         </div>
       </div>
+
+      <div
+        class='problem-portal'
+        data-problem-portal
+        aria-label={isEn ? 'Brief structure' : 'Brief 结构'}
+      >
+        <div class='problem-card problem-card--context' data-problem-layer>
+          <span>01 / {copy.context}</span><p>{copy.contextValue}</p>
+        </div>
+        <div class='problem-card problem-card--constraint' data-problem-layer>
+          <span>02 / {copy.constraint}</span><p>{copy.constraintValue}</p>
+        </div>
+        <div class='problem-card problem-card--outcome' data-problem-layer>
+          <span>03 / {copy.outcome}</span><p>{copy.outcomeValue}</p>
+        </div>
+        <div class='problem-card problem-card--ready' data-solution>
+          <i></i><strong>{copy.ready}</strong><span>JOYE / 2026</span>
+        </div>
+      </div>
+
       <footer>
-        <span>© {new Date().getFullYear()} JOYE HUANG</span><span>{copy.copyright}</span><a
-          href='#top'>TOP ↑</a
-        >
+        <span>© {new Date().getFullYear()} JOYE HUANG</span>
+        <span>{copy.copyright}</span>
+        <a href='#top'>TOP ↑</a>
       </footer>
     </section>
   </main>
@@ -347,93 +493,253 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     private cleanups: Array<() => void> = []
 
     connectedCallback() {
+      if (this.context) return
+
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const compact = window.matchMedia('(max-width: 600px)').matches
 
       this.context = gsap.context(() => {
         if (reduced) return
 
-        const cover = this.querySelector<HTMLElement>('[data-cover]')
-        const coverMedia = this.querySelector<HTMLElement>('[data-cover-media]')
-        if (cover && coverMedia) {
-          gsap.fromTo(coverMedia, { scale: 1.08 }, { scale: 1, duration: 1.6, ease: 'power3.out' })
-          gsap.to(coverMedia, {
-            yPercent: 14,
-            scale: 1.08,
-            ease: 'none',
-            scrollTrigger: { trigger: cover, start: 'top top', end: 'bottom top', scrub: 0.7 }
-          })
-          gsap.from('.cover__title, .cover__identity, .cover__topline', {
+        const hero = this.querySelector<HTMLElement>('[data-hero]')
+        const heroStage = this.querySelector<HTMLElement>('[data-hero-stage]')
+        const heroScreens = this.querySelectorAll<HTMLElement>('.hero-screen')
+
+        gsap
+          .timeline({ defaults: { ease: 'power3.out' } })
+          .from('.hero__eyebrow, .hero__copy h1, .hero__copy > p, .hero__copy > a', {
             opacity: 0,
-            y: 24,
-            duration: 1,
-            stagger: 0.1,
-            delay: 0.25,
-            ease: 'power3.out'
+            y: 28,
+            duration: 0.9,
+            stagger: 0.08
           })
+          .from(
+            heroScreens,
+            {
+              opacity: 0,
+              z: -700,
+              rotationY: 28,
+              duration: 1.35,
+              stagger: 0.12
+            },
+            0.12
+          )
+
+        if (hero && heroStage) {
+          gsap.to(heroStage, {
+            rotationX: -12,
+            rotationY: 8,
+            z: -320,
+            yPercent: 20,
+            ease: 'none',
+            scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 1.1 }
+          })
+
+          const toX = gsap.quickTo(heroStage, 'rotationY', { duration: 0.8, ease: 'power3.out' })
+          const toY = gsap.quickTo(heroStage, 'rotationX', { duration: 0.8, ease: 'power3.out' })
+          const move = (event: PointerEvent) => {
+            const rect = hero.getBoundingClientRect()
+            if (rect.bottom < 0) return
+            toX(((event.clientX - rect.width / 2) / rect.width) * 10)
+            toY(((event.clientY - rect.height / 2) / rect.height) * -7)
+          }
+          hero.addEventListener('pointermove', move)
+          this.cleanups.push(() => hero.removeEventListener('pointermove', move))
         }
 
-        this.querySelectorAll<HTMLElement>('[data-project-reel]').forEach((section) => {
-          const media = section.querySelector<HTMLElement>('.project-reel__media')
-          const copy = section.querySelector<HTMLElement>('.project-reel__copy')
-          if (media) {
-            gsap.fromTo(
-              media,
-              { clipPath: 'inset(9% 9% 9% 9%)', scale: 0.96 },
-              {
-                clipPath: 'inset(0% 0% 0% 0%)',
-                scale: 1,
-                ease: 'none',
-                scrollTrigger: { trigger: section, start: 'top 80%', end: 'top top', scrub: 0.6 }
-              }
-            )
+        this.querySelectorAll<HTMLElement>('[data-case]').forEach((section, index) => {
+          const screen = section.querySelector<HTMLElement>('[data-case-screen]')
+          const copy = section.querySelector<HTMLElement>('[data-case-copy]')
+          const depth = section.querySelector<HTMLElement>('[data-depth-card]')
+          if (!screen || !copy || !depth) return
+
+          if (compact) {
+            gsap.from(screen, {
+              opacity: 0,
+              y: 32,
+              scale: 0.94,
+              rotationX: 8,
+              duration: 0.85,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: section, start: 'top 72%', once: true }
+            })
+            gsap.from(copy, {
+              opacity: 0,
+              y: 24,
+              duration: 0.75,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: section, start: 'top 78%', once: true }
+            })
+            return
           }
-          if (copy) {
-            gsap.fromTo(
-              copy,
-              { opacity: 0.2, y: 40 },
+
+          const direction = index % 2 === 0 ? 1 : -1
+          const timeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 1.15
+            }
+          })
+
+          timeline
+            .fromTo(
+              screen,
+              {
+                opacity: 0.12,
+                rotationY: 30 * direction,
+                rotationX: 13,
+                z: -580,
+                xPercent: 18 * direction
+              },
               {
                 opacity: 1,
-                y: 0,
-                ease: 'none',
-                scrollTrigger: { trigger: section, start: 'top 75%', end: 'top 20%', scrub: 0.5 }
+                rotationY: 0,
+                rotationX: 0,
+                z: 0,
+                xPercent: 0,
+                duration: 0.46,
+                ease: 'power2.out'
               }
             )
-          }
+            .fromTo(
+              copy,
+              { opacity: 0, xPercent: -20 * direction, z: -180 },
+              { opacity: 1, xPercent: 0, z: 0, duration: 0.32, ease: 'power2.out' },
+              0.08
+            )
+            .fromTo(
+              depth,
+              { opacity: 0, rotationY: -36 * direction, z: -480 },
+              { opacity: 1, rotationY: -9 * direction, z: -90, duration: 0.36 },
+              0.15
+            )
+            .to(
+              screen,
+              {
+                opacity: 0.38,
+                rotationY: -14 * direction,
+                rotationX: -8,
+                z: 300,
+                xPercent: -8 * direction,
+                duration: 0.18
+              },
+              0.88
+            )
+            .to(copy, { opacity: 0.12, z: 150, duration: 0.16 }, 0.9)
         })
 
-        const personal = this.querySelector<HTMLElement>('[data-personal-reel]')
-        const galleryTrack = this.querySelector<HTMLElement>('[data-gallery-track]')
-        if (personal && galleryTrack) {
-          gsap.to(galleryTrack, {
-            x: () => -(galleryTrack.scrollWidth - window.innerWidth + window.innerWidth * 0.14),
-            ease: 'none',
-            scrollTrigger: { trigger: personal, start: 'top top', end: 'bottom bottom', scrub: 0.7 }
+        const evidenceSection = this.querySelector<HTMLElement>('[data-evidence]')
+        const evidenceCards = gsap.utils.toArray<HTMLElement>('[data-evidence-card]', this)
+        if (evidenceSection && evidenceCards.length && !compact) {
+          const evidenceTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: evidenceSection,
+              start: 'top top',
+              end: 'bottom bottom',
+              scrub: 1
+            }
           })
+          evidenceTimeline
+            .fromTo(
+              evidenceCards,
+              { opacity: 0, z: -720, rotationY: 34, rotationX: 12 },
+              {
+                opacity: 1,
+                z: (i) => i * 65,
+                rotationY: (i) => (i - 1) * -8,
+                rotationX: 0,
+                stagger: 0.08,
+                duration: 0.5
+              }
+            )
+            .to(
+              evidenceCards,
+              {
+                xPercent: (i) => (i - 1) * 54,
+                rotationY: (i) => (i - 1) * -16,
+                z: (i) => 180 - Math.abs(i - 1) * 120,
+                duration: 0.48
+              },
+              0.48
+            )
         }
 
-        gsap.utils
-          .toArray<HTMLElement>('.journal__intro, .journal__column, .source__copy')
-          .forEach((element) => {
-            gsap.from(element, {
-              opacity: 0,
-              y: 42,
-              duration: 0.9,
-              ease: 'power3.out',
-              scrollTrigger: { trigger: element, start: 'top 88%', once: true }
-            })
+        gsap.utils.toArray<HTMLElement>('[data-reveal]', this).forEach((element) => {
+          gsap.from(element, {
+            opacity: 0,
+            y: 48,
+            duration: 0.9,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: element, start: 'top 86%', once: true }
           })
+        })
+
+        const finale = this.querySelector<HTMLElement>('[data-finale]')
+        const problemLayers = gsap.utils.toArray<HTMLElement>('[data-problem-layer]', this)
+        const solution = this.querySelector<HTMLElement>('[data-solution]')
+        if (finale && solution && problemLayers.length && compact) {
+          gsap.from(problemLayers, {
+            opacity: 0,
+            y: 34,
+            rotationX: 8,
+            duration: 0.75,
+            stagger: 0.08,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: finale, start: 'top 70%', once: true }
+          })
+          gsap.from(solution, {
+            opacity: 0,
+            scale: 0.86,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: finale, start: 'top 62%', once: true }
+          })
+        } else if (finale && solution && problemLayers.length) {
+          const problemTimeline = gsap.timeline({
+            scrollTrigger: { trigger: finale, start: 'top 72%', end: 'center center', scrub: 0.8 }
+          })
+          problemTimeline
+            .fromTo(
+              problemLayers,
+              {
+                opacity: 0,
+                z: -520,
+                rotationY: (i) => (i - 1) * 28,
+                xPercent: (i) => (i - 1) * 44
+              },
+              {
+                opacity: 1,
+                z: (i) => i * 55,
+                rotationY: (i) => (i - 1) * 8,
+                xPercent: (i) => (i - 1) * 13,
+                stagger: 0.06,
+                duration: 0.58
+              }
+            )
+            .fromTo(
+              solution,
+              { opacity: 0, scale: 0.62, z: -260 },
+              { opacity: 1, scale: 1, z: 180, duration: 0.32 },
+              0.52
+            )
+        }
       }, this)
 
       const replay = this.querySelector<HTMLButtonElement>('[data-replay-intro]')
       const playIntro = () => window.__joyeIntro?.play('jojo')
       replay?.addEventListener('click', playIntro)
       this.cleanups.push(() => replay?.removeEventListener('click', playIntro))
+
+      requestAnimationFrame(() => ScrollTrigger.refresh())
     }
 
     disconnectedCallback() {
       this.cleanups.forEach((cleanup) => cleanup())
       this.cleanups = []
       this.context?.revert()
+      this.context = undefined
     }
   }
 
@@ -448,13 +754,20 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
 <style>
   .visual-home {
-    --paper: #f1efe8;
-    --ink: #141414;
-    --rule: rgb(20 20 20 / 18%);
+    --home-bg: hsl(var(--background));
+    --home-fg: hsl(var(--foreground));
+    --home-card: hsl(var(--card));
+    --home-muted: hsl(var(--muted-foreground));
+    --home-border: hsl(var(--border));
+    --home-accent: hsl(var(--primary));
     display: block;
-    color: var(--ink);
-    background: var(--paper);
-    font-family: 'Satoshi', sans-serif;
+    overflow: clip;
+    color: var(--home-fg);
+    background: var(--home-bg);
+  }
+
+  .visual-home * {
+    box-sizing: border-box;
   }
 
   .visual-home a {
@@ -462,815 +775,1096 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     text-decoration: none;
   }
 
-  .reel-nav {
+  .home-nav {
     position: fixed;
+    z-index: 30;
     top: 0;
-    right: 0;
     left: 0;
-    z-index: 90;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    height: 5rem;
-    padding: 0 clamp(1rem, 3vw, 3rem);
-    color: #fff;
-    mix-blend-mode: difference;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    width: 100%;
+    padding: 1.15rem clamp(1rem, 3vw, 3rem);
+    border-bottom: 1px solid color-mix(in srgb, var(--home-border), transparent 25%);
+    background: color-mix(in srgb, var(--home-bg), transparent 18%);
+    backdrop-filter: blur(18px);
+    font-family: ui-monospace, monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .reel-nav__brand {
-    width: fit-content;
-    font-size: 0.86rem;
-  }
-  .reel-nav__links {
-    display: flex;
-    gap: 2rem;
-  }
-  .reel-nav__end {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.4rem;
+
+  .home-nav__brand {
+    font-family: inherit;
+    font-weight: 700;
   }
 
-  .cover {
+  .home-nav__links,
+  .home-nav__end {
+    display: flex;
+    gap: 1.8rem;
+  }
+
+  .home-nav__end {
+    justify-self: end;
+  }
+
+  .home-nav a {
+    transition: color 0.25s ease;
+  }
+
+  .home-nav a:hover {
+    color: var(--home-accent);
+  }
+
+  .hero {
     position: relative;
     min-height: 100svh;
     overflow: hidden;
-    color: #fff;
-    background: #090b0f;
+    padding: 8.5rem clamp(1rem, 4vw, 4rem) 4rem;
+    background:
+      linear-gradient(color-mix(in srgb, var(--home-border), transparent 72%) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--home-border), transparent 72%) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 72% 42%,
+        color-mix(in srgb, var(--home-accent), transparent 73%),
+        transparent 38%
+      );
+    background-size:
+      4.5rem 4.5rem,
+      4.5rem 4.5rem,
+      auto;
   }
-  .cover__media,
-  .cover__media img,
-  .cover__veil {
+
+  .hero__copy {
+    position: relative;
+    z-index: 4;
+    width: min(43rem, 56vw);
+  }
+
+  .hero__eyebrow {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    margin: clamp(3rem, 7vh, 6rem) 0 1.8rem;
+    font-size: clamp(5.4rem, 11vw, 10.5rem);
+    font-weight: 520;
+    letter-spacing: -0.085em;
+    line-height: 0.72;
+  }
+
+  .hero__copy > p {
+    width: min(31rem, 86%);
+    margin: 0 0 2.2rem;
+    color: var(--home-muted);
+    font-size: clamp(1rem, 1.45vw, 1.3rem);
+    line-height: 1.48;
+  }
+
+  .hero__copy > a {
+    display: inline-flex;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--home-border);
+    border-radius: 999px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .hero__copy > a i {
+    width: 0.45rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--home-accent);
+    box-shadow: 0 0 1.2rem var(--home-accent);
+  }
+
+  .hero__world {
     position: absolute;
-    inset: 0;
+    z-index: 2;
+    inset: 9rem -5vw 2rem 38vw;
+    perspective: 1500px;
+  }
+
+  .hero__stage {
+    position: relative;
     width: 100%;
     height: 100%;
-  }
-  .cover__media {
+    transform-style: preserve-3d;
     will-change: transform;
   }
-  .cover__media img {
-    object-fit: cover;
-    object-position: center;
-  }
-  .cover__veil {
-    background: linear-gradient(180deg, rgb(0 0 0 / 28%), transparent 38%, rgb(0 0 0 / 58%));
-  }
-  .cover__topline {
+
+  .hero-screen {
     position: absolute;
-    top: 6.8rem;
-    right: clamp(1rem, 3vw, 3rem);
-    left: clamp(1rem, 3vw, 3rem);
-    display: flex;
-    justify-content: space-between;
-    font-family: ui-monospace, monospace;
-    font-size: 0.56rem;
-    letter-spacing: 0.12em;
-  }
-  .cover__identity {
-    position: absolute;
-    top: 34%;
-    left: clamp(1rem, 3vw, 3rem);
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-  }
-  .cover__identity p {
+    width: min(53vw, 58rem);
     margin: 0;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .cover__portrait {
-    width: 3.2rem;
-    aspect-ratio: 1;
     overflow: hidden;
-    border: 1px solid rgb(255 255 255 / 70%);
-    border-radius: 50%;
-    background: #dceaf3;
-  }
-  .cover__portrait :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .cover__title {
-    position: absolute;
-    right: clamp(1rem, 3vw, 3rem);
-    bottom: clamp(3rem, 6vw, 6rem);
-    left: clamp(1rem, 3vw, 3rem);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  .cover__title h1 {
-    margin: 0;
-    font-size: clamp(4.8rem, 12.5vw, 13rem);
-    font-weight: 570;
-    line-height: 0.7;
-    letter-spacing: -0.075em;
-  }
-  .cover__title p {
-    width: min(24rem, 28vw);
-    margin: 0 0 0.6rem;
-    font-size: clamp(1rem, 1.6vw, 1.35rem);
-    line-height: 1.35;
-  }
-  .cover__scroll {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 50%;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    font-size: 0.62rem;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    transform: translateX(-50%);
-  }
-  .cover__scroll span {
-    width: 3rem;
-    height: 1px;
-    background: currentColor;
+    border: 1px solid color-mix(in srgb, var(--home-border), white 15%);
+    border-radius: 0.7rem;
+    background: #090b0e;
+    box-shadow: 0 2.5rem 7rem color-mix(in srgb, var(--home-fg), transparent 76%);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
   }
 
-  .work-index {
-    padding: clamp(7rem, 13vw, 12rem) clamp(1rem, 3vw, 3rem);
-  }
-  .work-index__header {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: baseline;
-    border-top: 1px solid var(--rule);
-    padding-top: 1rem;
-  }
-  .work-index h2 {
-    margin: 0;
-    font-size: clamp(3rem, 7vw, 7rem);
-    font-weight: 530;
-    letter-spacing: -0.055em;
-  }
-  .work-index p {
-    margin: 0;
-    font-family: ui-monospace, monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-  }
-  .work-index p:last-child {
-    text-align: right;
+  .hero-screen img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: top;
   }
 
-  .project-reel {
-    position: relative;
-    height: 165vh;
-  }
-  .project-reel__sticky {
-    position: sticky;
-    top: 0;
-    display: grid;
-    grid-template-columns: minmax(18rem, 28vw) 1fr;
-    height: 100svh;
-    overflow: hidden;
-  }
-  .project-reel__copy {
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 5.5rem clamp(1rem, 3vw, 3rem) 3rem;
-    background: var(--paper);
-  }
-  .project-reel__copy > span,
-  .project-reel__copy > p:first-of-type {
-    font-family: ui-monospace, monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .project-reel__copy > span {
-    margin-bottom: auto;
-  }
-  .project-reel__copy h2 {
-    margin: 0 0 1rem;
-    font-size: clamp(3.2rem, 6vw, 6.8rem);
-    font-weight: 560;
-    line-height: 0.82;
-    letter-spacing: -0.065em;
-  }
-  .project-reel__body {
-    margin: 0 0 2rem;
-    font-size: 1rem;
-    line-height: 1.45;
-  }
-  .project-reel__copy a {
-    display: flex;
-    justify-content: space-between;
-    border-top: 1px solid var(--rule);
-    padding-top: 0.85rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .project-reel__media {
-    position: relative;
-    overflow: hidden;
-    will-change: clip-path, transform;
-  }
-  .project-reel__backdrop,
-  .project-reel__backdrop :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .project-reel__media--playyy {
-    display: grid;
-    place-items: center;
-    background: #e4e1d8;
-  }
-  .project-reel__backdrop {
+  .hero-screen figcaption {
     position: absolute;
-    inset: 0;
-    opacity: 0.72;
-    filter: contrast(0.94);
-  }
-  .browser-frame {
-    position: relative;
-    width: min(78%, 64rem);
-    margin: 0;
-    overflow: hidden;
-    border-radius: 0.8rem;
-    background: #050505;
-    box-shadow: 0 2.5rem 7rem rgb(33 27 22 / 28%);
-    transform: rotate(-2deg);
-  }
-  .browser-frame__bar {
-    display: flex;
-    align-items: center;
-    gap: 0.42rem;
-    height: 2.6rem;
-    padding: 0 0.9rem;
-    color: rgb(255 255 255 / 50%);
-    border-bottom: 1px solid rgb(255 255 255 / 12%);
+    right: 0.75rem;
+    bottom: 0.65rem;
+    padding: 0.38rem 0.55rem;
+    color: white;
+    background: rgb(0 0 0 / 70%);
     font-family: ui-monospace, monospace;
-    font-size: 0.55rem;
+    font-size: 0.54rem;
+    letter-spacing: 0.11em;
   }
-  .browser-frame__bar i {
-    width: 0.42rem;
-    aspect-ratio: 1;
+
+  .hero-screen--playyy {
+    top: 7%;
+    left: 10%;
+    transform: translateZ(40px) rotateY(-13deg) rotateX(4deg);
+  }
+
+  .hero-screen--atypica {
+    top: 28%;
+    left: 25%;
+    transform: translateZ(150px) rotateY(-7deg) rotateX(2deg);
+  }
+
+  .hero-screen--aixcut {
+    top: 49%;
+    left: 4%;
+    transform: translateZ(280px) rotateY(8deg) rotateX(-3deg);
+  }
+
+  .hero__portrait {
+    position: absolute;
+    z-index: 5;
+    right: 2rem;
+    bottom: 2rem;
+    width: 3.4rem;
+    overflow: hidden;
+    border: 1px solid var(--home-border);
     border-radius: 50%;
-    background: #777;
   }
-  .browser-frame__bar span {
-    margin-left: auto;
-  }
-  .browser-frame > img {
+
+  .hero__portrait :global(img) {
     display: block;
     width: 100%;
   }
 
-  .engineering-list {
-    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 3vw, 3rem);
-    color: #f1efe8;
-    background: #111214;
-  }
-  .engineering-list header {
-    display: grid;
-    grid-template-columns: 0.6fr 1.4fr 1fr;
-    gap: 2rem;
-    align-items: end;
-    margin-bottom: 6rem;
-  }
-  .engineering-list header > span,
-  .engineering-list > a > span,
-  .engineering-list strong,
-  .engineering-list em {
+  .hero__index {
+    position: absolute;
+    bottom: 2.8rem;
+    left: clamp(1rem, 4vw, 4rem);
     font-family: ui-monospace, monospace;
     font-size: 0.58rem;
     letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .engineering-list header h2 {
-    margin: 0;
-    font-size: clamp(3rem, 6vw, 6rem);
-    font-weight: 520;
-    letter-spacing: -0.06em;
-    line-height: 0.88;
-  }
-  .engineering-list header p {
-    max-width: 31rem;
-    margin: 0;
-    color: rgb(255 255 255 / 56%);
-    line-height: 1.5;
-  }
-  .engineering-list > a {
-    display: grid;
-    grid-template-columns: 8rem 1.2fr 0.7fr auto;
-    gap: 2rem;
-    align-items: start;
-    padding: 2.2rem 0;
-    color: inherit;
-    border-top: 1px solid rgb(255 255 255 / 18%);
-  }
-  .engineering-list > a:last-child {
-    border-bottom: 1px solid rgb(255 255 255 / 18%);
-  }
-  .engineering-list h3 {
-    margin: 0 0 0.65rem;
-    font-size: clamp(2.2rem, 4vw, 4.4rem);
-    font-weight: 520;
-    letter-spacing: -0.055em;
-    line-height: 0.9;
-  }
-  .engineering-list div p {
-    max-width: 38rem;
-    margin: 0;
-    color: rgb(255 255 255 / 56%);
-    line-height: 1.5;
-  }
-  .engineering-list strong {
-    color: rgb(255 255 255 / 72%);
-    font-weight: 500;
-    line-height: 1.5;
-  }
-  .engineering-list em {
-    color: rgb(255 255 255 / 46%);
-    font-style: normal;
-    text-align: right;
   }
 
-  .personal-reel {
-    position: relative;
-    height: 280vh;
-    background: #181816;
-    color: #fff;
+  .work-intro {
+    display: grid;
+    grid-template-columns: 0.55fr 1.45fr 0.9fr;
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 4vw, 4rem);
+    border-top: 1px solid var(--home-border);
   }
-  .personal-reel__sticky {
+
+  .work-intro > span,
+  .case-study__copy > span,
+  .evidence header > span,
+  .journal__intro > span,
+  .source__copy > span,
+  .finale__copy > span {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .work-intro h2 {
+    max-width: 52rem;
+    margin: 0;
+    font-size: clamp(3.2rem, 6.8vw, 7.2rem);
+    font-weight: 520;
+    letter-spacing: -0.065em;
+    line-height: 0.92;
+  }
+
+  .work-intro p {
+    max-width: 28rem;
+    margin: 0;
+    color: var(--home-muted);
+    line-height: 1.5;
+  }
+
+  .case-study {
+    --case-accent: var(--home-accent);
+    position: relative;
+    height: 190vh;
+    border-top: 1px solid var(--home-border);
+    background:
+      radial-gradient(
+        circle at 70% 50%,
+        color-mix(in srgb, var(--case-accent), transparent 82%),
+        transparent 35%
+      ),
+      var(--home-bg);
+  }
+
+  .case-study__sticky {
     position: sticky;
     top: 0;
     height: 100svh;
     overflow: hidden;
-    padding: 6.5rem 0 3rem;
-  }
-  .personal-reel__heading {
-    position: absolute;
-    top: 6.5rem;
-    left: clamp(1rem, 3vw, 3rem);
-    z-index: 3;
-    width: min(26rem, 32vw);
-  }
-  .personal-reel__heading > span {
-    font-family: ui-monospace, monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
-  }
-  .personal-reel__heading h2 {
-    margin: 1rem 0;
-    font-size: clamp(3rem, 6vw, 6.2rem);
-    font-weight: 520;
-    line-height: 0.84;
-    letter-spacing: -0.06em;
-  }
-  .personal-reel__heading p {
-    color: rgb(255 255 255 / 62%);
-    line-height: 1.45;
-  }
-  .personal-reel__viewport {
-    position: absolute;
-    right: 0;
-    bottom: 3rem;
-    left: 32vw;
-    overflow: visible;
-  }
-  .personal-reel__track {
-    display: flex;
-    width: max-content;
-    align-items: flex-end;
-    gap: 1.2rem;
-    padding-right: 14vw;
-    will-change: transform;
-  }
-  .personal-reel figure {
-    position: relative;
-    width: min(34vw, 30rem);
-    height: 62vh;
-    margin: 0;
-    overflow: hidden;
-  }
-  .personal-reel figure:nth-child(even) {
-    height: 48vh;
-  }
-  .personal-reel figure :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .personal-reel figcaption {
-    position: absolute;
-    right: 0.8rem;
-    bottom: 0.8rem;
-    color: #fff;
-    font-family: ui-monospace, monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.14em;
+    perspective: 1600px;
   }
 
-  .journal {
-    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 3vw, 3rem);
+  .case-study__copy {
+    position: absolute;
+    z-index: 4;
+    top: 50%;
+    left: clamp(1rem, 4vw, 4rem);
+    width: min(30rem, 31vw);
+    transform: translateY(-50%);
+    transform-style: preserve-3d;
   }
-  .journal__intro {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    gap: 2rem;
-    align-items: end;
-    margin-bottom: 6rem;
+
+  .case-study__copy h2 {
+    margin: 1.2rem 0 1.1rem;
+    font-size: clamp(4.5rem, 8.5vw, 9rem);
+    font-weight: 520;
+    letter-spacing: -0.08em;
+    line-height: 0.78;
   }
-  .journal__intro > span {
-    align-self: start;
+
+  .case-study__copy strong {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--case-accent);
     font-family: ui-monospace, monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .journal__intro h2 {
-    margin: 0;
-    font-size: clamp(3.2rem, 7vw, 7rem);
-    font-weight: 530;
-    line-height: 0.85;
-    letter-spacing: -0.06em;
+
+  .case-study__copy p {
+    max-width: 27rem;
+    margin: 0 0 2rem;
+    color: var(--home-muted);
+    font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+    line-height: 1.55;
   }
-  .journal__intro p {
-    margin: 0;
-    line-height: 1.45;
+
+  .case-study__copy a {
+    display: inline-block;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--case-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
-  .journal__columns {
+
+  .case-study__scene {
+    position: absolute;
+    z-index: 2;
+    inset: 7rem 2vw 4rem 35vw;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    border-top: 1px solid var(--rule);
+    place-items: center;
+    perspective: 1500px;
+    transform-style: preserve-3d;
   }
-  .journal__column:first-child {
-    border-right: 1px solid var(--rule);
+
+  .case-study__halo {
+    position: absolute;
+    width: min(48vw, 48rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--case-accent), transparent 64%),
+      transparent 69%
+    );
+    filter: blur(30px);
   }
-  .journal__column header {
+
+  .product-plane {
+    position: relative;
+    z-index: 2;
+    width: min(62vw, 70rem);
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--case-accent), var(--home-border) 65%);
+    border-radius: 0.85rem;
+    background: #08090b;
+    box-shadow:
+      0 4rem 10rem color-mix(in srgb, var(--home-fg), transparent 78%),
+      0 0 0 0.5rem color-mix(in srgb, var(--home-card), transparent 35%);
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+  }
+
+  .product-plane__bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 2.7rem;
+    padding: 0 0.9rem;
+    color: rgb(255 255 255 / 60%);
+    border-bottom: 1px solid rgb(255 255 255 / 12%);
+    font-family: ui-monospace, monospace;
+    font-size: 0.54rem;
+    letter-spacing: 0.08em;
+  }
+
+  .product-plane__bar > span {
     display: flex;
-    justify-content: space-between;
-    padding: 0.9rem 1rem;
-    border-bottom: 1px solid var(--rule);
+    gap: 0.35rem;
+  }
+
+  .product-plane__bar i {
+    width: 0.42rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .product-plane__bar em {
+    font-style: normal;
+  }
+
+  .product-plane__bar b {
+    justify-self: end;
+    color: var(--case-accent);
+    font-weight: 500;
+  }
+
+  .product-plane > img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .case-study__depth {
+    position: absolute;
+    z-index: 1;
+    right: 2%;
+    bottom: 2%;
+    display: grid;
+    width: min(20rem, 26vw);
+    min-height: 9rem;
+    padding: 1.2rem;
+    color: var(--home-fg);
+    border: 1px solid color-mix(in srgb, var(--case-accent), transparent 50%);
+    background: color-mix(in srgb, var(--home-card), transparent 9%);
+    box-shadow: 0 2rem 5rem color-mix(in srgb, var(--home-fg), transparent 85%);
+    transform-style: preserve-3d;
+  }
+
+  .case-study__depth span,
+  .case-study__depth strong {
     font-family: ui-monospace, monospace;
     font-size: 0.58rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
-  .journal__column > a {
-    display: grid;
-    grid-template-columns: 5.5rem 1fr auto;
-    gap: 1rem;
-    align-items: center;
-    min-height: 8rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--rule);
+
+  .case-study__depth strong {
+    max-width: 13rem;
+    color: var(--home-muted);
+    font-weight: 500;
+    line-height: 1.45;
   }
-  .journal__column > a span {
+
+  .case-study__depth i {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.35rem;
+    color: color-mix(in srgb, var(--case-accent), transparent 25%);
+    font-size: 4.5rem;
+    font-style: normal;
+    line-height: 1;
+  }
+
+  .evidence {
+    position: relative;
+    height: 220vh;
+    border-top: 1px solid var(--home-border);
+    background:
+      radial-gradient(
+        circle at 50% 58%,
+        color-mix(in srgb, var(--home-accent), transparent 78%),
+        transparent 32%
+      ),
+      var(--home-bg);
+  }
+
+  .evidence__sticky {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+    padding: 7rem clamp(1rem, 4vw, 4rem) 3rem;
+  }
+
+  .evidence header {
+    position: relative;
+    z-index: 5;
+    width: min(32rem, 33vw);
+  }
+
+  .evidence h2,
+  .journal h2,
+  .source h2,
+  .finale h2 {
+    margin: 1rem 0 1.2rem;
+    font-size: clamp(3.4rem, 7vw, 7.5rem);
+    font-weight: 520;
+    letter-spacing: -0.07em;
+    line-height: 0.9;
+  }
+
+  .evidence header p {
+    color: var(--home-muted);
+    line-height: 1.55;
+  }
+
+  .evidence header a {
+    display: inline-block;
+    margin-top: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--home-accent);
     font-family: ui-monospace, monospace;
-    font-size: 0.55rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
+
+  .evidence__scene {
+    position: absolute;
+    inset: 7rem 3vw 3rem 37vw;
+    perspective: 1600px;
+    transform-style: preserve-3d;
+  }
+
+  .evidence-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(47vw, 51rem);
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--home-border);
+    border-radius: 0.75rem;
+    background: var(--home-card);
+    box-shadow: 0 3rem 8rem color-mix(in srgb, var(--home-fg), transparent 78%);
+    transform: translate(-50%, -50%);
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+  }
+
+  .evidence-card img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .evidence-card figcaption {
+    display: grid;
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: 1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .evidence-card figcaption span {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .evidence-card figcaption strong {
+    font-size: 0.92rem;
+    font-weight: 520;
+  }
+
+  .journal {
+    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 4vw, 4rem);
+    border-top: 1px solid var(--home-border);
+  }
+
+  .journal__intro {
+    display: grid;
+    grid-template-columns: 0.55fr 1.45fr 0.9fr;
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: end;
+    margin-bottom: 7rem;
+  }
+
+  .journal__intro h2 {
+    margin: 0;
+  }
+
+  .journal__intro p {
+    margin: 0;
+    color: var(--home-muted);
+    line-height: 1.5;
+  }
+
+  .journal__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .journal__column:first-child {
+    padding-right: 3vw;
+    border-right: 1px solid var(--home-border);
+  }
+
+  .journal__column:last-child {
+    padding-left: 3vw;
+  }
+
+  .journal__column > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 1.1rem 0 2.2rem;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .journal__column > a {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr auto;
+    gap: 1rem;
+    align-items: start;
+    padding: 1.35rem 0;
+    border-top: 1px solid var(--home-border);
+  }
+
+  .journal__column > a span,
+  .journal__column > a i {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    font-style: normal;
+  }
+
   .journal__column h3 {
     margin: 0;
-    font-size: clamp(1rem, 1.55vw, 1.35rem);
-    font-weight: 520;
-    line-height: 1.25;
-  }
-  .journal__column i {
-    font-style: normal;
+    font-size: clamp(1rem, 1.35vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.28;
   }
 
   .source {
     display: grid;
-    grid-template-columns: 1.35fr 0.65fr;
-    min-height: 100svh;
-    background: #0d1015;
-    color: #fff;
+    grid-template-columns: 1.1fr 0.9fr;
+    min-height: 90svh;
+    border-top: 1px solid var(--home-border);
   }
-  .source__image {
+
+  .source__visual {
     display: grid;
     place-items: center;
+    min-height: 55vh;
     overflow: hidden;
-    padding: 5vw;
+    padding: clamp(2rem, 5vw, 6rem);
+    background: color-mix(in srgb, var(--home-accent), var(--home-bg) 88%);
   }
-  .source__image img {
-    width: 100%;
-    box-shadow: 0 3rem 8rem rgb(0 0 0 / 45%);
+
+  .source__visual img {
+    display: block;
+    width: min(100%, 54rem);
+    border: 1px solid var(--home-border);
+    border-radius: 0.65rem;
+    box-shadow: 0 2rem 6rem color-mix(in srgb, var(--home-fg), transparent 82%);
   }
+
   .source__copy {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 5rem clamp(1.2rem, 4vw, 4rem);
-    border-left: 1px solid rgb(255 255 255 / 14%);
+    padding: clamp(4rem, 7vw, 8rem);
+    border-left: 1px solid var(--home-border);
   }
-  .source__copy > span {
-    font-family: ui-monospace, monospace;
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
-  }
-  .source__copy h2 {
-    margin: 1.2rem 0;
-    font-size: clamp(3.5rem, 7vw, 7rem);
-    font-weight: 520;
-    letter-spacing: -0.06em;
-  }
+
   .source__copy p {
-    color: rgb(255 255 255 / 62%);
-    line-height: 1.45;
+    color: var(--home-muted);
   }
-  .source__copy strong {
-    margin: 2.5rem 0 1rem;
-    font-size: 1.2rem;
-    font-weight: 500;
+
+  .source__copy > strong {
+    margin: 2rem 0 3rem;
+    color: var(--home-accent);
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .source__copy ul {
+
+  .source ul {
     margin: 0;
     padding: 0;
     list-style: none;
+    border-top: 1px solid var(--home-border);
   }
-  .source__copy li {
-    border-top: 1px solid rgb(255 255 255 / 14%);
-  }
-  .source__copy li:last-child {
-    border-bottom: 1px solid rgb(255 255 255 / 14%);
-  }
-  .source__copy li a {
+
+  .source li a {
     display: flex;
     justify-content: space-between;
     padding: 1rem 0;
-    font-size: 0.72rem;
+    border-bottom: 1px solid var(--home-border);
+  }
+
+  .source li i {
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.58rem;
+    font-style: normal;
   }
 
   .finale {
     position: relative;
-    min-height: 100svh;
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    min-height: 105svh;
     overflow: hidden;
-    color: #141414;
+    padding: 8rem clamp(1rem, 4vw, 4rem) 6rem;
+    border-top: 1px solid var(--home-border);
+    background:
+      linear-gradient(color-mix(in srgb, var(--home-border), transparent 78%) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--home-border), transparent 78%) 1px,
+        transparent 1px
+      ),
+      radial-gradient(
+        circle at 70% 50%,
+        color-mix(in srgb, var(--home-accent), transparent 70%),
+        transparent 34%
+      ),
+      var(--home-bg);
+    background-size:
+      4rem 4rem,
+      4rem 4rem,
+      auto,
+      auto;
   }
-  .finale__image,
-  .finale__image :global(img),
-  .finale__veil {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .finale__veil {
-    background: rgb(242 240 232 / 20%);
-  }
+
   .finale__copy {
+    position: relative;
+    z-index: 4;
+    align-self: center;
+    width: min(35rem, 90%);
+  }
+
+  .finale__copy p {
+    max-width: 31rem;
+    color: var(--home-muted);
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+
+  .finale__copy > div {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .finale__copy a,
+  .finale__copy button {
+    padding: 0.9rem 1.1rem;
+    color: var(--home-fg);
+    border: 1px solid var(--home-border);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--home-bg), transparent 12%);
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .finale__copy a {
+    color: var(--home-bg);
+    border-color: var(--home-accent);
+    background: var(--home-accent);
+  }
+
+  .problem-portal {
+    position: relative;
+    min-height: 38rem;
+    perspective: 1500px;
+    transform-style: preserve-3d;
+  }
+
+  .problem-card {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: min(74rem, 88vw);
-    text-align: center;
+    width: min(28rem, 36vw);
+    min-height: 11rem;
+    padding: 1.3rem;
+    border: 1px solid var(--home-border);
+    background: color-mix(in srgb, var(--home-card), transparent 4%);
+    box-shadow: 0 2rem 5rem color-mix(in srgb, var(--home-fg), transparent 85%);
     transform: translate(-50%, -50%);
-  }
-  .finale__copy h2 {
-    margin: 0;
-    font-size: clamp(4rem, 8vw, 8rem);
-    font-weight: 560;
-    line-height: 0.8;
-    letter-spacing: -0.07em;
-  }
-  .finale__copy p {
-    width: min(34rem, 80%);
-    margin: 2rem auto;
-    font-size: 1.05rem;
-    line-height: 1.45;
-  }
-  .finale__copy > div {
-    display: flex;
-    justify-content: center;
-    gap: 0.8rem;
-  }
-  .finale__copy a,
-  .finale__copy button {
-    padding: 0.9rem 1.3rem;
-    border: 1px solid #141414;
-    border-radius: 999px;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: 0.68rem;
-    cursor: pointer;
-  }
-  .finale footer {
-    position: absolute;
-    right: 1.5rem;
-    bottom: 1.5rem;
-    left: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    font-family: ui-monospace, monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.08em;
-  }
-  .home-jojo {
-    position: fixed;
-    right: 1.2rem;
-    bottom: 1.2rem;
-    z-index: 75;
+    transform-style: preserve-3d;
   }
 
-  @media (max-width: 800px) {
-    .reel-nav {
+  .problem-card > span,
+  .problem-card--ready strong {
+    font-family: ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .problem-card p {
+    margin: 3.3rem 0 0;
+    font-size: 1.15rem;
+  }
+
+  .problem-card--context {
+    margin: -10rem 0 0 -11rem;
+  }
+
+  .problem-card--constraint {
+    margin: 0 0 0 9rem;
+  }
+
+  .problem-card--outcome {
+    margin: 9rem 0 0 -6rem;
+  }
+
+  .problem-card--ready {
+    z-index: 5;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.8rem;
+    align-items: center;
+    min-height: auto;
+    color: var(--home-bg);
+    border-color: var(--home-accent);
+    background: var(--home-accent);
+  }
+
+  .problem-card--ready i {
+    width: 0.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .problem-card--ready span {
+    font-size: 0.52rem;
+  }
+
+  .finale footer {
+    position: absolute;
+    right: clamp(1rem, 4vw, 4rem);
+    bottom: 1.5rem;
+    left: clamp(1rem, 4vw, 4rem);
+    display: flex;
+    justify-content: space-between;
+    color: var(--home-muted);
+    font-family: ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-jojo {
+    position: fixed;
+    z-index: 20;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .home-nav {
       grid-template-columns: 1fr auto;
     }
-    .reel-nav__links {
+    .home-nav__links {
       display: none;
     }
-    .reel-nav__end a:first-child {
-      display: none;
+    .hero {
+      min-height: 110svh;
+      padding-top: 7rem;
     }
-    .cover__title {
-      display: block;
-    }
-    .cover__title h1 {
-      font-size: clamp(4.4rem, 18vw, 7rem);
-    }
-    .cover__title p {
-      width: 80%;
-      margin-top: 1.5rem;
-    }
-    .cover__identity {
-      top: 26%;
-    }
-    .work-index__header {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-    .work-index p:last-child {
-      text-align: left;
-    }
-    .project-reel {
-      height: 150vh;
-    }
-    .project-reel__sticky {
-      grid-template-columns: 1fr;
-      grid-template-rows: 42% 58%;
-    }
-    .project-reel__copy {
-      grid-row: 2;
-      justify-content: flex-start;
-      padding: 1.5rem 1rem 2rem;
-    }
-    .project-reel__copy > span {
-      position: static;
-      margin: 0 0 1rem;
-    }
-    .project-reel__copy h2 {
-      font-size: 3.4rem;
-    }
-    .project-reel__body {
-      max-width: 34rem;
-      margin-bottom: 1rem;
-    }
-    .project-reel__media {
-      grid-row: 1;
-    }
-    .browser-frame {
-      width: 84%;
-    }
-    .engineering-list header {
-      grid-template-columns: 1fr;
-      margin-bottom: 4rem;
-    }
-    .engineering-list > a {
-      grid-template-columns: 4.5rem 1fr;
-      gap: 1.4rem;
-    }
-    .engineering-list > a strong,
-    .engineering-list > a em {
-      grid-column: 2;
-      text-align: left;
-    }
-    .personal-reel__heading {
-      position: relative;
-      top: auto;
-      left: auto;
+    .hero__copy {
       width: 90%;
-      margin-left: 1rem;
     }
-    .personal-reel__viewport {
-      left: 1rem;
+    .hero__world {
+      inset: 46% -12vw 3rem 8vw;
     }
-    .personal-reel figure {
-      width: 72vw;
+    .hero-screen {
+      width: min(76vw, 44rem);
     }
+    .work-intro,
     .journal__intro {
       grid-template-columns: 1fr;
     }
-    .journal__columns {
+    .case-study__copy {
+      top: 18%;
+      width: 84vw;
+      transform: none;
+    }
+    .case-study__copy h2 {
+      margin: 0.8rem 0;
+      font-size: clamp(4rem, 12vw, 7rem);
+    }
+    .case-study__copy p {
+      max-width: 34rem;
+    }
+    .case-study__scene {
+      inset: 39% 3vw 4rem 3vw;
+    }
+    .product-plane {
+      width: min(88vw, 60rem);
+    }
+    .case-study__depth {
+      width: min(18rem, 40vw);
+    }
+    .evidence header {
+      width: min(38rem, 86vw);
+    }
+    .evidence__scene {
+      inset: 42% 4vw 2rem;
+    }
+    .evidence-card {
+      width: min(66vw, 44rem);
+    }
+    .journal__columns,
+    .source,
+    .finale {
       grid-template-columns: 1fr;
     }
     .journal__column:first-child {
+      padding-right: 0;
       border-right: 0;
     }
-    .source {
-      grid-template-columns: 1fr;
-    }
-    .source__image {
-      min-height: 52vh;
+    .journal__column:last-child {
+      padding-left: 0;
     }
     .source__copy {
-      border-top: 1px solid rgb(255 255 255 / 14%);
+      border-top: 1px solid var(--home-border);
       border-left: 0;
+    }
+    .finale__copy {
+      align-self: start;
+    }
+    .problem-portal {
+      min-height: 35rem;
+    }
+    .problem-card {
+      width: min(27rem, 52vw);
     }
   }
 
-  @media (max-width: 520px) {
-    .cover__topline span:last-child,
-    .cover__scroll {
+  @media (max-width: 600px) {
+    .home-nav__end a:first-child {
       display: none;
     }
-    .cover__title {
-      bottom: 3rem;
+    .hero {
+      min-height: 100svh;
+      padding: 6.7rem 1rem 2rem;
     }
-    .cover__title p {
-      width: 92%;
-      font-size: 0.95rem;
+    .hero__eyebrow span:last-child {
+      display: none;
     }
-    .project-reel__sticky {
-      grid-template-rows: 48% 52%;
+    .hero h1 {
+      margin-top: 2.4rem;
+      font-size: clamp(4.8rem, 25vw, 7rem);
     }
-    .project-reel__copy > p:first-of-type {
-      margin: 0 0 0.7rem;
+    .hero__world {
+      inset: 52% -24vw 2rem 2vw;
     }
-    .project-reel__copy h2 {
-      margin-bottom: 0.6rem;
+    .hero-screen {
+      width: 84vw;
     }
-    .project-reel__body {
-      font-size: 0.88rem;
+    .hero-screen--playyy {
+      top: 2%;
+      left: 7%;
     }
-    .project-reel__copy a {
-      padding-top: 0.6rem;
+    .hero-screen--atypica {
+      top: 24%;
+      left: 18%;
     }
-    .engineering-list {
-      padding: 5.5rem 1rem;
+    .hero-screen--aixcut {
+      top: 46%;
+      left: 0;
     }
-    .engineering-list header {
-      margin-bottom: 3rem;
+    .hero__portrait,
+    .hero__index {
+      display: none;
     }
-    .engineering-list > a {
+    .work-intro {
+      padding: 6rem 1rem;
+    }
+    .work-intro h2 {
+      font-size: 3.6rem;
+    }
+    .case-study {
+      height: auto;
+      min-height: 100svh;
+    }
+    .case-study__sticky {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      min-height: 100svh;
+      padding: 6rem 1rem 3rem;
+    }
+    .case-study__copy {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+    }
+    .case-study__copy h2 {
+      font-size: 4.5rem;
+    }
+    .case-study__scene {
+      position: relative;
+      inset: auto;
+      height: 46vh;
+      min-height: 22rem;
+      margin-top: 2rem;
+    }
+    .product-plane {
+      width: 100%;
+    }
+    .product-plane__bar {
+      height: 2.2rem;
+    }
+    .case-study__depth {
+      display: none;
+    }
+    .evidence {
+      height: auto;
+    }
+    .evidence__sticky {
+      position: relative;
+      height: auto;
+      padding: 6rem 1rem;
+    }
+    .evidence h2 {
+      font-size: 3.8rem;
+    }
+    .evidence__scene {
+      position: relative;
+      inset: auto;
+      display: grid;
+      gap: 1rem;
+      margin-top: 3rem;
+      perspective: none;
+    }
+    .evidence-card {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+      transform: none !important;
+      opacity: 1 !important;
+    }
+    .evidence-card figcaption {
       grid-template-columns: 1fr;
     }
-    .engineering-list > a strong,
-    .engineering-list > a em {
-      grid-column: 1;
-    }
-    .personal-reel {
-      height: 240vh;
-    }
-    .personal-reel__sticky {
-      padding-top: 5.5rem;
-    }
-    .personal-reel__heading h2 {
-      font-size: 3.2rem;
-    }
-    .personal-reel__viewport {
-      bottom: 2rem;
-    }
-    .personal-reel figure {
-      width: 76vw;
-      height: 52vh;
-    }
-    .personal-reel figure:nth-child(even) {
-      height: 42vh;
-    }
     .journal {
-      padding-top: 6rem;
+      padding: 6rem 1rem;
     }
     .journal__intro {
-      margin-bottom: 3rem;
+      margin-bottom: 4rem;
+    }
+    .journal h2,
+    .source h2,
+    .finale h2 {
+      font-size: 3.8rem;
     }
     .journal__column > a {
-      grid-template-columns: 4rem 1fr auto;
-      min-height: 7rem;
+      grid-template-columns: 1fr auto;
     }
-    .finale__copy h2 {
-      font-size: 4.4rem;
+    .journal__column > a span {
+      grid-column: 1 / -1;
+    }
+    .source__visual,
+    .source__copy {
+      padding: 3rem 1rem;
+    }
+    .finale {
+      min-height: auto;
+      padding: 6rem 1rem 5rem;
+    }
+    .finale__copy {
+      width: 100%;
     }
     .finale__copy > div {
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
     }
-    .finale__copy a,
-    .finale__copy button {
-      width: 15rem;
+    .problem-portal {
+      min-height: 30rem;
+      margin-top: 2rem;
+    }
+    .problem-card {
+      width: 74vw;
+      min-height: 8rem;
+    }
+    .problem-card p {
+      margin-top: 2rem;
+      font-size: 0.95rem;
+    }
+    .problem-card--context {
+      margin: -7rem 0 0 -2rem;
+    }
+    .problem-card--constraint {
+      margin: 0 0 0 2rem;
+    }
+    .problem-card--outcome {
+      margin: 7rem 0 0 -2rem;
+    }
+    .problem-card--ready {
+      min-height: auto;
     }
     .finale footer span:nth-child(2) {
-      display: none;
-    }
-    .home-jojo {
       display: none;
     }
   }
@@ -1280,8 +1874,16 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     .visual-home *::before,
     .visual-home *::after {
       scroll-behavior: auto !important;
-      animation: none !important;
       transition: none !important;
+      animation: none !important;
+    }
+    [data-hero-stage],
+    [data-case-screen],
+    [data-case-copy],
+    [data-depth-card],
+    [data-problem-layer],
+    [data-solution] {
+      opacity: 1 !important;
     }
   }
 </style>
