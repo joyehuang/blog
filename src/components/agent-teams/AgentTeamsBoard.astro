@@ -46,19 +46,25 @@ const signupClosed = isSignupClosed()
       </div>
 
       {/* 参评队伍数：只统计至少有一位报名队员、最终可以参加评选的队伍。
-          名单还没拉到前无法判断，先用骨架屏占位，数据到手后再数字滚动到位。 */}
-      <div class='team-count-card shrink-0 self-start rounded-xl border px-6 py-5 text-center sm:self-center'>
-        <div
-          class='team-count-skeleton skeleton mx-auto h-12 w-20 rounded-lg sm:h-[3.75rem] sm:w-24'
-          data-team-count-skeleton
-          aria-hidden='true'
-        >
-        </div>
-        <div
-          class='team-count-number hidden text-5xl font-bold leading-none sm:text-6xl'
-          data-team-count-number
-        >
-          0
+          名单还没拉到前无法判断，先播放 loading 动效，数据到手后再数字滚动到位。 */}
+      <div
+        class='team-count-card shrink-0 self-start overflow-hidden rounded-xl border px-6 py-5 text-center sm:self-center'
+        data-team-count-card
+      >
+        <div class='team-count-stage'>
+          <div class='team-count-loader' data-team-count-loader aria-hidden='true'>
+            <span class='team-count-dot'></span>
+            <span class='team-count-dot'></span>
+            <span class='team-count-dot'></span>
+          </div>
+          <div
+            class='team-count-number text-5xl font-bold leading-none sm:text-6xl'
+            data-team-count-number
+            aria-live='polite'
+            aria-hidden='true'
+          >
+            0
+          </div>
         </div>
         <div class='mt-1.5 text-xs font-medium text-muted-foreground'>
           <span class='sr-only' data-team-count-loading-label>参评队伍数量加载中，</span>支参评队伍
@@ -505,8 +511,9 @@ const signupClosed = isSignupClosed()
     width: fit-content;
   }
 
-  /* 主题总数：单独一块摆在 hero 右侧的空白处，暖色描边 + 底色，跟正文明显区隔开。 */
+  /* 参评队伍数：单独一块摆在 hero 右侧，用暖色描边与正文区隔。 */
   .team-count-card {
+    position: relative;
     border-color: rgb(245 158 11 / 0.4);
     background-image: linear-gradient(
       to bottom right,
@@ -515,13 +522,105 @@ const signupClosed = isSignupClosed()
       rgb(249 115 22 / 0.12)
     );
   }
-  /* 数字要比「个可选主题」这行小字大出一大截、颜色也跳出来，一眼能看到量级。 */
+  /* 加载期间让一束很淡的暖光掠过数字区；只动 transform，避免触发布局。 */
+  .team-count-card:not([data-count-ready])::after {
+    content: '';
+    position: absolute;
+    inset: -60% -100%;
+    background: linear-gradient(
+      100deg,
+      transparent 42%,
+      rgb(251 191 36 / 0.14) 50%,
+      transparent 58%
+    );
+    animation: team-count-shine 1.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .team-count-stage {
+    position: relative;
+    display: grid;
+    width: 6rem;
+    height: 3.75rem;
+    margin-inline: auto;
+    place-items: center;
+  }
+  .team-count-loader,
   .team-count-number {
+    grid-area: 1 / 1;
+  }
+  .team-count-loader {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition:
+      opacity 180ms ease,
+      transform 240ms ease;
+  }
+  .team-count-dot {
+    display: block;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, #fbbf24, #f97316);
+    box-shadow: 0 0 12px rgb(245 158 11 / 0.3);
+    animation: team-count-dot 1.1s ease-in-out infinite;
+  }
+  .team-count-dot:nth-child(2) {
+    animation-delay: 120ms;
+  }
+  .team-count-dot:nth-child(3) {
+    animation-delay: 240ms;
+  }
+  /* 真数字与 loading 共用同一块固定尺寸区域，切换时卡片不会跳。 */
+  .team-count-number {
+    opacity: 0;
+    transform: translateY(0.45rem) scale(0.94);
+    transition:
+      opacity 220ms ease,
+      transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
     background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+  }
+  .team-count-card[data-count-ready] .team-count-loader {
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(0.85);
+  }
+  .team-count-card[data-count-ready] .team-count-number {
+    opacity: 1;
+    transform: none;
+  }
+  @keyframes team-count-dot {
+    0%,
+    60%,
+    100% {
+      opacity: 0.35;
+      transform: translateY(0) scale(0.78);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(-0.4rem) scale(1);
+    }
+  }
+  @keyframes team-count-shine {
+    from {
+      transform: translateX(-45%);
+    }
+    to {
+      transform: translateX(45%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .team-count-card:not([data-count-ready])::after,
+    .team-count-dot {
+      animation: none;
+    }
+    .team-count-loader,
+    .team-count-number {
+      transition: none;
+    }
   }
 
   /* 创建赛道卡：暖色描边 + 呼吸光环，让它在一堆队伍卡里跳出来，别人一眼就知道这是入口。 */
@@ -883,6 +982,10 @@ const signupClosed = isSignupClosed()
 
   // 参评队伍数「数字滚动」：从当前显示的值滚到目标值，而不是直接跳字。
   function animateCount(el: HTMLElement, to: number, duration = 700) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.textContent = String(to)
+      return
+    }
     const from = Number.parseInt(el.textContent ?? '0', 10) || 0
     if (from === to) {
       el.textContent = String(to)
@@ -898,16 +1001,14 @@ const signupClosed = isSignupClosed()
     requestAnimationFrame(step)
   }
 
-  // 骨架屏 → 数字滚动：第一次拿到真实总数时切掉骨架屏、露出数字并开始滚动。
+  // 跳动圆点 → 数字滚动：两种状态叠在固定尺寸的 stage 里，切换时不引发布局跳动。
   function revealTeamCount(board: HTMLElement, total: number) {
-    const skeleton = board.querySelector<HTMLElement>('[data-team-count-skeleton]')
+    const card = board.querySelector<HTMLElement>('[data-team-count-card]')
     const number = board.querySelector<HTMLElement>('[data-team-count-number]')
     if (!number) return
-    if (skeleton && !skeleton.hidden) {
-      skeleton.hidden = true
-      skeleton.classList.add('hidden')
-      number.hidden = false
-      number.classList.remove('hidden')
+    if (card && !card.hasAttribute('data-count-ready')) {
+      card.dataset.countReady = ''
+      number.setAttribute('aria-hidden', 'false')
       const loadingLabel = board.querySelector<HTMLElement>('[data-team-count-loading-label]')
       if (loadingLabel) loadingLabel.remove()
     }
