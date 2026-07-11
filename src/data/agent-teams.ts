@@ -31,7 +31,9 @@ export const activity = {
   signupClosesAt: '2026-07-11T00:00:00+08:00',
   /** 头部醒目提示：当前阶段说明 */
   notice:
-    '组队已经截止啦，报名和建队通道已关闭。现在是开发阶段，各队正在打磨自己的 Agent——主题和名单都在下面，围观、追进度、找灵感都欢迎。说不定还会有第二届 😄',
+    '组队已经截止啦，报名和建队通道已关闭。现在是开发阶段，各队正在打磨自己的 Agent——主题和名单都在下面。想围观、追进度、找灵感，欢迎加入 QQ 群一起聊。说不定还会有第二届 😄',
+  /** QQ 群二维码入口 */
+  qqGroupHref: '/contact#how-to-reach',
   /** 活动详情文档（飞书 wiki） */
   docHref: 'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 }

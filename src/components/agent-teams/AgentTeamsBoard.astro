@@ -36,6 +36,12 @@ const signupClosed = isSignupClosed()
           >
             活动详情 ↗
           </a>
+          <a
+            class='inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 font-medium text-amber-950 no-underline transition-colors hover:bg-amber-400'
+            href={activity.qqGroupHref}
+          >
+            加入 QQ 群围观 <span aria-hidden='true'>→</span>
+          </a>
         </div>
         <p
           class='mt-5 max-w-2xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-foreground'
@@ -148,10 +154,11 @@ const signupClosed = isSignupClosed()
               type='button'
               class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               data-signup-toggle
+              data-development={signupClosed ? 'true' : undefined}
               aria-expanded='false'
               disabled={signupClosed}
             >
-              {signupClosed ? '报名已截止' : '报名'}
+              {signupClosed ? '开发中' : '报名'}
             </button>
             <button
               type='button'
@@ -916,6 +923,26 @@ const signupClosed = isSignupClosed()
     pointer-events: none;
     opacity: 0.5;
   }
+  /* 组队截止后，报名按钮转为当前阶段状态；不再用灰掉的禁用态暗示还能报名。 */
+  .signup-toggle[data-development='true'] {
+    cursor: default !important;
+    border-color: rgb(245 158 11 / 0.45);
+    background: rgb(245 158 11 / 0.12);
+    color: #b45309;
+    opacity: 1 !important;
+    pointer-events: none;
+  }
+  .signup-toggle[data-development='true']::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 9999px;
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgb(245 158 11 / 0.14);
+  }
+  :global(.dark) .signup-toggle[data-development='true'] {
+    color: #fcd34d;
+  }
 
   .form-msg[data-tone='error'] {
     color: #dc2626;
@@ -1048,7 +1075,9 @@ const signupClosed = isSignupClosed()
     const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
     if (toggle) {
       toggle.disabled = full || signupClosed
-      toggle.textContent = signupClosed ? '报名已截止' : full ? '名额已满' : '报名'
+      if (signupClosed) toggle.dataset.development = 'true'
+      else delete toggle.dataset.development
+      toggle.textContent = signupClosed ? '开发中' : full ? '名额已满' : '报名'
     }
 
     const roster = card.querySelector<HTMLElement>('[data-roster]')
