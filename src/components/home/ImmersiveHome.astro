@@ -48,11 +48,15 @@ const copy = isEn
       playyyBody:
         'A brand-aware creative workspace for teams that need more than another prompt box.',
       atypicaRole: 'Multi-agent research / full-stack engineering',
-      atypicaBody:
-        'A commercial research system where planning, testing, insight and creation work as one agent team.',
       aixcutRole: 'AI video editing / agent experience',
-      aixcutBody:
-        'An editing agent built to remove the repetitive timeline work between an idea and a finished cut.',
+      engineering: 'Selected engineering',
+      engineeringNote:
+        'Interfaces intentionally omitted. These entries describe engineering work, not visual case studies.',
+      atypicaDetail:
+        'Counter-questioning, layered memory, and resilient asynchronous tool execution for commercial research agents.',
+      aixcutDetail:
+        'Product and full-stack engineering for an agent-assisted video editing workflow.',
+      nonPublic: 'Interface not displayed',
       visit: 'Visit project',
       personal: 'Outside the prompt',
       personalBody:
@@ -83,9 +87,12 @@ const copy = isEn
       playyyRole: 'AI 图像生成 / 产品工程',
       playyyBody: '为真实创意团队打造的品牌感知工作台——不只是另一个 Prompt 输入框。',
       atypicaRole: '多智能体研究 / 全栈工程',
-      atypicaBody: '让规划、测试、洞察与创作协同工作的商业研究 Agent 系统。',
       aixcutRole: 'AI 视频剪辑 / Agent 体验',
-      aixcutBody: '减少想法与成片之间重复时间线劳动的智能剪辑 Agent。',
+      engineering: '工程项目',
+      engineeringNote: '界面未公开展示。这里只描述可以确认的工程工作，不伪装成视觉案例。',
+      atypicaDetail: '为商业研究 Agent 构建澄清式反问、分层记忆与可恢复的异步工具调用。',
+      aixcutDetail: '参与 Agent 辅助视频剪辑工作流的产品与全栈工程。',
+      nonPublic: '不展示产品界面',
       visit: '访问项目',
       personal: 'Prompt 之外',
       personalBody: '建筑、摄影、钢琴，以及那些让软件重新有人味的细小视觉决定。',
@@ -124,9 +131,10 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
   <main>
     <section class='cover' id='top' data-cover>
       <div class='cover__media' data-cover-media>
-        <img
-          src='/images/landing/aixcut-video-still.jpg'
-          alt={isEn ? 'AIXCut AI video-editing visual' : 'AIXCut AI 视频剪辑视觉'}
+        <Image
+          src={architectureGrid}
+          width={1600}
+          alt={isEn ? 'Concrete architectural rhythm' : '混凝土建筑节奏'}
         />
       </div>
       <div class='cover__veil'></div>
@@ -179,54 +187,24 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       </div>
     </section>
 
-    <section class='project-reel project-reel--atypica' data-project-reel>
-      <div class='project-reel__sticky'>
-        <div class='project-reel__copy'>
-          <span>02</span>
-          <p>{copy.atypicaRole}</p>
-          <h2>atypica</h2>
-          <p class='project-reel__body'>{copy.atypicaBody}</p>
-          <a href='https://atypica.ai/' target='_blank' rel='noopener noreferrer'>{copy.visit} ↗</a
-          >
-        </div>
-        <div class='project-reel__media project-reel__media--atypica'>
-          <img
-            class='atypica-research'
-            src='/images/landing/atypica-video-still-15.jpg'
-            alt='Consumer research signals visualized by atypica'
-          />
-          <img
-            class='atypica-poster'
-            src='/images/landing/atypica-poster.jpg'
-            alt='atypica multi-agent research system'
-          />
-        </div>
-      </div>
-    </section>
-
-    <section class='project-reel project-reel--aixcut' data-project-reel>
-      <div class='project-reel__sticky'>
-        <div class='project-reel__copy'>
-          <span>03</span>
-          <p>{copy.aixcutRole}</p>
-          <h2>AIXCut</h2>
-          <p class='project-reel__body'>{copy.aixcutBody}</p>
-          <a href='https://aixcut.cn/' target='_blank' rel='noopener noreferrer'>{copy.visit} ↗</a>
-        </div>
-        <div class='project-reel__media project-reel__media--aixcut'>
-          <img
-            class='aixcut-editor'
-            src='/images/landing/aixcut-video-still.jpg'
-            alt='AI video editing environment'
-          />
-          <img
-            class='aixcut-result'
-            src='/images/landing/aixcut-landscape.webp'
-            alt='AIXCut generated landscape'
-          />
-          <span class='aixcut-caption'>RAW TIMELINE → FINISHED FRAME</span>
-        </div>
-      </div>
+    <section class='engineering-list'>
+      <header>
+        <span>02 — 03</span>
+        <h2>{copy.engineering}</h2>
+        <p>{copy.engineeringNote}</p>
+      </header>
+      <a href='https://atypica.ai/' target='_blank' rel='noopener noreferrer'>
+        <span>02 / 2025</span>
+        <div><h3>atypica</h3><p>{copy.atypicaDetail}</p></div>
+        <strong>{copy.atypicaRole}</strong>
+        <em>{copy.nonPublic} ↗</em>
+      </a>
+      <a href='https://aixcut.cn/' target='_blank' rel='noopener noreferrer'>
+        <span>03 / 2026</span>
+        <div><h3>AIXCut</h3><p>{copy.aixcutDetail}</p></div>
+        <strong>{copy.aixcutRole}</strong>
+        <em>{copy.nonPublic} ↗</em>
+      </a>
     </section>
 
     <section class='personal-reel' id='about' data-personal-reel>
@@ -753,68 +731,74 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     width: 100%;
   }
 
-  .project-reel--atypica .project-reel__copy {
-    color: #fff;
-    background: #101113;
+  .engineering-list {
+    padding: clamp(7rem, 12vw, 12rem) clamp(1rem, 3vw, 3rem);
+    color: #f1efe8;
+    background: #111214;
   }
-  .project-reel--atypica .project-reel__copy a {
-    border-color: rgb(255 255 255 / 22%);
+  .engineering-list header {
+    display: grid;
+    grid-template-columns: 0.6fr 1.4fr 1fr;
+    gap: 2rem;
+    align-items: end;
+    margin-bottom: 6rem;
   }
-  .project-reel__media--atypica {
-    background: #08090a;
-  }
-  .atypica-research {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.9;
-    object-fit: cover;
-  }
-  .atypica-poster {
-    position: absolute;
-    right: 4%;
-    bottom: 5%;
-    width: min(38%, 31rem);
-    border: 0.35rem solid #111;
-    box-shadow: 0 2rem 8rem rgb(0 0 0 / 70%);
-    transform: rotate(2.5deg);
-  }
-
-  .project-reel--aixcut .project-reel__copy {
-    color: #fff;
-    background: #0c0d12;
-  }
-  .project-reel--aixcut .project-reel__copy a {
-    border-color: rgb(255 255 255 / 22%);
-  }
-  .project-reel__media--aixcut {
-    background: #0a0c12;
-  }
-  .aixcut-editor {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .aixcut-result {
-    position: absolute;
-    right: 3.5%;
-    bottom: 5%;
-    width: 38%;
-    border: 0.5rem solid #fff;
-    box-shadow: 0 2rem 6rem rgb(0 0 0 / 46%);
-    transform: rotate(-3deg);
-  }
-  .aixcut-caption {
-    position: absolute;
-    right: 4%;
-    bottom: 3%;
-    color: #fff;
+  .engineering-list header > span,
+  .engineering-list > a > span,
+  .engineering-list strong,
+  .engineering-list em {
     font-family: ui-monospace, monospace;
-    font-size: 0.54rem;
-    letter-spacing: 0.14em;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .engineering-list header h2 {
+    margin: 0;
+    font-size: clamp(3rem, 6vw, 6rem);
+    font-weight: 520;
+    letter-spacing: -0.06em;
+    line-height: 0.88;
+  }
+  .engineering-list header p {
+    max-width: 31rem;
+    margin: 0;
+    color: rgb(255 255 255 / 56%);
+    line-height: 1.5;
+  }
+  .engineering-list > a {
+    display: grid;
+    grid-template-columns: 8rem 1.2fr 0.7fr auto;
+    gap: 2rem;
+    align-items: start;
+    padding: 2.2rem 0;
+    color: inherit;
+    border-top: 1px solid rgb(255 255 255 / 18%);
+  }
+  .engineering-list > a:last-child {
+    border-bottom: 1px solid rgb(255 255 255 / 18%);
+  }
+  .engineering-list h3 {
+    margin: 0 0 0.65rem;
+    font-size: clamp(2.2rem, 4vw, 4.4rem);
+    font-weight: 520;
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+  }
+  .engineering-list div p {
+    max-width: 38rem;
+    margin: 0;
+    color: rgb(255 255 255 / 56%);
+    line-height: 1.5;
+  }
+  .engineering-list strong {
+    color: rgb(255 255 255 / 72%);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .engineering-list em {
+    color: rgb(255 255 255 / 46%);
+    font-style: normal;
+    text-align: right;
   }
 
   .personal-reel {
@@ -1156,8 +1140,18 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     .browser-frame {
       width: 84%;
     }
-    .aixcut-result {
-      width: 43%;
+    .engineering-list header {
+      grid-template-columns: 1fr;
+      margin-bottom: 4rem;
+    }
+    .engineering-list > a {
+      grid-template-columns: 4.5rem 1fr;
+      gap: 1.4rem;
+    }
+    .engineering-list > a strong,
+    .engineering-list > a em {
+      grid-column: 2;
+      text-align: left;
     }
     .personal-reel__heading {
       position: relative;
@@ -1220,12 +1214,18 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     .project-reel__copy a {
       padding-top: 0.6rem;
     }
-    .atypica-poster {
-      width: 56%;
+    .engineering-list {
+      padding: 5.5rem 1rem;
     }
-    .aixcut-result {
-      width: 52%;
-      border-width: 0.25rem;
+    .engineering-list header {
+      margin-bottom: 3rem;
+    }
+    .engineering-list > a {
+      grid-template-columns: 1fr;
+    }
+    .engineering-list > a strong,
+    .engineering-list > a em {
+      grid-column: 1;
     }
     .personal-reel {
       height: 240vh;
