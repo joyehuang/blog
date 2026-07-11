@@ -332,13 +332,6 @@ const signupClosed = isSignupClosed()
               >
                 确认退出
               </button>
-              <button
-                type='button'
-                class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-                data-cancel
-              >
-                收起
-              </button>
               <p class='form-msg m-0 text-xs' data-leave-msg role='status'></p>
             </div>
           </form>
@@ -408,13 +401,6 @@ const signupClosed = isSignupClosed()
                 class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               >
                 保存
-              </button>
-              <button
-                type='button'
-                class='inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-                data-cancel
-              >
-                收起
               </button>
               <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
             </div>
@@ -1599,6 +1585,9 @@ const signupClosed = isSignupClosed()
     managePanel?.addEventListener('close', () => {
       manageToggle?.setAttribute('aria-expanded', 'false')
     })
+    managePanel?.addEventListener('click', (event) => {
+      if (event.target === managePanel) setManageOpen(false)
+    })
 
     // 退出 / 退赛：按昵称软删除自己的有效报名。
     if (leaveForm) {
@@ -1639,9 +1628,6 @@ const signupClosed = isSignupClosed()
         }
       })
 
-      leaveForm.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
-        setManageOpen(false)
-      })
     }
 
     // 队长维护项目资料、转让队长、移除队员。
@@ -1713,9 +1699,6 @@ const signupClosed = isSignupClosed()
         }
       })
 
-      detailForm.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
-        setManageOpen(false)
-      })
     }
   }
 
