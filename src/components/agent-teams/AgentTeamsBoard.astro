@@ -1,5 +1,6 @@
 ---
 import { activity, isSignupClosed, teams } from '@/data/agent-teams'
+import qqGroup from '@/assets/qq-group-contact.jpg'
 
 // 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
 // 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
@@ -8,8 +9,8 @@ const signupClosed = isSignupClosed()
 ---
 
 <section class='agent-board not-prose mt-6 flex flex-col' data-agent-board>
-  <header class='board-hero mb-8 overflow-hidden rounded-2xl border p-6 sm:p-8'>
-    <div class='flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between'>
+  <header class='board-hero mb-6 overflow-visible rounded-2xl border p-5 sm:mb-8 sm:overflow-hidden sm:p-8'>
+    <div class='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6'>
       <div class='min-w-0 sm:flex-1'>
         <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
           <span
@@ -36,19 +37,26 @@ const signupClosed = isSignupClosed()
           >
             活动详情 ↗
           </a>
-          <a
-            class='inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 font-medium text-amber-950 no-underline transition-colors hover:bg-amber-400'
-            href={activity.qqGroupHref}
-          >
-            加入 QQ 群围观 <span aria-hidden='true'>→</span>
-          </a>
+          <span class='qq-group-wrap relative inline-flex' data-qq-group-wrap>
+            <button
+              type='button'
+              class='inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 font-medium text-amber-950 transition-colors hover:bg-amber-400'
+              data-qq-group-toggle
+              aria-expanded='false'
+            >
+              加入 QQ 群围观 <span aria-hidden='true'>↗</span>
+            </button>
+            <span
+              class='qq-group-popover absolute left-0 top-full z-20 mt-2 w-56 rounded-xl border bg-background p-3 text-center shadow-lg'
+              data-qq-group-popover
+              role='dialog'
+              aria-label='QQ 群二维码'
+            >
+              <img class='mx-auto aspect-square w-full rounded-lg' src={qqGroup.src} alt='QQ 群二维码' />
+              <span class='mt-2 block text-xs text-muted-foreground'>群号 831907794 · 扫码加入</span>
+            </span>
+          </span>
         </div>
-        <p
-          class='mt-5 max-w-2xl rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-foreground'
-          role='note'
-        >
-          {activity.notice}
-        </p>
       </div>
 
       {/* 参评队伍数：只统计至少有一位报名队员、最终可以参加评选的队伍。
@@ -92,6 +100,27 @@ const signupClosed = isSignupClosed()
   >
   </p>
 
+  <div class='team-search mb-5 flex items-center gap-3 rounded-xl border bg-background px-3 py-2.5'>
+    <svg aria-hidden='true' viewBox='0 0 24 24' class='size-4 shrink-0 text-muted-foreground' fill='none' stroke='currentColor' stroke-width='2'>
+      <circle cx='11' cy='11' r='8'></circle>
+      <path d='m21 21-4.3-4.3'></path>
+    </svg>
+    <label class='sr-only' for='agent-team-search'>搜索队伍、标签或成员</label>
+    <input
+      id='agent-team-search'
+      class='min-w-0 flex-1 border-0 bg-transparent text-sm text-foreground outline-none'
+      type='search'
+      placeholder='搜索队名、标签或成员…'
+      autocomplete='off'
+      data-team-search
+    />
+    <span class='shrink-0 text-xs text-muted-foreground' data-search-status aria-live='polite'></span>
+  </div>
+
+  <p class='mb-5 hidden rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground' data-search-empty>
+    没找到匹配的队伍，换个关键词试试。
+  </p>
+
   {/* order-last：视觉上把「创建赛道」卡排到队伍列表上面（DOM 里它仍在后面） */}
   <div class='order-last grid grid-cols-1 gap-4 sm:grid-cols-2' data-team-grid>
     {
@@ -126,6 +155,18 @@ const signupClosed = isSignupClosed()
             </div>
           )}
 
+          <a
+            class='github-link hidden items-center gap-1.5 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline'
+            data-github-link
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            <svg aria-hidden='true' viewBox='0 0 24 24' class='size-3.5' fill='currentColor'>
+              <path d='M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.74-1.55-2.57-.29-5.27-1.29-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18a10.9 10.9 0 0 1 5.75 0c2.19-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.71 5.4-5.29 5.68.42.36.78 1.07.78 2.16v3.2c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z'></path>
+            </svg>
+            GitHub 仓库 ↗
+          </a>
+
           <ul class='roster m-0 flex list-none flex-wrap gap-1.5 p-0' data-roster>
             <li class='roster-empty flex flex-wrap gap-1.5'>
               <span class='sr-only'>名单加载中…</span>
@@ -150,31 +191,29 @@ const signupClosed = isSignupClosed()
           </button>
 
           <div class='mt-auto flex flex-wrap items-center gap-2 pt-1'>
+            <span
+              class='development-status inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium'
+              data-development-status
+              hidden={!signupClosed}
+            >
+              开发中
+            </span>
             <button
               type='button'
               class='signup-toggle inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
               data-signup-toggle
-              data-development={signupClosed ? 'true' : undefined}
               aria-expanded='false'
-              disabled={signupClosed}
+              hidden={signupClosed}
             >
-              {signupClosed ? '开发中' : '报名'}
+              报名
             </button>
             <button
               type='button'
-              class='leave-toggle inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-              data-leave-toggle
+              class='manage-toggle inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              data-manage-toggle
               aria-expanded='false'
             >
-              退出
-            </button>
-            <button
-              type='button'
-              class='detail-edit-toggle hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-              data-detail-edit-toggle
-              aria-expanded='false'
-            >
-              队长编辑
+              队伍管理
             </button>
           </div>
 
@@ -251,7 +290,11 @@ const signupClosed = isSignupClosed()
             </div>
           </form>
 
-          <form class='leave-form mt-1 flex-col gap-2' data-leave-form hidden>
+          <div class='manage-panel mt-1 rounded-xl border bg-muted/30 p-3' data-manage-panel hidden>
+            <section>
+              <h3 class='m-0 text-sm font-medium text-foreground'>个人退出</h3>
+              <p class='m-0 mt-0.5 text-xs text-muted-foreground'>仅退出你自己的报名，需要 QQ 群口令。</p>
+          <form class='leave-form mt-3 flex flex-col gap-2' data-leave-form>
             <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
               你的 QQ 昵称（要和报名时一致）
               <input
@@ -293,8 +336,12 @@ const signupClosed = isSignupClosed()
               <p class='form-msg m-0 text-xs' data-leave-msg role='status'></p>
             </div>
           </form>
+            </section>
 
-          <form class='detail-form mt-1 flex-col gap-2' data-detail-form hidden>
+            <section class='mt-4 border-t pt-4' data-captain-management>
+              <h3 class='m-0 text-sm font-medium text-foreground'>队长管理</h3>
+              <p class='m-0 mt-0.5 text-xs text-muted-foreground'>维护项目资料、转让队长或移除摸鱼队员。</p>
+          <form class='detail-form mt-3 flex flex-col gap-2' data-detail-form>
             <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
               口令（粉丝群的名字）
               <input
@@ -317,6 +364,17 @@ const signupClosed = isSignupClosed()
               ></textarea>
             </label>
             <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              GitHub 仓库（可选）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='githubUrl'
+                type='url'
+                maxlength='200'
+                autocomplete='url'
+                placeholder='https://github.com/用户名/仓库名'
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
               转让队长给（可选，填名单里某人的昵称）
               <input
                 class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
@@ -325,6 +383,17 @@ const signupClosed = isSignupClosed()
                 maxlength='24'
                 autocomplete='off'
                 placeholder='留空则不变'
+              />
+            </label>
+            <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
+              移除队员（可选，填名单里的昵称）
+              <input
+                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                name='kick'
+                type='text'
+                maxlength='24'
+                autocomplete='off'
+                placeholder='队长本人需先转让队长'
               />
             </label>
             <div class='flex items-center gap-3'>
@@ -344,6 +413,8 @@ const signupClosed = isSignupClosed()
               <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
             </div>
           </form>
+            </section>
+          </div>
         </article>
       ))
     }
@@ -530,6 +601,24 @@ const signupClosed = isSignupClosed()
     width: fit-content;
   }
 
+  .qq-group-popover {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(0.97);
+    transform-origin: top left;
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 180ms;
+  }
+  .qq-group-wrap:hover .qq-group-popover,
+  .qq-group-wrap:focus-within .qq-group-popover,
+  .qq-group-wrap[data-open] .qq-group-popover {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
   /* 参评队伍数：单独一块摆在 hero 右侧，用暖色描边与正文区隔。 */
   .team-count-card {
     position: relative;
@@ -639,6 +728,34 @@ const signupClosed = isSignupClosed()
     .team-count-loader,
     .team-count-number {
       transition: none;
+    }
+    .qq-group-popover {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .team-count-card {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      align-self: stretch;
+      padding: 0.7rem 1rem;
+      text-align: left;
+    }
+    .team-count-stage {
+      width: 3.5rem;
+      height: 2.5rem;
+      margin-inline: 0;
+    }
+    .team-count-number {
+      font-size: 2rem !important;
+    }
+    .team-count-card > div:last-child {
+      margin-top: 0;
+    }
+    .qq-group-popover {
+      width: min(14rem, calc(100vw - 5rem));
     }
   }
 
@@ -824,16 +941,10 @@ const signupClosed = isSignupClosed()
   .signup-form[data-open] {
     display: flex;
   }
-  .leave-form[data-open] {
-    display: flex;
-  }
-  .detail-form[data-open] {
-    display: flex;
-  }
   .create-form[data-open] {
     display: flex;
   }
-  .detail-edit-toggle[data-show] {
+  .github-link[data-show] {
     display: inline-flex;
   }
   .passcode-field[data-show] {
@@ -847,7 +958,8 @@ const signupClosed = isSignupClosed()
   }
   /* team-card 自带 .flex（内部要用 flex-col 排版），普通的 [hidden]/.hidden 优先级
      干不过它——分页隐藏另开一个更高优先级的属性选择器，而不是复用 .hidden。 */
-  .team-card[data-page-hidden] {
+  .team-card[data-page-hidden],
+  .team-card[data-search-hidden] {
     display: none;
   }
   /* 类型选择做成两张可点的卡片而不是裸单选框：原生 radio 视觉隐藏，
@@ -935,16 +1047,16 @@ const signupClosed = isSignupClosed()
     pointer-events: none;
     opacity: 0.5;
   }
-  /* 组队截止后，报名按钮转为当前阶段状态；不再用灰掉的禁用态暗示还能报名。 */
-  .signup-toggle[data-development='true'] {
-    cursor: default !important;
+  .development-status {
     border-color: rgb(245 158 11 / 0.45);
     background: rgb(245 158 11 / 0.12);
     color: #b45309;
-    opacity: 1 !important;
-    pointer-events: none;
   }
-  .signup-toggle[data-development='true']::before {
+  .development-status[hidden],
+  .signup-toggle[hidden] {
+    display: none;
+  }
+  .development-status::before {
     content: '';
     width: 0.4rem;
     height: 0.4rem;
@@ -952,7 +1064,7 @@ const signupClosed = isSignupClosed()
     background: #f59e0b;
     box-shadow: 0 0 0 3px rgb(245 158 11 / 0.14);
   }
-  :global(.dark) .signup-toggle[data-development='true'] {
+  :global(.dark) .development-status {
     color: #fcd34d;
   }
 
@@ -971,6 +1083,8 @@ const signupClosed = isSignupClosed()
 </style>
 
 <script>
+  import { normalizeTeamSearch, pageSizeForWidth, paginationFor } from '@/lib/agent-teams/board'
+
   type Member = { name: string; note: string | null; ts: number }
   type Team = {
     id: string
@@ -981,6 +1095,7 @@ const signupClosed = isSignupClosed()
     capacity: number | null
     members: Member[]
     detail: string | null
+    githubUrl: string | null
     captain?: string | null
   }
   type BoardData = {
@@ -1060,6 +1175,27 @@ const signupClosed = isSignupClosed()
     refreshDetailToggle(card)
   }
 
+  function renderGithub(card: HTMLElement, value: string | null) {
+    const link = card.querySelector<HTMLAnchorElement>('[data-github-link]')
+    if (!link) return
+    card.dataset.githubUrl = value ?? ''
+    if (value) {
+      link.href = value
+      link.dataset.show = ''
+      link.classList.remove('hidden')
+    } else {
+      link.removeAttribute('href')
+      delete link.dataset.show
+      link.classList.add('hidden')
+    }
+  }
+
+  function updateCardSearchText(card: HTMLElement, team: Team) {
+    card.dataset.searchText = normalizeTeamSearch(
+      [team.title, ...team.tags, ...team.members.map((member) => member.name)].join(' ')
+    )
+  }
+
   // 「查看详细介绍」按钮的显隐：有详细介绍，或者一句话简介被裁到看不全，就显示。
   // 注意要在卡片可见时量 scrollHeight——display:none 的卡（翻页隐藏）量出来是 0，
   // 所以翻页把某张卡显示出来时会再调一次这个函数重新判断。
@@ -1086,11 +1222,12 @@ const signupClosed = isSignupClosed()
     card.dataset.full = full ? 'true' : 'false'
     const toggle = card.querySelector<HTMLButtonElement>('[data-signup-toggle]')
     if (toggle) {
-      toggle.disabled = full || signupClosed
-      if (signupClosed) toggle.dataset.development = 'true'
-      else delete toggle.dataset.development
-      toggle.textContent = signupClosed ? '开发中' : full ? '名额已满' : '报名'
+      toggle.disabled = full
+      toggle.hidden = signupClosed
+      toggle.textContent = full ? '名额已满' : '报名'
     }
+    const status = card.querySelector<HTMLElement>('[data-development-status]')
+    if (status) status.hidden = !signupClosed
 
     const roster = card.querySelector<HTMLElement>('[data-roster]')
     if (!roster) return
@@ -1196,6 +1333,8 @@ const signupClosed = isSignupClosed()
     card.dataset.teamId = team.id
     delete card.dataset.full
     delete card.dataset.detail
+    delete card.dataset.githubUrl
+    delete card.dataset.searchText
 
     renderMeta(card, team)
 
@@ -1307,24 +1446,29 @@ const signupClosed = isSignupClosed()
       toggle.setAttribute('aria-expanded', 'false')
     })
 
-    // 退出 / 退赛：按昵称把自己从名单里删掉
-    const leaveToggle = card.querySelector<HTMLButtonElement>('[data-leave-toggle]')
+    const manageToggle = card.querySelector<HTMLButtonElement>('[data-manage-toggle]')
+    const managePanel = card.querySelector<HTMLElement>('[data-manage-panel]')
     const leaveForm = card.querySelector<HTMLFormElement>('[data-leave-form]')
-    if (leaveToggle && leaveForm) {
-      leaveToggle.addEventListener('click', () => {
-        if (board.dataset.configured !== 'true') return
-        const open = leaveForm.hasAttribute('data-open')
-        if (open) {
-          leaveForm.removeAttribute('data-open')
-          leaveForm.hidden = true
-          leaveToggle.setAttribute('aria-expanded', 'false')
-        } else {
-          leaveForm.setAttribute('data-open', '')
-          leaveForm.hidden = false
-          leaveToggle.setAttribute('aria-expanded', 'true')
-          leaveForm.querySelector<HTMLInputElement>('input[name="name"]')?.focus()
-        }
-      })
+    const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
+    const setManageOpen = (open: boolean) => {
+      if (!managePanel || !manageToggle) return
+      managePanel.hidden = !open
+      manageToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+      if (open && detailForm) {
+        const textarea = detailForm.querySelector<HTMLTextAreaElement>('textarea[name="detail"]')
+        const githubInput = detailForm.querySelector<HTMLInputElement>('input[name="githubUrl"]')
+        if (textarea) textarea.value = card.dataset.detail || ''
+        if (githubInput) githubInput.value = card.dataset.githubUrl || ''
+      }
+    }
+
+    manageToggle?.addEventListener('click', () => {
+      if (board.dataset.configured !== 'true') return
+      setManageOpen(managePanel?.hidden ?? true)
+    })
+
+    // 退出 / 退赛：按昵称软删除自己的有效报名。
+    if (leaveForm) {
 
       leaveForm.addEventListener('submit', async (event) => {
         event.preventDefault()
@@ -1349,10 +1493,9 @@ const signupClosed = isSignupClosed()
           if (res.ok && body.ok) {
             renderRoster(card, body.roster as Team)
             leaveForm.reset()
-            leaveForm.removeAttribute('data-open')
-            leaveForm.hidden = true
-            leaveToggle.setAttribute('aria-expanded', 'false')
+            setManageOpen(false)
             setMsg(leaveForm, '已退出', 'success', '[data-leave-msg]')
+            board.dispatchEvent(new CustomEvent('agent-teams:reload'))
           } else {
             setMsg(leaveForm, (body && body.message) || '操作失败，请稍后再试', 'error', '[data-leave-msg]')
           }
@@ -1364,33 +1507,12 @@ const signupClosed = isSignupClosed()
       })
 
       leaveForm.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
-        leaveForm.removeAttribute('data-open')
-        leaveForm.hidden = true
-        leaveToggle.setAttribute('aria-expanded', 'false')
+        setManageOpen(false)
       })
     }
 
-    // 队长编辑「详细介绍」
-    const detailToggle = card.querySelector<HTMLButtonElement>('[data-detail-edit-toggle]')
-    const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
-    if (detailToggle && detailForm) {
-      const textarea = detailForm.querySelector<HTMLTextAreaElement>('textarea[name="detail"]')
-
-      detailToggle.addEventListener('click', () => {
-        const open = detailForm.hasAttribute('data-open')
-        if (open) {
-          detailForm.removeAttribute('data-open')
-          detailForm.hidden = true
-          detailToggle.setAttribute('aria-expanded', 'false')
-        } else {
-          if (textarea) textarea.value = card.dataset.detail || ''
-          detailForm.setAttribute('data-open', '')
-          detailForm.hidden = false
-          detailToggle.setAttribute('aria-expanded', 'true')
-          detailForm.querySelector<HTMLInputElement>('input[name="passcode"]')?.focus()
-        }
-      })
-
+    // 队长维护项目资料、转让队长、移除队员。
+    if (detailForm) {
       detailForm.addEventListener('submit', async (event) => {
         event.preventDefault()
         const teamId = card.dataset.teamId || ''
@@ -1398,7 +1520,13 @@ const signupClosed = isSignupClosed()
         const data = new FormData(detailForm)
         const passcode = String(data.get('passcode') || '')
         const captainName = String(data.get('captain') || '').trim()
-        const detailPayload = { teamId, detail: String(data.get('detail') || ''), passcode }
+        const kickName = String(data.get('kick') || '').trim()
+        const detailPayload = {
+          teamId,
+          detail: String(data.get('detail') || ''),
+          githubUrl: String(data.get('githubUrl') || ''),
+          passcode
+        }
 
         if (saveBtn) saveBtn.disabled = true
         setMsg(detailForm, '保存中…', '', '[data-detail-msg]')
@@ -1414,8 +1542,8 @@ const signupClosed = isSignupClosed()
             return
           }
           renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
+          renderGithub(card, typeof body.githubUrl === 'string' ? body.githubUrl : null)
 
-          // 填了「转让队长」就再发一次，然后刷新这张卡的名单让皇冠挪位。
           if (captainName) {
             const cres = await fetch('/api/agent-teams', {
               method: 'PUT',
@@ -1427,18 +1555,24 @@ const signupClosed = isSignupClosed()
               setMsg(detailForm, (cbody && cbody.message) || '队长转让失败', 'error', '[data-detail-msg]')
               return
             }
-            const fresh = await fetch('/api/agent-teams', { cache: 'no-store' })
-              .then((r) => r.json())
-              .catch(() => null)
-            const t = fresh && (fresh.teams || []).find((x: Team) => x.id === teamId)
-            if (t) renderRoster(card, t as Team)
           }
 
-          detailForm.reset()
-          detailForm.removeAttribute('data-open')
-          detailForm.hidden = true
-          detailToggle.setAttribute('aria-expanded', 'false')
-          setMsg(detailForm, captainName ? '已保存，队长已转让' : '已更新！', 'success', '[data-detail-msg]')
+          if (kickName) {
+            const kres = await fetch('/api/agent-teams', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'kick', teamId, name: kickName, passcode })
+            })
+            const kbody = await kres.json()
+            if (!(kres.ok && kbody.ok)) {
+              setMsg(detailForm, (kbody && kbody.message) || '移除队员失败', 'error', '[data-detail-msg]')
+              return
+            }
+          }
+
+          if (captainName || kickName) board.dispatchEvent(new CustomEvent('agent-teams:reload'))
+
+          setMsg(detailForm, '队伍资料已更新', 'success', '[data-detail-msg]')
         } catch {
           setMsg(detailForm, '网络错误，请稍后再试', 'error', '[data-detail-msg]')
         } finally {
@@ -1447,29 +1581,31 @@ const signupClosed = isSignupClosed()
       })
 
       detailForm.querySelector<HTMLButtonElement>('[data-cancel]')?.addEventListener('click', () => {
-        detailForm.removeAttribute('data-open')
-        detailForm.hidden = true
-        detailToggle.setAttribute('aria-expanded', 'false')
+        setManageOpen(false)
       })
     }
   }
-
-  // 赛道太多堆一页不好翻，按固定页大小分页；新建的自定义赛道加进来后也要重新计算页数。
-  const PAGE_SIZE = 8
 
   function renderPagination(board: HTMLElement, cards: Map<string, HTMLElement>) {
     const pager = board.querySelector<HTMLElement>('[data-board-pagination]')
     if (!pager) return
 
     const cardEls = [...cards.values()]
-    const pageCount = Math.max(1, Math.ceil(cardEls.length / PAGE_SIZE))
-    let page = Number.parseInt(board.dataset.page ?? '0', 10)
-    if (!Number.isFinite(page) || page < 0) page = 0
-    if (page > pageCount - 1) page = pageCount - 1
+    const query = normalizeTeamSearch(board.dataset.query ?? '').replace(/^#/, '')
+    const matchingCards = cardEls.filter((card) => (card.dataset.searchText ?? '').includes(query))
+    const requestedPage = Number.parseInt(board.dataset.page ?? '0', 10)
+    const pageSize = pageSizeForWidth(window.innerWidth)
+    const { page, pageCount, start, end } = paginationFor(matchingCards.length, requestedPage, pageSize)
     board.dataset.page = String(page)
 
-    cardEls.forEach((card, i) => {
-      const onPage = Math.floor(i / PAGE_SIZE) === page
+    const matchingSet = new Set(matchingCards)
+    cardEls.forEach((card) => {
+      const matches = matchingSet.has(card)
+      card.toggleAttribute('data-search-hidden', !matches)
+      if (!matches) delete card.dataset.pageHidden
+    })
+    matchingCards.forEach((card, index) => {
+      const onPage = index >= start && index < end
       // 不用 .hidden/[hidden]：team-card 自带 .flex，二者优先级打不过，切换了也白切换。
       if (onPage) {
         delete card.dataset.pageHidden
@@ -1479,6 +1615,14 @@ const signupClosed = isSignupClosed()
         card.dataset.pageHidden = ''
       }
     })
+
+    const status = board.querySelector<HTMLElement>('[data-search-status]')
+    if (status) status.textContent = `${matchingCards.length} 支队伍`
+    const empty = board.querySelector<HTMLElement>('[data-search-empty]')
+    if (empty) {
+      empty.hidden = matchingCards.length > 0
+      empty.classList.toggle('hidden', matchingCards.length > 0)
+    }
 
     pager.replaceChildren()
     if (pageCount <= 1) {
@@ -1512,7 +1656,7 @@ const signupClosed = isSignupClosed()
     prev.addEventListener('click', () => goTo(page - 1))
 
     const pageButtons = document.createElement('span')
-    pageButtons.className = 'inline-flex flex-wrap items-center justify-center gap-1.5'
+    pageButtons.className = 'hidden flex-wrap items-center justify-center gap-1.5 sm:inline-flex'
     const pageBtnClass =
       'inline-flex size-8 items-center justify-center rounded-lg border text-sm font-medium transition-colors hover:bg-muted'
     for (let index = 0; index < pageCount; index += 1) {
@@ -1530,6 +1674,18 @@ const signupClosed = isSignupClosed()
       pageButtons.appendChild(pageButton)
     }
 
+    const pageSelect = document.createElement('select')
+    pageSelect.className = 'rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground sm:hidden'
+    pageSelect.setAttribute('aria-label', '跳转到指定页')
+    for (let index = 0; index < pageCount; index += 1) {
+      const option = document.createElement('option')
+      option.value = String(index)
+      option.textContent = `第 ${index + 1} / ${pageCount} 页`
+      option.selected = index === page
+      pageSelect.appendChild(option)
+    }
+    pageSelect.addEventListener('change', () => goTo(Number(pageSelect.value)))
+
     const next = document.createElement('button')
     next.type = 'button'
     next.className = pagerBtnClass
@@ -1537,7 +1693,7 @@ const signupClosed = isSignupClosed()
     next.disabled = page === pageCount - 1
     next.addEventListener('click', () => goTo(page + 1))
 
-    pager.append(prev, pageButtons, next)
+    pager.append(prev, pageButtons, pageSelect, next)
   }
 
   function applyState(
@@ -1593,6 +1749,8 @@ const signupClosed = isSignupClosed()
       renderMeta(card, team) // 标题/简介/标签以 DB 为准，覆盖预渲染值
       renderRoster(card, team)
       renderDetail(card, team.detail)
+      renderGithub(card, team.githubUrl)
+      updateCardSearchText(card, team)
       card.dataset.loaded = 'true'
     }
 
@@ -1613,27 +1771,21 @@ const signupClosed = isSignupClosed()
       }
     }
 
-    // 开放了队长编辑：显示每张卡的「队长编辑」入口
-    if (data.detailEditable) {
-      for (const card of cards.values()) {
-        const toggle = card.querySelector<HTMLElement>('[data-detail-edit-toggle]')
-        if (toggle) {
-          toggle.dataset.show = ''
-          toggle.classList.remove('hidden')
-        }
-      }
+    for (const card of cards.values()) {
+      const captainManagement = card.querySelector<HTMLElement>('[data-captain-management]')
+      if (captainManagement) captainManagement.hidden = !data.detailEditable
     }
 
-    // 未配置：禁用所有报名 / 退出按钮
+    // 未配置：禁用报名与队伍管理入口。
     if (!data.configured) {
       for (const card of cards.values()) {
         card
-          .querySelectorAll<HTMLButtonElement>('[data-signup-toggle], [data-leave-toggle]')
+          .querySelectorAll<HTMLButtonElement>('[data-signup-toggle], [data-manage-toggle]')
           .forEach((toggle) => (toggle.disabled = true))
       }
     }
 
-    // 需要口令：显示每个表单里的口令输入（报名表单 + 退出表单都有）
+    // 需要口令：显示报名表单里的口令输入；退出与队长管理的口令始终必填。
     if (data.passcodeRequired) {
       for (const card of cards.values()) {
         card.querySelectorAll<HTMLElement>('[data-passcode-field]').forEach((field) => {
@@ -1755,6 +1907,30 @@ const signupClosed = isSignupClosed()
       cards.set(id, card)
       wireCard(card, board)
     })
+
+    const search = board.querySelector<HTMLInputElement>('[data-team-search]')
+    search?.addEventListener('input', () => {
+      board.dataset.query = search.value
+      board.dataset.page = '0'
+      renderPagination(board, cards)
+    })
+    window.matchMedia('(max-width: 640px)').addEventListener('change', () => {
+      board.dataset.page = '0'
+      renderPagination(board, cards)
+    })
+
+    const qqWrap = board.querySelector<HTMLElement>('[data-qq-group-wrap]')
+    const qqToggle = board.querySelector<HTMLButtonElement>('[data-qq-group-toggle]')
+    qqToggle?.addEventListener('click', () => {
+      const open = !qqWrap?.hasAttribute('data-open')
+      qqWrap?.toggleAttribute('data-open', open)
+      qqToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
+    })
+    document.addEventListener('click', (event) => {
+      if (!qqWrap?.hasAttribute('data-open') || qqWrap.contains(event.target as Node)) return
+      qqWrap.removeAttribute('data-open')
+      qqToggle?.setAttribute('aria-expanded', 'false')
+    })
     // 数据到手前先按 SSR 渲染出的静态赛道分页，首屏就不会把几十张卡全堆出来。
     renderPagination(board, cards)
 
@@ -1779,6 +1955,7 @@ const signupClosed = isSignupClosed()
         .catch(showBannerError)
         .finally(hideLoadingBar)
 
+    board.addEventListener('agent-teams:reload', reload)
     wireCreateCard(board, reload)
     reload()
   }

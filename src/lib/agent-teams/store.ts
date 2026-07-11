@@ -74,6 +74,7 @@ const NAME_MAX = 24
 const NOTE_MAX = 60
 const CONTACT_MAX = 60
 const DETAIL_MAX = 600
+const GITHUB_URL_MAX = 200
 const TITLE_MAX = 30
 const SUMMARY_MAX = 80
 // 组队赛道的名额上限范围；不在这个区间就当没填，按不限处理。
@@ -84,6 +85,11 @@ const RATE_LIMIT = 5
 const RATE_WINDOW_SEC = 600
 // 同一 IP 在窗口内最多创建这么多个自定义赛道。
 const CREATE_RATE_LIMIT = 3
+
+export const SIGNUP_DELETION_REASONS = {
+  selfLeave: 'self_leave',
+  captainKick: 'captain_kick'
+} as const
 
 // --- 环境 / 配置 ---------------------------------------------------------
 
@@ -156,12 +162,21 @@ async function ensureSchema(sql: Sql): Promise<void> {
       contact TEXT,
       note TEXT,
       ip TEXT,
+      deleted_at TIMESTAMPTZ,
+      deleted_reason TEXT,
+      deleted_by TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE agent_team_signups ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`
+  await sql`ALTER TABLE agent_team_signups ADD COLUMN IF NOT EXISTS deleted_reason TEXT`
+  await sql`ALTER TABLE agent_team_signups ADD COLUMN IF NOT EXISTS deleted_by TEXT`
+  // 旧索引不允许已退出成员重新报名；迁移成只约束有效报名的部分唯一索引。
+  await sql`DROP INDEX IF EXISTS agent_team_signups_team_name`
   await sql`
-    CREATE UNIQUE INDEX IF NOT EXISTS agent_team_signups_team_name
+    CREATE UNIQUE INDEX IF NOT EXISTS agent_team_signups_active_team_name
       ON agent_team_signups (team_id, name_key)
+      WHERE deleted_at IS NULL
   `
   await sql`
     CREATE INDEX IF NOT EXISTS agent_team_signups_team_created
@@ -172,9 +187,11 @@ async function ensureSchema(sql: Sql): Promise<void> {
     CREATE TABLE IF NOT EXISTS agent_team_details (
       team_id TEXT PRIMARY KEY,
       detail TEXT NOT NULL,
+      github_url TEXT,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `
+  await sql`ALTER TABLE agent_team_details ADD COLUMN IF NOT EXISTS github_url TEXT`
   // 用户自助创建的「自命题赛道」，一队一行。id 用 custom-<uuid8>，名单/介绍与静态赛道共表。
   await sql`
     CREATE TABLE IF NOT EXISTS agent_team_customs (
@@ -259,6 +276,31 @@ function cleanMultiline(input: string): string {
     .trim()
 }
 
+export type GithubRepoUrlResult =
+  | { ok: true; value: string | null }
+  | { ok: false; message: string }
+
+/** 只接受 GitHub 仓库首页链接，并归一化掉 .git、query、hash 与尾部斜杠。 */
+export function normalizeGithubRepoUrl(input: string): GithubRepoUrlResult {
+  const raw = input.trim()
+  if (raw.length === 0) return { ok: true, value: null }
+  if (raw.length > GITHUB_URL_MAX) return { ok: false, message: 'GitHub 链接太长' }
+  try {
+    const url = new URL(raw)
+    if (url.protocol !== 'https:' || !['github.com', 'www.github.com'].includes(url.hostname)) {
+      return { ok: false, message: '请填写 https://github.com/用户名/仓库名' }
+    }
+    const parts = url.pathname.split('/').filter(Boolean)
+    if (parts.length !== 2) return { ok: false, message: '请填写 GitHub 仓库首页链接' }
+    const owner = parts[0]
+    const repo = parts[1].replace(/\.git$/i, '')
+    if (!owner || !repo) return { ok: false, message: 'GitHub 仓库链接不完整' }
+    return { ok: true, value: `https://github.com/${owner}/${repo}` }
+  } catch {
+    return { ok: false, message: 'GitHub 链接格式不正确' }
+  }
+}
+
 type RosterRow = { name: string; note: string | null; ts_sec: number }
 
 function rowToMember(row: RosterRow): PublicMember {
@@ -280,7 +322,7 @@ export async function getRosters(teamIds: string[]): Promise<Record<string, Publ
   const rows = (await sql`
     SELECT team_id, name, note, EXTRACT(EPOCH FROM created_at)::float8 AS ts_sec
     FROM agent_team_signups
-    WHERE team_id = ANY(${teamIds})
+    WHERE team_id = ANY(${teamIds}) AND deleted_at IS NULL
     ORDER BY created_at ASC
   `) as (RosterRow & { team_id: string })[]
 
@@ -307,6 +349,42 @@ export async function getDetails(teamIds: string[]): Promise<Record<string, stri
   `) as { team_id: string; detail: string }[]
 
   for (const row of rows) out[row.team_id] = row.detail
+  return out
+}
+
+export function resolveActiveCaptainKey(activeMemberKeys: string[], savedCaptain?: string): string | null {
+  if (savedCaptain && activeMemberKeys.includes(savedCaptain)) return savedCaptain
+  return activeMemberKeys[0] ?? null
+}
+
+export function validateKickTarget(
+  activeMemberKeys: string[],
+  savedCaptain: string | undefined,
+  targetKey: string
+): { ok: true; captainKey: string } | { ok: false; message: string } {
+  if (!activeMemberKeys.includes(targetKey)) return { ok: false, message: '这个昵称不在当前名单里' }
+  const captainKey = resolveActiveCaptainKey(activeMemberKeys, savedCaptain)
+  if (!captainKey) return { ok: false, message: '队伍当前没有有效成员' }
+  if (targetKey === captainKey) return { ok: false, message: '不能移除当前队长，请先转让队长' }
+  return { ok: true, captainKey }
+}
+
+/** 批量读取队伍 GitHub 仓库链接。 */
+export async function getGithubUrls(teamIds: string[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {}
+  if (teamIds.length === 0) return out
+
+  const sql = getSql()
+  if (!sql) return out
+  await ensureSchema(sql)
+
+  const rows = (await sql`
+    SELECT team_id, github_url
+    FROM agent_team_details
+    WHERE team_id = ANY(${teamIds}) AND github_url IS NOT NULL
+  `) as { team_id: string; github_url: string }[]
+
+  for (const row of rows) out[row.team_id] = row.github_url
   return out
 }
 
@@ -364,7 +442,7 @@ export async function addSignup(
     const existing = (await sql`
       SELECT name, note, EXTRACT(EPOCH FROM created_at)::float8 AS ts_sec
       FROM agent_team_signups
-      WHERE team_id = ${input.teamId}
+      WHERE team_id = ${input.teamId} AND deleted_at IS NULL
       ORDER BY created_at ASC
     `) as RosterRow[]
 
@@ -379,7 +457,7 @@ export async function addSignup(
     const inserted = (await sql`
       INSERT INTO agent_team_signups (team_id, name, name_key, contact, note, ip)
       VALUES (${input.teamId}, ${name}, ${nameKey}, ${contact}, ${note}, ${ip})
-      ON CONFLICT (team_id, name_key) DO NOTHING
+      ON CONFLICT (team_id, name_key) WHERE deleted_at IS NULL DO NOTHING
       RETURNING EXTRACT(EPOCH FROM created_at)::float8 AS ts_sec
     `) as { ts_sec: number }[]
 
@@ -410,7 +488,7 @@ export async function addSignup(
   }
 }
 
-// --- 退出 / 退赛（自助删除自己的报名）----------------------------------
+// --- 退出 / 退赛（软删除报名，保留审计记录）-----------------------------
 
 export type LeaveInput = {
   teamId: string
@@ -425,7 +503,7 @@ export type LeaveResult =
   | { ok: false; code: LeaveErrorCode; message: string }
 
 /**
- * 按昵称把某人从某队名单里删掉。退出与报名共用 QQ 群口令，避免他人冒用昵称退队。
+ * 按昵称把某人的有效报名标记为退出。退出与报名共用 QQ 群口令。
  */
 export async function removeSignup(
   input: LeaveInput,
@@ -449,8 +527,9 @@ export async function removeSignup(
     await ensureSchema(sql)
 
     const deleted = (await sql`
-      DELETE FROM agent_team_signups
-      WHERE team_id = ${input.teamId} AND name_key = ${nameKey}
+      UPDATE agent_team_signups
+      SET deleted_at = now(), deleted_reason = ${SIGNUP_DELETION_REASONS.selfLeave}, deleted_by = ${nameKey}
+      WHERE team_id = ${input.teamId} AND name_key = ${nameKey} AND deleted_at IS NULL
       RETURNING id
     `) as { id: number }[]
     if (deleted.length === 0) {
@@ -460,9 +539,14 @@ export async function removeSignup(
     const existing = (await sql`
       SELECT name, note, EXTRACT(EPOCH FROM created_at)::float8 AS ts_sec
       FROM agent_team_signups
-      WHERE team_id = ${input.teamId}
+      WHERE team_id = ${input.teamId} AND deleted_at IS NULL
       ORDER BY created_at ASC
     `) as RosterRow[]
+    // 队长退出后清掉显式队长记录，前端与后续管理会回退到第一位有效成员。
+    await sql`
+      DELETE FROM agent_team_captains
+      WHERE team_id = ${input.teamId} AND captain_key = ${nameKey}
+    `
     const members = existing.map(rowToMember)
     return {
       ok: true,
@@ -478,18 +562,19 @@ export async function removeSignup(
 export type DetailUpdateInput = {
   teamId: string
   detail: string
+  githubUrl?: string
   passcode?: string
 }
 
-export type DetailErrorCode = 'not_configured' | 'passcode' | 'store_error'
+export type DetailErrorCode = 'not_configured' | 'invalid' | 'passcode' | 'store_error'
 
 export type DetailResult =
-  | { ok: true; teamId: string; detail: string }
+  | { ok: true; teamId: string; detail: string; githubUrl: string | null }
   | { ok: false; code: DetailErrorCode; message: string }
 
 /**
  * 队长更新某队的详细介绍。口令匹配该队的队长口令、或匹配管理员口令才放行。
- * detail 传空串表示清空（删除该行）。teamId 合法性由调用方校验。
+ * detail / githubUrl 都可传空清除。teamId 合法性由调用方校验。
  */
 export async function updateDetail(input: DetailUpdateInput): Promise<DetailResult> {
   const sql = getSql()
@@ -500,19 +585,24 @@ export async function updateDetail(input: DetailUpdateInput): Promise<DetailResu
   }
 
   const detail = cleanMultiline(input.detail ?? '').slice(0, DETAIL_MAX)
+  const github = normalizeGithubRepoUrl(input.githubUrl ?? '')
+  if (!github.ok) return { ok: false, code: 'invalid', message: github.message }
 
   try {
     await ensureSchema(sql)
-    if (detail.length === 0) {
+    if (detail.length === 0 && github.value === null) {
       await sql`DELETE FROM agent_team_details WHERE team_id = ${input.teamId}`
-      return { ok: true, teamId: input.teamId, detail: '' }
+      return { ok: true, teamId: input.teamId, detail: '', githubUrl: null }
     }
     await sql`
-      INSERT INTO agent_team_details (team_id, detail, updated_at)
-      VALUES (${input.teamId}, ${detail}, now())
-      ON CONFLICT (team_id) DO UPDATE SET detail = EXCLUDED.detail, updated_at = now()
+      INSERT INTO agent_team_details (team_id, detail, github_url, updated_at)
+      VALUES (${input.teamId}, ${detail}, ${github.value}, now())
+      ON CONFLICT (team_id) DO UPDATE SET
+        detail = EXCLUDED.detail,
+        github_url = EXCLUDED.github_url,
+        updated_at = now()
     `
-    return { ok: true, teamId: input.teamId, detail }
+    return { ok: true, teamId: input.teamId, detail, githubUrl: github.value }
   } catch {
     return { ok: false, code: 'store_error', message: '保存失败，请稍后再试' }
   }
@@ -658,7 +748,7 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
       await sql`
         INSERT INTO agent_team_signups (team_id, name, name_key, ip)
         VALUES (${id}, ${creatorName}, ${nameKey}, ${ip})
-        ON CONFLICT (team_id, name_key) DO NOTHING
+        ON CONFLICT (team_id, name_key) WHERE deleted_at IS NULL DO NOTHING
       `
       await sql`
         INSERT INTO agent_team_captains (team_id, captain_key)
@@ -725,7 +815,7 @@ export async function setCaptain(input: {
     await ensureSchema(sql)
     const member = (await sql`
       SELECT 1 FROM agent_team_signups
-      WHERE team_id = ${input.teamId} AND name_key = ${nameKey}
+      WHERE team_id = ${input.teamId} AND name_key = ${nameKey} AND deleted_at IS NULL
       LIMIT 1
     `) as { '?column?': number }[]
     if (member.length === 0) {
@@ -739,5 +829,61 @@ export async function setCaptain(input: {
     return { ok: true, teamId: input.teamId, captainKey: nameKey }
   } catch {
     return { ok: false, code: 'store_error', message: '转让失败，请稍后再试' }
+  }
+}
+
+export type KickMemberResult =
+  | { ok: true; roster: TeamRoster }
+  | { ok: false; code: CaptainErrorCode; message: string }
+
+/** 队长移除一名有效队员；队长本人必须先转让队长，不能直接踢掉。 */
+export async function kickMember(
+  input: { teamId: string; name: string; passcode?: string },
+  opts: { capacity: number | null }
+): Promise<KickMemberResult> {
+  const sql = getSql()
+  if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
+  if ((input.passcode ?? '') !== getEditPasscode()) {
+    return { ok: false, code: 'passcode', message: '口令不正确' }
+  }
+
+  const name = cleanText(input.name ?? '')
+  const nameKey = name.toLowerCase()
+  if (nameKey.length === 0) return { ok: false, code: 'invalid', message: '请填写要移除的队员昵称' }
+
+  try {
+    await ensureSchema(sql)
+    const active = (await sql`
+      SELECT name, name_key, note, EXTRACT(EPOCH FROM created_at)::float8 AS ts_sec
+      FROM agent_team_signups
+      WHERE team_id = ${input.teamId} AND deleted_at IS NULL
+      ORDER BY created_at ASC
+    `) as (RosterRow & { name_key: string })[]
+    const captainRows = (await sql`
+      SELECT captain_key FROM agent_team_captains WHERE team_id = ${input.teamId}
+    `) as { captain_key: string }[]
+    const savedCaptain = captainRows[0]?.captain_key
+    const validation = validateKickTarget(
+      active.map((member) => member.name_key),
+      savedCaptain,
+      nameKey
+    )
+    if (!validation.ok) {
+      const code = active.some((member) => member.name_key === nameKey) ? 'invalid' : 'not_found'
+      return { ok: false, code, message: validation.message }
+    }
+
+    await sql`
+      UPDATE agent_team_signups
+      SET deleted_at = now(), deleted_reason = ${SIGNUP_DELETION_REASONS.captainKick}, deleted_by = ${validation.captainKey}
+      WHERE team_id = ${input.teamId} AND name_key = ${nameKey} AND deleted_at IS NULL
+    `
+    const members = active.filter((member) => member.name_key !== nameKey).map(rowToMember)
+    return {
+      ok: true,
+      roster: { id: input.teamId, count: members.length, capacity: opts.capacity, members }
+    }
+  } catch {
+    return { ok: false, code: 'store_error', message: '移除失败，请稍后再试' }
   }
 }

@@ -73,10 +73,6 @@ describe('activity 配置', () => {
     expect(activity.docHref).toMatch(/^https?:\/\//)
   })
 
-  test('QQ 群入口指向联系页二维码', () => {
-    expect(activity.qqGroupHref).toBe('/contact#how-to-reach')
-  })
-
   test('signupClosesAt 是带时区的合法时刻，且与 deadline 同一天（北京时间晚 12 点）', () => {
     const closes = Date.parse(activity.signupClosesAt)
     expect(Number.isNaN(closes)).toBe(false)
