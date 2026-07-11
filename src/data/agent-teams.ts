@@ -24,14 +24,11 @@ export const activity = {
   name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
   subtitle: '比赛进行中',
-  tagline: '组队已经截止啦，现在各队都在开发中。围观、追进度、找灵感都欢迎，对 Agent 感兴趣就来看看 👀',
+  tagline: '组队已经截止啦，现在各队都在开发中。围观、追进度、找灵感都欢迎，对 Agent 感兴趣就来看看 🤖',
   /** 组队截止日（YYYY-MM-DD，测试会校验格式） */
   deadline: '2026-07-10',
   /** 组队截止时刻（北京时间 7/10 晚 12 点）——过点后 API 与看板同时关闭报名/建队 */
   signupClosesAt: '2026-07-11T00:00:00+08:00',
-  /** 头部醒目提示：当前阶段说明 */
-  notice:
-    '组队已经截止啦，报名和建队通道已关闭。现在是开发阶段，各队正在打磨自己的 Agent——主题和名单都在下面，围观、追进度、找灵感都欢迎。说不定还会有第二届 😄',
   /** 活动详情文档（飞书 wiki） */
   docHref: 'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 }

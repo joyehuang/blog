@@ -9,8 +9,10 @@ import {
   getCaptains,
   getCustomTeams,
   getDetails,
+  getGithubUrls,
   getRosters,
   isConfigured,
+  kickMember,
   passcodeRequired,
   removeSignup,
   setCaptain,
@@ -40,6 +42,7 @@ type TeamPayload = TeamMeta & {
   count: number
   members: PublicMember[]
   detail: string | null
+  githubUrl: string | null
   /** 队长的 name_key；无则前端默认第一个报名的人当队长 */
   captain: string | null
 }
@@ -48,6 +51,7 @@ function buildTeams(
   metas: TeamMeta[],
   rosters: Record<string, PublicMember[]> = {},
   details: Record<string, string> = {},
+  githubUrls: Record<string, string> = {},
   captains: Record<string, string> = {}
 ): TeamPayload[] {
   return metas.map((m) => {
@@ -57,6 +61,7 @@ function buildTeams(
       count: members.length,
       members,
       detail: details[m.id] ?? null,
+      githubUrl: githubUrls[m.id] ?? null,
       captain: captains[m.id] ?? null
     }
   })
@@ -91,9 +96,10 @@ export const GET: APIRoute = async () => {
     const [builtins, customs] = await Promise.all([getBuiltinTracks(), getCustomTeams()])
     const metas = [...builtins, ...customs]
     const ids = metas.map((m) => m.id)
-    const [rosters, details, captains] = await Promise.all([
+    const [rosters, details, githubUrls, captains] = await Promise.all([
       getRosters(ids),
       getDetails(ids),
+      getGithubUrls(ids),
       getCaptains(ids)
     ])
     return json({
@@ -101,7 +107,7 @@ export const GET: APIRoute = async () => {
       passcodeRequired: passcodeRequired(),
       detailEditable: editable,
       signupClosed,
-      teams: buildTeams(metas, rosters, details, captains)
+      teams: buildTeams(metas, rosters, details, githubUrls, captains)
     })
   } catch {
     // 数据库抖动——仍让页面渲染出赛道卡（用代码兜底），只是名单/介绍/自定义赛道暂时为空。
@@ -228,6 +234,7 @@ const LEAVE_STATUS_BY_CODE: Record<LeaveErrorCode, number> = {
   not_configured: 503,
   invalid: 400,
   not_found: 404,
+  passcode: 403,
   store_error: 500
 }
 
@@ -246,7 +253,10 @@ export const DELETE: APIRoute = async ({ request }) => {
     return json({ ok: false, code: 'invalid', message: '未知的队伍' }, 400)
   }
 
-  const result = await removeSignup({ teamId, name: str(body.name) ?? '' }, { capacity })
+  const result = await removeSignup(
+    { teamId, name: str(body.name) ?? '', passcode: str(body.passcode) },
+    { capacity }
+  )
 
   if (result.ok) {
     return json({ ok: true, roster: result.roster })
@@ -259,6 +269,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
 const DETAIL_STATUS_BY_CODE: Record<DetailErrorCode, number> = {
   not_configured: 503,
+  invalid: 400,
   passcode: 403,
   store_error: 500
 }
@@ -302,14 +313,36 @@ export const PUT: APIRoute = async ({ request }) => {
     )
   }
 
+  if (body.action === 'kick') {
+    const capacity = await resolveCapacity(teamId)
+    if (capacity === undefined) {
+      return json({ ok: false, code: 'invalid', message: '未知的队伍' }, 400)
+    }
+    const result = await kickMember(
+      { teamId, name: str(body.name) ?? '', passcode: str(body.passcode) },
+      { capacity }
+    )
+    if (result.ok) return json({ ok: true, roster: result.roster })
+    return json(
+      { ok: false, code: result.code, message: result.message },
+      CAPTAIN_STATUS_BY_CODE[result.code]
+    )
+  }
+
   const result = await updateDetail({
     teamId,
     detail: str(body.detail) ?? '',
+    githubUrl: str(body.githubUrl),
     passcode: str(body.passcode)
   })
 
   if (result.ok) {
-    return json({ ok: true, teamId: result.teamId, detail: result.detail })
+    return json({
+      ok: true,
+      teamId: result.teamId,
+      detail: result.detail,
+      githubUrl: result.githubUrl
+    })
   }
   return json(
     { ok: false, code: result.code, message: result.message },
