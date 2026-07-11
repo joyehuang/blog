@@ -1,6 +1,5 @@
 ---
 import { activity, isSignupClosed, teams } from '@/data/agent-teams'
-import qqGroup from '@/assets/qq-group-contact.jpg'
 
 // 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
 // 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
@@ -47,13 +46,11 @@ const signupClosed = isSignupClosed()
               加入 QQ 群围观 <span aria-hidden='true'>↗</span>
             </button>
             <span
-              class='qq-group-popover absolute left-0 top-full z-20 mt-2 w-56 rounded-xl border bg-background p-3 text-center shadow-lg'
+              class='qq-group-popover absolute left-0 top-full z-20 mt-2 whitespace-nowrap rounded-lg border bg-background px-3 py-2 text-sm shadow-lg'
               data-qq-group-popover
-              role='dialog'
-              aria-label='QQ 群二维码'
+              role='tooltip'
             >
-              <img class='mx-auto aspect-square w-full rounded-lg' src={qqGroup.src} alt='QQ 群二维码' />
-              <span class='mt-2 block text-xs text-muted-foreground'>群号 831907794 · 扫码加入</span>
+              QQ 群：<strong class='font-semibold text-foreground'>831907794</strong>
             </span>
           </span>
         </div>
@@ -209,7 +206,7 @@ const signupClosed = isSignupClosed()
             </button>
             <button
               type='button'
-              class='manage-toggle inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              class='manage-toggle hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex'
               data-manage-toggle
               aria-expanded='false'
             >
@@ -290,7 +287,16 @@ const signupClosed = isSignupClosed()
             </div>
           </form>
 
-          <div class='manage-panel mt-1 rounded-xl border bg-muted/30 p-3' data-manage-panel hidden>
+          <dialog class='manage-dialog' data-manage-panel>
+            <div class='manage-dialog-inner'>
+              <header class='manage-dialog-head'>
+                <div>
+                  <h2 class='m-0 text-lg font-semibold text-foreground'>队伍管理</h2>
+                  <p class='m-0 mt-1 text-xs text-muted-foreground'>退出报名、维护资料或管理队员</p>
+                </div>
+                <button type='button' class='manage-dialog-close' data-manage-close aria-label='关闭'>✕</button>
+              </header>
+              <div class='manage-dialog-body'>
             <section>
               <h3 class='m-0 text-sm font-medium text-foreground'>个人退出</h3>
               <p class='m-0 mt-0.5 text-xs text-muted-foreground'>仅退出你自己的报名，需要 QQ 群口令。</p>
@@ -414,7 +420,9 @@ const signupClosed = isSignupClosed()
             </div>
           </form>
             </section>
-          </div>
+              </div>
+            </div>
+          </dialog>
         </article>
       ))
     }
@@ -619,6 +627,51 @@ const signupClosed = isSignupClosed()
     transform: none;
   }
 
+  .manage-dialog {
+    width: min(92vw, 44rem);
+    max-height: min(86vh, 48rem);
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    box-shadow: 0 24px 70px rgb(0 0 0 / 0.28);
+  }
+  .manage-dialog::backdrop {
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(2px);
+  }
+  .manage-dialog-inner {
+    display: flex;
+    max-height: min(86vh, 48rem);
+    flex-direction: column;
+  }
+  .manage-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .manage-dialog-close {
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    padding: 0.5rem;
+    color: hsl(var(--muted-foreground));
+    line-height: 1;
+    cursor: pointer;
+  }
+  .manage-dialog-close:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+  .manage-dialog-body {
+    overflow-y: auto;
+    padding: 1.25rem;
+  }
+
   /* 参评队伍数：单独一块摆在 hero 右侧，用暖色描边与正文区隔。 */
   .team-count-card {
     position: relative;
@@ -753,9 +806,6 @@ const signupClosed = isSignupClosed()
     }
     .team-count-card > div:last-child {
       margin-top: 0;
-    }
-    .qq-group-popover {
-      width: min(14rem, calc(100vw - 5rem));
     }
   }
 
@@ -1447,12 +1497,13 @@ const signupClosed = isSignupClosed()
     })
 
     const manageToggle = card.querySelector<HTMLButtonElement>('[data-manage-toggle]')
-    const managePanel = card.querySelector<HTMLElement>('[data-manage-panel]')
+    const managePanel = card.querySelector<HTMLDialogElement>('[data-manage-panel]')
     const leaveForm = card.querySelector<HTMLFormElement>('[data-leave-form]')
     const detailForm = card.querySelector<HTMLFormElement>('[data-detail-form]')
     const setManageOpen = (open: boolean) => {
       if (!managePanel || !manageToggle) return
-      managePanel.hidden = !open
+      if (open && !managePanel.open) managePanel.showModal()
+      if (!open && managePanel.open) managePanel.close()
       manageToggle.setAttribute('aria-expanded', open ? 'true' : 'false')
       if (open && detailForm) {
         const textarea = detailForm.querySelector<HTMLTextAreaElement>('textarea[name="detail"]')
@@ -1464,7 +1515,13 @@ const signupClosed = isSignupClosed()
 
     manageToggle?.addEventListener('click', () => {
       if (board.dataset.configured !== 'true') return
-      setManageOpen(managePanel?.hidden ?? true)
+      setManageOpen(!(managePanel?.open ?? false))
+    })
+    managePanel?.querySelector<HTMLButtonElement>('[data-manage-close]')?.addEventListener('click', () => {
+      setManageOpen(false)
+    })
+    managePanel?.addEventListener('close', () => {
+      manageToggle?.setAttribute('aria-expanded', 'false')
     })
 
     // 退出 / 退赛：按昵称软删除自己的有效报名。
