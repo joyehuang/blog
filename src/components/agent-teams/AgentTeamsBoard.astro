@@ -1040,7 +1040,7 @@ const signupClosed = isSignupClosed()
     const label = card.querySelector<HTMLElement>('[data-count-label]')
     if (label) {
       label.classList.remove('skeleton')
-      label.textContent = capacity != null ? `${team.count} / ${capacity} 人` : `${team.count} 人`
+      label.textContent = `${team.count} 人`
     }
 
     const full = capacity != null && team.count >= capacity
