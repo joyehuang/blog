@@ -45,9 +45,8 @@ const signupClosed = isSignupClosed()
         </p>
       </div>
 
-      {/* 主题总数：独立成一块，摆右边（原本这里一大片空白），数字够大才叫突出。
-          先只知道内置赛道数，自定义赛道还没拉到——与其先秀一个错的数字再跳成对的，
-          不如先用骨架屏占位，数据到手后再数字滚动到位。 */}
+      {/* 参评队伍数：只统计至少有一位报名队员、最终可以参加评选的队伍。
+          名单还没拉到前无法判断，先用骨架屏占位，数据到手后再数字滚动到位。 */}
       <div class='team-count-card shrink-0 self-start rounded-xl border px-6 py-5 text-center sm:self-center'>
         <div
           class='team-count-skeleton skeleton mx-auto h-12 w-20 rounded-lg sm:h-[3.75rem] sm:w-24'
@@ -62,7 +61,7 @@ const signupClosed = isSignupClosed()
           0
         </div>
         <div class='mt-1.5 text-xs font-medium text-muted-foreground'>
-          <span class='sr-only' data-team-count-loading-label>主题数量加载中，</span>个可选主题
+          <span class='sr-only' data-team-count-loading-label>参评队伍数量加载中，</span>支参评队伍
         </div>
       </div>
     </div>
@@ -882,8 +881,7 @@ const signupClosed = isSignupClosed()
     else delete el.dataset.tone
   }
 
-  // 主题总数「数字滚动」：从当前显示的值滚到目标值，而不是直接跳字——
-  // 首次加载是 0 滚到真实总数，之后（比如建了新赛道）是旧总数滚到新总数。
+  // 参评队伍数「数字滚动」：从当前显示的值滚到目标值，而不是直接跳字。
   function animateCount(el: HTMLElement, to: number, duration = 700) {
     const from = Number.parseInt(el.textContent ?? '0', 10) || 0
     if (from === to) {
@@ -1393,6 +1391,10 @@ const signupClosed = isSignupClosed()
     board.dataset.passcodeRequired = data.passcodeRequired ? 'true' : 'false'
     signupClosed = data.signupClosed ?? false
 
+    // 只有至少一位队员报名的队伍才能参加最终评选。数据库降级时名单未知，
+    // 保留静态兜底卡片和计数骨架，避免把「加载失败」误判成「无人报名」。
+    const eligibleTeams = data.degraded ? data.teams : data.teams.filter((team) => team.count > 0)
+
     const banner = board.querySelector<HTMLElement>('[data-board-banner]')
     if (banner) {
       if (!data.configured) {
@@ -1409,7 +1411,16 @@ const signupClosed = isSignupClosed()
       }
     }
 
-    for (const team of data.teams) {
+    if (!data.degraded) {
+      const eligibleIds = new Set(eligibleTeams.map((team) => team.id))
+      for (const [id, card] of cards) {
+        if (eligibleIds.has(id)) continue
+        card.remove()
+        cards.delete(id)
+      }
+    }
+
+    for (const team of eligibleTeams) {
       let card = cards.get(team.id)
       if (!card) {
         // 自定义赛道：动态建卡并接线
@@ -1425,8 +1436,8 @@ const signupClosed = isSignupClosed()
       card.dataset.loaded = 'true'
     }
 
-    // 主题总数：以接口拿到的完整列表为准（含自定义赛道），数字滚动到位。
-    revealTeamCount(board, data.teams.length)
+    // 与下方实际展示保持一致：只数有报名队员、可以参加评选的队伍。
+    if (!data.degraded) revealTeamCount(board, eligibleTeams.length)
 
     // 未配置或组队已截止：禁用「创建赛道」入口
     const createToggle = board.querySelector<HTMLButtonElement>('[data-create-toggle]')
