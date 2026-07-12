@@ -438,13 +438,13 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 - **踩过什么坑**（How it failed）：失败案例 + 解决方案
 - **学到了什么**（What you learned）：重做你会怎么改
 
-**反例**："我用 LangChain 做了一个 RAG 客服系统。"——这种描述等于没说，是面试杀手。
+**反例**："我用 Vercel AI SDK 做了一个 Newsletter 摘要 Agent。"——这种描述等于没说，是面试杀手。
 
-**正例**：
+**正例**（就用 4.2 那个 Newsletter Agent）：
 
-> "我做了一个客服 RAG 系统。最初用简单向量检索，召回率只有 60%——分析发现客户问题口语化，和文档原文的措辞差距大。我们引入了 Query Rewriting：先用轻量模型把用户问题改写成多个候选 Query，再分别检索后合并去重。这一改召回率提升到 85%，但 Token 成本增加 30%。为了平衡成本，我们后来加了缓存——同一类问题的改写结果可以复用。最终在召回率 80%+ 的前提下，成本只增加 5%。"
+> "我做了一个 Newsletter Agent。第一版每周把 30 多封邮件全文塞给旗舰模型做摘要，单次成本 4 块多，而且长上下文里它经常漏掉我真正关心的内容。我改成了两级：先用便宜模型按我的历史反馈给每封邮件打分做预筛，只有前 10 封进旗舰模型深度摘要——成本降到 8 毛。但预筛带来了新问题：偶尔把我感兴趣的邮件筛掉了。我给预筛加了两条硬规则：我点过'没兴趣'的来源降权、我点开读完过的来源永远直进精选，把'漏掉重要内容'从每周两三次压到基本为零。最后我加了个每周自动跑的 Eval：拿我上周的真实点击当标准答案回测预筛准确率，低于 85% 就提醒我调整。"
 
-这段话有：**指标（60% → 85%）+ 决策（Query Rewriting）+ 权衡（成本 vs 召回）+ 后续优化（缓存）**。这就是"讲到极致"。
+这段话有：**指标（成本 4 块 → 8 毛、漏检两三次 → 0）+ 决策（模型分级 + 反馈规则）+ 权衡（成本 vs 漏检）+ Eval（用真实行为回测）**。这就是"讲到极致"——注意它还顺手展示了 2.1 的模型分级和第五章的成本控制、Eval，全是面试官想追问的钩子。
 
 **简历层面的三个要点**：不要堆技术名词（"熟练掌握 LangChain、LangGraph、Vercel AI SDK、CrewAI……"这种简历看了让人发笑——真正强的候选人简历里技术词反而少）；每段项目按"问题 — 方案 — 结果"结构；数字化成果（哪怕估算也比没数字强）。
 
@@ -475,13 +475,15 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 
 ### 4.5 推荐学习资源（精选）
 
+**想要一门系统课就选这个**：Hugging Face 的免费 **AI Agents Course**——目前最完整的免费 Agent 入门课，从概念、框架到期末项目一条龙，学完有证书。适合喜欢"有课程结构"的人；不喜欢上课的直接走下面的文档路线。
+
 **先读你天天在用的工具的文档**：Claude Code / Codex 的官方 Best Practices——怎么写 CLAUDE.md / AGENTS.md、怎么拆任务、怎么让它自证。这是第一跳的配套教材，也是"让 Agent 产出工程级代码"这门手艺的官方答案。
 
 **官方文档（按顺序读）**：Vercel AI SDK 官方文档（TypeScript 入门最优起点）→ Anthropic 官方文档的 Tool Use / Skills / Prompt Engineering 章节 → OpenAI Cookbook（Python 实战补充）→ 你选的国产模型厂商的文档（DeepSeek / Qwen / Kimi / GLM 任一）。
 
-**一线博客（每周扫一眼）**：Anthropic Engineering Blog、Sequoia / a16z 的 AI 板块、Hacker News 的 AI 板块。
+**一线博客（每周扫一眼）**：Anthropic Engineering Blog、OpenAI Blog / Cookbook、Sequoia / a16z 的 AI 板块、Hacker News 的 AI 板块。
 
-**社区**：Twitter / X 关注 @karpathy、@AnthropicAI、@simonw、@\_philschmid、@jxnlco。
+**社区**：Twitter / X 关注 @karpathy、@AnthropicAI、@OpenAIDevs、@simonw、@\_philschmid、@jxnlco。
 
 我**不在这一阶段推荐**任何 LLM 内部机制类资源（Karpathy 的 "Let's build GPT" 系列、各种 minimind 类源码教程——**包括我自己的 minimind-notes**）。它们都很优秀，但解决的是"理解 LLM 怎么训练出来的"问题，跟做 Agent 应用是两条赛道。等你做完第一个真实项目、有了具体好奇心，再回头看会更有体感。
 
