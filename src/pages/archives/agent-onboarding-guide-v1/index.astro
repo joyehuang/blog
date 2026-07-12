@@ -1,0 +1,24 @@
+---
+/**
+ * Archived snapshot: Agent onboarding guide v1.0 (2026-05-17).
+ * The living document lives at /blog/20260517---agentonboardingguide/post;
+ * this page renders the frozen v1.0 source from src/assets/archives/ verbatim.
+ * Not part of the blog collection, so it stays out of the list / RSS / OG.
+ */
+import V1Content from '@/assets/archives/agent-onboarding-guide-v1.0.mdx'
+import CommonPage from '@/layouts/CommonPage.astro'
+
+export const prerender = true
+
+const title = '【存档】Agent 入门指南 v1.0'
+---
+
+<CommonPage {title}>
+  <blockquote>
+    <p>
+      这是《写给所有"想入门 Agent 但不知道从哪开始"的人》<strong>v1.0（2026-05-17）的历史存档</strong>——内容保持发布时的原样，其中的模型版本、数据和部分判断已经过时。请优先阅读
+      <a href='/blog/20260517---agentonboardingguide/post'>最新版本</a>，那里也有各版本的更新日志。
+    </p>
+  </blockquote>
+  <V1Content />
+</CommonPage>

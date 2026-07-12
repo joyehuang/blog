@@ -18,6 +18,7 @@ import remarkMath from 'remark-math'
 // Local integrations
 // Local rehype & remark plugins
 import rehypeAutolinkHeadings from './src/plugins/rehype-auto-link-headings.ts'
+import remarkReadingTime from './src/plugins/remark-reading-time.ts'
 // Shiki
 import {
   addCopyButton,
@@ -47,6 +48,20 @@ const exposeSingleSitemap = (): AstroIntegration => ({
     'astro:build:done': async ({ dir }) => {
       const outputDir = fileURLToPath(dir)
       await copyFile(join(outputDir, 'sitemap-0.xml'), join(outputDir, 'sitemap.xml'))
+    }
+  }
+})
+
+const bilingualReadingTime = (): AstroIntegration => ({
+  name: 'bilingual-reading-time',
+  hooks: {
+    'astro:config:setup': ({ updateConfig }) => {
+      // Run after astro-pure's reading-time plugin so this bilingual estimate wins.
+      updateConfig({
+        markdown: {
+          remarkPlugins: [remarkReadingTime]
+        }
+      })
     }
   }
 })
@@ -90,6 +105,7 @@ export default defineConfig({
     exposeSingleSitemap(),
     // astro-pure will automatically add sitemap, mdx & unocss
     AstroPureIntegration(config),
+    bilingualReadingTime(),
     react()
   ],
   // root: './my-project-directory',
