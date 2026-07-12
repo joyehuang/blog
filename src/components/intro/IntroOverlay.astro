@@ -98,6 +98,16 @@ const copy =
   ;(() => {
     const overlay = document.getElementById('intro-overlay')
     if (!overlay) return
+    const isPublicSite = /^(?:www\.)?joyehuang\.me$/i.test(location.hostname)
+    if (isPublicSite) {
+      overlay.classList.add('intro-idle')
+      overlay.classList.remove('intro-pending')
+      overlay.setAttribute('aria-hidden', 'true')
+      document.documentElement.classList.remove('intro-scroll-lock')
+      const dock = document.getElementById('intro-trigger-dock')
+      if (dock) dock.hidden = true
+      return
+    }
     const value = new URLSearchParams(location.search).get('intro')
     const forced = value === 'focus' || value === 'line' || value === 'jojo'
     const disabled = value === 'off' || value === 'picker'
