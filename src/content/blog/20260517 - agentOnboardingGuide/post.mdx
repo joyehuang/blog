@@ -7,6 +7,7 @@ tags: ['Agent', 'LLM', '入门', '学习路线', '求职', 'AI']
 ---
 
 import PaidServicesAppendix from '@/components/blog/PaidServicesAppendix.astro'
+import VersionChangelog from '@/components/blog/VersionChangelog.astro'
 import WechatReveal from '@/components/WechatReveal.astro'
 
 > **当前版本：v1.1（2026-07-13）** · [更新日志](#版本更新日志) · [v1.0 原文存档](/archives/agent-onboarding-guide-v1)
@@ -590,35 +591,17 @@ Agent 的成本远比传统应用高。一次复杂任务可能要几十次 LLM 
 
 **这份文档是免费的**，因为我希望帮到所有想入门 Agent 的人。它会定期更新——大约每 3–6 个月一版，重大行业事件会有"增量补丁"。你看到的版本是 **v1.1（Updated: 2026-07-13）**。
 
-### 关于这份文档的后续更新
+### 后续更新
 
-这份文档**不是一锤子买卖**：
+这份指南会持续免费更新：
 
-- **大约每 3–6 个月更新一次**，根据行业最新动向修订
-- 重大行业事件（新 LLM 大版本、新协议层标准）会做"增量补丁"
-- 看到这份文档的读者，所有更新版本继续免费
-- 每个历史版本都会保留原文存档，方便对照
-
-### 版本更新日志
-
-**v1.1 — 2026-07-13**
-
-- 内容和来源更新至 2026 年 7 月：模型格局（Claude 5 家族、GPT-5.6、Gemini 3.5 Flash / 3.1 Pro、Qwen3.7、K2.7、GLM-5.2、MiniMax M3）、框架生态（AI SDK 7、LangChain 1.0、Microsoft Agent Framework）、MCP 捐入 Agentic AI Foundation、Skills 开放标准与供应链风险；对第三方行业统计明确标注口径
-- 修正发布时即存在的错误：安全边界的表述（Prompt 约束 ≠ 权限控制）、Skills 的渐进式披露机制、"唯一 MIT 开源旗舰"、MiniMax 多模态、缓存折扣数字、若干时间线
-- 第一章重写：大脑=模型本身、Agent 开发=做 Harness、例子换成 Coding Agent（含失败处理、tool search、执行层安全）
-- 新增：官方 Agent SDK 梯队、Cloudflare Agents SDK / eve（durable Agent Runtime）、Eino、Skills 供应链风险（ClawHub 投毒事件）
-- 第四章整体重写为"用 → 懂 → 造"三级跳：以 Coding Agent 为主线（老师 / 工具 / 教材 / 对照组），新增边界感与"让 Agent 产出工程级代码"的手艺、双重灵魂拷问、AI-native 面试观、每一跳的验收标准
-- 结构调整：付费服务移出正文，改为独立的折叠附件；移除"技术栈图谱"和原 2.5"应用层"小节
-- 站点体验修正：阅读时间改为中文 350 字/分钟、英文 200 词/分钟分别计算，并排除付费服务附件；本篇预估由错误的 91 分钟修正为约 51 分钟
-- 重写结尾：增加 Agent 交流群和 B 站线上自习室入口，用更轻松的方式邀请读者继续交流和学习
-
-**v1.0 — 2026-05-17**
-
-- 首次发布。[原文存档](/archives/agent-onboarding-guide-v1)
+- 大约每 3–6 个月集中修订一次
+- 遇到重要模型或行业变化时及时补充
+- 历史版本保留存档，方便对照
 
 ### 关于反馈
 
-如果你看完这份文档有任何意见、建议、或者发现错误，**非常希望你能告诉我**。可以通过任何渠道——邮件、网站留言、私信。读者反馈是我修订这份材料最重要的依据。
+如果你看完这份文档有任何意见、建议，或者发现错误，**非常希望你能告诉我**。这个项目已经开源在 [**GitHub：joyehuang/blog**](https://github.com/joyehuang/blog)，具体问题可以直接提 [Issue](https://github.com/joyehuang/blog/issues)，也可以通过邮件、网站留言或私信联系我。读者反馈是我持续修订这份指南最重要的依据。
 
 特别欢迎的反馈类型：
 
@@ -626,6 +609,8 @@ Agent 的成本远比传统应用高。一次复杂任务可能要几十次 LLM 
 - 某个判断你不同意，想和我讨论
 - 你按路线图实践了，发现某个建议不太适用
 - 你自己摸索出了文档里没有的好做法
+
+<VersionChangelog />
 
 ---
 
