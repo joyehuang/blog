@@ -354,7 +354,7 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 
 ### 4.1 前置技能：你需要会什么、可以不会什么
 
-**这条路线的第一步，不是挑语言、配环境，而是装上一个 Coding Agent（Claude Code / Codex）**——它会是你接下来的老师、工具、教材和对照组，4.2 会展开。也因为有它，前置技能清单比你想象的短得多。
+**这条路线的第一步，不是挑语言、配环境，而是装上一个 Coding Agent（[Claude Code](https://claude.com/claude-code) / [Codex](https://openai.com/codex)）**——它会是你接下来的老师、工具、教材和对照组，4.2 会展开。也因为有它，前置技能清单比你想象的短得多。
 
 **先说语言。** Agent 开发当前主流是 **Python 和 TypeScript / JavaScript** 两个生态：
 
@@ -396,7 +396,7 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 
 **二是"让它产出工程级代码"的手艺。** 同一个 Coding Agent，在不同人手里产出的质量天差地别，差别全在用法：
 
-- **给足上下文**：在项目里放一份 `CLAUDE.md` / `AGENTS.md`，写清技术栈、约定、禁区——这其实就是第五章"上下文工程"的用户版。
+- **给足上下文**：在项目里放一份 `CLAUDE.md` / [`AGENTS.md`](https://agents.md)，写清技术栈、约定、禁区——这其实就是第五章"上下文工程"的用户版。
 - **把任务拆小、说清**："帮我做个网站"和"给这个页面加一个带防抖的搜索框，复用现有的 Input 组件"，得到的是两种东西。
 - **要求它自证**：让它跑测试、跑 lint、亲自验证结果，而不是它说"改好了"你就信。
 - **读 diff**：每次改动都读一遍它改了什么。这既是质检，也是零基础的人学代码最快的路径——看不懂的地方别跳过，想起来它同时是你的老师：让它解释，追问到你真懂了为止。
@@ -409,7 +409,7 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 
 **一，拆解你手里的 Agent。** 干活时有意识地看：它什么时候决定调工具？工具失败后它做了什么？长任务里它怎么压缩上下文？对照 1.4 的五个关键点，画出它完成一次任务的时序图。别闷头猜——**直接问它**："你刚才为什么先跑测试再改代码？""上下文快满了你会怎么办？"让一个生产级 Agent 讲解它自己，是这个时代独有的学习方式。
 
-**二，让 AI 带你复现一个最小 Agent。** 把"学"这件事本身也交给 AI：让 Coding Agent 写一段 10 行以内的代码，把"你好"发给一个 LLM API（推荐 DeepSeek，便宜到不心疼），并要求它**逐行讲解**；然后让它把"扩成多轮对话""加一个搜索工具"留成作业，你来改、它来 review。分工始终是：**代码它写，理解你负责。** 小 Agent 跑起来之后，把它失败的样子和你第一跳记下的 Claude Code 失败案例对照着看——你会发现 10 行的玩具和生产级产品栽跟头的地方一模一样：选错工具、死循环、参数瞎编。到这里，1.4 的五个关键点就有了双重印证，你也会拿到两个珍贵体感：LLM 不是黑盒，它就是一个能调的 HTTP 服务；Agent Loop 也不神秘，就是 1.4 那个循环。SDK 按 2.2 选：TypeScript 首选 Vercel AI SDK，Python 用 OpenAI SDK + `base_url` 或 Pydantic AI。
+**二，让 AI 带你复现一个最小 Agent。** 把"学"这件事本身也交给 AI：让 Coding Agent 写一段 10 行以内的代码，把"你好"发给一个 LLM API（推荐 [DeepSeek](https://platform.deepseek.com)，便宜到不心疼），并要求它**逐行讲解**；然后让它把"扩成多轮对话""加一个搜索工具"留成作业，你来改、它来 review。分工始终是：**代码它写，理解你负责。** 小 Agent 跑起来之后，把它失败的样子和你第一跳记下的 Claude Code 失败案例对照着看——你会发现 10 行的玩具和生产级产品栽跟头的地方一模一样：选错工具、死循环、参数瞎编。到这里，1.4 的五个关键点就有了双重印证，你也会拿到两个珍贵体感：LLM 不是黑盒，它就是一个能调的 HTTP 服务；Agent Loop 也不神秘，就是 1.4 那个循环。SDK 按 2.2 选：TypeScript 首选 [Vercel AI SDK](https://ai-sdk.dev/docs)，Python 用 OpenAI SDK + `base_url` 或 [Pydantic AI](https://ai.pydantic.dev)。
 
 **第二跳验收标准**：能对着 SDK 代码，指出 Agent Loop 每一步对应 1.4 的哪个关键点；画得出你的 Coding Agent 完成一次任务的时序；你的最小 Agent 有一份失败案例清单，每一条你都能说出对应哪类问题。整跳的 API 花费不会超过 10 块钱。
 
@@ -478,13 +478,13 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 
 ### 4.5 推荐学习资源（精选）
 
-**想要一门系统课就选这个**：Hugging Face 的免费 **AI Agents Course**——目前最完整的免费 Agent 入门课，从概念、框架到期末项目一条龙，学完有证书。适合喜欢"有课程结构"的人；不喜欢上课的直接走下面的文档路线。
+**想要一门系统课就选这个**：Hugging Face 的免费 [**AI Agents Course**](https://huggingface.co/learn/agents-course)——目前最完整的免费 Agent 入门课，从概念、框架到期末项目一条龙，学完有证书。适合喜欢"有课程结构"的人；不喜欢上课的直接走下面的文档路线。
 
-**先读你天天在用的工具的文档**：Claude Code / Codex 的官方 Best Practices——怎么写 CLAUDE.md / AGENTS.md、怎么拆任务、怎么让它自证。这是第一跳的配套教材，也是"让 Agent 产出工程级代码"这门手艺的官方答案。
+**先读你天天在用的工具的文档**：[Claude Code](https://www.anthropic.com/engineering/claude-code-best-practices) / [Codex](https://developers.openai.com/codex) 的官方 Best Practices——怎么写 CLAUDE.md / AGENTS.md、怎么拆任务、怎么让它自证。这是第一跳的配套教材，也是"让 Agent 产出工程级代码"这门手艺的官方答案。
 
-**官方文档（按顺序读）**：Vercel AI SDK 官方文档（TypeScript 入门最优起点）→ Anthropic 官方文档的 Tool Use / Skills / Prompt Engineering 章节 → OpenAI Cookbook（Python 实战补充）→ 你选的国产模型厂商的文档（DeepSeek / Qwen / Kimi / GLM 任一）。
+**官方文档（按顺序读）**：[Vercel AI SDK 官方文档](https://ai-sdk.dev/docs)（TypeScript 入门最优起点）→ [Anthropic 官方文档](https://platform.claude.com/docs)的 Tool Use / Skills / Prompt Engineering 章节 → [OpenAI Cookbook](https://cookbook.openai.com)（Python 实战补充）→ 你选的国产模型厂商的文档（DeepSeek / Qwen / Kimi / GLM 任一）。
 
-**一线博客（每周扫一眼）**：Anthropic Engineering Blog、OpenAI Blog / Cookbook、Sequoia / a16z 的 AI 板块、Hacker News 的 AI 板块。
+**一线博客（每周扫一眼）**：[Anthropic Engineering Blog](https://www.anthropic.com/engineering)、[OpenAI Blog](https://openai.com/news) / [Cookbook](https://cookbook.openai.com)、[Sequoia](https://www.sequoiacap.com/stories/) / [a16z](https://a16z.com/ai/) 的 AI 板块、[Hacker News](https://news.ycombinator.com) 的 AI 板块。
 
 **社区**：Twitter / X 关注 @karpathy、@AnthropicAI、@OpenAIDevs、@simonw、@\_philschmid、@jxnlco。
 
