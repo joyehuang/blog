@@ -38,3 +38,15 @@
     <p>首次发布。<a href="/archives/agent-onboarding-guide-v1">查看原文存档</a>。</p>
   </div>
 </details>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('[data-version-changelog-trigger]').forEach((trigger) => {
+    trigger.addEventListener('click', (event) => {
+      const changelog = document.querySelector<HTMLDetailsElement>('#版本更新日志')
+      if (!changelog) return
+
+      event.preventDefault()
+      changelog.open = true
+    })
+  })
+</script>
