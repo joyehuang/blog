@@ -24,6 +24,22 @@ type RepoItem = {
   imageAlt?: string
 }
 
+type ProductItem = {
+  index: string
+  key: string
+  title: string
+  role: string
+  body: string
+  metrics: string[][]
+  href: string
+  image: string
+  imageLight: string
+  alt: string
+  domain: string
+  accent: string
+  embeddable: boolean
+}
+
 interface Props {
   locale: 'zh' | 'en'
   posts: FeedItem[]
@@ -118,7 +134,7 @@ const copy = isEn
       copyright: 'Joye 设计与开发。'
     }
 
-const projects = isEn
+const projects: ProductItem[] = isEn
   ? [
       {
         index: '01',
@@ -133,6 +149,7 @@ const projects = isEn
         ],
         href: 'https://playyy.ai/',
         image: '/images/landing/playyy-ui.png',
+        imageLight: '/images/landing/playyy-ui-light.webp',
         alt: 'Playyy product interface from the public website',
         domain: 'playyy.ai',
         accent: '#659eb9',
@@ -151,6 +168,7 @@ const projects = isEn
         ],
         href: 'https://atypica.ai/',
         image: '/images/landing/atypica-site.png',
+        imageLight: '/images/landing/atypica-site-light.webp',
         alt: 'Atypica public website showing the research agent interface',
         domain: 'atypica.ai',
         accent: '#69c978',
@@ -169,6 +187,7 @@ const projects = isEn
         ],
         href: 'https://aixcut.cn/',
         image: '/images/landing/aixcut-site.png',
+        imageLight: '/images/landing/aixcut-site-light.webp',
         alt: 'AIXCut public website showing the video editing product',
         domain: 'aixcut.cn',
         accent: '#50d8b1',
@@ -189,6 +208,7 @@ const projects = isEn
         ],
         href: 'https://playyy.ai/',
         image: '/images/landing/playyy-ui.png',
+        imageLight: '/images/landing/playyy-ui-light.webp',
         alt: 'Playyy 官网公开的产品界面',
         domain: 'playyy.ai',
         accent: '#659eb9',
@@ -207,6 +227,7 @@ const projects = isEn
         ],
         href: 'https://atypica.ai/',
         image: '/images/landing/atypica-site.png',
+        imageLight: '/images/landing/atypica-site-light.webp',
         alt: 'Atypica 官网展示的研究 Agent 产品界面',
         domain: 'atypica.ai',
         accent: '#69c978',
@@ -225,6 +246,7 @@ const projects = isEn
         ],
         href: 'https://aixcut.cn/',
         image: '/images/landing/aixcut-site.png',
+        imageLight: '/images/landing/aixcut-site-light.webp',
         alt: 'AIXCut 官网展示的视频剪辑产品界面',
         domain: 'aixcut.cn',
         accent: '#50d8b1',
@@ -327,6 +349,23 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
       <a href='#journal'>{copy.journal}</a>
     </div>
     <div class='home-nav__end'>
+      <button
+        class='home-theme-toggle'
+        type='button'
+        data-theme-toggle
+        aria-label={isEn ? 'Switch colour theme' : '切换深浅色主题'}
+        title={isEn ? 'Switch colour theme' : '切换深浅色主题'}
+      >
+        <svg class='home-theme-toggle__sun' viewBox='0 0 24 24' aria-hidden='true'>
+          <circle cx='12' cy='12' r='3.5'></circle>
+          <path
+            d='M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42'
+          ></path>
+        </svg>
+        <svg class='home-theme-toggle__moon' viewBox='0 0 24 24' aria-hidden='true'>
+          <path d='M20.2 15.5A8.5 8.5 0 0 1 8.5 3.8 8.5 8.5 0 1 0 20.2 15.5Z'></path>
+        </svg>
+      </button>
       <a href={isEn ? '/v2' : '/en/v2'}>{isEn ? '中文' : 'EN'}</a>
       <a href={`${prefix}/contact`}>{copy.contact} ↗</a>
     </div>
@@ -345,6 +384,13 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
         <div class='hero__stage' data-hero-stage>
           <figure class='hero-screen hero-screen--playyy'>
             <img
+              class='theme-image theme-image--light'
+              src='/images/landing/playyy-ui-light.webp'
+              alt='Playyy product interface'
+              loading='eager'
+            />
+            <img
+              class='theme-image theme-image--dark'
               src='/images/landing/playyy-ui.png'
               alt='Playyy product interface'
               loading='eager'
@@ -353,6 +399,13 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           </figure>
           <figure class='hero-screen hero-screen--atypica'>
             <img
+              class='theme-image theme-image--light'
+              src='/images/landing/atypica-site-light.webp'
+              alt='atypica public product page'
+              loading='eager'
+            />
+            <img
+              class='theme-image theme-image--dark'
               src='/images/landing/atypica-site.png'
               alt='atypica public product page'
               loading='eager'
@@ -361,6 +414,13 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
           </figure>
           <figure class='hero-screen hero-screen--aixcut'>
             <img
+              class='theme-image theme-image--light'
+              src='/images/landing/aixcut-site-light.webp'
+              alt='AIXCut public product page'
+              loading='eager'
+            />
+            <img
+              class='theme-image theme-image--dark'
               src='/images/landing/aixcut-site.png'
               alt='AIXCut public product page'
               loading='eager'
@@ -456,6 +516,13 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
                 </div>
                 <div class='product-plane__viewport'>
                   <img
+                    class='theme-image theme-image--light'
+                    src={project.imageLight}
+                    alt={project.alt}
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                  />
+                  <img
+                    class='theme-image theme-image--dark'
                     src={project.image}
                     alt={project.alt}
                     loading={index === 0 ? 'eager' : 'lazy'}
@@ -1003,6 +1070,31 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
         this.cleanups.push(() => button.removeEventListener('click', togglePreview))
       })
 
+      const themeToggle = this.querySelector<HTMLButtonElement>('[data-theme-toggle]')
+      const syncThemeToggle = () => {
+        const isDark = document.documentElement.classList.contains('dark')
+        themeToggle?.setAttribute('aria-pressed', String(isDark))
+        themeToggle?.setAttribute(
+          'aria-label',
+          this.dataset.locale === 'en'
+            ? `Switch to ${isDark ? 'light' : 'dark'} mode`
+            : `切换到${isDark ? '浅色' : '深色'}模式`
+        )
+      }
+      const toggleTheme = () => {
+        const root = document.documentElement
+        const nextTheme = root.classList.contains('dark') ? 'light' : 'dark'
+        localStorage.setItem('theme', nextTheme)
+        root.classList.toggle('dark', nextTheme === 'dark')
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', nextTheme === 'dark' ? '#0B0B10' : '#FCFCFD')
+        syncThemeToggle()
+      }
+      syncThemeToggle()
+      themeToggle?.addEventListener('click', toggleTheme)
+      this.cleanups.push(() => themeToggle?.removeEventListener('click', toggleTheme))
+
       requestAnimationFrame(() => ScrollTrigger.refresh())
     }
 
@@ -1052,6 +1144,18 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     text-decoration: none;
   }
 
+  .theme-image--dark {
+    display: none !important;
+  }
+
+  :global(.dark) .theme-image--light {
+    display: none !important;
+  }
+
+  :global(.dark) .theme-image--dark {
+    display: block !important;
+  }
+
   .home-nav {
     position: fixed;
     z-index: 30;
@@ -1084,6 +1188,65 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
 
   .home-nav__end {
     justify-self: end;
+    align-items: center;
+  }
+
+  .home-theme-toggle {
+    position: relative;
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    color: var(--home-fg);
+    border: 1px solid var(--home-border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--home-card), transparent 18%);
+    cursor: pointer;
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .home-theme-toggle:hover {
+    color: var(--home-accent);
+    border-color: color-mix(in srgb, var(--home-accent), var(--home-border) 55%);
+    transform: rotate(8deg);
+  }
+
+  .home-theme-toggle svg {
+    position: absolute;
+    inset: 0;
+    width: 0.95rem;
+    height: 0.95rem;
+    margin: auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .home-theme-toggle__sun {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.55) rotate(-35deg);
+  }
+
+  :global(.dark) .home-theme-toggle__sun {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) rotate(0);
+  }
+
+  :global(.dark) .home-theme-toggle__moon {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.55) rotate(35deg);
   }
 
   .home-nav a {
@@ -1194,7 +1357,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--home-border), white 15%);
     border-radius: 0.7rem;
-    background: #090b0e;
+    background: var(--home-card);
     box-shadow: 0 2.5rem 7rem color-mix(in srgb, var(--home-fg), transparent 76%);
     transform-style: preserve-3d;
     backface-visibility: hidden;
@@ -1485,7 +1648,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--case-accent), var(--home-border) 65%);
     border-radius: 0.85rem;
-    background: #08090b;
+    background: var(--home-card);
     box-shadow:
       0 4rem 10rem color-mix(in srgb, var(--home-fg), transparent 78%),
       0 0 0 0.5rem color-mix(in srgb, var(--home-card), transparent 35%);
@@ -1499,8 +1662,8 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     align-items: center;
     height: 2.7rem;
     padding: 0 0.9rem;
-    color: rgb(255 255 255 / 60%);
-    border-bottom: 1px solid rgb(255 255 255 / 12%);
+    color: color-mix(in srgb, var(--home-fg), transparent 40%);
+    border-bottom: 1px solid var(--home-border);
     font-family: ui-monospace, monospace;
     font-size: 0.54rem;
     letter-spacing: 0.08em;
@@ -1515,7 +1678,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     width: 0.42rem;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: rgb(255 255 255 / 30%);
+    background: color-mix(in srgb, var(--home-fg), transparent 70%);
   }
 
   .product-plane__bar em {
@@ -1540,10 +1703,10 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     min-width: 6.6rem;
     padding: 0.32rem 0.5rem;
     overflow: hidden;
-    color: rgb(255 255 255 / 72%);
-    border: 1px solid rgb(255 255 255 / 16%);
+    color: color-mix(in srgb, var(--home-fg), transparent 28%);
+    border: 1px solid var(--home-border);
     border-radius: 999px;
-    background: rgb(255 255 255 / 5%);
+    background: color-mix(in srgb, var(--home-fg), transparent 95%);
     font: inherit;
     text-align: center;
     cursor: pointer;
@@ -1583,7 +1746,7 @@ const totalStars = repos.reduce((sum, repo) => sum + repo.stars, 0)
     position: relative;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: #08090b;
+    background: var(--home-card);
   }
 
   .product-plane__viewport > img,
