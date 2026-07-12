@@ -41,11 +41,10 @@
 
 <script>
   document.querySelectorAll<HTMLAnchorElement>('[data-version-changelog-trigger]').forEach((trigger) => {
-    trigger.addEventListener('click', (event) => {
+    trigger.addEventListener('click', () => {
       const changelog = document.querySelector<HTMLDetailsElement>('#版本更新日志')
       if (!changelog) return
 
-      event.preventDefault()
       changelog.open = true
     })
   })
