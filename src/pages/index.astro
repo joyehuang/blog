@@ -170,6 +170,9 @@ const agentHackathonLink =
         href='/agent-teams'
         class='soa-card group flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
       >
+        <svg class='soa-border-glow' aria-hidden='true'>
+          <rect pathLength='100'></rect>
+        </svg>
         <div class='min-w-0'>
           <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
             <span
@@ -573,12 +576,6 @@ const agentHackathonLink =
 
 <style>
   /* Summer of Agents 首页入口卡：暖色渐变底（UnoCSS 不生成 bg-gradient 工具类，手写） */
-  @property --soa-border-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-  }
-
   .soa-card {
     position: relative;
     z-index: 0;
@@ -590,51 +587,55 @@ const agentHackathonLink =
     );
   }
 
-  /* 旋转光环：conic-gradient 只保留在边框环上（mask 挖空内容区），
-     角度通过 @property 动画驱动，让光带绕卡片流转 */
-  .soa-card::before {
-    content: '';
+  /* 用描边长度驱动亮光，让它按卡片周长匀速移动。 */
+  .soa-border-glow {
     position: absolute;
     inset: -1.5px;
-    z-index: -1;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: conic-gradient(
-      from var(--soa-border-angle),
-      transparent 0deg,
-      transparent 250deg,
-      rgba(148, 163, 184, 0.45) 280deg,
-      rgba(255, 255, 255, 0.95) 310deg,
-      rgba(226, 232, 240, 0.6) 335deg,
-      transparent 360deg
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
+    width: calc(100% + 3px);
+    height: calc(100% + 3px);
     opacity: 0;
-    animation: soa-border-spin 2.5s linear infinite;
-    animation-play-state: paused;
     transition: opacity 0.25s ease;
     pointer-events: none;
   }
 
-  .soa-card:hover::before,
-  .soa-card:focus-visible::before {
+  .soa-border-glow rect {
+    x: 1.5px;
+    y: 1.5px;
+    width: calc(100% - 3px);
+    height: calc(100% - 3px);
+    rx: 16px;
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.95);
+    stroke-width: 1.5px;
+    stroke-linecap: round;
+    stroke-dasharray: 22 78;
+    filter: drop-shadow(0 0 2px rgba(148, 163, 184, 0.8));
+    animation: soa-border-travel 2.5s linear infinite;
+    animation-play-state: paused;
+  }
+
+  .soa-card:hover .soa-border-glow,
+  .soa-card:focus-visible .soa-border-glow {
     opacity: 1;
+  }
+
+  .soa-card:hover .soa-border-glow rect,
+  .soa-card:focus-visible .soa-border-glow rect {
     animation-play-state: running;
   }
 
-  @keyframes soa-border-spin {
+  @keyframes soa-border-travel {
     to {
-      --soa-border-angle: 360deg;
+      stroke-dashoffset: -100;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .soa-card::before {
+    .soa-border-glow rect {
       animation: none;
+    }
+
+    .soa-border-glow {
       transition: none;
     }
   }
