@@ -171,7 +171,15 @@ const agentHackathonLink =
         class='soa-card group flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
       >
         <svg class='soa-border-glow' aria-hidden='true'>
-          <rect pathLength='100'></rect>
+          <rect pathLength='100' style='--soa-segment: 0; --soa-opacity: 0.12'></rect>
+          <rect pathLength='100' style='--soa-segment: 1; --soa-opacity: 0.25'></rect>
+          <rect pathLength='100' style='--soa-segment: 2; --soa-opacity: 0.45'></rect>
+          <rect pathLength='100' style='--soa-segment: 3; --soa-opacity: 0.7'></rect>
+          <rect pathLength='100' style='--soa-segment: 4; --soa-opacity: 1'></rect>
+          <rect pathLength='100' style='--soa-segment: 5; --soa-opacity: 0.7'></rect>
+          <rect pathLength='100' style='--soa-segment: 6; --soa-opacity: 0.45'></rect>
+          <rect pathLength='100' style='--soa-segment: 7; --soa-opacity: 0.25'></rect>
+          <rect pathLength='100' style='--soa-segment: 8; --soa-opacity: 0.12'></rect>
         </svg>
         <div class='min-w-0'>
           <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
@@ -608,9 +616,11 @@ const agentHackathonLink =
     stroke: rgba(255, 255, 255, 0.95);
     stroke-width: 1.5px;
     stroke-linecap: round;
-    stroke-dasharray: 22 78;
+    stroke-dasharray: 2.4 97.6;
+    opacity: var(--soa-opacity);
     filter: drop-shadow(0 0 2px rgba(148, 163, 184, 0.8));
     animation: soa-border-travel 2.5s linear infinite;
+    animation-delay: calc(var(--soa-segment) * -0.07s);
     animation-play-state: paused;
   }
 
