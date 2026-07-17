@@ -1,0 +1,521 @@
+---
+/**
+ * IntroOverlay — home-page entrance animation.
+ *
+ * An agent generates "JOYE" by diffusion: a field of noise denoises in
+ * discrete steps (a 3-stage pipeline: sample → refine → decode) until the
+ * name resolves, then the overlay fades to reveal the real homepage beneath.
+ *
+ * Behaviour:
+ *   - Plays once per browser per day (localStorage `intro-seen-at`, 24h cooldown),
+ *     regardless of whether the visitor skipped it or watched it through.
+ *   - Skippable (button, or click anywhere). Disabled under prefers-reduced-motion.
+ *   - Hover while it's up disperses + lights up that patch of particles.
+ *   - Dark overlay (the diffusion aesthetic); fades out to the real page.
+ *
+ * Scripts use `is:inline` so the runtime-created <canvas> is styled by the
+ * `is:global` block (Astro scoped styles don't reach nodes made at runtime).
+ *
+ * After the name resolves it holds on a landing card (avatar + 进入 button);
+ * the page is only revealed when the visitor chooses to enter.
+ */
+import avatar from 'src/assets/avatar.png'
+---
+
+<div id='intro-overlay' class='intro-overlay' aria-hidden='true'>
+  <canvas id='intro-canvas'></canvas>
+  <div class='intro-hud' id='intro-hud'>
+    <div class='intro-pipe'>
+      <div class='intro-stage'><i></i><span>sample</span></div>
+      <div class='intro-seg'><b></b></div>
+      <div class='intro-stage'><i></i><span>refine</span></div>
+      <div class='intro-seg'><b></b></div>
+      <div class='intro-stage'><i></i><span>decode</span></div>
+    </div>
+  </div>
+  <div class='intro-card' id='intro-card' aria-hidden='true'>
+    <img class='intro-av' id='intro-av' src={avatar.src} alt='Joye' width='112' height='112' />
+    <div class='intro-nm'>Joye</div>
+    <button class='intro-enter' id='intro-enter' type='button'>进入 ~/joye →</button>
+  </div>
+  <button id='intro-skip' class='intro-skip' type='button' aria-label='跳过入场动画'>跳过 →</button>
+</div>
+
+<button id='intro-replay' class='intro-replay' type='button' aria-label='重播入场动画'>↻ 重播入场</button>
+<noscript><style>.intro-overlay{display:none}</style></noscript>
+
+{/* Synchronous gate: hide the overlay before first paint for repeat visits / reduced motion (kept in DOM so 重播 can re-run it). */}
+<script is:inline>
+  ;(function () {
+    try {
+      // 冷却期：看过后 24 小时内不再自动播（避免每个会话都弹）。重播按钮不受限。
+      var seenAt = parseInt(localStorage.getItem('intro-seen-at') || '0', 10)
+      var recentlySeen = seenAt > 0 && Date.now() - seenAt < 24 * 60 * 60 * 1000
+      var skip =
+        recentlySeen || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+      if (skip) {
+        var el = document.getElementById('intro-overlay')
+        if (el) el.classList.add('intro-idle')
+      }
+    } catch (e) {}
+  })()
+</script>
+
+<style is:global>
+  .intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #06090d;
+    overflow: hidden;
+    opacity: 1;
+  }
+  .intro-overlay.intro-done {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.95s ease;
+  }
+  .intro-overlay.intro-idle {
+    display: none;
+  }
+  /* persistent replay control — lives on the page, themed to match it */
+  .intro-replay {
+    position: fixed;
+    left: 18px;
+    bottom: 18px;
+    z-index: 50;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: hsl(var(--muted-foreground) / 0.7);
+    background: hsl(var(--card) / 0.5);
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    opacity: 0.55;
+    backdrop-filter: blur(6px);
+    transition: 0.25s;
+  }
+  .intro-replay:hover {
+    opacity: 1;
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--primary) / 0.5);
+  }
+  #intro-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* 3-stage agent pipeline */
+  .intro-hud {
+    position: fixed;
+    left: 50%;
+    top: 8.5%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    white-space: nowrap;
+  }
+  .intro-hud.show {
+    opacity: 1;
+  }
+  .intro-pipe {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .intro-stage {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    opacity: 0.36;
+    transition: opacity 0.45s ease;
+  }
+  .intro-stage.on {
+    opacity: 1;
+  }
+  .intro-stage.done {
+    opacity: 0.64;
+  }
+  .intro-stage i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(125, 211, 252, 0.28);
+    transition: 0.45s ease;
+  }
+  .intro-stage.on i {
+    background: #7dd3fc;
+    box-shadow: 0 0 12px rgba(125, 211, 252, 0.95);
+  }
+  .intro-stage.done i {
+    background: rgba(125, 211, 252, 0.7);
+  }
+  .intro-stage span {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #7dd3fc;
+  }
+  .intro-seg {
+    width: 44px;
+    height: 1px;
+    margin: 0 12px;
+    background: rgba(125, 211, 252, 0.16);
+    position: relative;
+  }
+  .intro-seg b {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    background: #7dd3fc;
+    box-shadow: 0 0 8px rgba(125, 211, 252, 0.7);
+  }
+  .intro-skip {
+    position: absolute;
+    bottom: 22px;
+    right: 22px;
+    z-index: 2;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 12px;
+    color: rgba(154, 166, 178, 0.7);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .intro-skip:hover {
+    color: #faf9f8;
+    border-color: rgba(125, 211, 252, 0.5);
+  }
+  /* landing card — avatar + enter, held until the visitor chooses */
+  .intro-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -44%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .intro-card.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+  }
+  .intro-av {
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    padding: 4px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: #0b1016;
+    box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.1), 0 0 60px rgba(125, 211, 252, 0.35);
+  }
+  .intro-nm {
+    font-family: 'Satoshi', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -0.02em;
+    color: #faf9f8;
+  }
+  .intro-enter {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: #dbeefb;
+    background: rgba(125, 211, 252, 0.06);
+    border: 1px solid rgba(125, 211, 252, 0.4);
+    border-radius: 10px;
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: 0.25s;
+    animation: intro-breathe 2.4s ease-in-out infinite;
+  }
+  .intro-enter:hover {
+    background: rgba(125, 211, 252, 0.14);
+    border-color: rgba(125, 211, 252, 0.8);
+    box-shadow: 0 0 28px -6px rgba(125, 211, 252, 0.8);
+  }
+  @keyframes intro-breathe {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0); }
+    50% { box-shadow: 0 0 22px -4px rgba(125, 211, 252, 0.55); }
+  }
+</style>
+
+<script is:inline>
+  ;(function () {
+    var overlay = document.getElementById('intro-overlay')
+    var canvas = document.getElementById('intro-canvas')
+    var hud = document.getElementById('intro-hud')
+    if (!overlay || !canvas) return
+
+    var ctx = canvas.getContext('2d')
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    var W = 0, H = 0, DPR = 1, parts = [], pulse = 0, d = 0, dTarget = 0
+    var stepShown = -1, doneAt = 0, raf = 0, t0 = 0, revealing = false, landed = false
+    var playSource = 'first_visit'
+    var introStartedAt = 0, ctaShownAt = 0, playTracked = false, interactionCount = 0, lastInteractionAt = 0, abandonTracked = false
+    var mouse = { x: -1e9, y: -1e9 }
+    var STAGE_EL = null, SEG_EL = null
+    var card = document.getElementById('intro-card')
+
+    // soft glow sprite (cheap bloom)
+    var sprite = document.createElement('canvas')
+    sprite.width = sprite.height = 64
+    ;(function () {
+      var g = sprite.getContext('2d')
+      var r = g.createRadialGradient(32, 32, 0, 32, 32, 32)
+      r.addColorStop(0, 'rgba(214,243,255,1)')
+      r.addColorStop(0.25, 'rgba(138,214,255,.6)')
+      r.addColorStop(0.6, 'rgba(110,190,240,.14)')
+      r.addColorStop(1, 'rgba(110,190,240,0)')
+      g.fillStyle = r
+      g.fillRect(0, 0, 64, 64)
+    })()
+
+    // denoise schedule: noise → ... → resolved
+    var STEPS = [
+      { t: 0.55, d: 0.14 }, { t: 1.05, d: 0.32 }, { t: 1.55, d: 0.52 },
+      { t: 2.05, d: 0.72 }, { t: 2.5, d: 0.88 }, { t: 2.95, d: 1.0 }
+    ]
+
+    function vw() { var w = innerWidth || document.documentElement.clientWidth || 0; return w > 20 ? w : 1280 }
+    function vh() { var h = innerHeight || document.documentElement.clientHeight || 0; return h > 20 ? h : 800 }
+    function resize() {
+      DPR = Math.min(devicePixelRatio || 1, 2)
+      W = canvas.width = Math.round(vw() * DPR)
+      H = canvas.height = Math.round(vh() * DPR)
+      canvas.style.width = vw() + 'px'
+      canvas.style.height = vh() + 'px'
+    }
+    addEventListener('mousemove', function (e) { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR })
+    addEventListener('mouseleave', function () { mouse.x = mouse.y = -1e9 })
+
+    function sampleJOYE() {
+      if (!W || !H) return []
+      var off = document.createElement('canvas'); off.width = W; off.height = H
+      var o = off.getContext('2d')
+      o.fillStyle = '#fff'; o.textBaseline = 'middle'; o.textAlign = 'left'
+      var tracking = 0.18, size = Math.min(H * 0.4, W * 0.32)
+      var setFont = function () { o.font = '700 ' + size + 'px Satoshi, system-ui, sans-serif' }
+      setFont()
+      var adv = function () { var w = 0; for (var i = 0; i < 4; i++) w += o.measureText('JOYE'[i]).width + size * tracking; return w - size * tracking }
+      if (adv() > W * 0.72) { size *= W * 0.72 / adv(); setFont() }
+      var x = (W - adv()) / 2, y = H * 0.46
+      for (var i = 0; i < 4; i++) { var ch = 'JOYE'[i]; o.fillText(ch, x, y); x += o.measureText(ch).width + size * tracking }
+      var data = o.getImageData(0, 0, W, H).data, gap = Math.max(5, Math.round(6.5 * DPR)), pts = []
+      for (var yy = 0; yy < H; yy += gap) for (var xx = 0; xx < W; xx += gap) if (data[(yy * W + xx) * 4 + 3] > 140) pts.push({ x: xx, y: yy })
+      return pts
+    }
+
+    function build() {
+      var pts = sampleJOYE(), R = Math.min(W, H) * 0.62
+      parts = pts.map(function (p) {
+        var ang = Math.random() * 6.283, mag = Math.pow(Math.random(), 0.6) * R
+        return {
+          tx: p.x, ty: p.y, ox: Math.cos(ang) * mag, oy: Math.sin(ang) * mag,
+          x: p.x + Math.cos(ang) * mag, y: p.y + Math.sin(ang) * mag,
+          ph: Math.random() * 6.28, fr: 0.6 + Math.random() * 1.4, r: (Math.random() * 0.8 + 0.7) * DPR, seed: Math.random()
+        }
+      })
+    }
+
+    function updateStages() {
+      if (!STAGE_EL) { STAGE_EL = hud.querySelectorAll('.intro-stage'); SEG_EL = hud.querySelectorAll('.intro-seg b') }
+      if (!STAGE_EL.length) return
+      var cur = d < 0.30 ? 0 : d < 0.82 ? 1 : 2
+      for (var i = 0; i < STAGE_EL.length; i++) { STAGE_EL[i].classList.toggle('on', i === cur); STAGE_EL[i].classList.toggle('done', i < cur) }
+      if (SEG_EL[0]) SEG_EL[0].style.width = (d < 0.30 ? d / 0.30 : 1) * 100 + '%'
+      if (SEG_EL[1]) SEG_EL[1].style.width = (d < 0.30 ? 0 : d < 0.82 ? (d - 0.30) / 0.52 : 1) * 100 + '%'
+    }
+
+    function frame(ts) {
+      if (!t0) t0 = ts
+      var el = (ts - t0) / 1000
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.fillStyle = 'rgba(6,9,13,0.32)'; ctx.fillRect(0, 0, W, H)   // trail-fade
+      if (el > 0.1) hud.classList.add('show')
+
+      var step = -1
+      for (var i = 0; i < STEPS.length; i++) if (el >= STEPS[i].t) { dTarget = STEPS[i].d; step = i }
+      d += (dTarget - d) * 0.13
+      if (step !== stepShown) { stepShown = step; if (step >= 0) pulse = 1 }
+      if (d > 0.985 && !doneAt && el > STEPS[STEPS.length - 1].t + 0.5) doneAt = ts
+      if (doneAt && ts - doneAt > 700 && !landed) land()
+      var dim = doneAt ? Math.min(1, (ts - doneAt) / 900) : 0
+      // slow breath, phased from the resolve moment so the first bright hold isn't truncated (~9s cycle)
+      var bphase = doneAt ? (((ts - doneAt) / 9000) % 1) : 0
+      var bc
+      if (bphase < 0.34) bc = 1                                // hold at brightest (~3s)
+      else if (bphase < 0.54) bc = 1 - (bphase - 0.34) / 0.2   // exhale → dim + scatter
+      else if (bphase < 0.62) bc = 0                           // brief dark
+      else bc = (bphase - 0.62) / 0.38                         // inhale → bright + gather
+      bc = bc * bc * (3 - 2 * bc)
+      var breathScatter = (1 - bc) * 0.05 * dim
+      var bf = 1 - dim + dim * (0.4 + bc)
+      updateStages()
+      if (doneAt) hud.style.opacity = String(1 - dim)
+
+      var noiseK = Math.pow(1 - d, 2)
+      pulse *= 0.86
+      ctx.globalCompositeOperation = 'lighter'
+
+      for (var k = 0; k < parts.length; k++) {
+        var p = parts[k]
+        var sK = noiseK + breathScatter
+        var ax = p.tx + p.ox * sK, ay = p.ty + p.oy * sK
+        p.x += (ax - p.x) * (0.18 + pulse * 0.5); p.y += (ay - p.y) * (0.18 + pulse * 0.5)
+        // hover — disperse away from the cursor + enlarge + light up; spring back when it leaves
+        var hb = 0
+        if (d > 0.5) {
+          var mdx = p.x - mouse.x, mdy = p.y - mouse.y, m2 = mdx * mdx + mdy * mdy, RR = (21 * DPR) * (21 * DPR)
+          if (m2 < RR) { hb = 1 - m2 / RR; markInteraction(); var dd = Math.sqrt(m2) || 1, f = hb * 8 * DPR; p.x += mdx / dd * f; p.y += mdy / dd * f }
+        }
+        var turb = noiseK * 34 * DPR
+        var rx = p.x + Math.sin(p.y * 0.012 + el * 1.7 + p.seed * 6.28) * turb
+        var ry = p.y + Math.cos(p.x * 0.012 - el * 1.4 + p.seed * 4) * turb
+        var tw = 0.55 + Math.sin(p.tw = (p.tw || 0) + 0.04) * 0.2 * (1 - dim * 0.92)
+        var a = (0.30 + d * 0.6) * tw * (1 + pulse * 1.1) * bf * (1 + hb * 2.4)   // breathe (dim↔bright) when landed; hover lights it up
+        var s = p.r * (7.5 - d * 4.6) * (1 + pulse * 0.5 + hb * 1.8)         // + bigger glow under hover
+        ctx.globalAlpha = Math.min(1, a)
+        ctx.drawImage(sprite, rx - s / 2, ry - s / 2, s, s)
+      }
+
+      // structure mesh — faint links weave between neighbours as JOYE resolves
+      if (d > 0.5) {
+        var R2 = (16 * DPR) * (16 * DPR)
+        ctx.strokeStyle = 'rgba(125,211,252,' + (d - 0.5) * 0.42 + ')'; ctx.lineWidth = DPR * 0.5
+        ctx.beginPath()
+        for (var i2 = 0; i2 < parts.length; i2++) {
+          var pp = parts[i2]
+          for (var j = i2 + 1; j <= i2 + 2 && j < parts.length; j++) {
+            var q = parts[j], dx = pp.x - q.x, dy = pp.y - q.y
+            if (dx * dx + dy * dy < R2) { ctx.moveTo(pp.x, pp.y); ctx.lineTo(q.x, q.y) }
+          }
+        }
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'
+      raf = requestAnimationFrame(frame)
+    }
+
+    function land() {                        // hold on the avatar + 进入 button
+      if (landed) return
+      landed = true
+      if (card) card.classList.add('show')
+      ctaShownAt = performance.now()
+      trackIntro('intro_cta_view', 'enter', { time_to_cta_ms: elapsedMs() })
+    }
+    function reveal() {                       // visitor chose to enter → fade to real homepage (kept in DOM for 重播)
+      if (revealing) return
+      revealing = true
+      if (card) card.classList.remove('show')
+      overlay.classList.add('intro-done')
+      setTimeout(function () {
+        cancelAnimationFrame(raf)
+        overlay.classList.add('intro-idle')
+        overlay.classList.remove('intro-done')
+      }, 1000)
+    }
+
+    function start() {
+      resize(); build()
+      if (parts.length === 0) { setTimeout(start, 120); return }
+      raf = requestAnimationFrame(frame)
+    }
+    function elapsedMs() {
+      return introStartedAt ? Math.round(performance.now() - introStartedAt) : null
+    }
+    function markInteraction() {
+      var now = performance.now()
+      if (!lastInteractionAt || now - lastInteractionAt > 500) interactionCount++
+      lastInteractionAt = now
+      if (playTracked) return
+      playTracked = true
+      trackIntro('intro_play', 'particle_hover', { duration_ms: elapsedMs(), percent: Math.round(d * 100), interactions: interactionCount })
+    }
+    function exitProperties() {
+      return {
+        duration_ms: elapsedMs(),
+        time_to_cta_ms: ctaShownAt ? Math.round(ctaShownAt - introStartedAt) : null,
+        played: playTracked,
+        interactions: interactionCount
+      }
+    }
+    function trackIntro(eventName, target, properties) {
+      var detail = {
+        eventName: eventName,
+        properties: {
+          surface: 'intro_overlay',
+          target: target,
+          source: playSource,
+          ...(properties || {})
+        }
+      }
+      if (window.__trackSiteAnalytics) {
+        window.__trackSiteAnalytics(detail)
+        return
+      }
+      window.__siteAnalyticsQueue = window.__siteAnalyticsQueue || []
+      window.__siteAnalyticsQueue.push(detail)
+      document.dispatchEvent(new CustomEvent('site:analytics', { detail: detail }))
+    }
+
+    function play(source) {                   // (re)run the intro from noise — first visit + 重播
+      cancelAnimationFrame(raf)
+      d = 0; dTarget = 0; pulse = 0; stepShown = -1; doneAt = 0; t0 = 0
+      revealing = false; landed = false
+      introStartedAt = performance.now(); ctaShownAt = 0; playTracked = false; interactionCount = 0; lastInteractionAt = 0; abandonTracked = false
+      playSource = source || 'replay'
+      if (card) card.classList.remove('show')
+      hud.style.opacity = ''; hud.classList.remove('show')
+      overlay.classList.remove('intro-idle'); overlay.classList.remove('intro-done')
+      try { localStorage.setItem('intro-seen-at', String(Date.now())) } catch (e) {}
+      trackIntro('intro_start', 'animation')
+      start()
+    }
+
+    addEventListener('resize', function () { if (!revealing && !overlay.classList.contains('intro-idle')) { resize(); build() } })
+    addEventListener('pagehide', function () {
+      if (!introStartedAt || revealing || overlay.classList.contains('intro-idle') || abandonTracked) return
+      abandonTracked = true
+      trackIntro('intro_abandon', 'pagehide', exitProperties())
+    })
+    var skipBtn = document.getElementById('intro-skip')
+    if (skipBtn) skipBtn.addEventListener('click', function (e) { e.stopPropagation(); trackIntro('intro_skip', 'skip', exitProperties()); reveal() })
+    var enterBtn = document.getElementById('intro-enter')
+    if (enterBtn) enterBtn.addEventListener('click', function (e) { e.stopPropagation(); trackIntro('intro_cta_click', 'enter', exitProperties()); reveal() })
+    var avEl = document.getElementById('intro-av')
+    if (avEl) avEl.addEventListener('click', function (e) { e.stopPropagation(); trackIntro('intro_cta_click', 'avatar', exitProperties()); reveal() })
+    var replayBtn = document.getElementById('intro-replay')
+    if (replayBtn) replayBtn.addEventListener('click', function () { playSource = 'replay'; trackIntro('intro_replay', 'replay'); play('replay') })
+
+    var seen = false
+    // 与预渲染门一致：24 小时内看过就算 seen，不自动重播。
+    try {
+      var seenAtMain = parseInt(localStorage.getItem('intro-seen-at') || '0', 10)
+      seen = seenAtMain > 0 && Date.now() - seenAtMain < 24 * 60 * 60 * 1000
+    } catch (e) {}
+    if (!seen && !reduce) {
+      var fontReady = document.fonts && document.fonts.load ? document.fonts.load('700 120px "Satoshi"') : null
+      Promise.race([Promise.resolve(fontReady).catch(function () {}), new Promise(function (r) { setTimeout(r, 700) })]).then(function () { play('first_visit') })
+    } else {
+      overlay.classList.add('intro-idle')   // hidden on repeat visits; 重播 re-runs it
+    }
+  })()
+</script>
