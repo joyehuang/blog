@@ -13,7 +13,7 @@ import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
-import IntroOverlay from '@/components/intro/IntroOverlay.astro'
+import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
 import JoJo from '@/components/mascot/JoJo'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
@@ -94,7 +94,7 @@ const agentHackathonLink =
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  <IntroOverlay />
+  <LegacyIntroOverlay />
   <main class='flex w-full flex-col items-center'>
     <section
       class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'
