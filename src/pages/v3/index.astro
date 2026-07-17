@@ -1,0 +1,1225 @@
+---
+import { getCollection } from 'astro:content'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+
+export const prerender = true
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date)
+
+const recentWriting = [
+  ...(await getCollection('blog'))
+    .filter((post) => !post.data.draft)
+    .map((post) => ({
+      date: post.data.updatedDate ?? post.data.publishDate,
+      href: `/blog/${post.id}`,
+      title: post.data.title,
+      type: 'ESSAY'
+    })),
+  ...(await getCollection('notes'))
+    .filter((note) => !note.data.draft)
+    .map((note) => ({
+      date: note.data.updatedDate ?? note.data.date,
+      href: `/notes/${note.id}`,
+      title: note.data.title,
+      type: note.data.type.toUpperCase()
+    }))
+]
+  .sort((a, b) => +b.date - +a.date)
+  .slice(0, 3)
+
+const work = [
+  {
+    href: 'https://playyy.ai/',
+    index: '01',
+    name: 'PLAYYY',
+    type: 'AI IMAGE WORKSPACE'
+  },
+  {
+    href: 'https://atypica.ai/',
+    index: '02',
+    name: 'ATYPICA',
+    type: 'MULTI-AGENT RESEARCH'
+  },
+  {
+    href: 'https://aixcut.cn/',
+    index: '03',
+    name: 'AIXCUT',
+    type: 'VIDEO EDITING AGENT'
+  }
+]
+
+const repositories = [
+  {
+    href: 'https://github.com/joyehuang/Learn-Open-Harness',
+    name: 'Learn-Open-Harness',
+    stars: '297+'
+  },
+  {
+    href: 'https://github.com/joyehuang/minimind-notes',
+    name: 'minimind-notes',
+    stars: '93+'
+  },
+  {
+    href: 'https://github.com/Javis603/token-monitor',
+    name: 'Token Monitor',
+    stars: '628+'
+  }
+]
+
+const asciiName = String.raw`
+     ##   ####  ##  ##  ######
+     ##  ##  ##  ####   ##
+ ##  ##  ##  ##   ##    ####
+ ##  ##  ##  ##   ##    ##
+  ####    ####    ##    ######`
+
+const asciiPortrait = String.raw`
+                             AhHH3
+                     2hHGGGMB@@&@@@&&9M
+                  3SB&&@@@@@@@@@@@@@@@@@5
+                A&@@@@@@@@@@@@@@@@@@@@@@@@@#2
+               3@@@@@@@@@@@@@@@@@@@@@@@@@@@@@B
+               @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@H
+              @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+             9@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+             @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
+             @@@@@@@@@S@@@@@@@@@@@@@@@@@@@@@@@@9
+             9@@@@@@#rrs2G@@H@@@@@@@@@@@@@@@@@@3
+             2@@@@@MiA532sAhssS@39@9H@@@@@@@@@M
+              @@@@@rS&#GS&SsssrH&GG&@&S@@@@@@9
+               @@@SrAss&SrAsSAsXs2@h2h2H@@B@@h
+                @@MrssXSHsr5@ssss2952335@BA5@G
+                3BHXsssrrXs@3rXsssrsA335HM5BS
+                 3@HrXsXXss#S5ssssXs2335@&9h
+                   @ArXsssssAAsXXsss532H@2
+                   2&2rsXsXHHHHHXssX55H@A
+                     #GArssXAAAXsss2M9&@
+                      2995Xssrrss2H9BG2&h
+                       5@hGGMMMG99SM555G@
+                        &rXX233355255332G#X
+                      2&BsXssssssXXXXssX2B9B3A
+                  A3h&@@rsssssssssrssAh#&9S5 5M35
+               5hM5X G@9h2XXXssX23MG9&&9H2      A3h3A
+            3MM2      H9&@9S#&@@&BB9G3A             3M3
+         5HM2           A2   552AA                    AMMX
+       X#M                                               HH
+      2&X                                                 59
+      @                                                    5B`
+
+const stars = Array.from({ length: 56 }, (_, index) => ({
+  delay: ((index * 19) % 31) / -4,
+  duration: 3.2 + ((index * 13) % 26) / 10,
+  opacity: 0.18 + ((index * 23) % 64) / 100,
+  size: index % 12 === 0 ? 3 : index % 5 === 0 ? 2 : 1,
+  x: (index * 43 + 7) % 101,
+  y: (index * 71 + 9) % 97
+}))
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — AI Agent Product Engineer · V3',
+    description: 'Joye 的 ASCII 个人入口：AI Agent 产品工程、写作、开源与联系方式。'
+  }}
+  chrome={false}
+>
+  <ascii-landing class='landing'>
+    <div class='star-field' aria-hidden='true'>
+      {
+        stars.map((star) => (
+          <i
+            style={`--x:${star.x}%;--y:${star.y}%;--size:${star.size}px;--opacity:${star.opacity};--delay:${star.delay}s;--duration:${star.duration}s`}
+          />
+        ))
+      }
+    </div>
+    <div class='scanlines' aria-hidden='true'></div>
+
+    <div class='terminal-shell'>
+      <header class='terminal-header'>
+        <p>
+          <span class='online-dot' aria-hidden='true'></span>
+          SESSION::JOYE.LOCAL
+        </p>
+        <p class='terminal-path'>~/portfolio/v3/index</p>
+        <p class='terminal-clock'>
+          MEL::<time data-clock>--:--:--</time>
+        </p>
+      </header>
+
+      <main class='hero-grid'>
+        <section class='identity ascii-cell'>
+          <span class='cell-label' aria-hidden='true'>[ IDENTITY.TXT ]</span>
+
+          <div class='identity-copy'>
+            <pre class='ascii-name' aria-hidden='true'>{asciiName}</pre>
+
+            <div class='identity-title'>
+              <p>HUANG / AI AGENT PRODUCT ENGINEER</p>
+              <h1>把 AI Agent 从 Demo<br />推进到真实业务。</h1>
+            </div>
+
+            <p class='identity-intro'>
+              能运行、能交付，也有人愿意用。我的工作跨越产品判断、Agent 系统设计与全栈实现。
+            </p>
+
+            <dl class='identity-stats'>
+              <div>
+                <dt>BASE</dt>
+                <dd>MEL / SHA / REMOTE</dd>
+              </div>
+              <div>
+                <dt>MODE</dt>
+                <dd>BUILDING IN PUBLIC</dd>
+              </div>
+              <div>
+                <dt>STATUS</dt>
+                <dd>AVAILABLE</dd>
+              </div>
+            </dl>
+
+            <div class='identity-actions'>
+              <a href='/projects'>[ VIEW_WORK ]</a>
+              <a href='/contact'>[ SEND_SIGNAL ]</a>
+            </div>
+          </div>
+
+          <div class='command-line' aria-label='当前终端命令'>
+            <span>visitor@joye:~$</span>
+            <strong>whoami --verbose</strong>
+            <i aria-hidden='true'>█</i>
+          </div>
+        </section>
+
+        <figure class='portrait ascii-cell'>
+          <span class='cell-label' aria-hidden='true'>[ HUMAN_BEHIND_SYSTEM ]</span>
+
+          <div class='portrait-grid' aria-hidden='true'></div>
+          <pre aria-hidden='true'>{asciiPortrait}</pre>
+
+          <span class='annotation annotation-a' aria-hidden='true'>PRODUCT_JUDGEMENT -----&gt;</span
+          >
+          <span class='annotation annotation-b' aria-hidden='true'>&lt;----- AGENT_SYSTEMS</span>
+          <span class='annotation annotation-c' aria-hidden='true'
+            >FULL_STACK_DELIVERY -----&gt;</span
+          >
+
+          <figcaption>
+            <span>SUBJECT::JH-2026</span>
+            <span>TYPE::HUMAN</span>
+            <span>STATE::CURIOUS</span>
+          </figcaption>
+        </figure>
+      </main>
+
+      <section class='module-grid' aria-label='个人网站入口'>
+        <article class='module module-work' data-module='WORK.LOG'>
+          <span class='module-label'>┤ 01 / WORK.LOG ├</span>
+          <p class='module-status'>3 PRODUCTS / SHIPPED</p>
+          <ul>
+            {
+              work.map((item) => (
+                <li>
+                  <a href={item.href} target='_blank' rel='noreferrer'>
+                    <span>{item.index}</span>
+                    <strong>{item.name}</strong>
+                    <em>{item.type}</em>
+                    <b aria-hidden='true'>↗</b>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <a class='module-more' href='/projects'>open ./all_projects →</a>
+        </article>
+
+        <article class='module module-writing' data-module='WRITING.STREAM'>
+          <span class='module-label'>┤ 02 / WRITING.STREAM ├</span>
+          <p class='module-status'>LATEST TRANSMISSIONS</p>
+          <ul>
+            {
+              recentWriting.map((item) => (
+                <li>
+                  <a href={item.href}>
+                    <span>{formatDate(item.date)}</span>
+                    <strong>{item.title}</strong>
+                    <em>{item.type}</em>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <a class='module-more' href='/blog'>tail -f ./journal →</a>
+        </article>
+
+        <article class='module module-source' data-module='SOURCE.REPO'>
+          <span class='module-label'>┤ 03 / SOURCE.REPO ├</span>
+          <p class='module-status'>PUBLIC CODE / 1K+ STARS</p>
+          <ul>
+            {
+              repositories.map((repository, index) => (
+                <li>
+                  <a href={repository.href} target='_blank' rel='noreferrer'>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <strong>{repository.name}</strong>
+                    <em>★ {repository.stars}</em>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <a
+            class='module-more'
+            href='https://github.com/joyehuang'
+            target='_blank'
+            rel='noreferrer'
+          >
+            git remote -v →
+          </a>
+        </article>
+
+        <article class='module module-contact' data-module='CONTACT.PORT'>
+          <span class='module-label'>┤ 04 / CONTACT.PORT ├</span>
+          <p class='module-status'>
+            <span class='online-dot' aria-hidden='true'></span>
+            PORT OPEN
+          </p>
+          <p class='contact-copy'>有一个值得做成的<br />AI 产品？</p>
+          <p class='contact-note'>Tell me what your team is trying to ship.</p>
+          <a class='contact-link' href='/contact'>
+            <span>[ CONNECT ]</span>
+            <b aria-hidden='true'>↗</b>
+          </a>
+        </article>
+      </section>
+
+      <footer class='terminal-footer'>
+        <p data-status>READY::ALL_SYSTEMS_NOMINAL</p>
+        <nav aria-label='站点导航'>
+          <a href='/blog'>BLOG</a>
+          <span>/</span>
+          <a href='/notes'>NOTES</a>
+          <span>/</span>
+          <a href='/about'>ABOUT</a>
+          <span>/</span>
+          <a href='/contact'>CONTACT</a>
+        </nav>
+        <p>© {new Date().getFullYear()} JOYE HUANG</p>
+      </footer>
+    </div>
+  </ascii-landing>
+</PageLayout>
+
+<script>
+  class AsciiLanding extends HTMLElement {
+    private clockTimer?: number
+
+    connectedCallback() {
+      if (this.dataset.ready === 'true') return
+      this.dataset.ready = 'true'
+
+      const clock = this.querySelector<HTMLTimeElement>('[data-clock]')
+      const formatter = new Intl.DateTimeFormat('en-AU', {
+        hour: '2-digit',
+        hour12: false,
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Australia/Melbourne'
+      })
+
+      const updateClock = () => {
+        if (clock) clock.textContent = formatter.format(new Date())
+      }
+
+      updateClock()
+      this.clockTimer = window.setInterval(updateClock, 1000)
+
+      const status = this.querySelector<HTMLElement>('[data-status]')
+      const modules = this.querySelectorAll<HTMLElement>('[data-module]')
+      const resetStatus = () => {
+        if (status) status.textContent = 'READY::ALL_SYSTEMS_NOMINAL'
+      }
+
+      modules.forEach((module) => {
+        const focusStatus = () => {
+          if (status) status.textContent = `FOCUS::${module.dataset.module ?? 'MODULE'}`
+        }
+
+        module.addEventListener('pointerenter', focusStatus)
+        module.addEventListener('pointerleave', resetStatus)
+        module.addEventListener('focusin', focusStatus)
+        module.addEventListener('focusout', resetStatus)
+      })
+    }
+
+    disconnectedCallback() {
+      if (this.clockTimer) window.clearInterval(this.clockTimer)
+    }
+  }
+
+  if (!customElements.get('ascii-landing')) {
+    customElements.define('ascii-landing', AsciiLanding)
+  }
+</script>
+
+<style>
+  :global(html) {
+    background: #000;
+    color-scheme: dark;
+  }
+
+  :global(body) {
+    min-width: 320px;
+    margin: 0;
+    background: #000 !important;
+    color: #f7ffff !important;
+  }
+
+  .landing {
+    --cyan: #00fff0;
+    --cyan-bright: #a9fff9;
+    --cyan-muted: #398985;
+    --black: #000;
+    --white: #f7ffff;
+    --dim: #91a3a1;
+    --line: rgb(0 255 240 / 28%);
+    position: relative;
+    display: grid;
+    min-height: 100svh;
+    place-items: center;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(circle at 73% 34%, rgb(0 255 240 / 9%), transparent 26rem),
+      radial-gradient(circle at 12% 88%, rgb(0 255 240 / 5%), transparent 24rem), #000;
+    color: var(--white);
+    font-family: 'JetBrains Mono', Consolas, 'Lucida Console', 'Microsoft YaHei', monospace;
+    font-weight: 600;
+  }
+
+  .landing::before {
+    position: fixed;
+    z-index: -3;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(0 255 240 / 2.5%) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(0 255 240 / 2.5%) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    content: '';
+    mask-image: radial-gradient(circle at center, black, transparent 78%);
+    pointer-events: none;
+  }
+
+  .star-field {
+    position: fixed;
+    z-index: -2;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .star-field i {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    animation: star-blink var(--duration) ease-in-out var(--delay) infinite;
+    background: var(--white);
+    box-shadow: 0 0 8px rgb(0 255 240 / 80%);
+    opacity: var(--opacity);
+  }
+
+  .scanlines {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 3px,
+      rgb(255 255 255 / 1.5%) 4px
+    );
+    mix-blend-mode: screen;
+    opacity: 0.28;
+    pointer-events: none;
+  }
+
+  .terminal-shell {
+    position: relative;
+    display: grid;
+    width: min(calc(100% - 2rem), 100rem);
+    min-height: calc(100svh - 2rem);
+    grid-template-rows: auto minmax(31rem, 1fr) auto auto;
+    overflow: hidden;
+    border: 1px solid rgb(0 255 240 / 46%);
+    background: rgb(0 4 5 / 84%);
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 88%),
+      0 0 4rem rgb(0 255 240 / 8%),
+      inset 0 0 5rem rgb(0 255 240 / 2.5%);
+  }
+
+  .terminal-shell::before,
+  .terminal-shell::after {
+    position: absolute;
+    z-index: 6;
+    padding-inline: 0.25rem;
+    background: #000;
+    color: var(--cyan);
+    font-size: 0.75rem;
+    content: '+';
+  }
+
+  .terminal-shell::before {
+    top: -0.5rem;
+    left: -0.35rem;
+  }
+
+  .terminal-shell::after {
+    right: -0.35rem;
+    bottom: -0.5rem;
+  }
+
+  .terminal-header {
+    display: grid;
+    min-height: 3rem;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding-inline: 1rem;
+    border-bottom: 1px solid var(--line);
+    background: rgb(0 255 240 / 2.5%);
+    color: var(--cyan);
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+  }
+
+  .terminal-header p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  .terminal-path {
+    color: rgb(247 255 255 / 40%);
+  }
+
+  .terminal-clock {
+    justify-self: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .online-dot {
+    display: inline-block;
+    width: 0.38rem;
+    height: 0.38rem;
+    flex: none;
+    border-radius: 50%;
+    animation: online-pulse 2s ease-in-out infinite;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  .hero-grid {
+    display: grid;
+    min-height: min(58svh, 43rem);
+    grid-template-columns: minmax(28rem, 0.88fr) minmax(34rem, 1.12fr);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ascii-cell {
+    position: relative;
+    min-width: 0;
+  }
+
+  .identity {
+    display: flex;
+    min-height: 31rem;
+    flex-direction: column;
+    padding: clamp(2.5rem, 4vw, 4.5rem);
+    border-right: 1px solid var(--line);
+  }
+
+  .cell-label,
+  .module-label {
+    position: absolute;
+    z-index: 4;
+    top: 0.8rem;
+    left: 1rem;
+    color: var(--cyan);
+    font-size: 0.54rem;
+    letter-spacing: 0.07em;
+  }
+
+  .identity-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .ascii-name {
+    width: fit-content;
+    margin: 0;
+    color: var(--cyan);
+    font:
+      700 clamp(0.5rem, 0.72vw, 0.78rem) / 1.14 'JetBrains Mono',
+      Consolas,
+      monospace;
+    letter-spacing: 0.02em;
+    text-shadow:
+      0 0 7px rgb(0 255 240 / 60%),
+      0 0 22px rgb(0 255 240 / 22%);
+  }
+
+  .identity-title {
+    margin-top: 1.5rem;
+  }
+
+  .identity-title > p {
+    margin: 0 0 0.85rem;
+    color: rgb(247 255 255 / 38%);
+    font-size: 0.56rem;
+    letter-spacing: 0.07em;
+  }
+
+  .identity h1 {
+    margin: 0;
+    color: var(--white);
+    font-family: 'Satoshi', 'Microsoft YaHei', sans-serif;
+    font-size: clamp(2rem, 3.4vw, 3.75rem);
+    font-weight: 520;
+    letter-spacing: -0.055em;
+    line-height: 1.13;
+  }
+
+  .identity-intro {
+    max-width: 36rem;
+    margin: 1.4rem 0 0;
+    color: rgb(247 255 255 / 62%);
+    font-family: 'Satoshi', 'Microsoft YaHei', sans-serif;
+    font-size: 0.98rem;
+    font-weight: 450;
+    line-height: 1.65;
+  }
+
+  .identity-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 1.75rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px dashed rgb(0 255 240 / 24%);
+    gap: 1rem;
+  }
+
+  .identity-stats dt {
+    color: rgb(247 255 255 / 34%);
+    font-size: 0.49rem;
+    letter-spacing: 0.06em;
+  }
+
+  .identity-stats dd {
+    margin: 0.28rem 0 0;
+    color: var(--cyan);
+    font-size: 0.56rem;
+    line-height: 1.4;
+  }
+
+  .identity-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+
+  .identity-actions a {
+    display: inline-flex;
+    min-height: 2.2rem;
+    align-items: center;
+    border: 1px solid rgb(0 255 240 / 42%);
+    color: var(--cyan);
+    font-size: 0.57rem;
+    letter-spacing: 0.04em;
+    padding-inline: 0.85rem;
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .identity-actions a:hover {
+    background: var(--cyan);
+    color: #00110f;
+    box-shadow: 0 0 18px rgb(0 255 240 / 22%);
+  }
+
+  .command-line {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.2rem;
+    margin: auto -4.5rem -4.5rem;
+    padding-inline: 1rem;
+    border-top: 1px solid var(--line);
+    background: rgb(0 255 240 / 2%);
+    color: rgb(247 255 255 / 48%);
+    font-size: 0.54rem;
+  }
+
+  .command-line span {
+    color: var(--cyan);
+  }
+
+  .command-line strong {
+    font-weight: 500;
+  }
+
+  .command-line i {
+    animation: cursor-blink 1s steps(1) infinite;
+    color: var(--cyan);
+    font-size: 0.6rem;
+    font-style: normal;
+  }
+
+  .portrait {
+    display: grid;
+    min-height: 31rem;
+    place-items: center;
+    overflow: hidden;
+    margin: 0;
+    background:
+      radial-gradient(circle, rgb(0 255 240 / 8%), transparent 56%),
+      linear-gradient(135deg, transparent, rgb(0 255 240 / 2.5%));
+  }
+
+  .portrait-grid {
+    position: absolute;
+    width: min(78%, 36rem);
+    aspect-ratio: 1;
+    border: 1px solid rgb(0 255 240 / 11%);
+    border-radius: 50%;
+    background:
+      linear-gradient(rgb(0 255 240 / 7%) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(0 255 240 / 7%) 1px, transparent 1px);
+    background-size: 2rem 2rem;
+    box-shadow:
+      0 0 3rem rgb(0 255 240 / 8%),
+      inset 0 0 3rem rgb(0 255 240 / 5%);
+    mask-image: radial-gradient(circle, black 25%, transparent 72%);
+  }
+
+  .portrait > pre {
+    z-index: 2;
+    margin: 0;
+    background: linear-gradient(90deg, var(--cyan-muted), var(--cyan-bright) 74%);
+    background-clip: text;
+    color: transparent;
+    font:
+      700 clamp(0.38rem, 0.56vw, 0.62rem) / 0.91 'JetBrains Mono',
+      Consolas,
+      monospace;
+    letter-spacing: -0.06em;
+    opacity: 0.92;
+    transform: scaleY(1.18);
+    filter: drop-shadow(0 0 9px rgb(0 255 240 / 35%));
+    user-select: none;
+  }
+
+  .annotation {
+    position: absolute;
+    z-index: 3;
+    color: rgb(0 255 240 / 48%);
+    font-size: 0.48rem;
+    letter-spacing: 0.05em;
+  }
+
+  .annotation-a {
+    top: 19%;
+    left: 4%;
+  }
+
+  .annotation-b {
+    top: 47%;
+    right: 3%;
+  }
+
+  .annotation-c {
+    bottom: 14%;
+    left: 8%;
+  }
+
+  .portrait figcaption {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.8rem;
+    display: grid;
+    color: rgb(247 255 255 / 32%);
+    font-size: 0.46rem;
+    gap: 0.15rem;
+    letter-spacing: 0.05em;
+    text-align: right;
+  }
+
+  .module-grid {
+    display: grid;
+    min-height: min(26svh, 20rem);
+    grid-template-columns: 1.2fr 1.08fr 1fr 0.88fr;
+  }
+
+  .module {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 2.6rem 1rem 0.9rem;
+    border-right: 1px solid var(--line);
+    background: linear-gradient(145deg, rgb(0 255 240 / 2.8%), transparent 58%);
+    transition:
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .module:last-child {
+    border-right: 0;
+  }
+
+  .module::before,
+  .module::after {
+    position: absolute;
+    color: rgb(0 255 240 / 52%);
+    font-size: 0.6rem;
+    content: '+';
+  }
+
+  .module::before {
+    top: -0.44rem;
+    left: -0.25rem;
+  }
+
+  .module::after {
+    right: -0.25rem;
+    bottom: -0.45rem;
+  }
+
+  .module:hover,
+  .module:focus-within {
+    background-color: rgb(0 255 240 / 3.5%);
+    box-shadow: inset 0 0 2.5rem rgb(0 255 240 / 3%);
+  }
+
+  .module-status {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.75rem;
+    color: rgb(247 255 255 / 34%);
+    font-size: 0.47rem;
+    letter-spacing: 0.05em;
+  }
+
+  .module ul {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .module li {
+    border-top: 1px dashed rgb(0 255 240 / 16%);
+  }
+
+  .module li:last-child {
+    border-bottom: 1px dashed rgb(0 255 240 / 16%);
+  }
+
+  .module li a {
+    display: grid;
+    min-height: 2.35rem;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--white);
+    text-decoration: none;
+    transition:
+      color 160ms ease,
+      padding-inline 160ms ease;
+  }
+
+  .module li a:hover {
+    padding-inline: 0.35rem;
+    color: var(--cyan);
+  }
+
+  .module-work li a {
+    grid-template-columns: auto minmax(4rem, 0.8fr) 1.2fr auto;
+  }
+
+  .module-writing li a {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .module-source li a {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .module li span,
+  .module li em,
+  .module li b {
+    color: rgb(247 255 255 / 36%);
+    font-size: 0.45rem;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+
+  .module li strong {
+    overflow: hidden;
+    font-size: 0.55rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .module-writing li strong {
+    max-width: 100%;
+  }
+
+  .module-writing li em,
+  .module-source li em {
+    color: var(--cyan-muted);
+  }
+
+  .module-more {
+    display: inline-block;
+    width: fit-content;
+    margin-top: auto;
+    color: var(--cyan);
+    font-size: 0.49rem;
+    letter-spacing: 0.035em;
+    text-decoration: none;
+  }
+
+  .contact-copy {
+    margin: 1rem 0 0;
+    color: var(--white);
+    font-family: 'Satoshi', 'Microsoft YaHei', sans-serif;
+    font-size: clamp(1.2rem, 1.65vw, 1.75rem);
+    font-weight: 520;
+    letter-spacing: -0.035em;
+    line-height: 1.22;
+  }
+
+  .contact-note {
+    margin: 0.7rem 0 0;
+    color: rgb(247 255 255 / 42%);
+    font-size: 0.47rem;
+    line-height: 1.55;
+  }
+
+  .contact-link {
+    display: flex;
+    min-height: 2.35rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    border: 1px solid rgb(0 255 240 / 44%);
+    color: var(--cyan);
+    font-size: 0.53rem;
+    padding-inline: 0.7rem;
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .contact-link:hover {
+    background: var(--cyan);
+    color: #00110f;
+  }
+
+  .terminal-footer {
+    display: grid;
+    min-height: 2.75rem;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding-inline: 1rem;
+    border-top: 1px solid var(--line);
+    color: rgb(247 255 255 / 34%);
+    font-size: 0.48rem;
+    letter-spacing: 0.04em;
+  }
+
+  .terminal-footer p {
+    margin: 0;
+  }
+
+  .terminal-footer p:first-child {
+    color: var(--cyan-muted);
+  }
+
+  .terminal-footer p:last-child {
+    justify-self: end;
+  }
+
+  .terminal-footer nav {
+    display: flex;
+    gap: 0.65rem;
+  }
+
+  .terminal-footer nav a {
+    color: rgb(247 255 255 / 48%);
+    text-decoration: none;
+  }
+
+  .terminal-footer nav a:hover {
+    color: var(--cyan);
+  }
+
+  .landing a:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 3px;
+  }
+
+  @keyframes star-blink {
+    0%,
+    100% {
+      opacity: calc(var(--opacity) * 0.35);
+      transform: scale(0.72);
+    }
+    50% {
+      opacity: var(--opacity);
+      transform: scale(1.12);
+    }
+  }
+
+  @keyframes online-pulse {
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(0.8);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes cursor-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .terminal-shell {
+      min-height: calc(100svh - 1rem);
+      margin-block: 0.5rem;
+    }
+
+    .hero-grid {
+      min-height: auto;
+      grid-template-columns: minmax(23rem, 0.9fr) minmax(27rem, 1.1fr);
+    }
+
+    .identity {
+      min-height: 36rem;
+      padding: 3.2rem 2rem;
+    }
+
+    .command-line {
+      margin: auto -2rem -3.2rem;
+    }
+
+    .portrait {
+      min-height: 36rem;
+    }
+
+    .portrait > pre {
+      font-size: clamp(0.32rem, 0.56vw, 0.48rem);
+    }
+
+    .module-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .module {
+      min-height: 14rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .module:nth-child(2) {
+      border-right: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .landing {
+      overflow: visible;
+    }
+
+    .terminal-shell {
+      width: calc(100% - 1rem);
+      grid-template-rows: auto auto auto auto;
+      overflow: visible;
+    }
+
+    .terminal-header {
+      grid-template-columns: 1fr auto;
+    }
+
+    .terminal-path {
+      display: none !important;
+    }
+
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .identity {
+      min-height: 35rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .portrait {
+      min-height: 32rem;
+    }
+
+    .portrait > pre {
+      font-size: clamp(0.34rem, 1.1vw, 0.49rem);
+    }
+
+    .module-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .module,
+    .module:nth-child(2) {
+      min-height: 14rem;
+      border-right: 0;
+    }
+
+    .module-writing {
+      min-height: 16rem;
+    }
+
+    .terminal-footer {
+      min-height: 4.5rem;
+      grid-template-columns: 1fr auto;
+      padding-block: 0.7rem;
+    }
+
+    .terminal-footer nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .terminal-header {
+      padding-inline: 0.7rem;
+      font-size: 0.47rem;
+    }
+
+    .identity {
+      min-height: 37rem;
+      padding: 3rem 1rem;
+    }
+
+    .ascii-name {
+      font-size: clamp(0.38rem, 2vw, 0.52rem);
+    }
+
+    .identity h1 {
+      font-size: clamp(1.85rem, 9vw, 2.7rem);
+    }
+
+    .identity-intro {
+      font-size: 0.92rem;
+    }
+
+    .identity-stats {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    .identity-stats div {
+      display: grid;
+      grid-template-columns: 4rem 1fr;
+      align-items: center;
+    }
+
+    .identity-stats dd {
+      margin: 0;
+    }
+
+    .command-line {
+      margin: auto -1rem -3rem;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .portrait {
+      min-height: 27rem;
+    }
+
+    .portrait > pre {
+      font-size: 0.3rem;
+    }
+
+    .annotation {
+      font-size: 0.4rem;
+    }
+
+    .annotation-a {
+      left: 2%;
+    }
+
+    .annotation-b {
+      right: 1%;
+    }
+
+    .module {
+      padding-inline: 0.8rem;
+    }
+
+    .module-writing li a {
+      grid-template-columns: auto 1fr;
+    }
+
+    .module-writing li em {
+      display: none;
+    }
+
+    .terminal-footer {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+
+    .terminal-footer p:last-child {
+      justify-self: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star-field i,
+    .online-dot,
+    .command-line i {
+      animation: none;
+    }
+
+    .identity-actions a,
+    .module,
+    .module li a,
+    .contact-link {
+      transition: none;
+    }
+  }
+</style>
