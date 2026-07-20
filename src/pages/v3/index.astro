@@ -1,0 +1,58 @@
+---
+import { getCollection } from 'astro:content'
+import { getPortfolioRepos } from '@/data/portfolio-repos'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+import V3Home from '@/components/v3/V3Home.astro'
+
+export const prerender = true
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+    date
+  )
+
+const allPosts = (await getCollection('blog')).filter((post) =>
+  import.meta.env.PROD ? !post.data.draft : true
+)
+const posts = allPosts
+  .sort(
+    (a, b) =>
+      +(b.data.updatedDate ?? b.data.publishDate) - +(a.data.updatedDate ?? a.data.publishDate)
+  )
+  .slice(0, 5)
+  .map((post) => ({
+    title: post.data.title,
+    href: `/blog/${post.id}`,
+    meta: formatDate(post.data.updatedDate ?? post.data.publishDate),
+    kind: '文章'
+  }))
+
+const notes = (await getCollection('notes'))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => +(b.data.updatedDate ?? b.data.date) - +(a.data.updatedDate ?? a.data.date))
+  .slice(0, 4)
+  .map((note) => ({
+    title: note.data.title,
+    href: `/notes/${note.id}`,
+    meta: formatDate(note.data.updatedDate ?? note.data.date),
+    kind: note.data.type
+  }))
+
+const talkCount = (await getCollection('talks')).filter(
+  (talk) => !talk.data.draft && talk.data.status === 'published'
+).length
+
+const repos = await getPortfolioRepos('zh')
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — AI Agent & Full-Stack Developer · V3',
+    description: '墨尔本大学在读，AI Agent & 全栈开发者：开源、实习、100+ 场面试复盘，全部公开。',
+    noindex: true
+  }}
+  chrome={false}
+>
+  <V3Home locale='zh' {posts} {notes} {repos} postCount={allPosts.length} {talkCount} />
+</PageLayout>
