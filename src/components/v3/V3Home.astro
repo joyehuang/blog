@@ -1,0 +1,1280 @@
+---
+import { Image } from 'astro:assets'
+import avatar from 'src/assets/avatar.png'
+
+type FeedItem = {
+  title: string
+  href: string
+  meta: string
+  kind: string
+}
+
+type RepoItem = {
+  name: string
+  fullName: string
+  description: string
+  stars: number
+  href?: string
+  eyebrow?: string
+  image?: string
+  imageAlt?: string
+}
+
+interface Props {
+  locale: 'zh' | 'en'
+  posts: FeedItem[]
+  notes: FeedItem[]
+  repos: RepoItem[]
+  postCount: number
+  talkCount: number
+}
+
+const { locale, posts, notes, repos, postCount, talkCount } = Astro.props
+const isEn = locale === 'en'
+const prefix = isEn ? '/en' : ''
+
+const ownStars = repos
+  .filter((repo) => repo.fullName.startsWith('joyehuang/'))
+  .reduce((sum, repo) => sum + repo.stars, 0)
+
+const copy = isEn
+  ? {
+      session: 'k3 · session #2026-07',
+      blog: 'blog',
+      contact: 'contact',
+      prompt: 'Tell me about Joye. Skip the résumé — give me the real story.',
+      thoughtContext: `▸ context: joyehuang.me → ${postCount} essays · 4 teams · ${ownStars}★ · 100+ interviews`,
+      role: 'AI Agent & Full-Stack Developer',
+      bio: 'CS undergrad at the University of Melbourne. I care about how LLMs work under the hood — and whether the product actually ships.',
+      motto: 'Build fast, learn faster.',
+      photoArtifact: 'artifact · profile.png',
+      photoStamp: 'developed ✓',
+      photoCaption: 'Joye · Melbourne · open to intern / full-time roles',
+      thoughtNumbers: '▸ run: numbers.scan() → 5 rows',
+      readoutArtifact: 'artifact · query result',
+      stats: [
+        ['agent-role interviews, debriefed', 'every lesson published, not hoarded'],
+        ['AI teams, hands-on', 'Adastra Labs · Tezign · AIXCut · fAIshion'],
+        ['stars on original repos', 'Learn-Open-Harness · minimind-notes'],
+        ['bilingual long-form essays', 'every essay ships in zh + en'],
+        ['community talks hosted', 'Summer of Agents · fan-group sessions']
+      ],
+      commentary:
+        'Side note — after those 100+ interviews, his takeaway: an interview is not an exam, it’s a two-way street.',
+      thoughtWork: '▸ fetch: selected work → 6 artifacts',
+      generated: 'generated ✓',
+      thoughtWriting: '▸ list: writing → essays & notes',
+      writingArtifact: 'artifact · index',
+      quote: ['Knowledge is the foundation;', 'context', ' is the moat.'],
+      quoteCite: '—— Joye, Talk Ep.2',
+      handoffLines: [
+        'That’s the story.',
+        'He also says: “Don’t chase every buzzword — build a system that keeps running.” I agree.',
+        'The session is yours now:'
+      ],
+      inputPlaceholder: "try 'blog', 'notes', 'about', 'contact' or 'github' …",
+      inputAria: 'Type a command to navigate',
+      credit: 'designed & built with kimi k3',
+      copyright: '© 2026 Joye · Melbourne',
+      backTop: '↑ scroll back to replay the session',
+      cue: 'scroll — the session continues'
+    }
+  : {
+      session: 'k3 · session #2026-07',
+      blog: '博客',
+      contact: '联系',
+      prompt: '介绍一下 joye。别念简历，讲点真的。',
+      thoughtContext: `▸ context: joyehuang.me → ${postCount} essays · 4 teams · ${ownStars}★ · 100+ interviews`,
+      role: 'AI Agent & Full-Stack Developer',
+      bio: '墨尔本大学在读。在意 LLM 的底层机制，也在意产品能不能真正跑起来。',
+      motto: 'Build fast, learn faster.',
+      photoArtifact: 'artifact · profile.png',
+      photoStamp: 'developed ✓',
+      photoCaption: 'Joye · 墨尔本 · 开放实习/全职机会',
+      thoughtNumbers: '▸ run: numbers.scan() → 5 rows',
+      readoutArtifact: 'artifact · query result',
+      stats: [
+        ['场 Agent 岗位面试复盘', '经验全部公开，不私藏'],
+        ['段 AI 团队实战', 'Adastra Labs · Tezign · AIXCut · fAIshion'],
+        ['独立开源项目 Stars', 'Learn-Open-Harness · minimind-notes'],
+        ['篇双语长文', '每篇都有中英两个版本'],
+        ['场社区分享会', 'Summer of Agents · 粉丝群分享']
+      ],
+      commentary: '补一句：面了 100+ 家之后，他的结论是——面试不是考试，是双向选择。',
+      thoughtWork: '▸ fetch: selected work → 6 artifacts',
+      generated: 'generated ✓',
+      thoughtWriting: '▸ list: writing → essays & notes',
+      writingArtifact: 'artifact · index',
+      quote: ['知识是地基，', 'context', ' 才是护城河。'],
+      quoteCite: '—— Joye · 分享会 Ep.2',
+      handoffLines: [
+        '故事讲完了。',
+        '他还说过：「与其追每个名词，不如建一个能持续跑下去的系统。」——我同意。',
+        '会话交给你：'
+      ],
+      inputPlaceholder: "试试 'blog'、'notes'、'about'、'contact' 或 'github' …",
+      inputAria: '输入命令跳转',
+      credit: 'designed & built with kimi k3',
+      copyright: '© 2026 Joye · 墨尔本',
+      backTop: '↑ 回到顶部重播会话',
+      cue: 'scroll — 会话继续'
+    }
+
+const statsData = [
+  { value: 100, suffix: '+' },
+  { value: 4, suffix: '' },
+  { value: ownStars, suffix: '★' },
+  { value: postCount, suffix: '' },
+  { value: talkCount, suffix: '' }
+].map((stat, index) => ({ ...stat, label: copy.stats[index][0], sub: copy.stats[index][1] }))
+
+type Product = {
+  kind: 'product'
+  key: string
+  title: string
+  eyebrow: string
+  description: string
+  href: string
+  domain: string
+  image: string
+  alt: string
+}
+
+type Repo = { kind: 'repo'; key: string; repo: RepoItem }
+type Artifact = Product | Repo
+
+const products: Product[] = isEn
+  ? [
+      {
+        kind: 'product',
+        key: 'playyy',
+        title: 'Playyy',
+        eyebrow: 'Adastra Labs',
+        description:
+          'A brand-aware AI image workspace — brand context, generation, and iteration in one surface.',
+        href: 'https://playyy.ai/',
+        domain: 'playyy.ai',
+        image: '/images/landing/playyy-ui.png',
+        alt: 'Playyy product interface'
+      },
+      {
+        kind: 'product',
+        key: 'atypica',
+        title: 'atypica',
+        eyebrow: 'Tezign AIGC',
+        description:
+          'A commercial-research multi-agent system: clarification, persona interviews, layered memory, async tools.',
+        href: 'https://atypica.ai/',
+        domain: 'atypica.ai',
+        image: '/images/landing/atypica-site.png',
+        alt: 'atypica research agent product page'
+      },
+      {
+        kind: 'product',
+        key: 'aixcut',
+        title: 'AIXCut',
+        eyebrow: 'AIXCut',
+        description:
+          'Agent-assisted video editing: script shaping, footage organisation, and a deliverable cut workflow.',
+        href: 'https://aixcut.cn/',
+        domain: 'aixcut.cn',
+        image: '/images/landing/aixcut-site.png',
+        alt: 'AIXCut video editing product page'
+      }
+    ]
+  : [
+      {
+        kind: 'product',
+        key: 'playyy',
+        title: 'Playyy',
+        eyebrow: 'Adastra Labs',
+        description: '品牌感知的 AI 图像工作台——品牌上下文、生成与迭代在同一个创作界面。',
+        href: 'https://playyy.ai/',
+        domain: 'playyy.ai',
+        image: '/images/landing/playyy-ui.png',
+        alt: 'Playyy 产品界面'
+      },
+      {
+        kind: 'product',
+        key: 'atypica',
+        title: 'atypica',
+        eyebrow: 'Tezign AIGC',
+        description: '商业研究 Multi-Agent：澄清式反问、Persona 访谈、分层记忆与异步工具调用。',
+        href: 'https://atypica.ai/',
+        domain: 'atypica.ai',
+        image: '/images/landing/atypica-site.png',
+        alt: 'atypica 研究 Agent 产品页'
+      },
+      {
+        kind: 'product',
+        key: 'aixcut',
+        title: 'AIXCut',
+        eyebrow: 'AIXCut',
+        description: 'Agent 辅助视频剪辑：脚本塑形、素材组织到可交付成片的工作流。',
+        href: 'https://aixcut.cn/',
+        domain: 'aixcut.cn',
+        image: '/images/landing/aixcut-site.png',
+        alt: 'AIXCut 视频剪辑产品页'
+      }
+    ]
+
+const artifacts: Artifact[] = [
+  { kind: 'repo', key: 'learn-open-harness', repo: repos[0] },
+  products[0],
+  { kind: 'repo', key: 'minimind-notes', repo: repos[1] },
+  products[1],
+  { kind: 'repo', key: 'token-monitor', repo: repos[2] },
+  products[2]
+]
+
+const chips = [
+  { label: '/blog', href: `${prefix}/blog` },
+  { label: '/notes', href: `${prefix}/notes` },
+  { label: '/about', href: `${prefix}/about` },
+  { label: '/contact', href: `${prefix}/contact` },
+  { label: '/github', href: 'https://github.com/joyehuang' }
+]
+---
+
+<v3-home class='session' id='top' data-locale={locale}>
+  <header class='session__bar'>
+    <span class='session__id'><i aria-hidden='true'></i>{copy.session}</span>
+    <span class='session__url' aria-hidden='true'>joyehuang.me/v3</span>
+    <nav class='session__links' aria-label={isEn ? 'Quick links' : '快捷链接'}>
+      <a href={`${prefix}/blog`}>{copy.blog}</a>
+      <a href={`${prefix}/contact`}>{copy.contact}</a>
+      <a class='session__lang' href={isEn ? '/v3' : '/en/v3'}>{isEn ? '中文' : 'EN'}</a>
+    </nav>
+  </header>
+
+  <aside class='plan' data-plan aria-label={isEn ? 'Session plan' : '会话计划'}>
+    <span class='plan__title'>plan</span>
+    <ol>
+      <li data-step='identity'><a href='#s-identity'><i aria-hidden='true'></i>identity</a></li>
+      <li data-step='numbers'><a href='#s-numbers'><i aria-hidden='true'></i>numbers</a></li>
+      <li data-step='work'><a href='#s-work'><i aria-hidden='true'></i>work</a></li>
+      <li data-step='writing'><a href='#s-writing'><i aria-hidden='true'></i>writing</a></li>
+      <li data-step='handoff'><a href='#s-handoff'><i aria-hidden='true'></i>handoff</a></li>
+    </ol>
+  </aside>
+
+  <main class='thread'>
+    <section class='msg msg--user' aria-label={isEn ? 'User prompt' : '用户输入'}>
+      <p class='msg__prompt'>
+        <span class='msg__sigil' aria-hidden='true'>❯</span>
+        <span data-user-prompt data-text={copy.prompt}>{copy.prompt}</span>
+      </p>
+      <span class='msg__cue' data-cue>{copy.cue} ↓</span>
+    </section>
+
+    <section class='msg msg--agent' data-block='identity' id='s-identity'>
+      <p class='thought' data-thought>{copy.thoughtContext}</p>
+      <div class='answer'>
+        <h1 class='answer__word' data-answer-line>Joye<span class='answer__dot'>.</span></h1>
+        <p class='answer__role' data-answer-line>{copy.role}</p>
+        <p class='answer__bio' data-answer-line>{copy.bio}</p>
+        <p class='answer__motto' data-answer-line>{copy.motto}</p>
+      </div>
+      <figure class='artifact artifact--photo' data-photo>
+        <div class='artifact__media'>
+          <Image src={avatar} alt={isEn ? 'Portrait of Joye' : 'Joye 的头像'} loading='eager' />
+        </div>
+        <figcaption>
+          <span class='artifact__head'>
+            {copy.photoArtifact}
+            <span class='artifact__stamp' data-artifact-stamp>{copy.photoStamp}</span>
+          </span>
+          <span class='artifact__caption'>{copy.photoCaption}</span>
+          <span class='artifact__lens'>50mm · f/1.4</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class='msg msg--agent' data-block='numbers' id='s-numbers'>
+      <p class='thought' data-thought>{copy.thoughtNumbers}</p>
+      <div class='artifact'>
+        <span class='artifact__head'>
+          {copy.readoutArtifact}
+          <span class='artifact__stamp is-generated'>{copy.generated}</span>
+        </span>
+        <ul class='readout'>
+          {
+            statsData.map((stat) => (
+              <li class='readout__row' data-readout-row>
+                <span
+                  class='readout__value'
+                  data-count-to={stat.value}
+                  data-count-suffix={stat.suffix}
+                >
+                  {stat.value}
+                  {stat.suffix}
+                </span>
+                <span class='readout__metric'>{stat.label}</span>
+                <span class='readout__note'>{stat.sub}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <p class='commentary' data-commentary>{copy.commentary}</p>
+    </section>
+
+    <section class='msg msg--agent' data-block='work' id='s-work'>
+      <p class='thought' data-thought>{copy.thoughtWork}</p>
+      {
+        artifacts.map((item, index) => (
+          <a
+            class='artifact artifact--card'
+            data-artifact
+            href={item.kind === 'repo' ? item.repo.href : item.href}
+            target='_blank'
+            rel='noopener noreferrer'
+            data-analytics-event='v3_work_click'
+            data-analytics-surface='v3_home'
+            data-analytics-target={item.key}
+          >
+            <span class='artifact__head'>
+              {`artifact ${String(index + 1).padStart(2, '0')} · ${item.kind}`}
+              <span class='artifact__stamp' data-artifact-stamp>
+                {copy.generated}
+              </span>
+            </span>
+            {item.kind === 'repo' && !item.repo.image ? (
+              <span class='artifact__mono' data-artifact-media aria-hidden='true'>
+                <code>$ git clone {item.repo.fullName}</code>
+                <span class='artifact__stars'>★ {item.repo.stars}</span>
+              </span>
+            ) : (
+              <span class='artifact__shot' data-artifact-media>
+                <img
+                  src={item.kind === 'repo' ? item.repo.image : item.image}
+                  alt={item.kind === 'repo' ? (item.repo.imageAlt ?? item.repo.name) : item.alt}
+                  loading='lazy'
+                />
+              </span>
+            )}
+            <span class='artifact__body'>
+              <span class='artifact__eyebrow'>
+                {item.kind === 'repo' ? item.repo.eyebrow : item.eyebrow}
+              </span>
+              <span class='artifact__title'>
+                {item.kind === 'repo' ? item.repo.name : item.title}
+              </span>
+              <span class='artifact__desc'>
+                {item.kind === 'repo' ? item.repo.description : item.description}
+              </span>
+              <span class='artifact__meta'>
+                {item.kind === 'repo' ? `★ ${item.repo.stars} · github ↗` : `${item.domain} ↗`}
+              </span>
+            </span>
+          </a>
+        ))
+      }
+    </section>
+
+    <section class='msg msg--agent' data-block='writing' id='s-writing'>
+      <p class='thought' data-thought>{copy.thoughtWriting}</p>
+      <div class='artifact'>
+        <span class='artifact__head'>
+          {copy.writingArtifact}
+          <span class='artifact__stamp is-generated'>{copy.generated}</span>
+        </span>
+        <div class='index'>
+          <div class='index__col'>
+            <span class='index__label'>{isEn ? 'essays' : '长文'}</span>
+            <ul>
+              {
+                posts.map((post) => (
+                  <li data-log-line>
+                    <a
+                      href={post.href}
+                      data-analytics-event='v3_writing_click'
+                      data-analytics-surface='v3_home'
+                      data-analytics-target={post.title}
+                    >
+                      <span class='index__kind'>{post.kind}</span>
+                      <span class='index__title'>{post.title}</span>
+                      <time>{post.meta}</time>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <div class='index__col'>
+            <span class='index__label'>{isEn ? 'notes' : '研究笔记'}</span>
+            <ul>
+              {
+                notes.map((note) => (
+                  <li data-log-line>
+                    <a
+                      href={note.href}
+                      data-analytics-event='v3_writing_click'
+                      data-analytics-surface='v3_home'
+                      data-analytics-target={note.title}
+                    >
+                      <span class='index__kind'>{note.kind}</span>
+                      <span class='index__title'>{note.title}</span>
+                      <time>{note.meta}</time>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+      <blockquote class='summary' data-quote>
+        <p>
+          {
+            copy.quote.map((segment) => (
+              <span class='summary__mask'>
+                <span data-quote-word>{segment}</span>
+              </span>
+            ))
+          }
+        </p>
+        <cite>{copy.quoteCite}</cite>
+      </blockquote>
+    </section>
+
+    <section class='msg msg--agent' data-block='handoff' id='s-handoff'>
+      <div class='answer answer--closing'>
+        {copy.handoffLines.map((line) => <p data-answer-line>{line}</p>)}
+      </div>
+      <div class='live' data-live-prompt>
+        <span class='live__sigil' aria-hidden='true'>❯</span>
+        <input
+          type='text'
+          data-prompt-input
+          placeholder={copy.inputPlaceholder}
+          aria-label={copy.inputAria}
+          autocomplete='off'
+          autocapitalize='off'
+          spellcheck='false'
+        />
+      </div>
+      <p class='live__echo' data-prompt-echo aria-live='polite'></p>
+      <ul class='chips'>
+        {
+          chips.map((chip) => (
+            <li data-chip>
+              <a
+                href={chip.href}
+                data-analytics-event='v3_chip_click'
+                data-analytics-surface='v3_home'
+                data-analytics-target={chip.label}
+              >
+                {chip.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <footer class='session__foot'>
+      <span class='session__credit'>{copy.credit}</span>
+      <a href='#top' data-chip>{copy.backTop}</a>
+      <span>{copy.copyright}</span>
+    </footer>
+  </main>
+</v3-home>
+
+{/* Clear the prompt before first paint so the session can type it live (JS-only path). */}
+<script is:inline>
+  ;(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const el = document.querySelector('[data-user-prompt]')
+    if (el) el.textContent = ''
+  })()
+</script>
+
+<script>
+  import './v3-engine'
+</script>
+
+<style>
+  v3-home {
+    /* the session theatre — always dark, its own token set */
+    --s-bg: 200 24% 4%;
+    --s-surface: 198 18% 8%;
+    --s-user: 198 20% 11%;
+    --s-fg: 48 26% 93%;
+    --s-dim: 198 10% 67%;
+    --s-faint: 198 8% 45%;
+    --s-line: 198 14% 21%;
+    --s-accent: 198 56% 66%;
+    --s-danger: 0 65% 62%;
+
+    display: block;
+    min-height: 100vh;
+    color-scheme: dark;
+    background:
+      radial-gradient(70% 42% at 50% 0%, hsl(var(--s-accent) / 0.055), transparent 72%),
+      hsl(var(--s-bg));
+    color: hsl(var(--s-fg));
+  }
+
+  .session a {
+    color: inherit;
+  }
+
+  /* --------------------------- session bar --------------------------- */
+
+  .session__bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem clamp(1rem, 4vw, 2.25rem);
+    border-bottom: 1px solid hsl(var(--s-line) / 0.55);
+    background: hsl(var(--s-bg) / 0.78);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    color: hsl(var(--s-dim));
+  }
+
+  .session__id {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .session__id i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: hsl(var(--s-accent));
+    animation: s-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes s-pulse {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .session__url {
+    color: hsl(var(--s-faint));
+  }
+
+  .session__links {
+    display: flex;
+    gap: 1.1rem;
+  }
+
+  .session__links a {
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .session__links a:hover {
+    color: hsl(var(--s-accent));
+  }
+
+  .session__lang {
+    color: hsl(var(--s-faint));
+  }
+
+  /* ----------------------------- plan rail ---------------------------- */
+
+  .plan {
+    position: fixed;
+    left: clamp(1rem, 3.5vw, 3rem);
+    top: 50%;
+    transform: translateY(-50%) translateX(-10px);
+    z-index: 90;
+    opacity: 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--s-faint));
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+    pointer-events: none;
+  }
+
+  .plan.is-visible {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+    pointer-events: auto;
+  }
+
+  .plan__title {
+    display: block;
+    margin-bottom: 0.8rem;
+    color: hsl(var(--s-faint) / 0.7);
+  }
+
+  .plan ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .plan li a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: color 0.25s ease;
+  }
+
+  .plan li i {
+    font-style: normal;
+    width: 1em;
+    text-align: center;
+  }
+
+  .plan li i::before {
+    content: '·';
+  }
+
+  .plan li.is-done i::before {
+    content: '✓';
+    color: hsl(var(--s-accent) / 0.7);
+  }
+
+  .plan li.is-active {
+    color: hsl(var(--s-fg));
+  }
+
+  .plan li.is-active i::before {
+    content: '▸';
+    color: hsl(var(--s-accent));
+  }
+
+  .plan li a:hover {
+    color: hsl(var(--s-accent));
+  }
+
+  /* ------------------------------ thread ------------------------------ */
+
+  .thread {
+    width: min(46rem, 100% - clamp(2rem, 8vw, 5rem));
+    margin-inline: auto;
+    padding: 8.5rem 0 3rem;
+  }
+
+  .thread section {
+    margin-bottom: clamp(4.5rem, 13vh, 8rem);
+    scroll-margin-top: 4.5rem;
+  }
+
+  .thought {
+    margin: 0 0 1.4rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: hsl(var(--s-faint));
+    min-height: 1.2em;
+  }
+
+  .is-typing::after {
+    content: '▌';
+    margin-left: 0.1em;
+    color: hsl(var(--s-accent));
+    animation: s-caret 0.8s steps(1) infinite;
+  }
+
+  @keyframes s-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* user prompt */
+
+  .msg--user {
+    min-height: 72vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .msg__prompt {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    margin: 0;
+    padding: 1.1rem 1.35rem;
+    border: 1px solid hsl(var(--s-line));
+    border-radius: 12px;
+    background: hsl(var(--s-user));
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: clamp(0.92rem, 2.4vw, 1.08rem);
+    line-height: 1.6;
+  }
+
+  .msg__sigil {
+    color: hsl(var(--s-accent));
+    flex: none;
+  }
+
+  .msg__cue {
+    position: absolute;
+    left: 50%;
+    bottom: 0.5rem;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    color: hsl(var(--s-faint));
+    animation: s-cue 2.6s ease-in-out infinite;
+    transition: opacity 0.5s ease;
+  }
+
+  .msg__cue.is-hidden {
+    opacity: 0;
+  }
+
+  @keyframes s-cue {
+    50% {
+      transform: translate(-50%, 6px);
+    }
+  }
+
+  /* answers */
+
+  .answer__word {
+    margin: 0;
+    font-size: clamp(3.4rem, 11vw, 7.5rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 0.92;
+  }
+
+  .answer__dot {
+    color: hsl(var(--s-accent));
+  }
+
+  .answer__role {
+    margin: 1.1rem 0 0;
+    font-size: clamp(1.05rem, 2.6vw, 1.35rem);
+    font-weight: 500;
+  }
+
+  .answer__bio {
+    margin: 0.65rem 0 0;
+    max-width: 32rem;
+    line-height: 1.7;
+    color: hsl(var(--s-dim));
+  }
+
+  .answer__motto {
+    margin: 1rem 0 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    color: hsl(var(--s-accent));
+  }
+
+  .answer--closing p {
+    margin: 0 0 1.1rem;
+    font-size: clamp(1.02rem, 2.6vw, 1.25rem);
+    line-height: 1.75;
+  }
+
+  .answer--closing p:first-child {
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* artifacts */
+
+  .artifact {
+    display: block;
+    margin-top: 1.4rem;
+    border: 1px solid hsl(var(--s-line));
+    border-radius: 14px;
+    background: hsl(var(--s-surface));
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition:
+      border-color 0.3s ease,
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  a.artifact:hover {
+    border-color: hsl(var(--s-accent) / 0.55);
+    transform: translateY(-3px);
+    box-shadow: 0 18px 44px hsl(200 24% 2% / 0.5);
+  }
+
+  .artifact__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid hsl(var(--s-line) / 0.7);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    color: hsl(var(--s-faint));
+  }
+
+  .artifact__stamp {
+    color: hsl(var(--s-faint) / 0.6);
+    transition: color 0.4s ease;
+  }
+
+  .artifact__stamp.is-generated {
+    color: hsl(var(--s-accent));
+  }
+
+  .artifact--photo {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.1rem 1.2rem;
+    max-width: 30rem;
+  }
+
+  .artifact--photo .artifact__media {
+    flex: none;
+    width: 5.4rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid hsl(var(--s-line));
+  }
+
+  .artifact--photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .artifact--photo figcaption {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .artifact--photo .artifact__head {
+    padding: 0;
+    border: none;
+  }
+
+  .artifact__caption {
+    font-size: 0.82rem;
+    color: hsl(var(--s-dim));
+  }
+
+  .artifact__lens {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    color: hsl(var(--s-faint));
+  }
+
+  .artifact__shot {
+    display: block;
+    margin: 1rem 1.1rem 0;
+    border: 1px solid hsl(var(--s-line));
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9.5;
+  }
+
+  .artifact__shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .artifact__mono {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.9rem;
+    margin: 1rem 1.1rem 0;
+    padding: 1.4rem 1.3rem;
+    aspect-ratio: 16 / 9.5;
+    border: 1px dashed hsl(var(--s-line));
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  .artifact__mono code {
+    font-size: 0.7rem;
+    color: hsl(var(--s-faint));
+    word-break: break-all;
+  }
+
+  .artifact__stars {
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: hsl(var(--s-accent));
+  }
+
+  .artifact__body {
+    display: grid;
+    gap: 0.4rem;
+    padding: 1.05rem 1.15rem 1.25rem;
+  }
+
+  .artifact__eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    color: hsl(var(--s-accent));
+  }
+
+  .artifact__title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .artifact__desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: hsl(var(--s-dim));
+  }
+
+  .artifact__meta {
+    margin-top: 0.35rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.64rem;
+    color: hsl(var(--s-faint));
+  }
+
+  /* readout */
+
+  .readout {
+    margin: 0;
+    padding: 0.4rem 0;
+    list-style: none;
+  }
+
+  .readout__row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 0.2rem 1.2rem;
+    align-items: baseline;
+    padding: 0.85rem 1.15rem;
+  }
+
+  .readout__row + .readout__row {
+    border-top: 1px solid hsl(var(--s-line) / 0.55);
+  }
+
+  .readout__value {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 1.45rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: hsl(var(--s-accent));
+    font-variant-numeric: tabular-nums;
+  }
+
+  .readout__metric {
+    font-size: 0.92rem;
+  }
+
+  .readout__note {
+    grid-column: 2;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
+    color: hsl(var(--s-faint));
+  }
+
+  .commentary {
+    margin: 1.4rem 0 0;
+    max-width: 34rem;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: hsl(var(--s-dim));
+    min-height: 1.6em;
+  }
+
+  /* writing index */
+
+  .index {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 1.1rem 1.15rem 1.3rem;
+  }
+
+  .index__label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    color: hsl(var(--s-faint));
+  }
+
+  .index__col ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid hsl(var(--s-line) / 0.6);
+  }
+
+  .index__col li a {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid hsl(var(--s-line) / 0.6);
+    text-decoration: none;
+  }
+
+  .index__kind {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--s-faint));
+  }
+
+  .index__title {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    transition: color 0.2s ease;
+  }
+
+  .index__col li a:hover .index__title {
+    color: hsl(var(--s-accent));
+  }
+
+  .index__col time {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    color: hsl(var(--s-faint));
+  }
+
+  /* summary quote */
+
+  .summary {
+    margin: clamp(3rem, 9vh, 5.5rem) 0 0;
+    padding: 0;
+  }
+
+  .summary p {
+    margin: 0;
+    font-size: clamp(1.9rem, 5.6vw, 3.4rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .summary__mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  .summary__mask > span {
+    display: inline-block;
+  }
+
+  .summary__mask:nth-child(2) > span {
+    color: hsl(var(--s-accent));
+  }
+
+  .summary cite {
+    display: block;
+    margin-top: 1.2rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.66rem;
+    font-style: normal;
+    color: hsl(var(--s-faint));
+  }
+
+  /* live prompt */
+
+  .live {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 1.8rem;
+    padding: 1rem 1.3rem;
+    border: 1px solid hsl(var(--s-line));
+    border-radius: 12px;
+    background: hsl(var(--s-user));
+    transition:
+      border-color 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+
+  .live.is-armed {
+    border-color: hsl(var(--s-accent) / 0.65);
+    box-shadow: 0 0 0 4px hsl(var(--s-accent) / 0.12);
+    animation: s-arm 2.6s ease-in-out infinite;
+  }
+
+  @keyframes s-arm {
+    50% {
+      box-shadow: 0 0 0 8px hsl(var(--s-accent) / 0.05);
+    }
+  }
+
+  .live__sigil {
+    color: hsl(var(--s-accent));
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  .live input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: hsl(var(--s-fg));
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  .live input::placeholder {
+    color: hsl(var(--s-faint));
+  }
+
+  .live__echo {
+    margin: 0.8rem 0 0;
+    min-height: 1.2em;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: hsl(var(--s-danger));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .live__echo.is-visible {
+    opacity: 1;
+  }
+
+  .live__echo.is-ok {
+    color: hsl(var(--s-accent));
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.2rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chips a {
+    display: inline-flex;
+    padding: 0.5rem 0.95rem;
+    border: 1px solid hsl(var(--s-line));
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    text-decoration: none;
+    color: hsl(var(--s-dim));
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .chips a:hover {
+    border-color: hsl(var(--s-accent) / 0.6);
+    color: hsl(var(--s-accent));
+    transform: translateY(-2px);
+  }
+
+  /* footer */
+
+  .session__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid hsl(var(--s-line));
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--s-faint));
+  }
+
+  .session__credit {
+    color: hsl(var(--s-accent));
+  }
+
+  .session__foot a {
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .session__foot a:hover {
+    color: hsl(var(--s-accent));
+  }
+
+  /* --------------------------- responsive --------------------------- */
+
+  @media (max-width: 1100px) {
+    .plan {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .session__url {
+      display: none;
+    }
+
+    .thread {
+      padding-top: 6.5rem;
+    }
+
+    .msg--user {
+      min-height: 60vh;
+    }
+
+    .index {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .readout__row {
+      grid-template-columns: 5.2rem 1fr;
+    }
+
+    .readout__value {
+      font-size: 1.2rem;
+    }
+
+    .artifact--photo {
+      align-items: flex-start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .session__id i,
+    .msg__cue,
+    .live.is-armed {
+      animation: none !important;
+    }
+
+    .plan {
+      transition: none;
+    }
+  }
+</style>

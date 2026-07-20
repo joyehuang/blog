@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content'
+import { getPortfolioRepos } from '@/data/portfolio-repos'
+
+import PageLayout from '@/layouts/BaseLayout.astro'
+import V3Home from '@/components/v3/V3Home.astro'
+
+export const prerender = true
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('en-AU', { year: 'numeric', month: 'short', day: '2-digit' }).format(date)
+
+const allPosts = (await getCollection('blogEn')).filter(
+  (post) => (import.meta.env.PROD ? !post.data.draft : true) && post.data.translationKey
+)
+const posts = allPosts
+  .sort(
+    (a, b) =>
+      +(b.data.updatedDate ?? b.data.publishDate) - +(a.data.updatedDate ?? a.data.publishDate)
+  )
+  .slice(0, 5)
+  .map((post) => ({
+    title: post.data.title,
+    href: `/en/blog/${post.data.translationKey}`,
+    meta: formatDate(post.data.updatedDate ?? post.data.publishDate),
+    kind: 'Essay'
+  }))
+
+const notes = (await getCollection('notesEn'))
+  .filter((note) => !note.data.draft && note.data.translationKey)
+  .sort((a, b) => +(b.data.updatedDate ?? b.data.date) - +(a.data.updatedDate ?? a.data.date))
+  .slice(0, 4)
+  .map((note) => ({
+    title: note.data.title,
+    href: `/en/notes/${note.data.translationKey}`,
+    meta: formatDate(note.data.updatedDate ?? note.data.date),
+    kind: note.data.type
+  }))
+
+const talkCount = (await getCollection('talks')).filter(
+  (talk) => !talk.data.draft && talk.data.status === 'published'
+).length
+
+const repos = await getPortfolioRepos('en')
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — AI Agent & Full-Stack Developer · V3',
+    description:
+      'CS undergrad in Melbourne building AI agents and full-stack products — open source, internships, and 100+ public interview debriefs.',
+    noindex: true
+  }}
+  chrome={false}
+>
+  <V3Home locale='en' {posts} {notes} {repos} postCount={allPosts.length} {talkCount} />
+</PageLayout>
