@@ -3,8 +3,9 @@ import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
-import pencilIcon from '@/assets/tools/pencil.png'
+import Comment from '@/components/comment/Comment.astro'
 import hermesIcon from '@/assets/tools/hermes.png'
+import pencilIcon from '@/assets/tools/pencil.png'
 
 const headings = [
   { depth: 2, slug: 'summer-of-agents', text: 'Summer of Agents' },
@@ -25,15 +26,15 @@ const headings = [
     started with piano and cello, which my parents pushed me into.
   </p>
   <p>
-    My motto: Build fast, learn faster. <Spoiler></Spoiler>
+    My motto: Build fast, learn faster. <Spoiler />
   </p>
   <Button title='Sponsor Me' class='w-fit' href='/en/projects#sponsorship' style='ahead' />
 
   {/* summer-of-agents */}
   <h2 id='summer-of-agents'>Summer of Agents</h2>
   <p>
-    This summer I kicked off the first Joye fan-group Agent competition — a dozen-plus tracks to pick
-    from, or propose your own. Sign-ups and team-forming have closed; teams are now heads-down
+    This summer I kicked off the first Joye fan-group Agent competition — a dozen-plus tracks to
+    pick from, or propose your own. Sign-ups and team-forming have closed; teams are now heads-down
     building. The board is in Chinese, but you're welcome to browse the roster or just spectate.
   </p>
   <a
@@ -49,7 +50,9 @@ const headings = [
         </span>
         <span class='text-muted-foreground'>Joye fan-group Agent competition</span>
       </span>
-      <span class='mt-1.5 block text-xl font-bold text-foreground sm:text-2xl'>Summer of Agents</span>
+      <span class='mt-1.5 block text-xl font-bold text-foreground sm:text-2xl'
+        >Summer of Agents</span
+      >
       <span class='mt-1 block text-sm leading-relaxed text-muted-foreground'>
         See what each team is building.
       </span>
@@ -65,21 +68,21 @@ const headings = [
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
     <li>
-      <strong>Music</strong> — Learned piano and cello growing up. Though it started as parental
-      pressure, music has become something I can't imagine life without. I'll occasionally play
-      a few favorite pieces to unwind.
+      <strong>Music</strong> — Learned piano and cello growing up. Though it started as parental pressure,
+      music has become something I can't imagine life without. I'll occasionally play a few favorite
+      pieces to unwind.
     </li>
     <li>
-      <strong>Model Building</strong> — I enjoy assembling all kinds of models. The process from
-      zero to finished piece trains both my hands and my patience.
+      <strong>Model Building</strong> — I enjoy assembling all kinds of models. The process from zero
+      to finished piece trains both my hands and my patience.
     </li>
     <li>
-      <strong>Photography</strong> — A new hobby! I use the camera to capture small moments and
-      explore different perspectives and lighting.
+      <strong>Photography</strong> — A new hobby! I use the camera to capture small moments and explore
+      different perspectives and lighting.
     </li>
     <li>
-      <strong>Open Source</strong> — Working toward becoming an active open-source contributor,
-      learning and growing through code and community.
+      <strong>Open Source</strong> — Working toward becoming an active open-source contributor, learning
+      and growing through code and community.
     </li>
   </ul>
 
@@ -353,8 +356,8 @@ const headings = [
   </Collapse>
   <Collapse title='About Music'>
     Though my parents "made" me learn instruments, I'm grateful they held the line. Piano taught me
-    how to express feeling; cello taught me patience and focus. When debugging fries my brain, a
-    few minutes on the keys works better than coffee.
+    how to express feeling; cello taught me patience and focus. When debugging fries my brain, a few
+    minutes on the keys works better than coffee.
   </Collapse>
 
   {/* about-blog */}
@@ -366,8 +369,8 @@ const headings = [
     and hopefully some of it helps others on the same path.
   </p>
   <p>
-    The principle behind the site: keep it simple, fast, and content-first. Modern stack,
-    fast loads, no friction. Comments welcome — let's learn together.
+    The principle behind the site: keep it simple, fast, and content-first. Modern stack, fast
+    loads, no friction. Comments welcome — let's learn together.
   </p>
   <p>Website history:</p>
   <Timeline
@@ -379,8 +382,7 @@ const headings = [
       },
       {
         date: '2025-07-01',
-        content:
-          'Published my first post, "My first PR" — the official start of writing here.'
+        content: 'Published my first post, "My first PR" — the official start of writing here.'
       },
       {
         date: '2025-10-23',
@@ -424,4 +426,5 @@ const headings = [
       >
     </li>
   </ul>
+  <Comment class='mt-8' path='/about' />
 </PageLayout>

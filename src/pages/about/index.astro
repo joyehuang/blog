@@ -3,8 +3,9 @@ import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
-import pencilIcon from '@/assets/tools/pencil.png'
+import Comment from '@/components/comment/Comment.astro'
 import hermesIcon from '@/assets/tools/hermes.png'
+import pencilIcon from '@/assets/tools/pencil.png'
 
 const headings = [
   { depth: 2, slug: 'summer-of-agents', text: 'Summer of Agents' },
@@ -23,14 +24,15 @@ const headings = [
     以及开源佬！虽然说喜欢音乐都是都是被父母“逼”学的钢琴和大提琴。
   </p>
   <p>
-    My motto: Build fast, learn faster. <Spoiler></Spoiler>
+    My motto: Build fast, learn faster. <Spoiler />
   </p>
   <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' style='ahead' />
 
   {/* summer-of-agents */}
   <h2 id='summer-of-agents'>Summer of Agents</h2>
   <p>
-    今年夏天我在粉丝群里发起了「第一届 Joye 粉丝 Agent 比赛」——十几个赛道任你选，也可以自命题开一队。
+    今年夏天我在粉丝群里发起了「第一届 Joye 粉丝 Agent
+    比赛」——十几个赛道任你选，也可以自命题开一队。
     报名和组队都已经截止，现在各队正在开发中，围观、追进度都欢迎，说不定还会有第二届 😄
   </p>
   <a
@@ -46,7 +48,9 @@ const headings = [
         </span>
         <span class='text-muted-foreground'>Joye 粉丝 Agent 比赛 · 比赛进行中</span>
       </span>
-      <span class='mt-1.5 block text-xl font-bold text-foreground sm:text-2xl'>Summer of Agents</span>
+      <span class='mt-1.5 block text-xl font-bold text-foreground sm:text-2xl'
+        >Summer of Agents</span
+      >
       <span class='mt-1 block text-sm leading-relaxed text-muted-foreground'>
         看看各队都在做什么，围观一下比赛进度。
       </span>
@@ -77,9 +81,7 @@ const headings = [
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    平时最常出没在 GitHub 和 X 上，B 站和小红书也会偶尔更新一些内容。欢迎来找我玩，一起交流～
-  </p>
+  <p>平时最常出没在 GitHub 和 X 上，B 站和小红书也会偶尔更新一些内容。欢迎来找我玩，一起交流～</p>
   <Substats
     stats={[
       {
@@ -423,11 +425,12 @@ const headings = [
   <h2 id='gossips'>Gossips</h2>
   <Collapse title='墨尔本生活碎片 Life in Melbourne'>
     在墨尔本读书的日子既充实又有趣。这里的咖啡文化、街头艺术、以及多元的文化氛围都让我着迷。
-    周末会去 St Kilda 海滩散步，或者在 State Library 泡一整天。虽然偶尔会想家，但这段经历让我成长了很多。
+    周末会去 St Kilda 海滩散步，或者在 State Library
+    泡一整天。虽然偶尔会想家，但这段经历让我成长了很多。
   </Collapse>
   <Collapse title='关于实习经历 About Internship'>
-    很幸运能在特赞(Tezign)的 AIGC 研发部门实习，这段经历让我真正接触到了前沿的 AI 技术在实际产品中的应用。
-    团队氛围很好，导师们都很耐心，让我学到了很多课堂上学不到的实战经验。
+    很幸运能在特赞(Tezign)的 AIGC 研发部门实习，这段经历让我真正接触到了前沿的 AI
+    技术在实际产品中的应用。 团队氛围很好，导师们都很耐心，让我学到了很多课堂上学不到的实战经验。
   </Collapse>
   <Collapse title='关于音乐 About Music'>
     虽然说是被"逼"着学的乐器，但现在很感谢父母当初的坚持。钢琴让我学会了如何表达情感，
@@ -437,7 +440,8 @@ const headings = [
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
   <p>
-    这个博客是我的个人技术学习笔记和生活记录空间。主要记录 Agent 开发、LLM 原理、全栈开发相关的学习与实践，
+    这个博客是我的个人技术学习笔记和生活记录空间。主要记录 Agent 开发、LLM
+    原理、全栈开发相关的学习与实践，
     也会穿插一些实习经历和思考。希望通过写作沉淀知识，也希望能帮到走在同一条路上的同学。
   </p>
   <p>
@@ -449,7 +453,8 @@ const headings = [
     events={[
       {
         date: '2025-07-04',
-        content: '使用 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人博客，部署到 Vercel'
+        content:
+          '使用 <a href="https://astro.build/" target="_blank">Astro</a> + <a href="https://github.com/cworld1/astro-theme-pure" target="_blank">Pure Theme</a> 搭建个人博客，部署到 Vercel'
       },
       {
         date: '2025-07-01',
@@ -461,7 +466,8 @@ const headings = [
       },
       {
         date: '2025-12',
-        content: '开启 LLM 原理系列：RMSNorm、RoPE、Attention、FeedForward 四篇 Transformer 组件深度笔记'
+        content:
+          '开启 LLM 原理系列：RMSNorm、RoPE、Attention、FeedForward 四篇 Transformer 组件深度笔记'
       },
       {
         date: '2026-03-09',
@@ -493,4 +499,5 @@ const headings = [
       >
     </li>
   </ul>
+  <Comment class='mt-8' path='/about' />
 </PageLayout>
