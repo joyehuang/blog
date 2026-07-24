@@ -1,0 +1,52 @@
+---
+import type { Lang } from '@/i18n/ui'
+import type { LabEntry } from '@/lib/lab'
+import { labCategoryChip, labCategoryLabels } from '@/lib/lab'
+
+interface Props {
+  entry: LabEntry
+  lang?: Lang
+}
+
+const { entry, lang = 'zh' } = Astro.props
+const { title, blurb, date, category, tags } = entry.data
+
+const catLabel = labCategoryLabels[lang][category] ?? category
+const dateLocale = lang === 'en' ? 'en-US' : 'zh-CN'
+---
+
+<a
+  href={`/lab/${entry.id}`}
+  class='group flex h-full flex-col rounded-lg border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm sm:p-6'
+  data-astro-prefetch
+>
+  <div class='mb-3'>
+    <span class={`rounded-md px-2 py-0.5 text-xs font-medium ${labCategoryChip[category]}`}>
+      {catLabel}
+    </span>
+  </div>
+
+  <h3 class='text-lg font-medium leading-tight transition-colors group-hover:text-primary'>
+    {title}
+  </h3>
+
+  <p class='mt-2 text-sm leading-6 text-muted-foreground'>{blurb}</p>
+
+  <div class='mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground'>
+    <time datetime={date.toISOString()}>
+      {date.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}
+    </time>
+    {
+      tags.length > 0 && (
+        <>
+          <span>·</span>
+          <div class='flex flex-wrap gap-1.5'>
+            {tags.slice(0, 3).map((tag) => (
+              <span class='rounded-md bg-muted px-2 py-0.5'>{tag}</span>
+            ))}
+          </div>
+        </>
+      )
+    }
+  </div>
+</a>

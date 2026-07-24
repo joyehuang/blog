@@ -1,0 +1,73 @@
+---
+/**
+ * DemoFrame — the framed stage for a Lab demo.
+ *
+ * Wraps a self-contained demo (usually a React island) in a site-token card so
+ * it reads as a deliberate "artifact" the way the terminal sub-theme does: the
+ * chrome (border / radius / shadow) follows the site's light+dark tokens, while
+ * the demo inside keeps its own aesthetic. `bleed` lets the stage break out of
+ * the surrounding prose column into a wider, viewport-centered band so wide
+ * demos (side-by-side comparisons, dashboards) aren't cramped.
+ */
+interface Props {
+  /** Break out of the prose column to a wider, viewport-centered band. */
+  bleed?: boolean
+  /** Optional caption rendered under the stage. */
+  label?: string
+}
+
+const { bleed = true, label } = Astro.props
+---
+
+<figure class:list={['demo-frame not-prose', bleed && 'demo-frame--bleed']}>
+  <div class='demo-frame__stage'>
+    <slot />
+  </div>
+  {label && <figcaption class='demo-frame__cap'>{label}</figcaption>}
+</figure>
+
+<style is:global>
+  /* Editorial serif + grotesque used by Lab demos. JetBrains Mono is already
+     loaded site-wide by BaseHead, so it is intentionally not re-imported here.
+     Kept on the Lab surface (not global config) so these faces only download on
+     pages that actually render a demo. */
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600&display=swap');
+</style>
+
+<style>
+  .demo-frame {
+    margin: 2rem 0;
+  }
+
+  /* Full-bleed: the surrounding prose column and the page container are both
+     viewport-centered, so left:50% + translateX(-50%) re-centers the stage on
+     the viewport at a width capped to the site container (69rem) or 92vw. */
+  .demo-frame--bleed {
+    position: relative;
+    left: 50%;
+    width: min(69rem, 92vw);
+    transform: translateX(-50%);
+  }
+
+  .demo-frame__stage {
+    overflow: hidden;
+    border: 1px solid hsl(var(--border) / 1);
+    border-radius: 12px;
+    background: hsl(var(--card) / 1);
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
+  }
+
+  .demo-frame__cap {
+    margin-top: 0.75rem;
+    text-align: center;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground) / 1);
+  }
+
+  @media (max-width: 640px) {
+    .demo-frame--bleed {
+      width: 92vw;
+    }
+  }
+</style>
