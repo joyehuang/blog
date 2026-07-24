@@ -4,12 +4,17 @@
  * 观点：展示不同信息密度 / 重要程度时，不必靠“嵌套边框”来表达层级。
  * 三层信息一层套一层的边框会显得很挤很乱；用字号、字重、颜色对比、
  * 留白，或者背景色的深浅差异，同样能传达层级关系，而且更轻盈。
+ * 出处：Refactoring UI（Adam Wathan & Steve Schoger）的“Use fewer borders”。
  *
  * 这个组件用同一份数据（任务 → 步骤 → 日志，三层信息）渲染三遍：
  * 1. 嵌套边框（反例）
  * 2. 字号 + 颜色 + 留白（正例 A：完全不用色块，纯排版）
  * 3. 背景色差（正例 B：不画任何边框线，靠背景色的浓淡表达“层级有多深”）
- * 纯 React + TypeScript + 内联 <style>，字体由 DemoFrame 统一加载。
+ *
+ * 主题：所有颜色走 CSS 变量，`.dark` 下整体切到深色一套；状态色（完成 /
+ * 进行中 / 等待）不再写死在 JSX，改由 `data-status` 映射到 `--s`，因此明暗
+ * 都能自适应，且 SSR 阶段就已确定，无需在客户端探测主题。字体由 DemoFrame
+ * 统一加载。
  */
 
 type StepStatus = 'done' | 'active' | 'pending'
@@ -59,12 +64,6 @@ const STEPS: StepEntry[] = [
   }
 ]
 
-const STATUS_COLOR: Record<StepStatus, string> = {
-  done: '#1F6F4A',
-  active: '#B8860B',
-  pending: '#9AA3AC'
-}
-
 const STATUS_LABEL: Record<StepStatus, string> = {
   done: '完成',
   active: '进行中',
@@ -80,17 +79,12 @@ function NestedBordersDemo() {
       <div className='hd-bad-sub'>Q3 用户增长归因分析</div>
 
       {STEPS.map((step) => (
-        <div className='hd-bad-step' key={step.id}>
+        <div className='hd-bad-step' data-status={step.status} key={step.id}>
           <div className='hd-bad-step-head'>
             <span>
               {step.id} {step.label}
             </span>
-            <span
-              className='hd-bad-status'
-              style={{ borderColor: STATUS_COLOR[step.status], color: STATUS_COLOR[step.status] }}
-            >
-              {STATUS_LABEL[step.status]}
-            </span>
+            <span className='hd-bad-status'>{STATUS_LABEL[step.status]}</span>
           </div>
           <div className='hd-bad-meta'>{step.meta}</div>
 
@@ -115,19 +109,13 @@ function TypographyHierarchyDemo() {
 
       <div className='hd-good-steps'>
         {STEPS.map((step) => (
-          <div className='hd-good-step' key={step.id}>
+          <div className='hd-good-step' data-status={step.status} key={step.id}>
             <div className='hd-good-step-head'>
-              <span
-                className='hd-good-dot'
-                style={{ background: STATUS_COLOR[step.status] }}
-                aria-hidden
-              />
+              <span className='hd-good-dot' aria-hidden />
               <span className='hd-good-step-label'>
                 {step.id} {step.label}
               </span>
-              <span className='hd-good-status' style={{ color: STATUS_COLOR[step.status] }}>
-                {STATUS_LABEL[step.status]}
-              </span>
+              <span className='hd-good-status'>{STATUS_LABEL[step.status]}</span>
               <span className='hd-good-meta'>{step.meta}</span>
             </div>
 
@@ -155,25 +143,16 @@ function BackgroundShadeDemo() {
 
       <div className='hd-bg-steps'>
         {STEPS.map((step) => (
-          <div
-            className='hd-bg-step'
-            key={step.id}
-            style={{ background: `color-mix(in srgb, ${STATUS_COLOR[step.status]} 7%, white)` }}
-          >
+          <div className='hd-bg-step' data-status={step.status} key={step.id}>
             <div className='hd-bg-step-head'>
               <span className='hd-bg-step-label'>
                 {step.id} {step.label}
               </span>
-              <span className='hd-bg-status' style={{ color: STATUS_COLOR[step.status] }}>
-                {STATUS_LABEL[step.status]}
-              </span>
+              <span className='hd-bg-status'>{STATUS_LABEL[step.status]}</span>
               <span className='hd-bg-meta'>{step.meta}</span>
             </div>
 
-            <div
-              className='hd-bg-logs'
-              style={{ background: `color-mix(in srgb, ${STATUS_COLOR[step.status]} 13%, white)` }}
-            >
+            <div className='hd-bg-logs'>
               {step.logs.map((log, i) => (
                 <div className={`hd-bg-log${log.muted ? ' hd-bg-log--muted' : ''}`} key={i}>
                   {log.text}
@@ -194,6 +173,7 @@ export default function InfoHierarchyDemo() {
     <div className='hd-root'>
       <style>{`
         .hd-root {
+          /* Light palette */
           --bg: #F1F3EE;
           --ink: #171B1A;
           --ink-soft: rgba(23,27,26,0.82);
@@ -204,16 +184,68 @@ export default function InfoHierarchyDemo() {
           --shade: #3B6E8C;
           --card: #FFFFFF;
 
+          /* Status colors (done / active / pending) */
+          --hd-done: #1F6F4A;
+          --hd-active: #B8860B;
+          --hd-pending: #9AA3AC;
+
+          /* Surfaces & lines */
+          --hd-inset: #FAFAF8;
+          --hd-card-2: #FFFFFF;
+          --hd-hover: rgba(23,27,26,0.03);
+          --hd-rule: rgba(23,27,26,0.1);
+          --hd-dot: rgba(23,27,26,0.05);
+          --hd-frame-shadow: 0 1px 2px rgba(23,27,26,0.06), 0 10px 24px rgba(23,27,26,0.05);
+
+          /* Background-shade demo: task color mixed into this base */
+          --hd-shade-base: #FFFFFF;
+          --hd-shade-lo: 7%;
+          --hd-shade-hi: 13%;
+
           background: var(--bg);
           background-image:
-            radial-gradient(circle, rgba(23,27,26,0.05) 1px, transparent 1px);
+            radial-gradient(circle, var(--hd-dot) 1px, transparent 1px);
           background-size: 22px 22px;
           color: var(--ink);
           font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
           padding: 48px 24px 56px;
           box-sizing: border-box;
         }
+
+        /* Dark palette — activated by the site's .dark class on <html>. */
+        .dark .hd-root {
+          --bg: #15171B;
+          --ink: #E8EAE6;
+          --ink-soft: rgba(232,234,230,0.82);
+          --muted: #9BA39D;
+          --faint: #565C57;
+          --good: #4ADE80;
+          --bad: #F17A6B;
+          --shade: #86AEC6;
+          --card: #1E2128;
+
+          --hd-done: #4ADE80;
+          --hd-active: #FBBF24;
+          --hd-pending: #9AA39C;
+
+          --hd-inset: #1A1D22;
+          --hd-card-2: #23272E;
+          --hd-hover: rgba(255,255,255,0.04);
+          --hd-rule: rgba(255,255,255,0.1);
+          --hd-dot: rgba(255,255,255,0.045);
+          --hd-frame-shadow: 0 1px 2px rgba(0,0,0,0.45), 0 12px 28px rgba(0,0,0,0.4);
+
+          --hd-shade-base: #14161A;
+          --hd-shade-lo: 12%;
+          --hd-shade-hi: 22%;
+        }
+
         .hd-root *, .hd-root *::before, .hd-root *::after { box-sizing: border-box; }
+
+        /* Map each step's status to a single --s color the children read from. */
+        .hd-root [data-status='done'] { --s: var(--hd-done); }
+        .hd-root [data-status='active'] { --s: var(--hd-active); }
+        .hd-root [data-status='pending'] { --s: var(--hd-pending); }
 
         .hd-header { max-width: 760px; margin: 0 auto 36px; }
         .hd-eyebrow {
@@ -282,7 +314,7 @@ export default function InfoHierarchyDemo() {
           background: var(--card);
           border-radius: 10px;
           padding: 22px 20px;
-          box-shadow: 0 1px 2px rgba(23,27,26,0.06), 0 10px 24px rgba(23,27,26,0.05);
+          box-shadow: var(--hd-frame-shadow);
           animation: hd-rise 0.5s ease both;
         }
         @keyframes hd-rise {
@@ -309,7 +341,7 @@ export default function InfoHierarchyDemo() {
           border-radius: 4px;
           padding: 10px 12px;
           margin-bottom: 10px;
-          background: #FAFAF8;
+          background: var(--hd-inset);
         }
         .hd-bad-step-head {
           display: flex;
@@ -321,7 +353,8 @@ export default function InfoHierarchyDemo() {
         .hd-bad-status {
           font-family: 'JetBrains Mono', monospace;
           font-size: 10.5px;
-          border: 1px solid;
+          border: 1px solid var(--s);
+          color: var(--s);
           border-radius: 3px;
           padding: 1px 6px;
         }
@@ -338,7 +371,7 @@ export default function InfoHierarchyDemo() {
           margin-left: 10px;
           font-family: 'JetBrains Mono', monospace;
           font-size: 11px;
-          background: #fff;
+          background: var(--hd-card-2);
         }
 
         /* ---- 正例：字号 + 颜色 + 留白 ---- */
@@ -361,7 +394,7 @@ export default function InfoHierarchyDemo() {
           border-radius: 6px;
           transition: background 0.2s ease;
         }
-        .hd-good-step:hover { background: rgba(23,27,26,0.03); }
+        .hd-good-step:hover { background: var(--hd-hover); }
 
         .hd-good-step-head {
           display: flex;
@@ -375,6 +408,7 @@ export default function InfoHierarchyDemo() {
           border-radius: 50%;
           align-self: center;
           flex-shrink: 0;
+          background: var(--s);
         }
         .hd-good-step-label {
           font-size: 14.5px;
@@ -385,6 +419,7 @@ export default function InfoHierarchyDemo() {
           font-family: 'JetBrains Mono', monospace;
           font-size: 11px;
           font-weight: 500;
+          color: var(--s);
         }
         .hd-good-meta {
           font-family: 'JetBrains Mono', monospace;
@@ -423,9 +458,10 @@ export default function InfoHierarchyDemo() {
         .hd-bg-step {
           border-radius: 8px;
           padding: 10px 12px 12px;
+          background: color-mix(in srgb, var(--s) var(--hd-shade-lo), var(--hd-shade-base));
           transition: filter 0.2s ease;
         }
-        .hd-bg-step:hover { filter: brightness(0.99) saturate(1.1); }
+        .hd-bg-step:hover { filter: brightness(1.02) saturate(1.05); }
 
         .hd-bg-step-head {
           display: flex;
@@ -440,6 +476,7 @@ export default function InfoHierarchyDemo() {
           font-family: 'JetBrains Mono', monospace;
           font-size: 10.5px;
           font-weight: 500;
+          color: var(--s);
         }
         .hd-bg-meta {
           font-family: 'JetBrains Mono', monospace;
@@ -451,6 +488,7 @@ export default function InfoHierarchyDemo() {
           margin-top: 8px;
           border-radius: 6px;
           padding: 8px 10px;
+          background: color-mix(in srgb, var(--s) var(--hd-shade-hi), var(--hd-shade-base));
           display: flex;
           flex-direction: column;
           gap: 3px;
@@ -470,7 +508,7 @@ export default function InfoHierarchyDemo() {
           grid-template-columns: repeat(4, 1fr);
           gap: 20px;
           padding-top: 24px;
-          border-top: 1px solid rgba(23,27,26,0.1);
+          border-top: 1px solid var(--hd-rule);
         }
         @media (max-width: 900px) {
           .hd-takeaways { grid-template-columns: 1fr 1fr; }
@@ -524,7 +562,7 @@ export default function InfoHierarchyDemo() {
           <span className='hd-tag hd-tag--shade'>✓ 背景色差</span>
           <BackgroundShadeDemo />
           <p className='hd-caption'>
-            不画一条线：步骤块是任务色的 7% 浓度，日志块是 13% 浓度——颜色越浓，说明嵌套得越深。
+            不画一条线：步骤块是任务色的低浓度、日志块浓度更高——颜色越浓，说明嵌套得越深。
           </p>
         </div>
       </div>
