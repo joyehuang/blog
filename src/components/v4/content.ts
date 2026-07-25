@@ -5,7 +5,7 @@ import { getPortfolioRepos } from '@/data/portfolio-repos'
 import type { V4Data, V4Item, V4Locale, V4Milestone } from './types'
 
 /**
- * The points on the hero spiral. Each is anchored to a post folder prefix so
+ * The stops on the horizontal reel. Each is anchored to a post folder prefix so
  * the link can never drift, and the copy is a one-line gloss of that post.
  */
 const MILESTONES: {
