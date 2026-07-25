@@ -13,17 +13,9 @@ source: https://www.refactoringui.com/
 import DemoFrame from '@/components/lab/DemoFrame.astro'
 import InfoHierarchyDemo from './InfoHierarchyDemo.tsx'
 
-<DemoFrame bleed>
+<DemoFrame bleed label="同一份数据渲染三遍——内容完全一致，观感完全不同。">
   <InfoHierarchyDemo client:visible />
 </DemoFrame>
-
-## 一份数据，三种渲染
-
-同一份数据——任务 → 步骤 → 日志，三层信息——渲染三遍：
-
-- **反例（三层嵌套边框）**：读者要先分辨三种边框的粗细和颜色，才能意会“这是层级、不是并列内容”——边框在替读者做本该由排版做的事。
-- **正例 A（字号 · 颜色 · 留白）**：标题大而深、步骤中等、日志小而浅；边框数量为零，层级反而一眼可辨。
-- **正例 B（背景色差）**：不画一条线，越往里的层背景色越浓——颜色越浓，说明嵌套得越深。
 
 ## 拆开看它怎么做到的
 

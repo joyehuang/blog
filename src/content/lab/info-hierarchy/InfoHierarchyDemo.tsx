@@ -247,31 +247,6 @@ export default function InfoHierarchyDemo() {
         .hd-root [data-status='active'] { --s: var(--hd-active); }
         .hd-root [data-status='pending'] { --s: var(--hd-pending); }
 
-        .hd-header { max-width: 760px; margin: 0 auto 36px; }
-        .hd-eyebrow {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          letter-spacing: 0.12em;
-          color: var(--muted);
-          margin: 0 0 10px;
-          text-transform: uppercase;
-        }
-        .hd-h1 {
-          font-family: 'Fraunces', serif;
-          font-weight: 600;
-          font-size: clamp(26px, 4vw, 34px);
-          line-height: 1.25;
-          margin: 0 0 12px;
-          letter-spacing: -0.01em;
-        }
-        .hd-lede {
-          font-size: 14.5px;
-          line-height: 1.7;
-          color: var(--ink-soft);
-          margin: 0;
-          max-width: 60ch;
-        }
-
         .hd-compare {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -534,16 +509,6 @@ export default function InfoHierarchyDemo() {
           .hd-good-step, .hd-bg-step { transition: none; }
         }
       `}</style>
-
-      <div className='hd-header'>
-        <p className='hd-eyebrow'>Rendering UI · 层级表达</p>
-        <h1 className='hd-h1'>信息层级，不必靠边框一层套一层</h1>
-        <p className='hd-lede'>
-          同一份数据，同样是三层信息——任务、步骤、日志。第一种每一层都套一个边框；
-          后两种完全不画边框线，分别靠“字号 + 颜色 + 留白”和“背景色的深浅”来表达层级。
-          内容完全一致，观感完全不同。
-        </p>
-      </div>
 
       <div className='hd-compare'>
         <div className='hd-col'>
