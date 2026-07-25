@@ -2,7 +2,6 @@
 import { Image } from 'astro:assets'
 import avatar from 'src/assets/avatar.png'
 
-import { buildSpiral } from './spiral'
 import type { V4Counts, V4Item, V4Locale, V4Milestone, V4Repo } from './types'
 
 interface Props {
@@ -18,66 +17,52 @@ const { locale = 'zh', posts, notes, repos, milestones, counts } = Astro.props
 const isEn = locale === 'en'
 
 /* ------------------------------------------------------------------ */
-/* copy — every claim below is lifted from the blog                     */
+/* copy — every claim is lifted from the blog                          */
 /* ------------------------------------------------------------------ */
 
 const copy = isEn
   ? {
-      running: 'still running',
-      eyebrow: ['Joye', 'University of Melbourne', 'Agent Engineering'],
-      thesisA: 'The buzzwords are noise.',
-      thesisB: 'The system is signal.',
-      lede: 'On 27 June 2025 I opened my first pull request. Everything after it — the interviews, the dead ends, the source I read, the rejections — I wrote down. This line is the twelve months since.',
-      spiralCaption: 'one line, twelve months, still drawing',
+      live: 'signal live',
+      eyebrow: ['Agent Engineering', 'University of Melbourne', 'Melbourne, AU'],
+      thesisPlain: 'The system is signal.',
+      thesisLead: 'The buzzwords are noise.',
+      lede: 'On 27 June 2025 I opened my first pull request. Everything after it — the interviews, the dead ends, the source I read, the rejections — I wrote down in public.',
       ctaRead: 'Read what I write',
       ctaAbout: 'Get to know me',
-      motto: 'Build fast, learn faster.',
       scroll: 'scroll',
+      motto: 'Build fast, learn faster.',
 
-      ledgerTitle: 'the ledger',
-      ledgerNote:
-        'From a first PR to sitting on the interviewer’s side of the table — twelve months.',
+      tickerNote: 'the nouns change faster than the models — scroll to speed them up',
 
-      arcKicker: '01 / the year',
-      arcTitle: 'What actually happened',
-      arcNote: 'Every entry links to the post it came from. Nothing here is a summary of nothing.',
+      statsKicker: '01 — the ledger',
+      statsTitle: 'Twelve months, counted',
+      statsNote:
+        'From a first pull request to sitting on the interviewer’s side of the table. Every number here is read live from the site’s own content.',
 
-      loopKicker: '02 / the engine',
-      loopTitle: 'A system that keeps running',
-      loopQuote:
-        '“Build a small thing, run into a real problem, distil it into a post, a skill or a note, publish it — and you have a growth loop.”',
-      loopNote:
-        'Two systems, one shape: a resident agent on the technical side, this loop on the growth side. Pick a station.',
-      loopHint: 'hover or tap a station',
+      reelKicker: '02 — the run',
+      reelTitle: 'What actually happened',
+      reelNote: 'Keep scrolling — the year moves sideways.',
+      reelEnd: 'still running',
 
-      ringsKicker: '03 / the field',
-      ringsTitle: 'The nouns change faster than the models',
-      ringsLede:
-        'Prompt → Context → Harness → Loop. Four relays in one year. The model barely moved; what changed is the ring you work on.',
-      ringsCenter: 'model',
-      ringsClosing:
-        'Word → context → environment → mechanism. Same job every time: build a system outward, ring by ring, around a core that never changed.',
-      proofLabel: 'the receipt',
-      proofBody:
-        'LangChain left the model untouched and rebuilt only the harness — Terminal-Bench 2.0 went from 52.8% to 66.5%. Roughly a free model generation.',
-      proofQuote:
-        '“Agent = model + harness. You are either the model or the harness — everything outside the model is harness.”',
-      proofSource: 'Vivek Trivedy, LangChain',
+      workKicker: '03 — the build',
+      workTitle: 'Things I made to break',
+      workNote: 'Start small enough to finish, then run it until it hurts.',
 
-      writingKicker: '04 / the evidence',
+      writingKicker: '04 — the record',
       writingTitle: 'What I write',
       essays: 'long-form',
       research: 'research notes',
       writingMore: 'All posts',
       notesMore: 'All notes',
 
-      offKicker: '05 / off the clock',
+      offKicker: '05 — off the clock',
       offTitle: 'Not only engineering',
       offBody:
-        'Piano and cello since primary school — both because my parents made me. Now, when debugging wears me out, I play for a while; it works better than coffee. I also build scale models, and photography is the new one. I live in Melbourne: weekends are St Kilda beach, or a whole day inside the State Library.',
+        'Piano and cello since primary school — both because my parents made me. Now, when debugging wears me out, I play for a while; it works better than coffee. I also build scale models, and photography is the new one. Weekends are St Kilda beach, or a whole day inside the State Library.',
       offTags: ['piano', 'cello', 'scale models', 'photography', 'Melbourne'],
 
-      endTitle: 'Rather than chase every noun,\nbuild a system that keeps running.',
+      endLead: 'Rather than chase every noun,',
+      endTitle: 'build a system that keeps running.',
       endNote: 'Open to internship and graduate roles in agent engineering.',
       endLinks: [
         { label: 'Blog', href: '/en/blog' },
@@ -91,62 +76,50 @@ const copy = isEn
       navItems: [
         { label: 'Blog', href: '/en/blog' },
         { label: 'About', href: '/en/about' }
-      ]
+      ],
+      builtWith: 'WebGL + GSAP, no 3D library'
     }
   : {
-      running: '系统仍在运行',
-      eyebrow: ['Joye', '墨尔本大学在读', 'Agent Engineering'],
-      thesisA: '名词只是噪音，',
-      thesisB: '系统才是信号。',
-      lede: '2025 年 6 月 27 日，我提了人生中第一个 PR。之后的每一步——面试、踩的坑、读过的源码、被拒绝的时刻——我都写了下来。这条线，就是那之后的 12 个月。',
-      spiralCaption: '一条线，十二个月，还在画',
+      live: '信号在线',
+      eyebrow: ['Agent Engineering', '墨尔本大学在读', 'Melbourne, AU'],
+      thesisPlain: '系统才是信号。',
+      thesisLead: '名词只是噪音，',
+      lede: '2025 年 6 月 27 日，我提了人生中第一个 PR。之后的每一步——面试、踩的坑、读过的源码、被拒绝的时刻——我都公开写了下来。',
       ctaRead: '读我写的',
       ctaAbout: '认识我',
-      motto: 'Build fast, learn faster.',
       scroll: '往下',
+      motto: 'Build fast, learn faster.',
 
-      ledgerTitle: '账本',
-      ledgerNote: '从第一个 PR，到坐在面试官那一侧——12 个月。',
+      tickerNote: '名词换得比模型还快 —— 滚动会让它更快',
 
-      arcKicker: '01 / 这一年',
-      arcTitle: '具体发生了什么',
-      arcNote: '每一条都链回它出处的那篇文章。没有一句是凭空总结的。',
+      statsKicker: '01 — 账本',
+      statsTitle: '十二个月，全部可数',
+      statsNote: '从第一个 PR，到坐在面试官那一侧。这里每个数字都由站内内容实时读出，不是写死的。',
 
-      loopKicker: '02 / 引擎',
-      loopTitle: '一个能自己跑下去的系统',
-      loopQuote:
-        '「先做个小东西，遇到真实的问题，沉淀成文章、Skills 或笔记，公开出来，形成成长闭环。」',
-      loopNote: '两个系统，同一个形状：技术上是一个常驻 agent，成长上就是这个环。点一个节点看看。',
-      loopHint: '悬停或点击任一节点',
+      reelKicker: '02 — 这一年',
+      reelTitle: '具体发生了什么',
+      reelNote: '继续往下滚 —— 这一年会横着走。',
+      reelEnd: '仍在继续',
 
-      ringsKicker: '03 / 这个行业',
-      ringsTitle: '名词换得比模型还快',
-      ringsLede:
-        'Prompt → Context → Harness → Loop，一年之内四拨接力。模型基本没变，变的是你下手的那一圈。',
-      ringsCenter: '模型',
-      ringsClosing:
-        '词 → 上下文 → 环境 → 机制。做的始终是同一件事：围着那个不变的模型核心，一层层向外搭一个系统。',
-      proofLabel: '硬证据',
-      proofBody:
-        'LangChain 模型一行没动，只重做了 harness，Terminal-Bench 2.0 就从 52.8% 冲到 66.5%，整整 +13.7 分——约等于白嫖了一整代模型的进步。',
-      proofQuote:
-        '「Agent = 模型 + Harness。你要么是模型，要么就是 harness——模型之外的一切，都是 harness。」',
-      proofSource: 'Vivek Trivedy · LangChain',
+      workKicker: '03 — 造的东西',
+      workTitle: '做出来，然后把它跑坏',
+      workNote: '先做个小到真能做完的东西，再一直跑到它出问题为止。',
 
-      writingKicker: '04 / 证据',
+      writingKicker: '04 — 记录',
       writingTitle: '写的东西',
       essays: '长文',
       research: '研究笔记',
       writingMore: '全部文章',
       notesMore: '全部笔记',
 
-      offKicker: '05 / 下班以后',
+      offKicker: '05 — 下班以后',
       offTitle: '不只是工程',
       offBody:
-        '从小学钢琴和大提琴，都是被父母「逼」着学的。现在 debug 累了会去弹一会，效果比咖啡还好。还喜欢组模型，摄影是新爱好。人在墨尔本，周末去 St Kilda 海滩散步，或者在 State Library 泡一整天。',
+        '从小学钢琴和大提琴，都是被父母「逼」着学的。现在 debug 累了会去弹一会，效果比咖啡还好。还喜欢组模型，摄影是新爱好。周末去 St Kilda 海滩散步，或者在 State Library 泡一整天。',
       offTags: ['钢琴', '大提琴', '模型制作', '摄影', '墨尔本'],
 
-      endTitle: '与其追每个名词，\n不如建一个能自己跑下去的系统。',
+      endLead: '与其追每个名词，',
+      endTitle: '不如建一个能自己跑下去的系统。',
       endNote: '开放实习 / 全职机会 · Agent 方向。',
       endLinks: [
         { label: '博客', href: '/blog' },
@@ -160,596 +133,285 @@ const copy = isEn
       navItems: [
         { label: 'Blog', href: '/blog' },
         { label: 'About', href: '/about' }
-      ]
+      ],
+      builtWith: 'WebGL + GSAP，没有用任何 3D 库'
     }
 
-/* ------------------------------------------------------------------ */
-/* the ledger — live counts, plus two figures stated in the posts       */
-/* ------------------------------------------------------------------ */
+/* The noun relay, as motion rather than a diagram. */
+const tickerA = [
+  'PROMPT ENGINEERING',
+  'CONTEXT ENGINEERING',
+  'HARNESS ENGINEERING',
+  'LOOP ENGINEERING',
+  'AGENT ENGINEERING'
+]
+const tickerB = ['RAG', 'MCP', 'SKILLS', 'MEMORY', 'EVAL', 'SUB-AGENTS', 'PREFIX CACHE', 'HARNESS']
 
 const ledger = isEn
   ? [
-      { value: String(counts.posts), unit: 'posts', label: 'long-form' },
-      { value: String(counts.notes), unit: 'notes', label: 'research' },
-      { value: '100+', unit: 'rounds', label: 'agent interviews' },
-      { value: String(counts.stars), unit: '★', label: 'GitHub stars' },
-      { value: String(counts.talks), unit: 'sessions', label: 'talks given' },
-      { value: String(counts.teams), unit: 'teams', label: 'Summer of Agents' }
+      { value: counts.posts, suffix: '', label: 'long-form posts' },
+      { value: counts.notes, suffix: '', label: 'research notes' },
+      { value: 100, suffix: '+', label: 'agent interviews' },
+      { value: counts.stars, suffix: '', label: 'GitHub stars' },
+      { value: counts.talks, suffix: '', label: 'community talks' },
+      { value: counts.teams, suffix: '', label: 'Summer of Agents teams' }
     ]
   : [
-      { value: String(counts.posts), unit: '篇', label: '长文' },
-      { value: String(counts.notes), unit: '篇', label: '研究笔记' },
-      { value: '100+', unit: '场', label: 'Agent 岗面试' },
-      { value: String(counts.stars), unit: '★', label: 'GitHub stars' },
-      { value: String(counts.talks), unit: '期', label: '分享会' },
-      { value: String(counts.teams), unit: '支', label: 'Summer of Agents 参赛队' }
+      { value: counts.posts, suffix: '', label: '篇长文' },
+      { value: counts.notes, suffix: '', label: '篇研究笔记' },
+      { value: 100, suffix: '+', label: '场 Agent 岗面试' },
+      { value: counts.stars, suffix: '', label: 'GitHub stars' },
+      { value: counts.talks, suffix: '', label: '期粉丝群分享会' },
+      { value: counts.teams, suffix: '', label: '支 Summer of Agents 队伍' }
     ]
-
-/* ------------------------------------------------------------------ */
-/* the loop — four stations, each backed by real artefacts              */
-/* ------------------------------------------------------------------ */
-
-type Station = {
-  key: string
-  index: string
-  name: string
-  verb: string
-  line: string
-  /** `repo` marks an outbound GitHub link, which is the one click worth tracking. */
-  items: { title: string; note: string; href?: string; repo?: string }[]
-}
-
-const stations: Station[] = isEn
-  ? [
-      {
-        key: 'build',
-        index: '01',
-        name: 'Build',
-        verb: 'make a small thing',
-        line: 'Start with something small enough to actually finish.',
-        items: repos.map((repo) => ({
-          title: repo.name,
-          note: `${repo.eyebrow} · ★ ${repo.stars}`,
-          href: repo.href,
-          repo: repo.name
-        }))
-      },
-      {
-        key: 'break',
-        index: '02',
-        name: 'Break',
-        verb: 'hit a real problem',
-        line: 'Ship it and you will run into problems no tutorial has.',
-        items: [
-          {
-            title: '100+ agent interviews',
-            note: 'Interviewing as a way to keep calibrating',
-            href: '/en/blog'
-          },
-          {
-            title: 'Internship at Tezign, AIGC team',
-            note: 'AI in an actual product',
-            href: '/en/about'
-          },
-          {
-            title: 'Read 11,733 lines of OpenHarness',
-            note: 'CLI boot to agent loop, in one day',
-            href: '/en/blog'
-          }
-        ]
-      },
-      {
-        key: 'distil',
-        index: '03',
-        name: 'Distil',
-        verb: 'write it down',
-        line: 'A post, a skill, a note — anything that outlives the session.',
-        items: [
-          {
-            title: `${counts.posts} long-form posts`,
-            note: 'From first PR to agent engineering',
-            href: '/en/blog'
-          },
-          {
-            title: `${counts.notes} research notes`,
-            note: 'RAG, memory, caching, harness',
-            href: '/en/notes'
-          },
-          { title: 'Curated reading', note: 'Outside work, digested', href: '/en/curated' }
-        ]
-      },
-      {
-        key: 'publish',
-        index: '04',
-        name: 'Publish',
-        verb: 'put it in public',
-        line: 'Publishing forces the output — then it loops back to build.',
-        items: [
-          {
-            title: `${counts.talks} community talks`,
-            note: `${counts.attendees} people across the sessions`,
-            href: '/en/blog'
-          },
-          {
-            title: 'Blog · Bilibili · Xiaohongshu',
-            note: 'Decks and recordings, all public',
-            href: '/en/about'
-          },
-          {
-            title: 'Summer of Agents',
-            note: `${counts.teams} teams building right now`,
-            href: '/agent-teams'
-          }
-        ]
-      }
-    ]
-  : [
-      {
-        key: 'build',
-        index: '01',
-        name: '做',
-        verb: '先做个小东西',
-        line: '从一个小到真能做完的东西开始。',
-        items: repos.map((repo) => ({
-          title: repo.name,
-          note: `${repo.eyebrow} · ★ ${repo.stars}`,
-          href: repo.href,
-          repo: repo.name
-        }))
-      },
-      {
-        key: 'break',
-        index: '02',
-        name: '碰',
-        verb: '碰到真实问题',
-        line: '只要真做出来，就一定会撞上教程里没有的问题。',
-        items: [
-          { title: '100+ 场 Agent 岗面试', note: '把面试当成持续校准的方式', href: '/blog' },
-          { title: '特赞 AIGC 研发部实习', note: '看 AI 怎么落到真实产品里', href: '/about' },
-          {
-            title: '读完 11,733 行 OpenHarness',
-            note: '一天走读完 CLI 启动到 Agent Loop',
-            href: '/blog'
-          }
-        ]
-      },
-      {
-        key: 'distil',
-        index: '03',
-        name: '沉淀',
-        verb: '沉淀成文字',
-        line: '文章、Skills 或笔记——任何比这次会话活得更久的东西。',
-        items: [
-          {
-            title: `${counts.posts} 篇长文`,
-            note: '从第一个 PR 一路写到 Agent 开发',
-            href: '/blog'
-          },
-          { title: `${counts.notes} 篇研究笔记`, note: 'RAG、记忆、缓存、harness', href: '/notes' },
-          { title: '精读栏目', note: '外面的好东西，消化过再放出来', href: '/curated' }
-        ]
-      },
-      {
-        key: 'publish',
-        index: '04',
-        name: '公开',
-        verb: '公开出来',
-        line: '公开这件事本身会倒逼你输出——然后回到起点。',
-        items: [
-          {
-            title: `${counts.talks} 期粉丝群分享会`,
-            note: `累计 ${counts.attendees} 位群友`,
-            href: '/blog'
-          },
-          { title: '博客 · B 站 · 小红书', note: 'PPT 和回放全部公开', href: '/about' },
-          {
-            title: 'Summer of Agents',
-            note: `${counts.teams} 支队伍正在开发中`,
-            href: '/agent-teams'
-          }
-        ]
-      }
-    ]
-
-/* Four stations on a circle, wired clockwise. */
-const LOOP_SIZE = 300
-const LOOP_C = LOOP_SIZE / 2
-const LOOP_R = 108
-const polar = (deg: number, r: number) => ({
-  x: LOOP_C + Math.cos((deg * Math.PI) / 180) * r,
-  y: LOOP_C + Math.sin((deg * Math.PI) / 180) * r
-})
-const loopNodes = stations.map((station, i) => ({
-  station,
-  deg: -90 + i * 90,
-  ...polar(-90 + i * 90, LOOP_R)
-}))
-const loopArrows = [0, 1, 2, 3].map((i) => {
-  const deg = -45 + i * 90
-  return { ...polar(deg, LOOP_R), rotate: deg + 90 }
-})
-
-/* ------------------------------------------------------------------ */
-/* the rings — the noun relay, expanding outward around the model       */
-/* ------------------------------------------------------------------ */
-
-type Ring = { era: string; name: string; gloss: string; radius: number }
-
-const rings: Ring[] = isEn
-  ? [
-      { era: "'22–'23", name: 'Prompt Engineering', gloss: 'Write the sentence well.', radius: 52 },
-      {
-        era: "'25.6",
-        name: 'Context Engineering',
-        gloss: 'Manage everything the model sees.',
-        radius: 86
-      },
-      {
-        era: "'26",
-        name: 'Harness Engineering',
-        gloss: 'Put scaffolding around the model.',
-        radius: 120
-      },
-      {
-        era: "'26.6",
-        name: 'Loop Engineering',
-        gloss: 'Stop prompting by hand — design the loop.',
-        radius: 154
-      }
-    ]
-  : [
-      { era: "'22–'23", name: 'Prompt Engineering', gloss: '把一句话写好。', radius: 52 },
-      { era: "'25.6", name: 'Context Engineering', gloss: '管好模型看到的一切。', radius: 86 },
-      { era: "'26 初", name: 'Harness Engineering', gloss: '给模型套上脚手架。', radius: 120 },
-      {
-        era: "'26.6",
-        name: 'Loop Engineering',
-        gloss: '别再手动 prompt，去设计循环。',
-        radius: 154
-      }
-    ]
-
-const RING_SIZE = 360
-const RING_C = RING_SIZE / 2
-const ringTicks = rings.map((ring, i) => {
-  const deg = -128 + i * 26
-  const rad = (deg * Math.PI) / 180
-  return {
-    ...ring,
-    i,
-    x: RING_C + Math.cos(rad) * ring.radius,
-    y: RING_C + Math.sin(rad) * ring.radius
-  }
-})
-
-/* ------------------------------------------------------------------ */
-/* the hero spiral — generated at build time, animated in pure CSS      */
-/* ------------------------------------------------------------------ */
-
-const nodeAt = milestones.map((_, i) => 0.14 + (i * 0.86) / Math.max(1, milestones.length - 1))
-const spiral = buildSpiral({ nodeAt })
 ---
 
-<v4-home class='paper' data-locale={locale}>
-  <div class='grain' aria-hidden='true'></div>
+<v4-home class='stage' data-locale={locale}>
+  <canvas class='field' data-field aria-hidden='true'></canvas>
+  <div class='cursor' data-cursor aria-hidden='true'><i></i></div>
 
   <header class='rail'>
-    <a class='rail__mark' href={isEn ? '/en/v4' : '/v4'}>
+    <a class='rail__mark' href={isEn ? '/en/v4' : '/v4'} data-magnetic>
       <span class='rail__pip' aria-hidden='true'></span>
       Joye <span class='rail__ver'>v4</span>
     </a>
     <nav class='rail__nav' aria-label={isEn ? 'Quick links' : '快捷链接'}>
-      {copy.navItems.map((item) => <a href={item.href}>{item.label}</a>)}
-      <a class='rail__lang' href={copy.langHref}>{copy.langLabel}</a>
+      {
+        copy.navItems.map((item) => (
+          <a href={item.href} data-magnetic>
+            {item.label}
+          </a>
+        ))
+      }
+      <a class='rail__lang' href={copy.langHref} data-magnetic>{copy.langLabel}</a>
     </nav>
   </header>
 
   <main>
-    {/* ------------------------------- hero ------------------------------- */}
-    <section class='hero' id='top'>
-      <div class='hero__copy'>
-        <p class='badge'>
-          <span class='badge__pip' aria-hidden='true'></span>
-          {copy.running}
+    {/* ------------------------------- hero ------------------------------ */}
+    <section class='hero' data-hero id='top'>
+      <div class='hero__inner' data-hero-inner>
+        <p class='pill' data-hero-fade>
+          <span class='pill__pip' aria-hidden='true'></span>
+          {copy.live}
         </p>
-        <p class='hero__eyebrow'>
+
+        <p class='hero__eyebrow' data-split='chars'>
+          {copy.eyebrow.join('  /  ')}
+        </p>
+
+        <h1 class='hero__name' data-name>
           {
-            copy.eyebrow.map((part, i) => (
-              <>
-                {i > 0 && (
-                  <span class='sep' aria-hidden='true'>
-                    /
-                  </span>
-                )}
-                <span>{part}</span>
-              </>
+            'JOYE'.split('').map((letter) => (
+              <span class='hero__letter'>
+                <i>{letter}</i>
+              </span>
             ))
           }
-        </p>
-        <h1 class='hero__name'>Joye</h1>
+        </h1>
+
         <p class='hero__thesis'>
-          <span class='thesis__noise'>{copy.thesisA}</span>
-          <span class='thesis__signal'>{copy.thesisB}</span>
+          <span class='hero__lead' data-hero-fade>{copy.thesisLead}</span>
+          <span class='hero__signal' data-scramble={copy.thesisPlain}>{copy.thesisPlain}</span>
         </p>
-        <p class='hero__lede'>{copy.lede}</p>
-        <div class='hero__actions'>
-          <a class='btn btn--solid' href={isEn ? '/en/blog' : '/blog'}>
-            {copy.ctaRead}
-            <span aria-hidden='true'>→</span>
+
+        <p class='hero__lede' data-split='lines'>{copy.lede}</p>
+
+        <div class='hero__actions' data-hero-fade>
+          <a class='btn btn--primary' href={isEn ? '/en/blog' : '/blog'} data-magnetic>
+            <span>{copy.ctaRead}</span>
+            <svg viewBox='0 0 20 20' aria-hidden='true'><path d='M4 10h12M11 5l5 5-5 5'></path></svg
+            >
           </a>
-          <a class='btn' href={isEn ? '/en/about' : '/about'}>{copy.ctaAbout}</a>
+          <a class='btn' href={isEn ? '/en/about' : '/about'} data-magnetic>
+            <span>{copy.ctaAbout}</span>
+          </a>
         </div>
-        <p class='hero__motto'>{copy.motto}</p>
+
+        <p class='hero__motto' data-hero-fade>{copy.motto}</p>
       </div>
 
-      <figure class='hero__art' aria-hidden='true'>
-        <svg viewBox={`0 0 ${spiral.size} ${spiral.size}`} class='spiral'>
-          {/* second plate, deliberately mis-registered — riso print habit */}
-          <path class='spiral__ghost' d={spiral.d} transform='translate(4.5 -3)'></path>
-          <path
-            id='v4-spiral-path'
-            class='spiral__line'
-            d={spiral.d}
-            style={`--len:${spiral.length}`}></path>
-          {
-            spiral.nodes.map((node, i) => (
-              <g class='spiral__node' style={`--delay:${(0.35 + node.t * 2.05).toFixed(2)}s`}>
-                <circle cx={node.x} cy={node.y} r='7.5' class='spiral__halo' />
-                <circle cx={node.x} cy={node.y} r={i === spiral.nodes.length - 1 ? 4.4 : 3} />
-              </g>
-            ))
-          }
-          <circle class='spiral__pulse' r='3.6' data-motion>
-            <animateMotion dur='26s' repeatCount='indefinite' begin='2.4s' rotate='auto'>
-              <mpath href='#v4-spiral-path'></mpath>
-            </animateMotion>
-          </circle>
-        </svg>
-        <figcaption class='hero__caption'>{copy.spiralCaption}</figcaption>
-      </figure>
-
-      <p class='hero__scroll' aria-hidden='true'>{copy.scroll} ↓</p>
+      <p class='hero__scroll' data-hero-fade aria-hidden='true'>
+        <span>{copy.scroll}</span>
+        <i></i>
+      </p>
     </section>
 
-    {/* ------------------------------ ledger ------------------------------ */}
-    <section class='ledger' data-reveal>
-      <h2 class='sr-only'>{copy.ledgerTitle}</h2>
-      <ul class='ledger__grid'>
-        {
-          ledger.map((row) => (
-            <li class='ledger__cell'>
-              <span class='ledger__value'>
-                {row.value}
-                <i>{row.unit}</i>
+    {/* ------------------------------ ticker ----------------------------- */}
+    <section class='ticker' data-ticker aria-label={copy.tickerNote}>
+      <div class='ticker__row' data-ticker-row data-dir='1'>
+        <div class='ticker__set'>
+          {
+            tickerA.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i aria-hidden='true'>◆</i>
               </span>
-              <span class='ledger__label'>{row.label}</span>
+            ))
+          }
+        </div>
+        <div class='ticker__set' aria-hidden='true'>
+          {
+            tickerA.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i>◆</i>
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <div class='ticker__row ticker__row--thin' data-ticker-row data-dir='-1'>
+        <div class='ticker__set'>
+          {
+            tickerB.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i aria-hidden='true'>/</i>
+              </span>
+            ))
+          }
+        </div>
+        <div class='ticker__set' aria-hidden='true'>
+          {
+            tickerB.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i>/</i>
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <p class='ticker__note'>{copy.tickerNote}</p>
+    </section>
+
+    {/* ------------------------------ ledger ----------------------------- */}
+    <section class='band' id='ledger'>
+      <header class='band__head'>
+        <p class='kicker' data-reveal>{copy.statsKicker}</p>
+        <h2 class='band__title' data-split='lines'>{copy.statsTitle}</h2>
+        <p class='band__note' data-reveal>{copy.statsNote}</p>
+      </header>
+
+      <ul class='stats'>
+        {
+          ledger.map((row, i) => (
+            <li class='stat' data-tilt data-reveal style={`--i:${i}`}>
+              <span class='stat__value'>
+                <b data-count={row.value}>0</b>
+                {row.suffix}
+              </span>
+              <span class='stat__label'>{row.label}</span>
+              <span class='stat__glow' aria-hidden='true' />
             </li>
           ))
         }
       </ul>
-      <p class='ledger__note'>{copy.ledgerNote}</p>
     </section>
 
-    {/* ------------------------------- arc -------------------------------- */}
-    <section class='band' id='arc'>
-      <div class='band__head' data-reveal>
-        <p class='kicker'>{copy.arcKicker}</p>
-        <h2 class='band__title'>{copy.arcTitle}</h2>
-        <p class='band__note'>{copy.arcNote}</p>
-      </div>
-      <ol class='arc'>
-        {
-          milestones.map((milestone, i) => {
-            const Tag = milestone.href ? 'a' : 'div'
-            return (
-              <li class='arc__row' data-reveal style={`--i:${i}`}>
-                <Tag class='arc__link' href={milestone.href}>
-                  <span class='arc__date'>{milestone.date}</span>
-                  <span class='arc__dot' aria-hidden='true' />
-                  <span class='arc__body'>
-                    <span class='arc__title'>{milestone.title}</span>
-                    <span class='arc__note'>{milestone.note}</span>
-                  </span>
+    {/* ------------------------------- reel ------------------------------ */}
+    <section class='reel' data-reel>
+      <div class='reel__viewport'>
+        <div class='reel__track' data-reel-track>
+          <div class='reel__lead'>
+            <p class='kicker'>{copy.reelKicker}</p>
+            <h2 class='reel__title'>{copy.reelTitle}</h2>
+            <p class='band__note'>{copy.reelNote}</p>
+          </div>
+
+          {
+            milestones.map((milestone, i) => {
+              const Tag = milestone.href ? 'a' : 'div'
+              return (
+                <Tag class='card' href={milestone.href} data-reel-card data-tilt>
+                  <span class='card__index'>{String(i + 1).padStart(2, '0')}</span>
+                  <span class='card__date'>{milestone.date}</span>
+                  <span class='card__title'>{milestone.title}</span>
+                  <span class='card__note'>{milestone.note}</span>
                   {milestone.href && (
-                    <span class='arc__go' aria-hidden='true'>
-                      ↗
+                    <span class='card__go' aria-hidden='true'>
+                      <svg viewBox='0 0 20 20'>
+                        <path d='M4 10h12M11 5l5 5-5 5' />
+                      </svg>
                     </span>
                   )}
+                  <span class='card__glow' aria-hidden='true' />
                 </Tag>
-              </li>
-            )
-          })
-        }
-      </ol>
-    </section>
+              )
+            })
+          }
 
-    {/* ------------------------------- loop ------------------------------- */}
-    <section class='band band--loop' id='loop'>
-      <div class='band__head' data-reveal>
-        <p class='kicker'>{copy.loopKicker}</p>
-        <h2 class='band__title'>{copy.loopTitle}</h2>
-        <blockquote class='pull'>{copy.loopQuote}</blockquote>
-        <p class='band__note'>{copy.loopNote}</p>
-      </div>
-
-      <div class='loop' data-loop>
-        <div class='loop__dial'>
-          <svg viewBox={`0 0 ${LOOP_SIZE} ${LOOP_SIZE}`} aria-hidden='true'>
-            <circle class='loop__track' cx={LOOP_C} cy={LOOP_C} r={LOOP_R}></circle>
-            <circle class='loop__sweep' cx={LOOP_C} cy={LOOP_C} r={LOOP_R}></circle>
-            {
-              loopArrows.map((arrow) => (
-                <path
-                  class='loop__arrow'
-                  d='M -4 -4 L 0 0 L -4 4'
-                  transform={`translate(${arrow.x.toFixed(1)} ${arrow.y.toFixed(1)}) rotate(${arrow.rotate})`}
-                />
-              ))
-            }
-            {
-              loopNodes.map(({ station, x, y }) => (
-                <g class='loop__node' data-node={station.key}>
-                  <circle cx={x.toFixed(1)} cy={y.toFixed(1)} r='26' class='loop__disc' />
-                  <text x={x.toFixed(1)} y={y.toFixed(1)} class='loop__glyph'>
-                    {station.name}
-                  </text>
-                </g>
-              ))
-            }
-            <text x={LOOP_C} y={LOOP_C - 6} class='loop__core'>loop</text>
-            <text x={LOOP_C} y={LOOP_C + 12} class='loop__coreSub'>{copy.loopHint}</text>
-          </svg>
-
-          <div class='loop__tabs' role='tablist' aria-label={copy.loopTitle}>
-            {
-              stations.map((station, i) => (
-                <button
-                  type='button'
-                  role='tab'
-                  class='loop__tab'
-                  data-tab={station.key}
-                  id={`v4-tab-${station.key}`}
-                  aria-controls={`v4-panel-${station.key}`}
-                  aria-selected={i === 0 ? 'true' : 'false'}
-                  tabindex={i === 0 ? 0 : -1}
-                >
-                  <i>{station.index}</i>
-                  {station.name}
-                </button>
-              ))
-            }
+          <div class='reel__tail' aria-hidden='true'>
+            <span class='reel__tailPip'></span>
+            <span>{copy.reelEnd}</span>
           </div>
         </div>
+      </div>
+      <div class='reel__progress' aria-hidden='true'><i data-reel-progress></i></div>
+    </section>
 
-        <div class='loop__panels'>
-          {
-            stations.map((station, i) => (
-              <div
-                class='loop__panel'
-                data-panel={station.key}
-                id={`v4-panel-${station.key}`}
-                role='tabpanel'
-                aria-labelledby={`v4-tab-${station.key}`}
-                hidden={i !== 0}
+    {/* ------------------------------- work ------------------------------ */}
+    <section class='band' id='work'>
+      <header class='band__head'>
+        <p class='kicker' data-reveal>{copy.workKicker}</p>
+        <h2 class='band__title' data-split='lines'>{copy.workTitle}</h2>
+        <p class='band__note' data-reveal>{copy.workNote}</p>
+      </header>
+
+      <ul class='work'>
+        {
+          repos.map((repo, i) => (
+            <li data-reveal style={`--i:${i}`}>
+              <a
+                class='card card--work'
+                href={repo.href}
+                target='_blank'
+                rel='noopener noreferrer'
+                data-tilt
+                data-analytics-event='github_link_click'
+                data-analytics-surface='v4_open_source'
+                data-analytics-target='repo'
+                data-analytics-repo={repo.name}
               >
-                <p class='loop__verb'>
-                  <span class='loop__index'>{station.index}</span>
-                  {station.verb}
-                </p>
-                <p class='loop__line'>{station.line}</p>
-                <ul class='loop__items'>
-                  {station.items.map((item) => (
-                    <li>
-                      <a
-                        href={item.href}
-                        target={item.repo ? '_blank' : undefined}
-                        rel={item.repo ? 'noopener noreferrer' : undefined}
-                        data-analytics-event={item.repo ? 'github_link_click' : undefined}
-                        data-analytics-surface={item.repo ? 'v4_open_source' : undefined}
-                        data-analytics-target={item.repo ? 'repo' : undefined}
-                        data-analytics-repo={item.repo}
-                      >
-                        <span class='loop__itemTitle'>{item.title}</span>
-                        <span class='loop__itemNote'>{item.note}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))
-          }
-        </div>
-      </div>
+                <span class='card__eyebrow'>{repo.eyebrow}</span>
+                <span class='card__title'>{repo.name}</span>
+                <span class='card__note'>{repo.description}</span>
+                <span class='card__stars'>
+                  <svg viewBox='0 0 24 24' aria-hidden='true'>
+                    <path d='M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z' />
+                  </svg>
+                  {repo.stars}
+                </span>
+                <span class='card__glow' aria-hidden='true' />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </section>
 
-    {/* ------------------------------- rings ------------------------------ */}
-    <section class='band band--rings' id='rings'>
-      <div class='band__head' data-reveal>
-        <p class='kicker'>{copy.ringsKicker}</p>
-        <h2 class='band__title'>{copy.ringsTitle}</h2>
-        <p class='band__note'>{copy.ringsLede}</p>
-      </div>
-
-      <div class='rings' data-rings>
-        <figure class='rings__dial' aria-hidden='true'>
-          <svg viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
-            {
-              ringTicks.map((ring) => (
-                <circle
-                  class='rings__ring'
-                  data-ring={ring.i}
-                  cx={RING_C}
-                  cy={RING_C}
-                  r={ring.radius}
-                  style={`--delay:${(ring.i * 0.12).toFixed(2)}s`}
-                />
-              ))
-            }
-            <circle class='rings__core' cx={RING_C} cy={RING_C} r='30'></circle>
-            <text class='rings__coreLabel' x={RING_C} y={RING_C + 4}>{copy.ringsCenter}</text>
-            {
-              ringTicks.map((ring) => (
-                <g class='rings__tick' data-tick={ring.i}>
-                  <circle cx={ring.x.toFixed(1)} cy={ring.y.toFixed(1)} r='4.5' />
-                  <text x={ring.x.toFixed(1)} y={(ring.y - 12).toFixed(1)}>
-                    {ring.i + 1}
-                  </text>
-                </g>
-              ))
-            }
-          </svg>
-        </figure>
-
-        <ol class='rings__list'>
-          {
-            rings.map((ring, i) => (
-              <li class='rings__item' data-ring-item={i} data-reveal style={`--i:${i}`}>
-                <span class='rings__n'>{i + 1}</span>
-                <span class='rings__era'>{ring.era}</span>
-                <span class='rings__name'>{ring.name}</span>
-                <span class='rings__gloss'>{ring.gloss}</span>
-              </li>
-            ))
-          }
-        </ol>
-      </div>
-
-      <div class='proof' data-reveal>
-        <p class='proof__label'>{copy.proofLabel}</p>
-        <p class='proof__body'>{copy.proofBody}</p>
-        <div class='proof__bar' aria-hidden='true'>
-          <span class='proof__from'><i style='--w:52.8%'></i>52.8%</span>
-          <span class='proof__to'><i style='--w:66.5%'></i>66.5%</span>
-        </div>
-        <blockquote class='proof__quote'>
-          {copy.proofQuote}
-          <cite>{copy.proofSource}</cite>
-        </blockquote>
-      </div>
-
-      <p class='band__closing' data-reveal>{copy.ringsClosing}</p>
-    </section>
-
-    {/* ------------------------------ writing ----------------------------- */}
+    {/* ----------------------------- writing ----------------------------- */}
     <section class='band' id='writing'>
-      <div class='band__head' data-reveal>
-        <p class='kicker'>{copy.writingKicker}</p>
-        <h2 class='band__title'>{copy.writingTitle}</h2>
-      </div>
+      <header class='band__head'>
+        <p class='kicker' data-reveal>{copy.writingKicker}</p>
+        <h2 class='band__title' data-split='lines'>{copy.writingTitle}</h2>
+      </header>
 
       <div class='index'>
-        <div class='index__col' data-reveal>
-          <p class='index__label'>
-            {copy.essays}
-            <a href={isEn ? '/en/blog' : '/blog'}>{copy.writingMore} →</a>
+        <div class='index__col'>
+          <p class='index__label' data-reveal>
+            <span>{copy.essays}</span>
+            <a href={isEn ? '/en/blog' : '/blog'} data-magnetic>{copy.writingMore} →</a>
           </p>
           <ul>
             {
-              posts.map((post) => (
-                <li>
+              posts.map((post, i) => (
+                <li data-reveal style={`--i:${i}`}>
                   <a href={post.href}>
                     <span class='index__meta'>{post.meta}</span>
                     <span class='index__title'>{post.title}</span>
+                    <span class='index__rule' aria-hidden='true' />
                   </a>
                 </li>
               ))
@@ -757,18 +419,19 @@ const spiral = buildSpiral({ nodeAt })
           </ul>
         </div>
 
-        <div class='index__col' data-reveal>
-          <p class='index__label'>
-            {copy.research}
-            <a href={isEn ? '/en/notes' : '/notes'}>{copy.notesMore} →</a>
+        <div class='index__col'>
+          <p class='index__label' data-reveal>
+            <span>{copy.research}</span>
+            <a href={isEn ? '/en/notes' : '/notes'} data-magnetic>{copy.notesMore} →</a>
           </p>
           <ul>
             {
-              notes.map((note) => (
-                <li>
+              notes.map((note, i) => (
+                <li data-reveal style={`--i:${i}`}>
                   <a href={note.href}>
                     <span class='index__meta'>{note.meta}</span>
                     <span class='index__title'>{note.title}</span>
+                    <span class='index__rule' aria-hidden='true' />
                   </a>
                 </li>
               ))
@@ -778,11 +441,12 @@ const spiral = buildSpiral({ nodeAt })
       </div>
     </section>
 
-    {/* ----------------------------- off-clock ---------------------------- */}
-    <section class='band band--off' id='off'>
+    {/* ------------------------------- off ------------------------------- */}
+    <section class='band' id='off'>
       <div class='off' data-reveal>
-        <div class='off__portrait'>
-          <Image src={avatar} alt='Joye' width={200} height={200} loading='lazy' />
+        <div class='off__portrait' data-tilt>
+          <Image src={avatar} alt='Joye' width={240} height={240} loading='lazy' />
+          <span class='card__glow' aria-hidden='true'></span>
         </div>
         <div class='off__copy'>
           <p class='kicker'>{copy.offKicker}</p>
@@ -795,18 +459,20 @@ const spiral = buildSpiral({ nodeAt })
       </div>
     </section>
 
-    {/* ------------------------------- end -------------------------------- */}
+    {/* ------------------------------- end ------------------------------- */}
     <section class='end' id='end'>
-      <p class='end__title' data-reveal>{copy.endTitle}</p>
+      <p class='end__lead' data-reveal>{copy.endLead}</p>
+      <h2 class='end__title' data-split='chars'>{copy.endTitle}</h2>
       <p class='end__note' data-reveal>{copy.endNote}</p>
-      <ul class='end__links' data-reveal>
+      <ul class='end__links'>
         {
-          copy.endLinks.map((link) => {
+          copy.endLinks.map((link, i) => {
             const external = link.href.startsWith('http')
             return (
-              <li>
+              <li data-reveal style={`--i:${i}`}>
                 <a
                   href={link.href}
+                  data-magnetic
                   target={external ? '_blank' : undefined}
                   rel={external ? 'noopener noreferrer' : undefined}
                   data-analytics-event={external ? 'github_link_click' : undefined}
@@ -822,8 +488,8 @@ const spiral = buildSpiral({ nodeAt })
       </ul>
       <p class='end__foot'>
         <span>© {new Date().getFullYear()} Joye</span>
-        <span class='sep' aria-hidden='true'>/</span>
-        <span>{isEn ? 'built with Astro' : '用 Astro 搭的'}</span>
+        <span class='dot' aria-hidden='true'></span>
+        <span>{copy.builtWith}</span>
       </p>
     </section>
   </main>
@@ -833,54 +499,59 @@ const spiral = buildSpiral({ nodeAt })
   import './v4-engine'
 </script>
 
+<style is:global>
+  /* The engine hands SplitText its own wrappers; these need to be global
+     because SplitText injects the elements after scoping has been applied. */
+  .v4-split-line {
+    display: block;
+    overflow: hidden;
+  }
+  .v4-split-line > div {
+    display: block;
+    will-change: transform;
+  }
+  .v4-split-char {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+</style>
+
 <style>
   /* ==================================================================== */
-  /* v4 — ink on paper. Its own token set; the page owns its whole surface. */
+  /* v4 — site tokens (DESIGN.md), motion by GSAP, backdrop by WebGL       */
   /* ==================================================================== */
 
   v4-home {
-    --paper: 42 33% 95%;
-    --paper-deep: 40 26% 91%;
-    --ink: 30 10% 11%;
-    --ink-dim: 30 6% 36%;
-    /* faint/signal are held at AA against the paper — they carry dates and labels */
-    --ink-faint: 30 6% 42%;
-    --line: 34 14% 82%;
-    --signal: 12 90% 42%;
-    --cool: 214 42% 40%;
-    --grain: 0.055;
-
     display: block;
     position: relative;
     min-height: 100vh;
-    background: hsl(var(--paper));
-    color: hsl(var(--ink));
-    font-synthesis-weight: none;
-    -webkit-font-smoothing: antialiased;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
   }
 
-  :global(html.dark) v4-home {
-    --paper: 28 12% 7%;
-    --paper-deep: 28 12% 10%;
-    --ink: 40 24% 92%;
-    --ink-dim: 36 8% 66%;
-    --ink-faint: 34 8% 54%;
-    --line: 30 8% 22%;
-    --signal: 14 92% 60%;
-    --cool: 205 55% 62%;
-    --grain: 0.11;
-    color-scheme: dark;
-  }
-
-  /* paper texture — literal noise, so the signal has something to cut through */
-  .grain {
+  .field {
     position: fixed;
     inset: 0;
-    z-index: 3;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
     pointer-events: none;
-    opacity: var(--grain);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Fallback if WebGL is unavailable — still a live-ish backdrop. */
+  .field[data-fallback] {
+    background:
+      radial-gradient(60% 50% at 20% 15%, hsl(var(--primary) / 0.28), transparent 70%),
+      radial-gradient(55% 45% at 85% 30%, hsl(var(--primary) / 0.18), transparent 70%),
+      hsl(var(--background));
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
   }
 
   v4-home :where(a) {
@@ -888,42 +559,44 @@ const spiral = buildSpiral({ nodeAt })
     text-decoration: none;
   }
 
-  .mono,
-  .kicker,
-  .badge,
-  .rail,
-  .hero__eyebrow,
-  .hero__caption,
-  .hero__scroll,
-  .ledger__label,
-  .arc__date,
-  .index__meta,
-  .index__label,
-  .rings__era,
-  .proof__label,
-  .end__foot,
-  .loop__tab i,
-  .loop__index {
-    font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Cascadia Mono', monospace;
-    font-feature-settings: 'ss01';
+  .kicker {
+    margin: 0 0 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
   }
 
-  .sep {
-    color: hsl(var(--ink-faint));
+  /* ------------------------------ cursor ------------------------------- */
+
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 90;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: difference;
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+  .cursor i {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 1px solid hsl(0 0% 100%);
+    border-radius: 9999px;
+    transition:
+      transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1),
+      background-color 0.25s ease;
   }
 
-  main {
-    position: relative;
-    z-index: 1;
+  .cursor.is-hot i {
+    transform: scale(1.55);
+    background: hsl(0 0% 100% / 0.25);
   }
 
   /* ------------------------------- rail -------------------------------- */
@@ -933,967 +606,681 @@ const spiral = buildSpiral({ nodeAt })
     top: 0;
     left: 0;
     right: 0;
-    z-index: 40;
+    z-index: 50;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.85rem clamp(1.1rem, 4vw, 2.75rem);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: hsl(var(--ink-dim));
-    background: hsl(var(--paper) / 0.72);
-    backdrop-filter: blur(14px) saturate(1.2);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    border-bottom: 1px solid hsl(var(--line) / 0.7);
+    padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .rail::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(hsl(var(--background) / 0.85), transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    mask-image: linear-gradient(#000 55%, transparent);
+    pointer-events: none;
+  }
+
+  .rail > * {
+    position: relative;
   }
 
   .rail__mark {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    color: hsl(var(--ink));
+    color: hsl(var(--foreground));
   }
 
   .rail__ver {
-    color: hsl(var(--signal));
+    color: hsl(var(--primary));
   }
 
-  .rail__pip {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: hsl(var(--signal));
-    animation: v4-pip 2.4s ease-in-out infinite;
+  .rail__pip,
+  .pill__pip {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55);
+    animation: v4-pulse 2.6s ease-out infinite;
+  }
+
+  @keyframes v4-pulse {
+    70% {
+      box-shadow: 0 0 0 9px hsl(var(--primary) / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    }
   }
 
   .rail__nav {
     display: flex;
-    gap: clamp(0.9rem, 3vw, 1.6rem);
+    align-items: center;
+    gap: clamp(1rem, 3vw, 1.75rem);
   }
 
   .rail__nav a {
-    transition: color 0.2s ease;
+    position: relative;
+    transition: color 0.25s ease;
+  }
+
+  .rail__nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
   .rail__nav a:hover {
-    color: hsl(var(--signal));
+    color: hsl(var(--foreground));
   }
 
-  .rail__lang {
-    color: hsl(var(--ink-faint));
+  .rail__nav a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
   }
 
-  @keyframes v4-pip {
-    50% {
-      opacity: 0.25;
-    }
-  }
-
-  /* ------------------------------- hero -------------------------------- */
+  /* -------------------------------- hero ------------------------------- */
 
   .hero {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
-    align-items: center;
-    gap: clamp(2rem, 5vw, 4rem);
-    width: min(78rem, 100% - clamp(2rem, 8vw, 7rem));
-    margin-inline: auto;
+    place-items: center;
     min-height: 100svh;
-    padding: 7rem 0 4.5rem;
+    padding: 7rem 0 5rem;
   }
 
-  .badge {
+  /* The field runs at full strength here, so the copy gets a pocket of clean
+     background to sit in. It fades out fast, leaving the field visible around
+     the edges. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -10% -5%;
+    pointer-events: none;
+    background: radial-gradient(
+      70% 58% at 34% 52%,
+      hsl(var(--background) / 0.88),
+      hsl(var(--background) / 0.55) 45%,
+      hsl(var(--background) / 0) 78%
+    );
+  }
+
+  .hero__inner {
+    position: relative;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
+  }
+
+  .pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    margin: 0 0 1.6rem;
-    padding: 0.32rem 0.7rem 0.32rem 0.55rem;
-    border: 1px solid hsl(var(--signal) / 0.35);
-    border-radius: 999px;
-    font-size: 0.66rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: hsl(var(--signal));
-    background: hsl(var(--signal) / 0.07);
-  }
-
-  .badge__pip {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: hsl(var(--signal));
-    animation: v4-pip 2.4s ease-in-out infinite;
-  }
-
-  .hero__eyebrow {
-    display: flex;
-    flex-wrap: wrap;
     gap: 0.55rem;
-    margin: 0 0 0.5rem;
+    margin: 0 0 1.75rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 9999px;
+    background: hsl(var(--card) / 0.6);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     font-size: 0.72rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: hsl(var(--ink-dim));
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
   }
 
   .hero__name {
+    display: flex;
     margin: 0;
-    font-size: clamp(4.2rem, 13vw, 9.5rem);
-    font-weight: 700;
+    font-size: clamp(4.5rem, 17vw, 15rem);
+    font-weight: 800;
     line-height: 0.82;
     letter-spacing: -0.055em;
+    perspective: 900px;
+  }
+
+  .hero__letter {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+
+  .hero__letter i {
+    display: block;
+    font-style: normal;
+    transform-origin: 50% 100%;
+    will-change: transform;
+    background: linear-gradient(175deg, hsl(var(--foreground)) 30%, hsl(var(--primary)) 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .hero__thesis {
     display: grid;
-    margin: clamp(1.4rem, 3vw, 2rem) 0 1.3rem;
-    font-size: clamp(1.35rem, 3.1vw, 2.1rem);
+    gap: 0.15rem;
+    margin: clamp(1.5rem, 3.5vw, 2.4rem) 0 1.4rem;
+    font-size: clamp(1.5rem, 3.6vw, 2.6rem);
     font-weight: 600;
-    line-height: 1.28;
-    letter-spacing: -0.02em;
+    line-height: 1.24;
+    letter-spacing: -0.028em;
   }
 
-  /* The noise half lands mis-registered and resolves itself — the page states
-     its own thesis once, on arrival. Not hover-gated, so touch sees it too. */
-  .thesis__noise {
-    color: hsl(var(--ink-faint));
-    text-shadow:
-      0.55px 0 0 hsl(var(--cool) / 0.5),
-      -0.55px 0 0 hsl(var(--signal) / 0.35);
-    animation: v4-resolve 1.1s ease-out 1.5s forwards;
+  .hero__lead {
+    color: hsl(var(--muted-foreground));
   }
 
-  @keyframes v4-resolve {
-    to {
-      color: hsl(var(--ink-dim));
-      text-shadow: none;
-    }
-  }
-
-  .thesis__signal {
-    color: hsl(var(--ink));
-    text-decoration: underline;
-    text-decoration-color: hsl(var(--signal));
-    text-decoration-thickness: 0.14em;
-    text-underline-offset: 0.16em;
+  .hero__signal {
+    color: hsl(var(--foreground));
+    text-shadow: 0 0 38px hsl(var(--primary) / 0.35);
   }
 
   .hero__lede {
-    max-width: 34rem;
-    margin: 0 0 2rem;
-    font-size: clamp(0.94rem, 1.5vw, 1.02rem);
-    line-height: 1.78;
-    color: hsl(var(--ink-dim));
+    max-width: 40rem;
+    margin: 0 0 2.25rem;
+    font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
   }
 
   .hero__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
-    margin-bottom: 1.6rem;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
   }
 
   .btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.72rem 1.25rem;
-    border: 1px solid hsl(var(--ink) / 0.22);
-    border-radius: 2px;
-    font-size: 0.9rem;
+    gap: 0.55rem;
+    padding: 0.8rem 1.4rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.5);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-size: 0.95rem;
     font-weight: 500;
+    overflow: hidden;
     transition:
-      transform 0.25s cubic-bezier(0.2, 0.8, 0.3, 1),
-      background 0.25s ease,
-      border-color 0.25s ease,
-      color 0.25s ease;
+      border-color 0.3s ease,
+      color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .btn > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.42s cubic-bezier(0.65, 0, 0.35, 1);
   }
 
   .btn:hover {
-    transform: translateY(-2px);
-    border-color: hsl(var(--ink));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.12);
   }
 
-  .btn--solid {
-    background: hsl(var(--ink));
-    border-color: hsl(var(--ink));
-    color: hsl(var(--paper));
+  .btn:hover::before {
+    transform: scaleY(1);
   }
 
-  .btn--solid:hover {
-    background: hsl(var(--signal));
-    border-color: hsl(var(--signal));
-    color: #fff;
+  .btn--primary {
+    background: hsl(var(--foreground));
+    border-color: hsl(var(--foreground));
+    color: hsl(var(--background));
   }
 
-  .btn--solid span {
-    transition: transform 0.25s ease;
+  .btn svg {
+    width: 1.05em;
+    height: 1.05em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
-  .btn--solid:hover span {
-    transform: translateX(3px);
+  .btn:hover svg {
+    transform: translateX(4px);
   }
 
   .hero__motto {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-style: italic;
-    color: hsl(var(--ink-faint));
-  }
-
-  /* --- the spiral --- */
-
-  .hero__art {
-    position: relative;
-    width: 100%;
-    margin: 0;
-  }
-
-  .spiral {
-    display: block;
-    width: min(34rem, 100%);
-    height: auto;
-    margin-inline: auto;
-    overflow: visible;
-  }
-
-  .spiral__line,
-  .spiral__ghost {
-    fill: none;
-    stroke-linecap: round;
-    stroke-dasharray: var(--len, 4000);
-    stroke-dashoffset: var(--len, 4000);
-    animation: v4-draw 2.6s cubic-bezier(0.32, 0.9, 0.35, 1) 0.15s forwards;
-  }
-
-  .spiral__line {
-    stroke: hsl(var(--ink));
-    stroke-width: 1.35;
-  }
-
-  .spiral__ghost {
-    stroke: hsl(var(--signal) / 0.42);
-    stroke-width: 1.1;
-    animation-delay: 0.05s;
-  }
-
-  .spiral__node circle {
-    fill: hsl(var(--ink));
-    opacity: 0;
-    animation: v4-pop 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) var(--delay, 0s) forwards;
-  }
-
-  .spiral__halo {
-    fill: none !important;
-    stroke: hsl(var(--signal));
-    stroke-width: 1;
-    opacity: 0;
-    animation: v4-halo 0.9s ease-out var(--delay, 0s) forwards;
-  }
-
-  .spiral__pulse {
-    fill: hsl(var(--signal));
-    filter: drop-shadow(0 0 6px hsl(var(--signal) / 0.55));
-    /* animateMotion only takes over at 2.4s — stay hidden until then. */
-    opacity: 0;
-    animation: v4-pop 0.4s ease 2.4s forwards;
-  }
-
-  @keyframes v4-draw {
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-
-  @keyframes v4-pop {
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes v4-halo {
-    0% {
-      opacity: 0.9;
-      transform: scale(0.35);
-      transform-origin: center;
-    }
-    100% {
-      opacity: 0;
-      transform: scale(2.1);
-      transform-origin: center;
-    }
-  }
-
-  .hero__caption {
-    margin-top: 0.9rem;
-    text-align: center;
-    font-size: 0.66rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: hsl(var(--ink-faint));
+    color: hsl(var(--muted-foreground));
   }
 
   .hero__scroll {
     position: absolute;
-    left: 0;
-    bottom: 1.8rem;
+    left: 50%;
+    bottom: 2rem;
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
     margin: 0;
-    font-size: 0.66rem;
-    letter-spacing: 0.2em;
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: hsl(var(--ink-faint));
-    animation: v4-nudge 2.6s ease-in-out infinite;
+    color: hsl(var(--muted-foreground));
   }
 
-  @keyframes v4-nudge {
+  .hero__scroll i {
+    display: block;
+    width: 1px;
+    height: 42px;
+    background: linear-gradient(hsl(var(--primary)), transparent);
+    animation: v4-drop 2.2s ease-in-out infinite;
+  }
+
+  @keyframes v4-drop {
+    0%,
+    100% {
+      transform: scaleY(0.4);
+      transform-origin: top;
+      opacity: 0.4;
+    }
     50% {
-      transform: translateY(5px);
-      opacity: 0.5;
+      transform: scaleY(1);
+      transform-origin: top;
+      opacity: 1;
     }
   }
 
-  /* ------------------------------ ledger ------------------------------- */
+  /* ------------------------------- ticker ------------------------------ */
 
-  .ledger {
-    width: min(78rem, 100% - clamp(2rem, 8vw, 7rem));
-    margin-inline: auto;
-    padding: clamp(2rem, 5vw, 3rem) 0;
-    border-block: 1px solid hsl(var(--line));
+  .ticker {
+    position: relative;
+    padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(2rem, 4vw, 3rem);
+    border-block: 1px solid hsl(var(--border));
+    background: hsl(var(--background) / 0.72);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   }
 
-  .ledger__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-    gap: clamp(1.2rem, 3vw, 2rem);
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  .ticker__row {
+    display: flex;
+    width: max-content;
+    will-change: transform;
   }
 
-  .ledger__cell {
-    display: grid;
-    gap: 0.35rem;
+  .ticker__set {
+    display: flex;
+    align-items: center;
+    flex: none;
   }
 
-  .ledger__value {
-    font-size: clamp(1.85rem, 4vw, 2.7rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.045em;
+  .ticker__word {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(1.2rem, 3vw, 2.4rem);
+    padding-right: clamp(1.2rem, 3vw, 2.4rem);
+    font-size: clamp(2rem, 6.5vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 1px hsl(var(--foreground) / 0.45);
   }
 
-  .ledger__value i {
-    margin-left: 0.22em;
-    font-size: 0.36em;
+  .ticker__word i {
     font-style: normal;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: hsl(var(--signal));
-    vertical-align: 0.42em;
+    font-size: 0.35em;
+    color: hsl(var(--primary));
+    -webkit-text-stroke: 0;
   }
 
-  .ledger__label {
-    font-size: 0.68rem;
-    letter-spacing: 0.13em;
+  .ticker__row--thin .ticker__word {
+    font-size: clamp(1rem, 2.4vw, 1.8rem);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: hsl(var(--muted-foreground));
+    -webkit-text-stroke: 0;
+  }
+
+  .ticker__note {
+    margin: clamp(1.4rem, 3vw, 2rem) auto 0;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: hsl(var(--ink-dim));
+    color: hsl(var(--muted-foreground));
   }
 
-  .ledger__note {
-    margin: clamp(1.5rem, 3vw, 2.2rem) 0 0;
-    font-size: clamp(1rem, 2vw, 1.2rem);
-    font-weight: 500;
-    color: hsl(var(--ink-dim));
-  }
-
-  /* ------------------------------- bands ------------------------------- */
+  /* -------------------------------- bands ------------------------------ */
 
   .band {
-    width: min(78rem, 100% - clamp(2rem, 8vw, 7rem));
+    position: relative;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
     margin-inline: auto;
-    padding: clamp(4.5rem, 11vh, 8rem) 0;
-  }
-
-  .band + .band {
-    border-top: 1px solid hsl(var(--line));
+    padding: clamp(5rem, 12vh, 9rem) 0;
   }
 
   .band__head {
-    max-width: 44rem;
-    margin-bottom: clamp(2.2rem, 5vw, 3.4rem);
-  }
-
-  .kicker {
-    margin: 0 0 0.9rem;
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: hsl(var(--signal));
+    max-width: 46rem;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
   }
 
   .band__title {
     margin: 0;
-    font-size: clamp(1.85rem, 4.6vw, 3.1rem);
+    font-size: clamp(2rem, 5.2vw, 3.6rem);
     font-weight: 700;
-    line-height: 1.12;
-    letter-spacing: -0.035em;
+    line-height: 1.1;
+    letter-spacing: -0.038em;
   }
 
   .band__note {
-    margin: 1.1rem 0 0;
-    font-size: clamp(0.94rem, 1.5vw, 1.02rem);
-    line-height: 1.75;
-    color: hsl(var(--ink-dim));
+    margin: 1.2rem 0 0;
+    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
   }
 
-  .band__closing {
-    max-width: 46rem;
-    margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
-    font-size: clamp(1.05rem, 2.2vw, 1.35rem);
-    font-weight: 500;
-    line-height: 1.6;
-    letter-spacing: -0.015em;
-  }
+  /* -------------------------------- stats ------------------------------ */
 
-  .pull {
-    margin: 1.4rem 0 0;
-    padding-left: 1.1rem;
-    border-left: 2px solid hsl(var(--signal));
-    font-size: clamp(1rem, 2vw, 1.14rem);
-    line-height: 1.7;
-    color: hsl(var(--ink));
-  }
-
-  /* -------------------------------- arc -------------------------------- */
-
-  .arc {
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: clamp(0.8rem, 1.6vw, 1.1rem);
     margin: 0;
     padding: 0;
     list-style: none;
-    border-top: 1px solid hsl(var(--line));
   }
 
-  .arc__link {
-    display: grid;
-    grid-template-columns: 6.5rem 1.4rem minmax(0, 1fr) 1.5rem;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: clamp(1rem, 2.2vw, 1.45rem) 0.4rem;
-    border-bottom: 1px solid hsl(var(--line));
-    transition:
-      background 0.25s ease,
-      padding-left 0.25s ease;
+  .stat {
+    position: relative;
+    padding: clamp(1.4rem, 3vw, 2rem);
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.55);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
   }
 
-  a.arc__link:hover {
-    background: hsl(var(--paper-deep));
-    padding-left: 1rem;
+  .stat__value {
+    display: block;
+    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
   }
 
-  .arc__date {
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    color: hsl(var(--ink-faint));
+  .stat__value b {
+    font-weight: inherit;
+  }
+
+  .stat__label {
+    display: block;
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Cursor-tracked specular highlight, shared by every card surface. */
+  .stat__glow,
+  .card__glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    background: radial-gradient(
+      18rem 18rem at var(--mx, 50%) var(--my, 50%),
+      hsl(var(--primary) / 0.28),
+      transparent 65%
+    );
+  }
+
+  .stat:hover .stat__glow,
+  .card:hover .card__glow,
+  .off__portrait:hover .card__glow {
+    opacity: 1;
+  }
+
+  /* -------------------------------- reel ------------------------------- */
+
+  /* Pinned for the length of its own horizontal travel, so it has to own the
+     whole viewport while it scrubs. */
+  .reel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+  }
+
+  .reel__viewport {
+    overflow: hidden;
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+  }
+
+  .reel__track {
+    display: flex;
+    align-items: stretch;
+    gap: clamp(1rem, 2vw, 1.5rem);
+    width: max-content;
+    padding-inline: clamp(1rem, 4vw, 3rem);
+    will-change: transform;
+  }
+
+  .reel__lead {
+    flex: none;
+    align-self: center;
+    width: min(30rem, 78vw);
+    padding-right: clamp(1rem, 4vw, 3rem);
+  }
+
+  .reel__title {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.038em;
+  }
+
+  .reel__tail {
+    flex: none;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-inline: clamp(2rem, 6vw, 5rem);
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
     white-space: nowrap;
   }
 
-  .arc__dot {
-    position: relative;
-    align-self: center;
-    justify-self: center;
+  .reel__tailPip {
     width: 7px;
     height: 7px;
-    border: 1px solid hsl(var(--ink-faint));
-    border-radius: 50%;
-    transition:
-      background 0.25s ease,
-      border-color 0.25s ease,
-      transform 0.25s ease;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    animation: v4-pulse 2.6s ease-out infinite;
   }
 
-  a.arc__link:hover .arc__dot {
-    background: hsl(var(--signal));
-    border-color: hsl(var(--signal));
-    transform: scale(1.3);
+  .reel__progress {
+    position: absolute;
+    left: clamp(1rem, 4vw, 3rem);
+    right: clamp(1rem, 4vw, 3rem);
+    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    height: 1px;
+    background: hsl(var(--border));
   }
 
-  .arc__body {
-    display: grid;
-    gap: 0.3rem;
-  }
-
-  .arc__title {
-    font-size: clamp(1rem, 2vw, 1.16rem);
-    font-weight: 600;
-    letter-spacing: -0.015em;
-  }
-
-  .arc__note {
-    font-size: 0.88rem;
-    line-height: 1.6;
-    color: hsl(var(--ink-dim));
-  }
-
-  .arc__go {
-    justify-self: end;
-    font-size: 0.85rem;
-    color: hsl(var(--ink-faint));
-    transition:
-      color 0.25s ease,
-      transform 0.25s ease;
-  }
-
-  a.arc__link:hover .arc__go {
-    color: hsl(var(--signal));
-    transform: translate(2px, -2px);
-  }
-
-  /* -------------------------------- loop ------------------------------- */
-
-  .loop {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
-    align-items: start;
-    gap: clamp(2rem, 5vw, 4rem);
-  }
-
-  .loop__dial svg {
+  .reel__progress i {
     display: block;
+    height: 100%;
     width: 100%;
-    max-width: 22rem;
-    height: auto;
-    margin-inline: auto;
-    overflow: visible;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: left;
   }
 
-  .loop__track {
+  /* -------------------------------- cards ------------------------------ */
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: none;
+    width: min(21rem, 74vw);
+    min-height: min(22rem, 46svh);
+    padding: clamp(1.4rem, 2.6vw, 1.9rem);
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.62);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease;
+  }
+
+  .card:hover {
+    border-color: hsl(var(--primary) / 0.55);
+    box-shadow: 0 20px 50px hsl(var(--foreground) / 0.1);
+  }
+
+  .card > * {
+    position: relative;
+  }
+
+  .card__index {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: hsl(var(--primary));
+  }
+
+  .card__date,
+  .card__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .card__title {
+    margin-top: 0.25rem;
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+  }
+
+  .card__note {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .card__go {
+    margin-top: auto;
+    padding-top: 0.9rem;
+  }
+
+  .card__go svg {
+    width: 1.35rem;
+    height: 1.35rem;
     fill: none;
-    stroke: hsl(var(--line));
-    stroke-width: 1;
-  }
-
-  .loop__sweep {
-    fill: none;
-    stroke: hsl(var(--signal));
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-dasharray: 170 509;
-    transform-origin: center;
-    animation: v4-sweep 9s linear infinite;
-    opacity: 0.75;
-  }
-
-  @keyframes v4-sweep {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .loop__arrow {
-    fill: none;
-    stroke: hsl(var(--ink-faint));
-    stroke-width: 1.2;
+    stroke: hsl(var(--primary));
+    stroke-width: 1.5;
     stroke-linecap: round;
     stroke-linejoin: round;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
-  .loop__node {
-    cursor: pointer;
+  .card:hover .card__go svg {
+    transform: translateX(6px);
   }
 
-  .loop__disc {
-    fill: hsl(var(--paper));
-    stroke: hsl(var(--ink) / 0.3);
-    stroke-width: 1;
-    transition:
-      fill 0.3s ease,
-      stroke 0.3s ease;
+  .card--work {
+    width: auto;
+    min-height: 15rem;
   }
 
-  .loop__glyph {
-    fill: hsl(var(--ink-dim));
-    font-size: 15px;
-    font-weight: 600;
-    text-anchor: middle;
-    dominant-baseline: central;
-    transition: fill 0.3s ease;
-  }
-
-  .loop__node.is-active .loop__disc {
-    fill: hsl(var(--ink));
-    stroke: hsl(var(--ink));
-  }
-
-  .loop__node.is-active .loop__glyph {
-    fill: hsl(var(--paper));
-  }
-
-  .loop__core {
-    fill: hsl(var(--ink-faint));
-    font-family: ui-monospace, monospace;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-anchor: middle;
-  }
-
-  .loop__coreSub {
-    fill: hsl(var(--ink-faint));
-    font-size: 8px;
-    letter-spacing: 0.08em;
-    text-anchor: middle;
-    opacity: 0.75;
-  }
-
-  .loop__tabs {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.4rem;
-    margin-top: 1.6rem;
-  }
-
-  .loop__tab {
+  .card__stars {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.42rem 0.8rem;
-    border: 1px solid hsl(var(--line));
-    border-radius: 999px;
-    background: transparent;
-    color: hsl(var(--ink-dim));
-    font: inherit;
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: all 0.25s ease;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--primary));
   }
 
-  .loop__tab i {
-    font-size: 0.62rem;
-    font-style: normal;
-    color: hsl(var(--ink-faint));
+  .card__stars svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    fill: currentColor;
   }
 
-  .loop__tab:hover {
-    border-color: hsl(var(--ink) / 0.45);
-    color: hsl(var(--ink));
-  }
-
-  .loop__tab[aria-selected='true'] {
-    background: hsl(var(--ink));
-    border-color: hsl(var(--ink));
-    color: hsl(var(--paper));
-  }
-
-  .loop__tab[aria-selected='true'] i {
-    color: hsl(var(--signal));
-  }
-
-  .loop__panel {
-    animation: v4-fade 0.42s ease both;
-  }
-
-  .loop__panel[hidden] {
-    display: none;
-  }
-
-  @keyframes v4-fade {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-  }
-
-  .loop__verb {
-    display: flex;
-    align-items: baseline;
-    gap: 0.7rem;
-    margin: 0 0 0.5rem;
-    font-size: clamp(1.35rem, 3vw, 1.85rem);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
-
-  .loop__index {
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    color: hsl(var(--signal));
-  }
-
-  .loop__line {
-    margin: 0 0 1.6rem;
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: hsl(var(--ink-dim));
-  }
-
-  .loop__items {
+  .work {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: clamp(0.8rem, 1.6vw, 1.1rem);
     margin: 0;
     padding: 0;
     list-style: none;
-    border-top: 1px solid hsl(var(--line));
   }
 
-  .loop__items a {
-    display: grid;
-    gap: 0.25rem;
-    padding: 0.85rem 0.4rem;
-    border-bottom: 1px solid hsl(var(--line));
-    transition:
-      background 0.22s ease,
-      padding-left 0.22s ease;
-  }
-
-  .loop__items a:hover {
-    background: hsl(var(--paper-deep));
-    padding-left: 0.9rem;
-  }
-
-  .loop__itemTitle {
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .loop__itemNote {
-    font-size: 0.83rem;
-    color: hsl(var(--ink-dim));
-  }
-
-  /* -------------------------------- rings ------------------------------ */
-
-  .rings {
-    display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
-    align-items: center;
-    gap: clamp(2rem, 5vw, 4rem);
-  }
-
-  .rings__dial {
-    margin: 0;
-  }
-
-  .rings__dial svg {
-    display: block;
-    width: 100%;
-    max-width: 23rem;
-    height: auto;
-    margin-inline: auto;
-    overflow: visible;
-  }
-
-  .rings__ring {
-    fill: none;
-    stroke: hsl(var(--ink) / 0.35);
-    stroke-width: 1.1;
-    stroke-dasharray: 3 5;
-    transform-origin: center;
-    animation: v4-ringspin 90s linear infinite;
-    animation-delay: var(--delay, 0s);
-    transition:
-      stroke 0.3s ease,
-      stroke-width 0.3s ease,
-      stroke-dasharray 0.3s ease;
-  }
-
-  .rings__ring:nth-child(even) {
-    animation-direction: reverse;
-  }
-
-  .rings__ring.is-active {
-    stroke: hsl(var(--signal));
-    stroke-width: 2;
-    stroke-dasharray: none;
-  }
-
-  @keyframes v4-ringspin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .rings__core {
-    fill: hsl(var(--ink));
-  }
-
-  .rings__coreLabel {
-    fill: hsl(var(--paper));
-    font-size: 12px;
-    font-weight: 600;
-    text-anchor: middle;
-  }
-
-  .rings__tick circle {
-    fill: hsl(var(--paper));
-    stroke: hsl(var(--ink) / 0.5);
-    stroke-width: 1.2;
-    transition:
-      fill 0.3s ease,
-      stroke 0.3s ease;
-  }
-
-  .rings__tick text {
-    fill: hsl(var(--ink-faint));
-    font-family: ui-monospace, monospace;
-    font-size: 9px;
-    text-anchor: middle;
-    transition: fill 0.3s ease;
-  }
-
-  .rings__tick.is-active circle {
-    fill: hsl(var(--signal));
-    stroke: hsl(var(--signal));
-  }
-
-  .rings__tick.is-active text {
-    fill: hsl(var(--signal));
-  }
-
-  .rings__list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    counter-reset: ring;
-  }
-
-  .rings__item {
-    display: grid;
-    grid-template-columns: 1.9rem minmax(0, 1fr);
-    align-items: baseline;
-    gap: 0.15rem 0.7rem;
-    padding: clamp(0.85rem, 2vw, 1.15rem) 0.4rem;
-    border-bottom: 1px solid hsl(var(--line));
-    cursor: default;
-    transition:
-      background 0.25s ease,
-      padding-left 0.25s ease;
-  }
-
-  .rings__item:first-child {
-    border-top: 1px solid hsl(var(--line));
-  }
-
-  .rings__item.is-active {
-    background: hsl(var(--paper-deep));
-    padding-left: 0.9rem;
-  }
-
-  .rings__n {
-    grid-row: span 3;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: hsl(var(--ink-faint));
-    transition: color 0.25s ease;
-  }
-
-  .rings__item.is-active .rings__n {
-    color: hsl(var(--signal));
-  }
-
-  .rings__era {
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    color: hsl(var(--ink-faint));
-  }
-
-  .rings__name {
-    font-size: clamp(1.05rem, 2.2vw, 1.28rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-
-  .rings__gloss {
-    font-size: 0.88rem;
-    color: hsl(var(--ink-dim));
-  }
-
-  /* ------------------------------- proof ------------------------------- */
-
-  .proof {
-    margin-top: clamp(2.5rem, 5vw, 3.5rem);
-    padding: clamp(1.4rem, 3vw, 2rem);
-    border: 1px solid hsl(var(--line));
-    border-left: 3px solid hsl(var(--signal));
-    background: hsl(var(--paper-deep) / 0.6);
-  }
-
-  .proof__label {
-    margin: 0 0 0.7rem;
-    font-size: 0.66rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: hsl(var(--signal));
-  }
-
-  .proof__body {
-    margin: 0 0 1.2rem;
-    max-width: 48rem;
-    font-size: clamp(0.95rem, 1.6vw, 1.05rem);
-    line-height: 1.75;
-  }
-
-  .proof__bar {
-    display: grid;
-    gap: 0.5rem;
-    max-width: 30rem;
-    margin-bottom: 1.4rem;
-    font-size: 0.72rem;
-    color: hsl(var(--ink-dim));
-  }
-
-  .proof__bar span {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .proof__bar i {
-    display: block;
-    height: 6px;
-    width: var(--w);
-    background: hsl(var(--ink) / 0.28);
-    transform-origin: left;
-    animation: v4-grow 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) both;
-  }
-
-  .proof__to i {
-    background: hsl(var(--signal));
-    animation-delay: 0.25s;
-  }
-
-  @keyframes v4-grow {
-    from {
-      transform: scaleX(0);
-    }
-  }
-
-  .proof__quote {
-    margin: 0;
-    padding-top: 1.1rem;
-    border-top: 1px solid hsl(var(--line));
-    font-size: clamp(0.98rem, 1.9vw, 1.1rem);
-    line-height: 1.7;
-  }
-
-  .proof__quote cite {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: 0.74rem;
-    font-style: normal;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: hsl(var(--ink-faint));
-  }
-
-  /* ------------------------------- index ------------------------------- */
+  /* -------------------------------- index ------------------------------ */
 
   .index {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-    gap: clamp(2rem, 5vw, 3.5rem);
+    gap: clamp(2rem, 5vw, 4rem);
   }
 
   .index__label {
@@ -1901,17 +1288,17 @@ const spiral = buildSpiral({ nodeAt })
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
-    margin: 0 0 0.4rem;
-    padding-bottom: 0.7rem;
-    border-bottom: 1px solid hsl(var(--ink) / 0.4);
-    font-size: 0.68rem;
-    letter-spacing: 0.18em;
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: hsl(var(--ink-dim));
+    color: hsl(var(--muted-foreground));
   }
 
   .index__label a {
-    color: hsl(var(--signal));
+    color: hsl(var(--primary));
     letter-spacing: 0.1em;
   }
 
@@ -1921,219 +1308,264 @@ const spiral = buildSpiral({ nodeAt })
     list-style: none;
   }
 
-  .index__col a {
+  .index__col li a {
+    position: relative;
     display: grid;
-    gap: 0.28rem;
-    padding: 0.85rem 0.4rem;
-    border-bottom: 1px solid hsl(var(--line));
-    transition:
-      background 0.22s ease,
-      padding-left 0.22s ease;
+    gap: 0.3rem;
+    padding: 1rem 0.2rem;
+    transition: padding-left 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
   }
 
   .index__col li a:hover {
-    background: hsl(var(--paper-deep));
-    padding-left: 0.9rem;
+    padding-left: 1rem;
+  }
+
+  .index__rule {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: hsl(var(--border));
+  }
+
+  .index__rule::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .index__col li a:hover .index__rule::after {
+    transform: scaleX(1);
+    transform-origin: left;
   }
 
   .index__meta {
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-    color: hsl(var(--ink-faint));
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--muted-foreground));
   }
 
   .index__title {
-    font-size: 0.98rem;
+    font-size: 1rem;
     font-weight: 500;
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
-  /* ------------------------------ off-clock ---------------------------- */
+  /* --------------------------------- off ------------------------------- */
 
   .off {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: start;
-    gap: clamp(1.6rem, 4vw, 3rem);
+    gap: clamp(1.6rem, 4vw, 3.5rem);
+  }
+
+  .off__portrait {
+    position: relative;
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
   }
 
   .off__portrait img {
     display: block;
-    width: clamp(6rem, 14vw, 9.5rem);
+    width: clamp(7rem, 15vw, 11rem);
     height: auto;
-    border-radius: 2px;
-    border: 1px solid hsl(var(--line));
-    filter: grayscale(1) contrast(1.08);
+    filter: saturate(0.85);
     transition: filter 0.5s ease;
   }
 
-  .off:hover .off__portrait img {
-    filter: grayscale(0) contrast(1);
+  .off__portrait:hover img {
+    filter: saturate(1.1);
   }
 
   .off__body {
-    max-width: 40rem;
-    margin: 1.1rem 0 1.4rem;
-    font-size: clamp(0.94rem, 1.5vw, 1.02rem);
-    line-height: 1.8;
-    color: hsl(var(--ink-dim));
+    max-width: 42rem;
+    margin: 1.2rem 0 1.6rem;
+    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+    line-height: 1.85;
+    color: hsl(var(--muted-foreground));
   }
 
   .off__tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.45rem;
+    gap: 0.5rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .off__tags li {
-    padding: 0.3rem 0.7rem;
-    border: 1px solid hsl(var(--line));
-    border-radius: 999px;
-    font-size: 0.78rem;
-    color: hsl(var(--ink-dim));
+    padding: 0.35rem 0.85rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    color: hsl(var(--muted-foreground));
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease;
   }
 
-  /* -------------------------------- end -------------------------------- */
+  .off__tags li:hover {
+    border-color: hsl(var(--primary));
+    color: hsl(var(--foreground));
+  }
+
+  /* --------------------------------- end ------------------------------- */
 
   .end {
-    width: min(78rem, 100% - clamp(2rem, 8vw, 7rem));
+    position: relative;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
     margin-inline: auto;
-    padding: clamp(5rem, 12vh, 9rem) 0 3rem;
-    border-top: 1px solid hsl(var(--line));
+    padding: clamp(6rem, 15vh, 11rem) 0 3rem;
+  }
+
+  /* The field comes back up for the closing frame; same trick as the hero so
+     the small print keeps its contrast. */
+  .end::before {
+    content: '';
+    position: absolute;
+    inset: 0 -12vw;
+    pointer-events: none;
+    background: radial-gradient(
+      64% 62% at 34% 45%,
+      hsl(var(--background) / 0.9),
+      hsl(var(--background) / 0.6) 48%,
+      hsl(var(--background) / 0) 82%
+    );
+  }
+
+  .end > * {
+    position: relative;
+  }
+
+  .end__lead {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
   }
 
   .end__title {
-    max-width: 26ch;
+    max-width: 22ch;
     margin: 0;
-    font-size: clamp(1.9rem, 5.2vw, 3.6rem);
-    font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.04em;
-    white-space: pre-line;
+    font-size: clamp(2.1rem, 6.4vw, 4.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.045em;
   }
 
   .end__note {
-    margin: 1.4rem 0 2.4rem;
-    font-size: 0.95rem;
-    color: hsl(var(--ink-dim));
+    margin: 1.8rem 0 2.6rem;
+    font-size: 1rem;
+    color: hsl(var(--muted-foreground));
   }
 
   .end__links {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.55rem;
-    margin: 0 0 3.5rem;
+    gap: 0.6rem;
+    margin: 0 0 4rem;
     padding: 0;
     list-style: none;
   }
 
   .end__links a {
+    position: relative;
     display: inline-block;
-    padding: 0.6rem 1.1rem;
-    border: 1px solid hsl(var(--ink) / 0.22);
-    border-radius: 2px;
-    font-size: 0.9rem;
-    transition: all 0.25s ease;
+    padding: 0.7rem 1.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.5);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-size: 0.92rem;
+    overflow: hidden;
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .end__links a::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+    z-index: -1;
   }
 
   .end__links a:hover {
-    background: hsl(var(--ink));
-    border-color: hsl(var(--ink));
-    color: hsl(var(--paper));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+  }
+
+  .end__links a:hover::before {
+    transform: scaleY(1);
   }
 
   .end__foot {
     display: flex;
-    gap: 0.6rem;
+    align-items: center;
+    gap: 0.7rem;
     margin: 0;
-    padding-top: 1.4rem;
-    border-top: 1px solid hsl(var(--line));
-    font-size: 0.68rem;
-    letter-spacing: 0.1em;
+    padding-top: 1.6rem;
+    border-top: 1px solid hsl(var(--border));
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: hsl(var(--ink-faint));
+    color: hsl(var(--muted-foreground));
   }
 
-  /* ------------------------------ reveal ------------------------------- */
+  .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 9999px;
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* ------------------------------- reveal ------------------------------ */
 
   [data-reveal] {
     opacity: 0;
-    transform: translateY(18px);
-    transition:
-      opacity 0.7s cubic-bezier(0.22, 0.8, 0.28, 1),
-      transform 0.7s cubic-bezier(0.22, 0.8, 0.28, 1);
-    transition-delay: calc(var(--i, 0) * 45ms);
+    transform: translateY(24px);
   }
 
-  [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-  }
+  /* --------------------------- responsive ------------------------------ */
 
-  /* ----------------------------- responsive ---------------------------- */
-
-  @media (max-width: 900px) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr);
-      min-height: auto;
-      padding-top: 6rem;
-    }
-
-    .hero__art {
-      order: -1;
-      width: min(24rem, 80%);
-      margin-inline: auto;
-    }
-
-    .hero__scroll {
-      display: none;
-    }
-
-    .loop,
-    .rings {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .rings__dial {
-      max-width: 18rem;
-      margin-inline: auto;
-    }
-
+  @media (max-width: 768px) {
     .off {
       grid-template-columns: minmax(0, 1fr);
     }
+
+    .reel__lead {
+      width: min(24rem, 84vw);
+    }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 640px) {
     .rail__nav a:not(.rail__lang) {
       display: none;
     }
 
-    .arc__link {
-      grid-template-columns: 1.1rem minmax(0, 1fr) 1.2rem;
-      grid-template-areas:
-        'dot date go'
-        '. body body';
-      row-gap: 0.45rem;
+    .cursor {
+      display: none;
     }
 
-    .arc__date {
-      grid-area: date;
-    }
-
-    .arc__dot {
-      grid-area: dot;
-    }
-
-    .arc__body {
-      grid-area: body;
-    }
-
-    .arc__go {
-      grid-area: go;
+    .hero__scroll {
+      left: 0;
+      transform: none;
+      justify-items: start;
     }
   }
 
@@ -2145,27 +1577,13 @@ const spiral = buildSpiral({ nodeAt })
       transition-duration: 0.01ms !important;
     }
 
-    .spiral__line,
-    .spiral__ghost {
-      stroke-dashoffset: 0;
-    }
-
-    .spiral__node circle {
-      opacity: 1;
-    }
-
-    .spiral__halo {
-      opacity: 0 !important;
-    }
-
-    .thesis__noise {
-      color: hsl(var(--ink-dim));
-      text-shadow: none;
-    }
-
     [data-reveal] {
       opacity: 1;
       transform: none;
+    }
+
+    .cursor {
+      display: none;
     }
   }
 </style>
