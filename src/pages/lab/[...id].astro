@@ -15,7 +15,9 @@ import { labCategoryLabels } from '@/lib/lab'
 export const prerender = true
 
 export async function getStaticPaths() {
-  const entries = await getCollection('lab')
+  // Filter drafts here too, so a draft entry has no directly-reachable detail
+  // page (the index already hides them).
+  const entries = await getCollection('lab', ({ data }) => !data.draft)
   return entries.map((entry) => ({
     params: { id: entry.id },
     props: { entry }
@@ -115,7 +117,7 @@ const breadcrumbLd = {
           }
         </div>
 
-        <PageInfo class='mt-3 italic' path={`/lab/${entry.id}`} />
+        <PageInfo class='mt-3 italic' path={`/lab/${entry.id}`} hideComment />
       </header>
     </div>
 
