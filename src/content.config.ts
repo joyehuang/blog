@@ -156,4 +156,35 @@ const talks = defineCollection({
   schema: talksSchema
 })
 
-export const collections = { blog, blogEn, notes, notesEn, curated, talks }
+// Lab: a gallery of small frontend demos & tips. Each entry co-locates its demo
+// component (a `.tsx` island, ignored by the md/mdx loader) with an `index.mdx`
+// that embeds it and adds the write-up.
+const lab = defineCollection({
+  loader: glob({ base: './src/content/lab', pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}'] }),
+  schema: ({ image }) =>
+    z.object({
+      // Required
+      title: z.string(),
+      // One-line takeaway / 观点, shown on the card and the detail header.
+      blurb: z.string().max(200),
+      date: z.coerce.date(),
+      // Optional
+      updatedDate: z.coerce.date().optional(),
+      category: z
+        .enum(['layout', 'typography', 'css', 'animation', 'interaction', 'component', 'other'])
+        .default('other'),
+      tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
+      // Where the tip came from (article, tweet, codepen, repo…).
+      source: z.string().url().optional(),
+      // Optional card thumbnail; cards fall back to text-only without it.
+      cover: z
+        .object({
+          src: image(),
+          alt: z.string().optional()
+        })
+        .optional(),
+      draft: z.boolean().default(false)
+    })
+})
+
+export const collections = { blog, blogEn, notes, notesEn, curated, talks, lab }

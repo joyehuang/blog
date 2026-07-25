@@ -1,0 +1,36 @@
+---
+title: 信息层级，不必靠边框一层套一层
+blurb: 三层信息一层套一层的边框会很挤；字号、颜色、留白，或背景色的深浅同样能表达层级，而且更轻。
+date: 2026-07-24
+category: layout
+tags:
+  - hierarchy
+  - visual-design
+  - css
+source: https://www.refactoringui.com/
+---
+
+import DemoFrame from '@/components/lab/DemoFrame.astro'
+import InfoHierarchyDemo from './InfoHierarchyDemo.tsx'
+
+<DemoFrame bleed label="同一份数据渲染三遍——内容完全一致，观感完全不同。">
+  <InfoHierarchyDemo client:visible />
+</DemoFrame>
+
+## 拆开看它怎么做到的
+
+去掉边框之后，层级是靠三条“坡度”撑起来的，都能量化：
+
+- **字号阶梯**：标题 `21px` → 步骤 `14.5px` → 日志 `12px`。每一级明显小一档，眼睛顺着字号从大往小扫，就是从上层往下层走。
+- **颜色深浅**：文字颜色分四档——`ink`（近黑）→ `ink-soft`（82% 不透明）→ `muted`（灰）→ `faint`（更浅的灰）。越次要的信息越浅，读者的注意力自动往深色那头去。
+- **背景浓度**：正例 B 里，步骤块 = 把状态色按 **7%** 掺进背景，日志块 = 掺 **13%**。同一个色相，浓度翻倍，就读作“又深了一层”。（暗色模式下底色更暗，掺入比例相应提到 12% / 22%，观感才对得上。）
+
+三条坡度叠加，哪怕一条边框都不画，三层结构依然一眼分明。
+
+## 什么时候仍然该用边框
+
+不是说边框有罪。当两块内容**真的是并列、需要清晰切分**（比如表格单元、可点击的独立卡片），一条边框是最直接的表达。要避免的是用边框去表达“从属 / 嵌套”——那本该交给字号、留白和背景色。
+
+## 出处
+
+这个观点来自 Adam Wathan 与 Steve Schoger 的 [_Refactoring UI_](https://www.refactoringui.com/) —— 书里 **“Use fewer borders”（少用边框）** 一节：要区隔两块内容，除了边框，还可以用阴影、对比背景色，或者干脆多留一点白。这里把它放大到“三层嵌套”的场景，顺手做了明暗两套主题。
