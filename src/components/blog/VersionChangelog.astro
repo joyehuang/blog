@@ -1,80 +1,119 @@
-<details id="版本更新日志" class="my-8 rounded-xl border border-base/15 bg-base/5 px-5 py-4">
-  <summary class="cursor-pointer select-none font-semibold">
-    版本更新日志（当前 v1.2）
-  </summary>
+---
+interface Props {
+  lang?: 'zh' | 'en'
+}
 
-  <div class="mt-6">
-    <h4>v1.2 — 2026-07-25</h4>
-    <ul>
-      <li>
-        第五章从六件内功扩到八件，并新增一个架构判断：新增“5.5
-        安全”，把原本散在 1.4、2.3、5.3 的安全内容收拢成完整一节；新增“5.7 观测与调试”，讲清
-        trace / trajectory / transcript 是同一件事、一条执行记录该留什么，以及它和 Eval
-        的分工；新增“5.9 多 Agent”，补上第四章承诺了面试会考、正文却没讲的部分。
-      </li>
-      <li>
-        第五章小节重新编号（原 5.5 成本控制 → 5.6，原 5.6 Eval → 5.8，原 5.7 总结 →
-        5.10），总结改为按“做对 / 扛得住 / 可判断”分组。
-      </li>
-      <li>
-        1.3“Agent 开发 = 做 Harness”补上实证：Databricks
-        千万行代码库评测显示，同一模型换一个 harness，部分任务的单次成本相差超过 2 倍而质量基本一致。
-      </li>
-      <li>
-        4.5 新增“读真实代码理解 Agent Loop”一条：Pi（极简内核 + 插件扩展）与 Hugging Face
-        的 Tau（Python 教学向重写）。
-      </li>
-      <li>
-        5.6 补上 Pi 团队的 prefix cache 复盘：什么会让缓存悄悄失效，以及“上下文剪枝”和缓存之间的取舍。
-      </li>
-      <li>
-        5.8 补上 LLM-as-Judge 的自家模型偏好问题，以及 judge 要交叉评、并和干活的模型分开固定参数。
-      </li>
-      <li>阅读时间随篇幅更新为约 60–65 分钟（全文约 1.85 万中文字）。</li>
-    </ul>
+const { lang = 'zh' } = Astro.props
 
-    <h4>v1.1 — 2026-07-13</h4>
-    <ul>
-      <li>
-        内容和来源更新至 2026 年 7 月：模型格局（Claude 5 家族、GPT-5.6、Gemini 3.5
-        Flash / 3.1 Pro、Qwen3.7、K2.7、GLM-5.2、MiniMax M3）、框架生态（AI SDK
-        7、LangChain 1.0、Microsoft Agent Framework）、MCP 捐入 Agentic AI
-        Foundation、Skills 开放标准与供应链风险；对第三方行业统计明确标注口径。
-      </li>
-      <li>
-        修正安全边界、Skills 渐进式披露、开源协议、MiniMax 多模态、缓存折扣和若干时间线等表述。
-      </li>
-      <li>
-        第一章重写：明确“大脑 = 模型本身、Agent 开发 = 做 Harness”，并加入包含失败处理、tool
-        search 和执行层安全的 Coding Agent 示例。
-      </li>
-      <li>
-        新增官方 Agent SDK、Cloudflare Agents SDK / eve、Eino，以及 Skills 供应链风险。
-      </li>
-      <li>
-        第四章重写为“用 → 懂 → 造”三级跳，增加边界感、工程级代码实践、项目对照组和每一跳的验收标准。
-      </li>
-      <li>付费服务移出正文，改为独立折叠附件；移除“技术栈图谱”和原 2.5“应用层”小节。</li>
-      <li>
-        阅读时间改为中文 350 字/分钟、英文 200 词/分钟分别计算，并排除付费服务与更新日志附件；本篇由错误的 91 分钟修正为约 50 分钟。
-      </li>
-      <li>
-        重写结尾，增加 Agent 交流群、B 站线上自习室和 GitHub 反馈入口；更新日志改为折叠附件。
-      </li>
-    </ul>
+const copy = {
+  zh: {
+    summary: '版本更新日志（当前 v1.2）',
+    releases: [
+      {
+        heading: 'v1.2 — 2026-07-25',
+        items: [
+          '第五章从六件内功扩到八件，并新增一个架构判断：新增“5.5 安全”，把原本散在 1.4、2.3、5.3 的安全内容收拢成完整一节；新增“5.7 观测与调试”，讲清 trace / trajectory / transcript 是同一件事、一条执行记录该留什么，以及它和 Eval 的分工；新增“5.9 多 Agent”，补上第四章承诺了面试会考、正文却没讲的部分。',
+          '第五章小节重新编号（原 5.5 成本控制 → 5.6，原 5.6 Eval → 5.8，原 5.7 总结 → 5.10），总结改为按“做对 / 扛得住 / 可判断”分组。',
+          '1.3“Agent 开发 = 做 Harness”补上实证：Databricks 千万行代码库评测显示，同一模型换一个 harness，部分任务的单次成本相差超过 2 倍而质量基本一致。',
+          '4.5 新增“读真实代码理解 Agent Loop”一条：Pi（极简内核 + 插件扩展）与 Hugging Face 的 Tau（Python 教学向重写）。',
+          '5.6 补上 Pi 团队的 prefix cache 复盘：什么会让缓存悄悄失效，以及“上下文剪枝”和缓存之间的取舍。',
+          '5.8 补上 LLM-as-Judge 的自家模型偏好问题，以及 judge 要交叉评、并和干活的模型分开固定参数。',
+          '全文精简加粗高亮（377 → 308 处），去掉链接上的加粗、列表项内的二次强调和并列枚举，使每段最多保留一处高亮。',
+          '阅读时间随篇幅更新为约 60–65 分钟（全文约 1.85 万中文字）。'
+        ]
+      },
+      {
+        heading: 'v1.1 — 2026-07-13',
+        items: [
+          '内容和来源更新至 2026 年 7 月：模型格局（Claude 5 家族、GPT-5.6、Gemini 3.5 Flash / 3.1 Pro、Qwen3.7、K2.7、GLM-5.2、MiniMax M3）、框架生态（AI SDK 7、LangChain 1.0、Microsoft Agent Framework）、MCP 捐入 Agentic AI Foundation、Skills 开放标准与供应链风险；对第三方行业统计明确标注口径。',
+          '修正安全边界、Skills 渐进式披露、开源协议、MiniMax 多模态、缓存折扣和若干时间线等表述。',
+          '第一章重写：明确“大脑 = 模型本身、Agent 开发 = 做 Harness”，并加入包含失败处理、tool search 和执行层安全的 Coding Agent 示例。',
+          '新增官方 Agent SDK、Cloudflare Agents SDK / eve、Eino，以及 Skills 供应链风险。',
+          '第四章重写为“用 → 懂 → 造”三级跳，增加边界感、工程级代码实践、项目对照组和每一跳的验收标准。',
+          '付费服务移出正文，改为独立折叠附件；移除“技术栈图谱”和原 2.5“应用层”小节。',
+          '阅读时间改为中文 350 字/分钟、英文 200 词/分钟分别计算，并排除付费服务与更新日志附件；本篇由错误的 91 分钟修正为约 50 分钟。',
+          '重写结尾，增加 Agent 交流群、B 站线上自习室和 GitHub 反馈入口；更新日志改为折叠附件。'
+        ]
+      }
+    ],
+    initialHeading: 'v1.0 — 2026-05-17',
+    initialBody: '首次发布。',
+    archiveLabel: '查看原文存档',
+    archiveSuffix: '。'
+  },
+  en: {
+    summary: 'Version changelog (current: v1.2)',
+    releases: [
+      {
+        heading: 'v1.2 — 2026-07-25',
+        items: [
+          'Chapter 5 grows from six inner skills to eight, plus one architectural judgment call. New "5.5 Security" pulls together material previously scattered across 1.4, 2.3 and 5.3. New "5.7 Observability and debugging" explains that trace, trajectory and transcript all mean the same thing, what a run should record, and how this differs from Eval. New "5.9 Multi-agent" covers the topic Chapter 4 promised would come up in interviews but never taught.',
+          'Chapter 5 sections are renumbered (old 5.5 cost control → 5.6, old 5.6 Eval → 5.8, old 5.7 summary → 5.10), and the summary is regrouped into "get it right / make it survive / keep it accountable".',
+          'Section 1.3 now backs the claim "Agent development = building a Harness" with evidence: on Databricks\' multi-million-line codebase, the same model on a different harness differed by more than 2x in cost per task in some cases, at essentially the same quality.',
+          'Section 4.5 adds a "read real code to understand the Agent Loop" entry: Pi (minimal core plus extensions) and Hugging Face\'s Tau (a Python teaching rewrite).',
+          "Section 5.6 adds Pi's prefix-cache retro: what silently invalidates the cache, and the trade-off between pruning context and keeping the cache.",
+          'Section 5.8 adds the self-preference bias in LLM-as-Judge, plus the rules to cross-evaluate and to keep the judge separate from the model doing the work.',
+          'Emphasis thinned across the guide (377 → 308 bold spans): bold on links, secondary bold inside list items, and parallel inline enumerations are gone, so no paragraph carries more than one highlight.',
+          'Reading time updated to roughly 60–65 minutes to match the new length.'
+        ]
+      },
+      {
+        heading: 'v1.1 — 2026-07-13',
+        items: [
+          "Content and sources updated through July 2026: the model landscape (Claude 5 family, GPT-5.6, Gemini 3.5 Flash / 3.1 Pro, Qwen3.7, K2.7, GLM-5.2, MiniMax M3), the framework ecosystem (AI SDK 7, LangChain 1.0, Microsoft Agent Framework), MCP's donation to the Agentic AI Foundation, and Skills as an open standard along with its supply-chain risks. Third-party industry statistics now carry explicit notes on methodology.",
+          'Corrected the treatment of security boundaries, Skills progressive disclosure, open-source licenses, MiniMax multimodality, cache discounts, and several timeline details.',
+          'Chapter 1 rewritten: it now states plainly that the brain is the model itself and that Agent development means building the Harness, with a Coding Agent example covering failure handling, tool search, and execution-layer security.',
+          'Added the official Agent SDKs, Cloudflare Agents SDK / eve, Eino, and Skills supply-chain risk.',
+          'Chapter 4 rewritten as the Use → Understand → Build triple jump, adding a feel for the limits, practices for getting production-grade code out of a Coding Agent, the control-group framing for your project, and acceptance criteria for each jump.',
+          'Paid services moved out of the body into a separate collapsible appendix; the tech-stack map and the old 2.5 "application layer" section were removed.',
+          'Reading time is now computed at 350 Chinese characters and 200 English words per minute, excluding the paid-services and changelog appendices; this post was corrected from an erroneous 91 minutes to roughly 50.',
+          'Ending rewritten, adding the Agent discussion group, the Bilibili study-room stream, and a GitHub feedback channel; the changelog became a collapsible appendix.'
+        ]
+      }
+    ],
+    initialHeading: 'v1.0 — 2026-05-17',
+    initialBody: 'Initial release. ',
+    archiveLabel: 'View the original archived version',
+    archiveSuffix: '.'
+  }
+}[lang]
+---
 
-    <h4>v1.0 — 2026-05-17</h4>
-    <p>首次发布。<a href="/archives/agent-onboarding-guide-v1">查看原文存档</a>。</p>
+<details id='版本更新日志' class='my-8 rounded-xl border border-base/15 bg-base/5 px-5 py-4'>
+  <summary class='cursor-pointer select-none font-semibold'>{copy.summary}</summary>
+
+  <div class='mt-6'>
+    {
+      copy.releases.map((release) => (
+        <>
+          <h4>{release.heading}</h4>
+          <ul>
+            {release.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </>
+      ))
+    }
+
+    <h4>{copy.initialHeading}</h4>
+    <p>
+      {copy.initialBody}<a href='/archives/agent-onboarding-guide-v1'>{copy.archiveLabel}</a>{
+        copy.archiveSuffix
+      }
+    </p>
   </div>
 </details>
 
 <script>
-  document.querySelectorAll<HTMLAnchorElement>('[data-version-changelog-trigger]').forEach((trigger) => {
-    trigger.addEventListener('click', () => {
-      const changelog = document.querySelector<HTMLDetailsElement>('#版本更新日志')
-      if (!changelog) return
+  document
+    .querySelectorAll<HTMLAnchorElement>('[data-version-changelog-trigger]')
+    .forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const changelog = document.querySelector<HTMLDetailsElement>('#版本更新日志')
+        if (!changelog) return
 
-      changelog.open = true
+        changelog.open = true
+      })
     })
-  })
 </script>
