@@ -1,24 +1,40 @@
 ---
 interface Props {
   class?: string
+  lang?: 'zh' | 'en'
   label?: string
   prefix?: string
   suffix?: string
 }
 
-const { class: className, label = '微信号', prefix = 'joye', suffix = '050604' } = Astro.props
+const {
+  class: className,
+  lang = 'zh',
+  label,
+  prefix = 'joye',
+  suffix = '050604'
+} = Astro.props
+
+const copy = {
+  zh: { label: '微信号', hint: '悬停或聚焦显示' },
+  en: { label: 'WeChat ID', hint: 'hover or focus to reveal' }
+}[lang]
+
+const text = label ?? copy.label
+const ariaLabel = lang === 'zh' ? `${text}，${copy.hint}` : `${text}, ${copy.hint}`
 ---
 
 <span
   class:list={['wechat-reveal', className]}
   tabindex='0'
+  data-label={text}
   data-a={prefix}
   data-b={suffix}
   data-analytics-reveal-event='article_contact_reveal'
   data-analytics-surface='article_inline'
   data-analytics-method-name='wechat'
   data-analytics-action='reveal'
-  aria-label={`${label}，悬停或聚焦显示`}></span>
+  aria-label={ariaLabel}></span>
 
 <style>
   .wechat-reveal {
@@ -47,7 +63,7 @@ const { class: className, label = '微信号', prefix = 'joye', suffix = '050604
   }
 
   .wechat-reveal::before {
-    content: '微信号';
+    content: attr(data-label);
     transition:
       opacity 140ms ease,
       transform 140ms ease;

@@ -1,88 +1,201 @@
 ---
 import WechatReveal from '@/components/blog/WechatReveal.astro'
+
+interface Props {
+  lang?: 'zh' | 'en'
+}
+
+const { lang = 'zh' } = Astro.props
+
+const copy = {
+  zh: {
+    summary: '附录｜1v1 付费服务说明（可选阅读）',
+    intro: '每个人的情况不一样：',
+    introPoints: [
+      '你的简历应该怎么改，通用文档给不了具体到段落、句子的建议；',
+      '你的项目应该怎么讲，通用文档无法针对你的经历重写“问题—方案—结果”；',
+      '你的学习节奏应该怎么定，需要结合基础、目标和每周可投入时间；',
+      '你即将面的公司可能会问什么，需要结合岗位和简历准备。'
+    ],
+    lead: '如果你需要这种具体的 1v1 帮助，我提供以下三档服务。所有服务都由我亲自交付，不外包、不批量。',
+    forWhom: '适合谁：',
+    whatYouGet: '服务内容：',
+    services: [
+      {
+        title: '服务一：简历修改（￥）',
+        forWhom: [
+          '已经有简历和项目经历，但不确定怎么讲清亮点；',
+          '简历上有项目，但讲不出“问题—方案—结果”；',
+          '想转 Agent 方向，不知道怎么改造旧简历。'
+        ],
+        whatYouGet: [
+          '详细 review 简历，提供具体到段落、句子的修改建议；',
+          '重新组织项目叙事，让项目能在面试中被清楚讲明白；',
+          '提供 Agent 工程 / LLM 应用 / Multi-Agent / RAG 等方向的关键词建议；',
+          '一次 30–60 分钟的 1v1 沟通，复查修改后的版本。'
+        ]
+      },
+      {
+        title: '服务二：1v1 模拟面试（￥￥）',
+        forWhom: [
+          '正在准备 Agent 工程师岗位，但缺乏实战面试经验；',
+          '已经复盘过项目，希望有人专业地追问和检验；',
+          '即将面试心仪公司，希望提前热身。'
+        ],
+        whatYouGet: [
+          '结合简历和目标公司定制题目；',
+          '覆盖基础认知、系统设计、工程取舍和行业认知；',
+          '按时间收费，最少 1 小时起；',
+          '可按需要录音 / 录像，结束后整理延伸资源。'
+        ]
+      },
+      {
+        title: '服务三：学习路线 / 入门陪跑（￥￥￥）',
+        forWhom: [
+          '零基础或有基础但缺少方向，希望有人系统带一段时间；',
+          '自学容易卡住或中断，需要节奏督促和答疑；',
+          '希望在 1–3 个月内完成一个可展示的 Agent 项目。'
+        ],
+        whatYouGet: [
+          '入门评估和个性化周度学习计划；',
+          '每周一次 30–60 分钟 1v1 答疑；',
+          '项目全程跟进和关键节点 review；',
+          '结束时完成至少一个 Agent 项目和一份复盘文档。'
+        ]
+      }
+    ],
+    cadence: '典型陪跑周期：4 周 / 8 周 / 12 周，具体根据目标和时间决定。',
+    pricing:
+      '所有服务的具体价格请联系咨询。咨询本身免费，我会先了解你的情况，再判断哪种服务适合你；不合适会直接说明。',
+    contactHeading: '如何联系',
+    wechatLabel: '加微信',
+    wechatNote: '付费咨询',
+    wechatSuffix: '，备注',
+    sentenceEnd: '。',
+    siteLabel: '个人网站：joyehuang.me',
+    githubLabel: 'GitHub：github.com/joyehuang'
+  },
+  en: {
+    summary: 'Appendix | 1-on-1 paid services (optional reading)',
+    intro: "Everyone's situation is different:",
+    introPoints: [
+      'How your résumé should change — a general document cannot give you advice down to the paragraph and the sentence.',
+      'How to talk about your project — a general document cannot rewrite "problem — approach — result" around your specific experience.',
+      'What learning pace suits you — that depends on your background, your goal, and the hours you can actually put in each week.',
+      'What the company you are about to interview with will ask — that depends on the role and on your résumé.'
+    ],
+    lead: 'If you want that kind of specific 1-on-1 help, I offer the three tiers below. I deliver all of them personally — nothing is outsourced or run in batches.',
+    forWhom: 'Who it suits:',
+    whatYouGet: 'What you get:',
+    services: [
+      {
+        title: 'Tier 1: résumé revision',
+        forWhom: [
+          'You already have a résumé and project experience, but are not sure how to make the highlights land.',
+          'There are projects on your résumé, but you cannot tell them as "problem — approach — result".',
+          'You want to move into Agent work and do not know how to rework an older résumé.'
+        ],
+        whatYouGet: [
+          'A detailed review with revisions down to the paragraph and the sentence.',
+          'Your project narrative reorganized so it can be explained clearly in an interview.',
+          'Keyword suggestions for Agent engineering / LLM applications / multi-agent / RAG.',
+          'One 30–60 minute 1-on-1 session, plus a second pass over the revised version.'
+        ]
+      },
+      {
+        title: 'Tier 2: 1-on-1 mock interview',
+        forWhom: [
+          'You are preparing for Agent engineer roles but lack real interview experience.',
+          'You have already done a retrospective on your project and want someone to probe and stress-test it properly.',
+          'You have an interview coming up at a company you care about and want to warm up first.'
+        ],
+        whatYouGet: [
+          'Questions tailored to your résumé and your target company.',
+          'Coverage of fundamentals, system design, engineering tradeoffs, and industry awareness.',
+          'Charged by time, one hour minimum.',
+          'Audio or video recording on request, plus follow-up resources afterwards.'
+        ]
+      },
+      {
+        title: 'Tier 3: learning roadmap / guided onboarding',
+        forWhom: [
+          'You are starting from zero, or have some background but no direction, and want someone to guide you systematically for a while.',
+          'Self-study keeps stalling and you need pacing and someone to answer questions.',
+          'You want to finish a presentable Agent project within 1–3 months.'
+        ],
+        whatYouGet: [
+          'An initial assessment and a personalized weekly learning plan.',
+          'A 30–60 minute 1-on-1 Q&A session each week.',
+          'Continuous guidance on your project, with reviews at key milestones.',
+          'At least one finished Agent project and a written retrospective by the end.'
+        ]
+      }
+    ],
+    cadence: 'Typical engagement: 4, 8, or 12 weeks, depending on your goal and available time.',
+    pricing:
+      'Get in touch for exact pricing. The initial conversation is free — I will learn about your situation first and then judge which tier fits, and I will say so directly if none of them does.',
+    contactHeading: 'How to get in touch',
+    wechatLabel: 'Add me on WeChat',
+    wechatNote: 'paid consulting',
+    wechatSuffix: ', with the note',
+    sentenceEnd: '.',
+    siteLabel: 'Website: joyehuang.me',
+    githubLabel: 'GitHub: github.com/joyehuang'
+  }
+}[lang]
 ---
 
-<details class="my-10 rounded-xl border border-base/15 bg-base/5 px-5 py-4">
-  <summary class="cursor-pointer select-none font-semibold">
-    附录｜1v1 付费服务说明（可选阅读）
-  </summary>
+<details class='my-10 rounded-xl border border-base/15 bg-base/5 px-5 py-4'>
+  <summary class='cursor-pointer select-none font-semibold'>{copy.summary}</summary>
 
-  <div class="mt-6">
-    <p>每个人的情况不一样：</p>
+  <div class='mt-6'>
+    <p>{copy.intro}</p>
 
     <ul>
-      <li>你的简历应该怎么改，通用文档给不了具体到段落、句子的建议；</li>
-      <li>你的项目应该怎么讲，通用文档无法针对你的经历重写“问题—方案—结果”；</li>
-      <li>你的学习节奏应该怎么定，需要结合基础、目标和每周可投入时间；</li>
-      <li>你即将面的公司可能会问什么，需要结合岗位和简历准备。</li>
+      {copy.introPoints.map((point) => <li>{point}</li>)}
     </ul>
 
+    <p>{copy.lead}</p>
+
+    {
+      copy.services.map((service) => (
+        <>
+          <h4>{service.title}</h4>
+
+          <p>
+            <strong>{copy.forWhom}</strong>
+          </p>
+          <ul>
+            {service.forWhom.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+
+          <p>
+            <strong>{copy.whatYouGet}</strong>
+          </p>
+          <ul>
+            {service.whatYouGet.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </>
+      ))
+    }
+
+    <p>{copy.cadence}</p>
+
+    <p>{copy.pricing}</p>
+
+    <h4>{copy.contactHeading}</h4>
     <p>
-      如果你需要这种具体的 1v1 帮助，我提供以下三档服务。所有服务都由我亲自交付，不外包、不批量。
+      {copy.wechatLabel}
+      <WechatReveal lang={lang} />{copy.wechatSuffix}
+      <strong>“{copy.wechatNote}”</strong>{copy.sentenceEnd}
     </p>
-
-    <h4>服务一：简历修改（￥）</h4>
-
-    <p><strong>适合谁：</strong></p>
     <ul>
-      <li>已经有简历和项目经历，但不确定怎么讲清亮点；</li>
-      <li>简历上有项目，但讲不出“问题—方案—结果”；</li>
-      <li>想转 Agent 方向，不知道怎么改造旧简历。</li>
-    </ul>
-
-    <p><strong>服务内容：</strong></p>
-    <ul>
-      <li>详细 review 简历，提供具体到段落、句子的修改建议；</li>
-      <li>重新组织项目叙事，让项目能在面试中被清楚讲明白；</li>
-      <li>提供 Agent 工程 / LLM 应用 / Multi-Agent / RAG 等方向的关键词建议；</li>
-      <li>一次 30–60 分钟的 1v1 沟通，复查修改后的版本。</li>
-    </ul>
-
-    <h4>服务二：1v1 模拟面试（￥￥）</h4>
-
-    <p><strong>适合谁：</strong></p>
-    <ul>
-      <li>正在准备 Agent 工程师岗位，但缺乏实战面试经验；</li>
-      <li>已经复盘过项目，希望有人专业地追问和检验；</li>
-      <li>即将面试心仪公司，希望提前热身。</li>
-    </ul>
-
-    <p><strong>服务内容：</strong></p>
-    <ul>
-      <li>结合简历和目标公司定制题目；</li>
-      <li>覆盖基础认知、系统设计、工程取舍和行业认知；</li>
-      <li>按时间收费，最少 1 小时起；</li>
-      <li>可按需要录音 / 录像，结束后整理延伸资源。</li>
-    </ul>
-
-    <h4>服务三：学习路线 / 入门陪跑（￥￥￥）</h4>
-
-    <p><strong>适合谁：</strong></p>
-    <ul>
-      <li>零基础或有基础但缺少方向，希望有人系统带一段时间；</li>
-      <li>自学容易卡住或中断，需要节奏督促和答疑；</li>
-      <li>希望在 1–3 个月内完成一个可展示的 Agent 项目。</li>
-    </ul>
-
-    <p><strong>服务内容：</strong></p>
-    <ul>
-      <li>入门评估和个性化周度学习计划；</li>
-      <li>每周一次 30–60 分钟 1v1 答疑；</li>
-      <li>项目全程跟进和关键节点 review；</li>
-      <li>结束时完成至少一个 Agent 项目和一份复盘文档。</li>
-    </ul>
-
-    <p>典型陪跑周期：4 周 / 8 周 / 12 周，具体根据目标和时间决定。</p>
-
-    <p>
-      所有服务的具体价格请联系咨询。咨询本身免费，我会先了解你的情况，再判断哪种服务适合你；不合适会直接说明。
-    </p>
-
-    <h4>如何联系</h4>
-    <p>加微信 <WechatReveal />，备注 <strong>“付费咨询”</strong>。</p>
-    <ul>
-      <li><a href="https://www.joyehuang.me">个人网站：joyehuang.me</a></li>
-      <li><a href="https://github.com/joyehuang">GitHub：github.com/joyehuang</a></li>
+      <li><a href='https://www.joyehuang.me'>{copy.siteLabel}</a></li>
+      <li><a href='https://github.com/joyehuang'>{copy.githubLabel}</a></li>
     </ul>
   </div>
 </details>

@@ -1,17 +1,28 @@
 ---
+interface Props {
+  lang?: 'zh' | 'en'
+}
+
+const { lang = 'zh' } = Astro.props
+
 const groupNumber = '831907794'
+const label = lang === 'en' ? 'QQ Group' : 'QQ 群'
+const ariaLabel =
+  lang === 'en'
+    ? `QQ Group ${groupNumber}, hover or focus to reveal the group number`
+    : `QQ 群 ${groupNumber}，悬停或聚焦显示群号`
 ---
 
 <span
-  class="qq-group-reveal"
-  tabindex="0"
+  class='qq-group-reveal'
+  tabindex='0'
   data-number={groupNumber}
-  data-analytics-reveal-event="article_contact_reveal"
-  data-analytics-surface="article_inline"
-  data-analytics-method-name="qq_group"
-  data-analytics-action="reveal"
-  aria-label={`QQ 群 ${groupNumber}，悬停或聚焦显示群号`}
-></span>
+  data-label={label}
+  data-analytics-reveal-event='article_contact_reveal'
+  data-analytics-surface='article_inline'
+  data-analytics-method-name='qq_group'
+  data-analytics-action='reveal'
+  aria-label={ariaLabel}></span>
 
 <style>
   .qq-group-reveal {
@@ -40,7 +51,7 @@ const groupNumber = '831907794'
   }
 
   .qq-group-reveal::before {
-    content: 'QQ 群';
+    content: attr(data-label);
   }
 
   .qq-group-reveal:hover,
