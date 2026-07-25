@@ -1,0 +1,25 @@
+---
+import { formatDate } from '@/i18n/date'
+import type { Lang } from '@/i18n/ui'
+import type { HTMLAttributes } from 'astro/types'
+
+import { cn } from 'astro-pure/utils'
+
+// Locale-aware mirror of astro-pure's FormattedDate: identical markup/styles,
+// but the locale follows the page language instead of the single global
+// `locale.dateLocale` (zh-CN) in `site.config.ts`.
+type Props = HTMLAttributes<'time'> & {
+  date: Date
+  lang: Lang
+  dateTimeOptions?: Intl.DateTimeFormatOptions
+  class?: string
+}
+
+const { date, lang, dateTimeOptions, class: className, ...attrs } = Astro.props
+---
+
+<span class={cn('text-muted-foreground font-mono', className)} {...attrs}>
+  <time datetime={date.toISOString()}>
+    {formatDate(date, lang, dateTimeOptions)}
+  </time>
+</span>
