@@ -152,9 +152,11 @@ export const integ: IntegrationUserConfig = {
   waline: {
     enable: true,
     server: 'https://waline.joyehuang.me',
+    // Counter elements are driven by `lib/waline-views`, which throttles the
+    // database writes. Letting the widget count too would double every query.
     additionalConfigs: {
-      pageview: true,
-      comment: true
+      pageview: false,
+      comment: false
     }
   }
 }

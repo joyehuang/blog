@@ -5,34 +5,16 @@ const walineConfig = config.integ.waline
 const enabled = walineConfig.enable && !!walineConfig.server
 ---
 
-{enabled && <waline-views data-server={walineConfig.server}></waline-views>}
+{enabled && <waline-views data-server={walineConfig.server} />}
 
 <script>
-  import { commentCount, pageviewCount } from '@waline/client'
-
-  const stripEn = (p: string) => p.replace(/^\/en(?=\/|$)/, '') || '/'
+  import { mountCounters } from '@/lib/waline-views'
 
   class WalineViews extends HTMLElement {
     connectedCallback() {
-      // The comment widget runs walineInit({ pageview, comment }), which
-      // already drives both counters. Skip here to avoid double-fetching.
-      if (document.querySelector('joye-comment, comment-component')) return
-
-      const serverURL = this.dataset.server || ''
-      if (!serverURL) return
-
-      // Normalize zh/en pairs to one key.
-      document
-        .querySelectorAll<HTMLElement>(
-          '.waline-pageview-count, .waline-pageview-readonly, .waline-comment-count'
-        )
-        .forEach((el) => {
-          if (el.dataset.path) el.dataset.path = stripEn(el.dataset.path)
-        })
-
-      pageviewCount({ serverURL, selector: '.waline-pageview-count' })
-      pageviewCount({ serverURL, selector: '.waline-pageview-readonly', update: false })
-      commentCount({ serverURL, selector: '.waline-comment-count' })
+      // Sole owner of every counter element on the page — the comment widget
+      // runs with `pageview`/`comment` off so nothing is fetched twice.
+      mountCounters(this.dataset.server || '')
     }
   }
 

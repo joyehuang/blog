@@ -16,9 +16,12 @@ const [blogPosts, notes, talks] = await Promise.all([
   getCollection('talks', ({ data }) => !data.draft && data.status === 'published')
 ])
 
-// Live total page views from Waline (/api/stats endpoint on the waline server).
-// On a transient failure we render 0 — better than a stale number.
-let pageViews = 0
+// Total page views from Waline (/api/stats on the waline server). The page is
+// prerendered, so this is read once at build time and baked into the HTML.
+// Stays null if the server is unreachable: a database outage during a build
+// used to bake a hard 0 into the homepage, which reads as real data and only
+// clears on the next deploy. An em dash is honest about not knowing.
+let pageViews: number | null = null
 const walineServer = config.integ.waline.server
 if (walineServer) {
   try {
@@ -30,7 +33,7 @@ if (walineServer) {
       if (typeof data.totalViews === 'number') pageViews = data.totalViews
     }
   } catch {
-    // Network/timeout — leave pageViews at 0.
+    // Network/timeout — leave pageViews unknown.
   }
 }
 
@@ -55,7 +58,7 @@ const items = [
   { label: labels.blog, value: blogPosts.length.toString() },
   { label: labels.notes, value: notes.length.toString() },
   { label: labels.talks, value: talks.length.toString() },
-  { label: labels.pageViews, value: pageViews.toLocaleString() }
+  { label: labels.pageViews, value: pageViews === null ? '—' : pageViews.toLocaleString() }
 ]
 ---
 
