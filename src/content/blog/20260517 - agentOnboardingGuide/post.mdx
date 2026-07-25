@@ -112,7 +112,7 @@ import VersionChangelog from '@/components/blog/VersionChangelog.astro'
 
 **大脑（LLM）**：就是模型本身。思考和决策，接收当前状态，输出下一步动作（回答用户 / 调用工具）。这里有一个值得尽早建立的视角：模型是四件套里唯一一件你不用（也没法）自己做的——**所以 Agent 开发，做的其实是"模型以外的一切"**。业内把这套外围工程统称为 **Harness**：记忆、工具、循环、上下文管理、可靠性兜底，全是 Harness 的一部分。我的开源教程 [Learn-Open-Harness](https://github.com/joyehuang/Learn-Open-Harness) 拆的就是一个真实 Harness 的实现。
 
-**这不只是一种说法，它有实测支撑。** Databricks 在 2026 年 7 月公布了一次内部评测——在自己的千万行代码库上，[**同一个模型、同样的思考强度，只是换一个 harness，单任务成本相差超过 2 倍**](https://www.databricks.com/blog/benchmarking-coding-agents-databricks-multi-million-line-codebase)，而完成质量基本一致；差别来自各家管理上下文的方式不同，其中一个每轮发送的上下文只有另一个的约三分之一。**同一颗大脑，Harness 决定了它被用得好不好。** 这也正是"Agent 开发"值得成为一个独立方向的原因。
+**这不只是一种说法，它有实测支撑。** Databricks 在 2026 年 7 月公布了一次内部评测——在自己的千万行代码库上，[**同一个模型、同样的思考强度，只是换一个 harness，部分任务的单次成本相差超过 2 倍**](https://www.databricks.com/blog/benchmarking-coding-agents-databricks-multi-million-line-codebase)，而完成质量基本一致；差别来自各家管理上下文的方式不同，其中一个每轮发送的上下文只有另一个的约三分之一。**同一颗大脑，Harness 决定了它被用得好不好。** 这也正是"Agent 开发"值得成为一个独立方向的原因。
 
 **记忆（Memory）**：先按两层建立直觉——**短期记忆**是当前任务的上下文（用户刚说了什么、刚调了什么工具）；**长期记忆**是跨会话的持久信息（用户偏好、关键事实）。工程实现里其实再细分为 Working / Short-term / Long-term 三层，第五章会展开。
 
@@ -480,7 +480,7 @@ MCP、Skills、AI Gateway 这些基础设施层的标准还在快速成形。这
 
 - **Pi Core 做得很轻**：系统提示词约 150 词，默认工具只有 read / write / edit / bash 四个，不内置子 Agent、Plan 模式和 MCP 支持，权限也不做在核心里——官方选择把这些都交给外部沙箱（容器 / VM），核心因此小到可以整个读完、放心改。
 - **要什么能力用插件加**：Plan 模式、更多工具、自定义命令这些"别的 Agent 都内置"的功能，Pi 做成运行时加载的 TypeScript **Extension**、**Skill** 或第三方 **Pi Package**——不用重新编译，装哪个多哪个能力。
-- **Databricks 验证过它的效率**：Databricks 2026 年 7 月的[一篇工程博客](https://www.databricks.com/blog/benchmarking-coding-agents-databricks-multi-million-line-codebase)在自己的千万行代码库上做内部评测——**同一个模型、同样的思考强度**，分别套 Pi 和 Claude Code / Codex 的 harness 跑同一批任务，结论是**质量基本一致，但单任务成本相差超过 2 倍，Pi 每轮发送的上下文只有约三分之一**。换句话说，Pi 省的不是"智商"，是**用更少上下文和更低成本做到同样的活**——这也是 Databricks 把它选进开源元框架 [Omnigent](https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents)（可以在 Claude Code / Codex / Pi 之间无缝切换 harness）的原因之一。
+- **Databricks 验证过它的效率**：Databricks 2026 年 7 月的[一篇工程博客](https://www.databricks.com/blog/benchmarking-coding-agents-databricks-multi-million-line-codebase)在自己的千万行代码库上做内部评测——**同一个模型、同样的思考强度**，分别套 Pi 和 Claude Code / Codex 的 harness 跑同一批任务，结论是**质量基本一致，但部分任务的单次成本相差超过 2 倍，Pi 每轮发送的上下文只有约三分之一**。换句话说，Pi 省的不是"智商"，是**用更少上下文和更低成本做到同样的活**——这也是 Databricks 把它选进开源元框架 [Omnigent](https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents)（可以在 Claude Code / Codex / Pi 之间无缝切换 harness）的原因之一。
 
 如果翻开 Pi 的源码觉得有点难啃，可以先读 [**Tau**](https://twotimespi.dev)（[GitHub](https://github.com/huggingface/tau)，域名 twotimespi.dev 是"2π=τ"的双关）——Hugging Face 照着 Pi 的思路用 Python 做的教学向重写，官方定位就是"a working example of how coding agents are built"：代码分三层（`tau_ai` 模型适配 / `tau_agent` 核心 Loop / `tau_coding` 终端应用），坚持"小层胜过魔法"，专门讲清教程常常跳过的问题——工具调用怎么发起、会话怎么持久化。两条路线思路相通，挑一个读得下去的先啃；这也是 4.2"第二跳"里"复现最小 Agent"之外的另一个选项——不想从零写，直接通读现成的、专为可读性设计的实现，一样能补上那五个关键点的体感。
 
