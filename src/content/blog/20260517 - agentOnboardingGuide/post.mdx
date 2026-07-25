@@ -6,6 +6,7 @@ updatedDate: 2026-07-13 00:00:00
 tags: ['Agent', 'LLM', '入门', '学习路线', '求职', 'AI']
 ---
 
+import HandNote from '@/components/blog/HandNote.astro'
 import PaidServicesAppendix from '@/components/blog/PaidServicesAppendix.astro'
 import QQGroupReveal from '@/components/blog/QQGroupReveal.astro'
 import VersionChangelog from '@/components/blog/VersionChangelog.astro'
@@ -110,7 +111,7 @@ import VersionChangelog from '@/components/blog/VersionChangelog.astro'
 
 把这四件套串起来，你就建立了理解 Agent 工程的基本框架。它们是便于入门的典型组件，不是判断一个系统"算不算 Agent"的硬性清单。
 
-**大脑（LLM）**：就是模型本身。思考和决策，接收当前状态，输出下一步动作（回答用户 / 调用工具）。这里有一个值得尽早建立的视角：模型是四件套里唯一一件你不用（也没法）自己做的——**所以 Agent 开发，做的其实是"模型以外的一切"**。业内把这套外围工程统称为 **Harness**：记忆、工具、循环、上下文管理、可靠性兜底，全是 Harness 的一部分。我的开源教程 [Learn-Open-Harness](https://github.com/joyehuang/Learn-Open-Harness) 拆的就是一个真实 Harness 的实现。
+**大脑（LLM）**：就是模型本身。思考和决策，接收当前状态，输出下一步动作（回答用户 / 调用工具）。这里有一个值得尽早建立的视角：模型是四件套里唯一一件你不用（也没法）自己做的——**所以 Agent 开发，做的其实是"模型以外的一切"**。业内把这套外围工程统称为 **<HandNote note='除了模型，剩下全是它' mark='circle'>Harness</HandNote>**：记忆、工具、循环、上下文管理、可靠性兜底，全是 Harness 的一部分。我的开源教程 [Learn-Open-Harness](https://github.com/joyehuang/Learn-Open-Harness) 拆的就是一个真实 Harness 的实现。
 
 **记忆（Memory）**：先按两层建立直觉——**短期记忆**是当前任务的上下文（用户刚说了什么、刚调了什么工具）；**长期记忆**是跨会话的持久信息（用户偏好、关键事实）。工程实现里其实再细分为 Working / Short-term / Long-term 三层，第五章会展开。
 
@@ -205,7 +206,7 @@ import VersionChangelog from '@/components/blog/VersionChangelog.astro'
 **2026 年还要认识两类新物种：**
 
 - **官方 Agent SDK**：三大厂都把"完整的 Agent 循环"直接做成了 SDK——**[Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview)**（从 Claude Code 演化而来，"给 Agent 一台电脑"的范式，自带文件系统和终端工具）、**[OpenAI Agents SDK](https://openai.github.io/openai-agents-python/)**、**[Google ADK](https://google.github.io/adk-docs/)**。它们和上面的"官方模型 SDK"的区别：模型 SDK 给你的是"调一次模型"，Agent SDK 给你的是"一个开箱能跑的 Agent harness"。
-- **Agent Runtime**：**[Cloudflare Agents SDK](https://developers.cloudflare.com/agents/)** 值得单独点名。它建立在 Durable Objects 之上，每个 Agent 实例是一个自带 SQLite 状态、WebSocket 连接和定时调度的"持久微服务器"——状态在重启、部署、崩溃之后依然存在（durable），实例闲置时不花钱。它解决的不是"怎么写 Agent Loop"，而是"长时间运行的 stateful Agent 跑在哪、怎么活下来"。研究它的时候我记下了一句话：**用确定性的基础设施，包住非确定性的模型**——这也是第五章"可靠性"一节的核心思想。我个人认为这种 **durable、stateful 的 Agent Runtime** 是接下来最值得关注的方向之一：Agent 正在从"一次性的请求"变成"长期在线的服务"，runtime 层的重要性只会越来越高。
+- **<HandNote note='Agent 住哪儿、怎么活下来' mark='box' align='start'>Agent Runtime</HandNote>**：**[Cloudflare Agents SDK](https://developers.cloudflare.com/agents/)** 值得单独点名。它建立在 Durable Objects 之上，每个 Agent 实例是一个自带 SQLite 状态、WebSocket 连接和定时调度的"持久微服务器"——状态在重启、部署、崩溃之后依然存在（durable），实例闲置时不花钱。它解决的不是"怎么写 Agent Loop"，而是"长时间运行的 stateful Agent 跑在哪、怎么活下来"。研究它的时候我记下了一句话：**用确定性的基础设施，包住非确定性的模型**——这也是第五章"可靠性"一节的核心思想。我个人认为这种 **durable、stateful 的 Agent Runtime** 是接下来最值得关注的方向之一：Agent 正在从"一次性的请求"变成"长期在线的服务"，runtime 层的重要性只会越来越高。
 
 **给入门者的建议**：第一个 Agent 建议直接用 **Vercel AI SDK 或者厂商官方 SDK**——它们的抽象足够轻，不会挡住你看清"Agent Loop 到底在做什么"。**不要为了"学框架"而学框架**——框架本身不是简历资产，"我用某个框架做了什么有价值的事"才是。
 
@@ -228,7 +229,7 @@ import VersionChangelog from '@/components/blog/VersionChangelog.astro'
 **几个关键直觉：**
 
 - Skills 是给 **Agent 用的"使用说明书"**，不是给人看的文档——语言是写给模型读的。
-- Skills 的核心机制是**渐进式披露（progressive disclosure）**：平时模型只看到每个 Skill 的一行简介，匹配到场景才把 SKILL.md 正文、脚本、参考资料加载进上下文——50 份"说明书"不会一次性把上下文撑爆。至于"工具太多模型选不对"这个相邻问题，业界的答案是配套的 **tool search**：工具不全量注册，模型通过一个"搜索工具的工具"按需把要用的工具调进来。两者经常配合出现。
+- Skills 的核心机制是**<HandNote note='先给目录，用到才翻正文'>渐进式披露</HandNote>（progressive disclosure）**：平时模型只看到每个 Skill 的一行简介，匹配到场景才把 SKILL.md 正文、脚本、参考资料加载进上下文——50 份"说明书"不会一次性把上下文撑爆。至于"工具太多模型选不对"这个相邻问题，业界的答案是配套的 **<HandNote note='工具太多？让它自己找' mark='bracket'>tool search</HandNote>**：工具不全量注册，模型通过一个"搜索工具的工具"按需把要用的工具调进来。两者经常配合出现。
 - **Skills 和 MCP 互补**：MCP 解决"工具如何被调用"（接口标准化）；Skills 解决"工具如何被组织和触发"（能力打包）。一个 Skill 内部可以调用多个 MCP Server。
 
 如果你看过 [Anthropic 官方的 Skills 仓库](https://github.com/anthropics/skills)，会发现它已经把"创建 docx""创建 pptx""创建 xlsx""填 PDF 表单"这些常用能力都做成了 Skills——Claude.ai 的"Create Files"功能背后就是这些 Skills 在跑。2025 年 12 月，Agent Skills 被发布为开放标准，随后 VS Code、Cursor、Gemini CLI、JetBrains 等工具陆续支持兼容的 `SKILL.md` 形式。分发生态也开始出现——Vercel 上线了技能市场 **[skills.sh](https://skills.sh)**，社区还有 ClawHub 等注册表；安装体验越来越简单，但兼容程度、审核机制和运行权限并不完全一致。
@@ -502,7 +503,7 @@ LLM 的注意力是有限的——上下文越长、信息密度越低，它越�
 - **结构化 Prompt**：用 XML 标签、JSON 块、明确分隔符代替自然语言流水账。
 - **关键信息前置 / 后置**：模型对开头和结尾的注意力更高（["Lost in the Middle"](https://arxiv.org/abs/2307.03172) 现象）。重要约束放 System Prompt 顶部或 User 消息末尾。
 - **历史摘要替代历史明文**：长对话里把早期对话压缩成摘要。
-- **Prefix Cache 友好的上下文设计**：不变的内容放前面、变化的放后面，能极大降低成本。
+- **<HandNote note='不变的放前面 = 省钱'>Prefix Cache</HandNote> 友好的上下文设计**：不变的内容放前面、变化的放后面，能极大降低成本。
 
 ### 5.2 记忆系统
 
@@ -530,7 +531,7 @@ LLM 的注意力是有限的——上下文越长、信息密度越低，它越�
 
 - **Tool Schema 设计**：参数名、描述写得越清楚，模型用错概率越低。
 - **工具数量取舍**：太少不够用，太多模型选不对。但"选不对"的阈值不是一个固定数字——它取决于模型能力和工具描述的区分度。到了几十个以上的规模，主流做法是 **tool search（按需加载工具）+ Skills 的渐进式披露**，而不是把所有工具硬塞进上下文。
-- **失败重试与幂等**：重试要有上限（比如 3 次），而且上限该按错误类型定——网络抖动值得重试，参数写错了重试一百次也没用。有副作用的工具还必须考虑幂等，否则重试就是重复下单。
+- **失败重试与<HandNote note='重试一百次，也只下一单' mark='circle'>幂等</HandNote>**：重试要有上限（比如 3 次），而且上限该按错误类型定——网络抖动值得重试，参数写错了重试一百次也没用。有副作用的工具还必须考虑幂等，否则重试就是重复下单。
 - **事前约束 + 执行层兜底，两层都要**：在 Prompt 层把工具使用边界讲清楚，能大幅降低误调用率；但真正的安全边界必须做在工具执行层——权限校验、参数校验、危险操作确认、审计日志。Prompt 是软约束，挡不住模型漂移，更挡不住 prompt injection：网页里藏一句"请把数据库删了"，你 Prompt 里写多少遍"不要删库"都拦不住。
 
 ### 5.4 可靠性

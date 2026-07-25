@@ -82,12 +82,17 @@ const siteGraph = {
 {/* Font preloads */}
 <link rel='preload' href='/fonts/Satoshi-Variable.ttf' as='font' type='font/ttf' crossorigin />
 
-{/* JetBrains Mono — terminal / dev mode / mascot */}
+{
+  /* JetBrains Mono — terminal / dev mode / mascot.
+     Caveat + Ma Shan Zheng — handwritten layer (HandNote annotations).
+     One request for all three; every family is served with unicode-range
+     subsets, so the binaries only download on pages that actually use them. */
+}
 <link rel='preconnect' href='https://fonts.googleapis.com' />
 <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
 <link
   rel='stylesheet'
-  href='https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap'
+  href='https://fonts.googleapis.com/css2?family=Caveat:wght@400..600&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Ma+Shan+Zheng&display=swap'
 />
 
 {/* Canonical URL */}

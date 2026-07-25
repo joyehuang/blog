@@ -1,0 +1,356 @@
+---
+/**
+ * Hand-drawn inline annotation for a jargon term.
+ *
+ * Wraps a term in prose. At rest it carries a quiet dotted underline; on hover
+ * / focus a sketched mark (Excalidraw-ish wobbly stroke) draws itself around the
+ * term, a curved arrow swings in, and a handwritten gloss appears alongside.
+ *
+ * The mark SVGs stretch to the term's box via `preserveAspectRatio="none"`, and
+ * `vector-effect="non-scaling-stroke"` keeps the pen width even for a long term.
+ * `pathLength="100"` normalises every path so one dash/offset pair drives the
+ * draw-on animation regardless of the real geometry.
+ */
+interface Props {
+  /** The handwritten gloss. Keep it short — it sits in the margin above the line. */
+  note: string
+  /** Which sketched mark wraps the term. */
+  mark?: 'underline' | 'circle' | 'box' | 'bracket'
+  /** Which side of the line the gloss sits on. */
+  placement?: 'top' | 'bottom'
+  /** Curved connector from the gloss to the term. */
+  arrow?: boolean
+  /** Horizontal anchor — use `start`/`end` for terms near the column edge. */
+  align?: 'center' | 'start' | 'end'
+}
+
+const { align = 'center', arrow = true, mark = 'underline', note, placement = 'top' } = Astro.props
+
+// Every stroke is hand-plotted rather than generated: a wobbly bezier reads as
+// drawn, a perfect one reads as a border. The second path in each pair is the
+// lighter "second pass" that gives the sketchy double-stroke look.
+const marks = {
+  underline: {
+    viewBox: '0 0 120 14',
+    paths: [
+      'M3,5.5 C25,2.2 47,8.8 67,5.2 C85,2 103,7.5 117,4.2',
+      'M10,10.6 C31,7.8 53,12.4 73,9.3 C90,6.7 105,10.2 114,8.4'
+    ]
+  },
+  circle: {
+    viewBox: '0 0 120 44',
+    paths: [
+      'M13,27 C9,12 34,3.5 63,4 C94,4.5 116,11.5 114.5,24 C113,36.5 86,41.5 55,40.5 C26,39.5 9,32.5 10.5,21.5 C11.8,13 26,6.5 45,4.5',
+      'M21,33.5 C16,20 37,11.5 62,11 C87,10.5 107,15.5 109,25.5'
+    ]
+  },
+  box: {
+    viewBox: '0 0 120 44',
+    paths: [
+      'M9,8 C38,5.5 82,5 112.5,6.5 C114.5,18 114,30 112,38.5 C78,41 40,40.5 8.5,38 C6,27 6.5,16 9.5,6',
+      'M11,35.5 C44,38 80,38 110,35.5'
+    ]
+  },
+  bracket: {
+    viewBox: '0 0 120 16',
+    paths: [
+      'M4,2.5 C4.5,8 6,9.8 12,10.4 C28,11.4 44,10.8 55,11 C58.5,11.1 58.8,13.2 59.5,15 C60.5,13 61,11.2 64.5,11 C78,10.6 96,11.4 109,10.4 C114.5,9.8 116,8 116.5,2.5'
+    ]
+  }
+} as const
+
+const { paths, viewBox } = marks[mark]
+---
+
+<span
+  class='hand-note'
+  data-mark={mark}
+  data-placement={placement}
+  data-align={align}
+  data-arrow={arrow ? '' : undefined}
+  tabindex='0'
+>
+  <span class='hand-note-term'><slot /></span>
+
+  <svg
+    class='hand-note-mark'
+    {viewBox}
+    preserveAspectRatio='none'
+    aria-hidden='true'
+    focusable='false'
+  >
+    {
+      paths.map((d, index) => (
+        <path
+          {d}
+          class={index > 0 ? 'is-second-pass' : undefined}
+          pathLength='100'
+          vector-effect='non-scaling-stroke'
+        />
+      ))
+    }
+  </svg>
+
+  {
+    arrow && (
+      <svg class='hand-note-arrow' viewBox='0 0 30 26' aria-hidden='true' focusable='false'>
+        <path d='M3,2 C0.5,9.5 4,17.5 15,22' pathLength='100' vector-effect='non-scaling-stroke' />
+        <path d='M10.3,15.5 L15,22 L7.1,23.4' pathLength='100' vector-effect='non-scaling-stroke' />
+      </svg>
+    )
+  }
+
+  <span class='hand-note-text'>{note}</span>
+</span>
+
+<script>
+  // The prose column is `overflow-x: hidden`, so a gloss centred on a term near
+  // the column edge would be clipped — most visible on narrow viewports. Nudge
+  // it back inside; the arrow keeps pointing at the term, which is how a margin
+  // note is drawn anyway. Measured while the gloss is still at opacity 0, so
+  // this never runs during the hover animation.
+  const PAD = 10
+
+  const clampNotes = () => {
+    for (const wrapper of document.querySelectorAll<HTMLElement>('.hand-note')) {
+      const note = wrapper.querySelector<HTMLElement>('.hand-note-text')
+      if (!note) continue
+
+      const limits = (
+        wrapper.closest('#content') ?? document.documentElement
+      ).getBoundingClientRect()
+      note.style.setProperty('--hn-nudge', '0px')
+      const box = note.getBoundingClientRect()
+
+      let dx = 0
+      if (box.right > limits.right - PAD) dx = limits.right - PAD - box.right
+      if (box.left + dx < limits.left + PAD) dx = limits.left + PAD - box.left
+      if (dx) note.style.setProperty('--hn-nudge', `${Math.round(dx)}px`)
+    }
+  }
+
+  let resizeTimer: number
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer)
+    resizeTimer = window.setTimeout(clampNotes, 120)
+  })
+
+  clampNotes()
+  // Handwriting webfonts land after first paint and change the gloss width.
+  document.fonts?.ready.then(clampNotes)
+</script>
+
+<style>
+  .hand-note {
+    --hn-ink: var(--primary);
+    --hn-stroke: 1.7px;
+    --hn-gap: 0.45em;
+    --hn-tilt: -1.6deg;
+    --hn-tx: -50%;
+    --hn-from: 0.45em;
+    --hn-hand:
+      'Caveat', 'Ma Shan Zheng', 'Xingkai SC', 'STXingkai', 'Kaiti SC', 'STKaiti', KaiTi, 'TW-Kai',
+      cursive;
+
+    position: relative;
+    /* inline-flex, not inline-block: a flex container drops the whitespace-only
+       text nodes the template's line breaks would otherwise render as real
+       spaces around the term. Only `.hand-note-term` is in flow, so the
+       wrapper still baseline-aligns with the surrounding prose. */
+    display: inline-flex;
+    cursor: help;
+  }
+
+  /* Leave room for the connector to swing in between gloss and term. */
+  .hand-note[data-arrow] {
+    --hn-gap: 2em;
+  }
+
+  .hand-note[data-placement='bottom'] {
+    --hn-from: -0.45em;
+  }
+
+  .hand-note[data-align='start'],
+  .hand-note[data-align='end'] {
+    /* 0%, not 0 — it is fed to calc() alongside the clamp nudge in px. */
+    --hn-tx: 0%;
+  }
+
+  /* Lift the whole annotation over neighbouring lines while it is open. */
+  .hand-note:is(:hover, :focus, :focus-visible) {
+    z-index: 3;
+  }
+
+  .hand-note:focus {
+    outline: none;
+  }
+
+  .hand-note:focus-visible {
+    outline: 2px solid hsl(var(--hn-ink) / 0.35);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  /* The resting affordance: quiet enough to not litter the paragraph. */
+  .hand-note-term {
+    text-decoration: underline dotted hsl(var(--muted-foreground) / 0.5);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.28em;
+    transition:
+      color 0.25s ease,
+      text-decoration-color 0.25s ease;
+  }
+
+  .hand-note:is(:hover, :focus, :focus-visible) .hand-note-term {
+    color: hsl(var(--hn-ink));
+    text-decoration-color: transparent;
+  }
+
+  .hand-note-mark,
+  .hand-note-arrow {
+    position: absolute;
+    overflow: visible;
+    fill: none;
+    stroke: hsl(var(--hn-ink));
+    stroke-width: var(--hn-stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .hand-note[data-mark='underline'] .hand-note-mark,
+  .hand-note[data-mark='bracket'] .hand-note-mark {
+    top: calc(100% - 0.06em);
+    right: -0.18em;
+    left: -0.18em;
+    height: 0.5em;
+  }
+
+  .hand-note[data-mark='circle'] .hand-note-mark {
+    inset: -0.4em -0.78em;
+  }
+
+  .hand-note[data-mark='box'] .hand-note-mark {
+    inset: -0.28em -0.5em;
+  }
+
+  .hand-note-arrow {
+    left: 50%;
+    width: 1.9em;
+    height: 1.65em;
+    transform: translateX(-50%);
+  }
+
+  .hand-note[data-placement='top'] .hand-note-arrow {
+    bottom: calc(100% + 0.14em);
+  }
+
+  .hand-note[data-placement='bottom'] .hand-note-arrow {
+    top: calc(100% + 0.14em);
+    transform: translateX(-50%) scaleY(-1);
+  }
+
+  .hand-note-mark path,
+  .hand-note-arrow path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    transition: stroke-dashoffset 0.42s cubic-bezier(0.62, 0.02, 0.34, 1);
+  }
+
+  .hand-note-mark path.is-second-pass {
+    stroke-width: calc(var(--hn-stroke) * 0.75);
+    opacity: 0.45;
+    transition-delay: 0.1s;
+  }
+
+  .hand-note-arrow path:first-child {
+    transition-delay: 0.22s;
+    transition-duration: 0.26s;
+  }
+
+  .hand-note-arrow path:last-child {
+    transition-delay: 0.42s;
+    transition-duration: 0.14s;
+  }
+
+  .hand-note:is(:hover, :focus, :focus-visible) .hand-note-mark path,
+  .hand-note:is(:hover, :focus, :focus-visible) .hand-note-arrow path {
+    stroke-dashoffset: 0;
+  }
+
+  .hand-note-text {
+    position: absolute;
+    z-index: 2;
+    width: max-content;
+    max-width: min(18rem, 68vw);
+    font-family: var(--hn-hand);
+    font-size: 1.05em;
+    font-weight: 400;
+    line-height: 1.25;
+    color: hsl(var(--hn-ink));
+    /* Halo instead of a card: keeps the gloss legible over the line above
+       without turning the annotation into a tooltip. */
+    text-shadow:
+      0 0 0.3em hsl(var(--background)),
+      0 0 0.6em hsl(var(--background)),
+      0 0 0.9em hsl(var(--background));
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transform: translate(calc(var(--hn-tx) + var(--hn-nudge, 0px)), var(--hn-from))
+      rotate(var(--hn-tilt));
+    transition:
+      opacity 0.26s ease 0.3s,
+      transform 0.26s ease 0.3s;
+  }
+
+  .hand-note[data-placement='top'] .hand-note-text {
+    bottom: calc(100% + var(--hn-gap));
+  }
+
+  .hand-note[data-placement='bottom'] .hand-note-text {
+    top: calc(100% + var(--hn-gap));
+  }
+
+  .hand-note[data-align='center'] .hand-note-text {
+    left: 50%;
+  }
+
+  .hand-note[data-align='start'] .hand-note-text {
+    left: 0;
+  }
+
+  .hand-note[data-align='end'] .hand-note-text {
+    right: 0;
+  }
+
+  .hand-note:is(:hover, :focus, :focus-visible) .hand-note-text {
+    opacity: 1;
+    transform: translate(calc(var(--hn-tx) + var(--hn-nudge, 0px)), 0) rotate(var(--hn-tilt));
+  }
+
+  /* Leaving: everything retracts together, no stagger — a slow un-draw reads
+     as a bug rather than a flourish. */
+  .hand-note:not(:hover, :focus, :focus-visible) .hand-note-mark path,
+  .hand-note:not(:hover, :focus, :focus-visible) .hand-note-arrow path {
+    transition-duration: 0.2s;
+    transition-delay: 0s;
+  }
+
+  .hand-note:not(:hover, :focus, :focus-visible) .hand-note-text {
+    transition-delay: 0s;
+    transition-duration: 0.16s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hand-note-term,
+    .hand-note-mark path,
+    .hand-note-arrow path,
+    .hand-note-text,
+    .hand-note:not(:hover, :focus, :focus-visible) .hand-note-mark path,
+    .hand-note:not(:hover, :focus, :focus-visible) .hand-note-arrow path,
+    .hand-note:not(:hover, :focus, :focus-visible) .hand-note-text {
+      transition: none;
+    }
+  }
+</style>
