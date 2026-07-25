@@ -3,10 +3,12 @@ import { Image } from 'astro:assets'
 import type { InferEntrySchema } from 'astro:content'
 
 import { PageInfo } from 'astro-pure/components/pages'
-import { FormattedDate, Icon } from 'astro-pure/user'
+import { Icon } from 'astro-pure/user'
+import FormattedDate from '@/components/FormattedDate.astro'
 
 // English mirror of astro-pure's Hero: identical markup/styles, but tag links
-// point to /en/tags/<tag> instead of the hardcoded /tags/<tag>.
+// point to /en/tags/<tag> instead of the hardcoded /tags/<tag>, and dates format
+// in en-US rather than the site-wide zh-CN date locale.
 interface Props {
   data: InferEntrySchema<'blog'>
   remarkPluginFrontmatter: Record<string, unknown>
@@ -61,7 +63,12 @@ const dateTimeOptions: Intl.DateTimeFormatOptions = {
     {/* Article date */}
     <div class='flex items-center gap-1'>
       <Icon name='calendar' class='size-5' />
-      <FormattedDate class='font-sans' date={publishDate} dateTimeOptions={dateTimeOptions} />
+      <FormattedDate
+        class='font-sans'
+        lang='en'
+        date={publishDate}
+        dateTimeOptions={dateTimeOptions}
+      />
       {
         updatedDate && (
           <div class='flex items-center gap-1'>
@@ -70,6 +77,7 @@ const dateTimeOptions: Intl.DateTimeFormatOptions = {
               Update
               <FormattedDate
                 class='font-sans'
+                lang='en'
                 date={updatedDate}
                 dateTimeOptions={dateTimeOptions}
               />

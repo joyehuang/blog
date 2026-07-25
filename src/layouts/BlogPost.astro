@@ -5,14 +5,16 @@ import type { CollectionEntry } from 'astro:content'
 // Plugin styles
 import 'katex/dist/katex.min.css'
 
+import { getLangFromUrl } from '@/i18n/ui'
+
 import { MediumZoom } from 'astro-pure/advanced'
 import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
-import Comment from '@/components/comment/Comment.astro'
+import CopyrightEn from '@/components/blog/CopyrightEn.astro'
 import HeroEn from '@/components/blog/HeroEn.astro'
+import Comment from '@/components/comment/Comment.astro'
 import JsonLd from '@/components/JsonLd.astro'
 import TableOfContents from '@/components/navigation/TableOfContents.astro'
-import { getLangFromUrl } from '@/i18n/ui'
 import { integ } from '@/site-config'
 
 interface Props {
@@ -117,7 +119,7 @@ const breadcrumbLd = {
 
   <Fragment slot='bottom'>
     {/* Copyright */}
-    <Copyright {data} />
+    {lang === 'en' ? <CopyrightEn {data} /> : <Copyright {data} />}
     {/* Article recommend */}
     {recommend && <ArticleBottom collections={posts} {id} class='mt-3 sm:mt-6' />}
     {/* Comments */}

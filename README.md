@@ -126,6 +126,7 @@ Notes 的 `status` 可选：
 
 - `AnalyticsEvents.astro`: 统一处理 `data-analytics-event` 点击上报。
 - `BaseHead.astro`: SEO、OG、favicon、字体预加载、双语 hreflang。
+- `FormattedDate.astro`: 按页面语言格式化日期（主题自带版本锁死站点级 zh-CN）。
 - `Header.astro`: 双语导航、搜索入口、dev mode 入口。
 - `HeroEn.astro`: 英文博客详情页 hero，修正英文 tag/link 路由。
 - `LanguageSwitcher.astro`: 中英文页面切换按钮。
@@ -135,6 +136,7 @@ Notes 的 `status` 可选：
 - `WechatReveal.astro`: 微信号悬停/聚焦显示。
 - `about/Substats.astro`: 关于页外部平台数据/粉丝数展示。
 - `about/ToolSection.astro`: 关于页工具栈展示。
+- `blog/CopyrightEn.astro`: 英文博客详情页版权卡片，日期走 en-US。
 - `blog/FeatureCalloutCard.astro`: 博客内功能/重点卡片。
 - `blog/TalkEpisodeCard.astro`: 博客内嵌分享会入口卡片。
 - `blog/TalkSlideFigure.astro`: 博客内嵌分享会 slide 图片。

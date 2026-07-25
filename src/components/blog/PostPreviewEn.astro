@@ -2,10 +2,12 @@
 import { Image } from 'astro:assets'
 import { render, type CollectionEntry } from 'astro:content'
 
-import { Button, FormattedDate, Icon } from 'astro-pure/user'
+import { Button, Icon } from 'astro-pure/user'
+import FormattedDate from '@/components/FormattedDate.astro'
 
 // English mirror of astro-pure's PostPreview: identical markup/styles, but links
-// to /en/blog/<translationKey> instead of the hardcoded /blog/<id>.
+// to /en/blog/<translationKey> instead of the hardcoded /blog/<id>, and dates
+// format in en-US rather than the site-wide zh-CN date locale.
 interface Props {
   post: CollectionEntry<'blogEn'>
   detailed?: boolean
@@ -53,7 +55,7 @@ const heroStyle =
       )
     }
 
-    <FormattedDate class='min-w-[95px] py-1 text-xs' date={postDate} />
+    <FormattedDate class='min-w-[95px] py-1 text-xs' lang='en' date={postDate} />
 
     <div class='z-10 flex-grow'>
       <div class='flex justify-between'>

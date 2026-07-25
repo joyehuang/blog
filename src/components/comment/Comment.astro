@@ -3,6 +3,8 @@ import config from 'virtual:config'
 
 import '@waline/client/style'
 
+import { getLangFromUrl } from '@/i18n/ui'
+
 import { cn } from 'astro-pure/utils'
 
 interface Props {
@@ -11,11 +13,16 @@ interface Props {
 }
 
 const { class: className, path } = Astro.props as Props
+
+// Waline defaults to `navigator.language`, which renders the whole widget in
+// Chinese for zh-CN readers even on /en pages. Pin it to the page's language.
+const walineLangs = { zh: 'zh-CN', en: 'en-US' } as const
+const lang = walineLangs[getLangFromUrl(Astro.url)]
 ---
 
 {
   config.integ.waline.enable && (
-    <joye-comment data-path={path ?? ''}>
+    <joye-comment data-path={path ?? ''} data-lang={lang}>
       <div id='waline' class={cn('not-prose', className)}>
         Comment seems to stuck. Try to refresh?✨
       </div>
@@ -57,6 +64,7 @@ const { class: className, path } = Astro.props as Props
         el: '#waline',
         serverURL: walineConfig.server || '',
         path,
+        lang: this.dataset.lang,
         emoji,
         reaction: ['/icons/heart-item.svg'],
         ...walineConfig.additionalConfigs
