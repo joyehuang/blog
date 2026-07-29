@@ -5,6 +5,24 @@
       "desc": "Friends I exchange blog links with",
       "link_list": [
         {
+          "name": "歌鱼",
+          "intro": "我思故我在 · Build fast, learn faster",
+          "link": "https://ailiujiarui.github.io/blog/",
+          "avatar": "https://github.com/ailiujiarui.png",
+          "since": "2026-07-29",
+          "met": "互换友链",
+          "note": "用 Astro 写字，也在开源夏令营里边学边做的记录者。"
+        },
+        {
+          "name": "Weisley's Blog",
+          "intro": "People die, but what we do lives on",
+          "link": "https://www.weisley1314.com/",
+          "avatar": "https://avatars.githubusercontent.com/u/267644970",
+          "since": "2026-07-29",
+          "met": "互换友链",
+          "note": "生死之外，把做过的事留下来的记录者。"
+        },
+        {
           "name": "Cxin Blog",
           "intro": "AI Native",
           "link": "https://cxin.vercel.app/",
