@@ -1,36 +1,57 @@
 ---
+import { Collapse } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
 
 interface Props {
   class?: string
+  title?: string
   sponsors: {
     name: string
     amount: string
     date: string
   }[]
 }
-const { class: className, sponsors, ...props } = Astro.props
+const { class: className, title, sponsors, ...props } = Astro.props
+
+const total = sponsors.reduce((sum, s) => sum + (parseFloat(s.amount.replace(/[^0-9.]/g, '')) || 0), 0)
+const defaultTitle = `${sponsors.length} sponsors, ¥${total.toFixed(1).replace(/\.0$/, '')} total`
+const sorted = [...sponsors].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
 ---
 
-<div class={cn('border px-3 sm:px-4 py-2 rounded-xl', className)} {...props}>
-  <table class='my-0'>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Amount</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {
-        sponsors.map((sponsor) => (
-          <tr>
-            <td>{sponsor.name}</td>
-            <td>{sponsor.amount}</td>
-            <td>{sponsor.date}</td>
-          </tr>
-        ))
-      }
-    </tbody>
-  </table>
-</div>
+<Collapse class={cn(className)} title={title ?? defaultTitle} {...props}>
+  <div class='max-h-60 overflow-y-auto'>
+    <table class='sponsors-table my-0'>
+      <thead>
+        <tr>
+          <th class='bg-muted'>Name</th>
+          <th class='bg-muted'>Amount</th>
+          <th class='bg-muted'>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          sorted.map((sponsor) => (
+            <tr>
+              <td>{sponsor.name}</td>
+              <td>{sponsor.amount}</td>
+              <td>{sponsor.date}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</Collapse>
+
+<style>
+  .sponsors-table.sponsors-table {
+    display: table;
+  }
+  .sponsors-table.sponsors-table thead {
+    display: table-header-group;
+  }
+  .sponsors-table th {
+    position: sticky;
+    top: 0;
+  }
+</style>
