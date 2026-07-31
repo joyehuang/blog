@@ -141,7 +141,7 @@ Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_profile` | `home_open_source` | `about_social` | `projects` | `terminal_contact` | `footer`
+- `surface`: `home_profile` | `home_open_source` | `about_social` | `projects` | `terminal_contact` | `footer` | `v4_open_source` | `v4_footer`
 - `target`: `profile` | `repo`
 - `repo`: repo name when `target` is `repo`, otherwise `null`
 - `href`: GitHub URL

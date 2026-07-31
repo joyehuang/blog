@@ -1,0 +1,21 @@
+---
+import PageLayout from '@/layouts/BaseLayout.astro'
+import { getV4Data } from '@/components/v4/content'
+import V4Home from '@/components/v4/V4Home.astro'
+
+export const prerender = true
+
+const { posts, notes, repos, milestones, counts } = await getV4Data('zh')
+---
+
+<PageLayout
+  meta={{
+    title: 'Joye — 名词只是噪音，系统才是信号 · V4',
+    description:
+      '墨尔本大学在读，Agent 开发。从第一个 PR 到 100+ 场面试，12 个月的学习痕迹全部公开。',
+    noindex: true
+  }}
+  chrome={false}
+>
+  <V4Home locale='zh' {posts} {notes} {repos} {milestones} {counts} />
+</PageLayout>
