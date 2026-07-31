@@ -1,0 +1,140 @@
+[a] Joye Personal Blog
+[a] Blog
+[a] Notes
+[a] Talks
+[a] Projects
+[a] Links
+[a] About
+[a] Contact
+[span] Search
+[span] Switch language
+[span] Dark Theme
+[span] Menu
+[h1] Joye
+[p] Melbourne, Australia
+[p] GitHub
+[p] Connect Me!
+[span] // power user?
+[span] Skip the scroll — try the interactive CLI. Type
+[code] help
+[code] chat
+[span] , or
+[code] ls /blog
+[span] matrix
+[div] click or
+[div] to open
+[span] wterm v0.1 · joye.sh
+[span] an interactive shell into this site — try
+[code] help
+[code] chat
+[code] ls blog
+[span] type 'help' to get started · 'whoami' for the short version
+[span] joye
+[span] joye.devserver
+[span] click or press
+[span] then type
+[span] help
+[h2] About
+[p] AI Agent & Full-Stack Developer
+[p] Undergraduate at the University of Melbourne. Currently working on Playyy.ai at Adastra
+          Labs (Shimo Docs), building atypica (a multi-agent system for commercial research) at
+          Tezign, and working on AI full-stack features and a video-editing agent at fAIshion.ai and
+          Goshu Tech. I care about how LLMs actually work under the hood, and about shipping products
+          that run in the real world. Build fast, learn faster — off the clock: piano, cello,
+          photography.
+[p] More about me
+[h2] Blog
+[time] 2026年5月28日
+[div] I Grilled Another Agent Candidate: 46-Minute Mock Interview
+[time] 2026年5月23日
+[div] Interviews Aren't Exams, They're Mutual Selection
+[time] 2026年5月17日
+[div] For Everyone Who Wants Into Agents But Doesn't Know Where
+[time] 2026年5月12日
+[div] A 1h19m Agent Engineer Mock Interview: What We Asked
+[time] 2026年4月10日
+[div] Reading OpenHarness: Inside an 11,733-Line Agent Harness
+[p] More blogs
+[h2] Notes
+[span] Research
+[div] Hermes Agent Memory: A Four-Layer L0–L2 Design
+[span] Research
+[div] Prompt Caching in Practice: Cache Design and defer_loading
+[span] Research
+[div] Hermes Agent Memory: Engineering Safety Mechanisms
+[span] Research
+[div] Faiss vs Chroma: Vector Store Selection Tradeoffs
+[p] More notes
+[h2] Experience
+[h2] Adastra Labs (Shimo Docs)
+[p] AI Full-Stack Engineer
+[li] Building Playyy.ai — an AI image generation and brand design platform
+[h2] Tezign (Shanghai)
+[p] Full-Stack Intern, AIGC R&D
+[li] Building atypica.ai — a multi-agent system for commercial research
+[h2] AIXCut
+[p] AI Full-Stack Engineer
+[li] Designing and shipping an AI video-editing agent
+[h2] fAIshion.ai
+[p] AI Full-Stack Engineer (Remote)
+[li] Full-stack development and model integration for an AI virtual try-on and outfit-matching platform
+[h2] Open Source
+[h2] Learn-Open-Harness
+[p] A from-scratch interactive OpenHarness tutorial — Agent Loop, Tools, Memory, Multi-Agent
+[p] ⭐ 14
+[h2] minimind-notes
+[p] Building an LLM from scratch — the principles behind Transformer, Pretraining, and SFT, with side-by-side experiments
+[p] ⭐ 132
+[h2] Education
+[h2] University of Melbourne
+[p] Bachelor of Science — Computing & Software Systems
+[p] Feb 2024 - Jun 2027
+[h2] Skills
+[h3] Languages
+[p] TypeScript
+[p] JavaScript
+[p] Python
+[p] SQL
+[h3] Frontend
+[p] React
+[p] Next.js
+[p] Tailwind CSS
+[p] Remotion
+[p] Vite
+[h3] Backend
+[p] Node.js
+[p] Vercel
+[p] Supabase
+[p] AWS
+[p] Stripe
+[p] Inngest
+[h3] AI & Agent
+[p] Claude Code
+[p] LLM
+[p] Transformer
+[p] Multi-Agent
+[p] RAG
+[p] Function Calling
+[p] Prompt Engineering
+[h3] Tools
+[p] Cursor
+[p] Git
+[p] Docker
+[p] Bun
+[p] Figma
+[p] ESLint/Prettier
+[h2] Site stats
+[div] Posts
+[div] Notes
+[div] Projects
+[div] 12,456
+[div] Page views
+[p] Loading...
+[pre] ╭──────╮
+[pre] ╰─┬──┬─╯
+[pre] │  │
+[pre] ╵  ╵
+[div] © 2026 Joye 
+&
+[a] Site Policy
+[span] theme powered
