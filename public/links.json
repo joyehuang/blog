@@ -158,6 +158,15 @@
           "since": "2026-08-24",
           "met": "互换友链",
           "note": "记录技术、开源与个人思考的同行者。"
+        },
+        {
+          "name": "Test Friend",
+          "intro": "Testing auto friend link",
+          "link": "https://test-friend.example.com",
+          "avatar": "https://test-friend.example.com/avatar.png",
+          "since": "2026-08-24",
+          "met": "互换友链",
+          "note": "友链申请自动添加。"
         }
       ]
     },
