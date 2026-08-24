@@ -113,6 +113,10 @@ export const integ: IntegrationUserConfig = {
       {
         date: '2026-06-25',
         content: '添加 <a href="https://cxin.vercel.app/" target="_blank">Cxin Blog</a>。'
+      },
+      {
+        date: '2026-08-24',
+        content: '添加 <a href="https://www.wutongyu.site/" target="_blank">Wutong Yu</a>。'
       }
     ],
     // Yourself link info
