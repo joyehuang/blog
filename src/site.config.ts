@@ -118,6 +118,10 @@ export const integ: IntegrationUserConfig = {
         date: '2026-08-24',
         content: '添加 <a href="https://www.wutongyu.site/" target="_blank">Wutong Yu</a>。'
       }
+      {
+        date: '2026-08-24',
+        content: '添加 <a href="https://e2e-test.example.com" target="_blank">E2E Test</a>。'
+      }
     ],
     // Yourself link info
     applyTip: [
