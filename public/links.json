@@ -158,15 +158,6 @@
           "since": "2026-08-24",
           "met": "互换友链",
           "note": "记录技术、开源与个人思考的同行者。"
-        },
-        {
-          "name": "E2E Test",
-          "intro": "End to end test",
-          "link": "https://e2e-test.example.com",
-          "avatar": "https://e2e-test.example.com/a.png",
-          "since": "2026-08-24",
-          "met": "互换友链",
-          "note": "友链申请自动添加。"
         }
       ]
     },
