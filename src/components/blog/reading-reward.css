@@ -1,0 +1,51 @@
+@keyframes rr-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes rr-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+}
+
+.rr-root {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 30;
+  animation: rr-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rr-root[data-leaving='true'] {
+  animation: rr-out 0.28s ease both;
+}
+
+/* The mascot is a companion, not a control — never let it sit on top of
+   whatever the reader is actually trying to click. */
+.rr-root .jojo-pre {
+  pointer-events: auto;
+}
+
+/* No room for a floating mascot next to a phone-width column. */
+@media (max-width: 640px) {
+  .rr-root {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-root,
+  .rr-root[data-leaving='true'] {
+    animation: none;
+  }
+}
