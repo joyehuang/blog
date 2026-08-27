@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content'
-import config from 'virtual:config'
 
 import Section from './Section.astro'
 
@@ -16,24 +15,24 @@ const [blogPosts, notes, talks] = await Promise.all([
   getCollection('talks', ({ data }) => !data.draft && data.status === 'published')
 ])
 
-// Total page views from Waline (/api/stats on the waline server). The page is
-// prerendered, so this is read once at build time and baked into the HTML.
-// Stays null if the server is unreachable: a database outage during a build
-// used to bake a hard 0 into the homepage, which reads as real data and only
-// clears on the next deploy. An em dash is honest about not knowing.
+// Total page views from Waline's wl_counter table. The page is prerendered,
+// so this is read once at build time and baked into the HTML. We query the
+// Neon Postgres database directly (same DB the Waline server uses) because
+// @waline/vercel does not ship a /api/stats endpoint — the previous attempt
+// always got a 404 and baked a '—' into the homepage. Stays null if the DB is
+// unreachable at build time, which is honest about not knowing.
 let pageViews: number | null = null
-const walineServer = config.integ.waline.server
-if (walineServer) {
+const databaseUrl = import.meta.env.WALINE_DATABASE_URL
+if (databaseUrl) {
   try {
-    const res = await fetch(`${walineServer}/api/stats`, {
-      signal: AbortSignal.timeout(2000)
-    })
-    if (res.ok) {
-      const data = (await res.json()) as { totalViews?: number }
-      if (typeof data.totalViews === 'number') pageViews = data.totalViews
-    }
+    const { neon } = await import('@neondatabase/serverless')
+    const rows: Array<{ total: string | number }> = await neon(databaseUrl)(
+      'SELECT SUM(time) AS total FROM wl_counter'
+    )
+    const n = Number(rows[0]?.total)
+    if (Number.isFinite(n)) pageViews = n
   } catch {
-    // Network/timeout — leave pageViews unknown.
+    // Network/auth issue — leave pageViews unknown.
   }
 }
 
