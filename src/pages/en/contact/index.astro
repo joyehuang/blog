@@ -17,23 +17,23 @@ const headings = [
   </p>
 
   <h2 id='how-to-reach'>How to reach me</h2>
-  <p>Hover over a card to reveal the QR code. WeChat is for 1:1 chats; the QQ group is for casual public discussion.</p>
+  <p>Hover over a card to reveal the QR code. For casual chat, questions, or tech talk, join the fan QQ group first — it's more lively, and you can join the weekly online talks. WeChat is mainly for paid 1:1 consulting.</p>
   <ContactQR
     class='my-6'
     items={[
       {
-        name: 'WeChat · joye',
-        hint: 'Hover to reveal QR',
-        image: wechat,
-        methodName: 'wechat',
-        note: 'Please add a note: "from the blog + topic you want to chat about".'
-      },
-      {
-        name: 'cs Chat Group (QQ)',
+        name: 'Fan Chat Group (QQ, recommended)',
         hint: 'Hover to reveal QR',
         image: qqGroup,
         methodName: 'qq_group',
         note: 'Group number 831907794 · Verification: title of my latest blog post.'
+      },
+      {
+        name: 'Paid consulting · WeChat',
+        hint: 'Hover to reveal QR',
+        image: wechat,
+        methodName: 'wechat',
+        note: 'Please add a note: "paid consulting" + what you need.'
       }
     ]}
   />

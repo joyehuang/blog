@@ -18,24 +18,25 @@ const headings = [
 
   <h2 id='how-to-reach'>如何联系我</h2>
   <p>
-    把鼠标移到卡片上即可看到二维码。付费咨询请走微信并备注来意，普通一对一交流和 QQ 群也都在这里。
+    想交流技术、提问、闲聊，优先来粉丝群——人多回复快，还能参加每周线上分享会，没必要一上来就加微信。
+    微信主要用于付费咨询，加的时候请备注来意。鼠标移到卡片上即可看到二维码。
   </p>
   <ContactQR
     class='my-6'
     items={[
+      {
+        name: '粉丝交流群（QQ，推荐）',
+        hint: '悬停显示二维码',
+        image: qqGroup,
+        methodName: 'qq_group',
+        note: '群号 831907794 · 入群答题：博客最新一篇文章的标题'
+      },
       {
         name: '付费咨询 · 微信',
         hint: '悬停显示二维码',
         image: wechat,
         methodName: 'wechat',
         note: '备注「付费咨询」+ 你的具体需求'
-      },
-      {
-        name: 'cs 交流群（QQ）',
-        hint: '悬停显示二维码',
-        image: qqGroup,
-        methodName: 'qq_group',
-        note: '群号 831907794 · 入群答题：博客最新一篇文章的标题'
       }
     ]}
   />

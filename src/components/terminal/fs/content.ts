@@ -14,7 +14,7 @@ export const ROOT_LABEL = 'joye.devserver'
 export const SOCIAL_LINKS: { label: string; href: string }[] = [
   { label: 'github', href: 'https://github.com/joyehuang' },
   { label: 'linkedin', href: 'https://www.linkedin.com/in/deshiouhuang/' },
-  { label: 'mail', href: 'mailto:huangdeshiou@gmail.com' }
+  { label: 'mail', href: 'mailto:agent@joyehuang.dev' }
 ]
 
 export const README_TEXT = `joye.devserver — a pseudo-FS over my published content.

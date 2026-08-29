@@ -24,7 +24,7 @@ const MOCK_AGENT_REPLIES: Record<string, string[]> = {
   ],
   hire: [
     'Open to chats — frontend / full-stack / AI-product roles.',
-    'Best path: `mail` (huangdeshiou@gmail.com) or `connect` for socials.'
+    'Best path: `mail` (agent@joyehuang.dev) or `connect` for socials.'
   ],
   stack: [
     'Astro 5 · React 19 · UnoCSS · TypeScript · deployed on Vercel.',
@@ -491,14 +491,14 @@ export const commands: CommandRegistry = {
     name: 'mail',
     summary: 'send me an email',
     run: ({ push }) => {
-      const href = 'mailto:huangdeshiou@gmail.com?subject=hi%20joye'
+      const href = 'mailto:agent@joyehuang.dev?subject=hi%20joye'
       push([
         { kind: 'text', tone: 'muted', text: 'opening your mail client…' },
         {
           kind: 'node',
           node: (
             <a className='wt-link' href={href}>
-              huangdeshiou@gmail.com
+              agent@joyehuang.dev
             </a>
           )
         }
