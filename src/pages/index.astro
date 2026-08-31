@@ -167,7 +167,7 @@ const latestTalk = talks[0]
           href='https://joyehuang.dev'
           target='_blank'
           rel='noopener noreferrer'
-          class='interview-card group flex flex-col gap-3 rounded-2xl p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+          class='interview-card group flex flex-col gap-3 rounded-2xl p-5 no-underline transition-all hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
           data-analytics-event='project_link_click'
           data-analytics-surface='home_interview'
           data-analytics-section='interview'
@@ -179,7 +179,7 @@ const latestTalk = talks[0]
               <span class='interview-badge rounded-full border px-2 py-0.5'>新企划 · 即将上线</span>
               <span class='text-muted-foreground'>joyehuang.dev · 现已开放预约</span>
             </div>
-            <h3 class='interview-title mt-1.5 text-2xl font-bold sm:text-3xl'>面试手记</h3>
+            <h3 class='mt-1.5 text-2xl font-bold text-foreground sm:text-3xl'>面试手记</h3>
             <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
               158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
             </p>
@@ -388,7 +388,7 @@ const latestTalk = talks[0]
   >
     <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss></div>
     <div
-      class='interview-promo-card relative w-full max-w-md rounded-2xl bg-background p-6 shadow-xl'
+      class='interview-promo-card relative w-full max-w-md rounded-2xl border border-input bg-card p-6'
       role='dialog'
       aria-modal='true'
       aria-labelledby='interview-promo-title'
@@ -421,7 +421,7 @@ const latestTalk = talks[0]
       >
         新企划 · 即将上线
       </span>
-      <h2 id='interview-promo-title' class='interview-title mt-2 text-3xl font-bold'>面试手记</h2>
+      <h2 id='interview-promo-title' class='mt-2 text-3xl font-bold text-foreground'>面试手记</h2>
       <p class='mt-2 text-sm leading-relaxed text-muted-foreground'>
         158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
       </p>
@@ -465,7 +465,7 @@ const latestTalk = talks[0]
   >
     <div
       data-popout-panel
-      class='interview-popout-panel relative overflow-hidden rounded-2xl bg-background/95 p-4 shadow-xl'
+      class='interview-popout-panel relative overflow-hidden rounded-2xl border border-input bg-card p-4'
     >
       <button
         type='button'
@@ -496,7 +496,7 @@ const latestTalk = talks[0]
         >
           即将上线
         </span>
-        <h2 class='interview-title mt-1.5 text-xl font-bold'>面试手记</h2>
+        <h2 class='mt-1.5 text-xl font-bold text-foreground'>面试手记</h2>
         <p class='mt-1 text-sm leading-relaxed text-muted-foreground'>
           158 道真题一字不删，连答砸的都有 —— 逐字稿回放。
         </p>
@@ -625,94 +625,46 @@ const latestTalk = talks[0]
 </PageLayout>
 
 <style>
-  /* 面试手记首页入口卡：墨蓝 / 纸感渐变底（UnoCSS 只启用了语义 token，
-     调色板类不存在，所以这里手写颜色，见 DESIGN.md「Colors」） */
+  /* 面试手记入口卡 / 弹窗：只用 app.css 的语义 token（hsl(var(--x) / alpha)），
+     取色与层次沿用 FeatureCalloutCard 的写法，见 DESIGN.md「Colors / Elevation」 */
   .interview-card {
-    position: relative;
-    z-index: 0;
-    /* 双层描边：外圈 1.5px 渐变环（border-box 层）+ 内圈一道高光 inset，
-       和 SOA 卡的「hover 才转起来的光环」区分开——这条边一直亮着。 */
-    border: 1.5px solid transparent;
-    background-image:
-      linear-gradient(
-        to bottom right,
-        rgb(129 140 248 / 0.12),
-        rgb(214 199 170 / 0.1),
-        rgb(59 91 219 / 0.08)
-      ),
-      linear-gradient(hsl(var(--background)), hsl(var(--background))),
-      linear-gradient(135deg, #818cf8, #c4b5fd 35%, rgb(148 163 184 / 0.35) 65%, #6366f1);
-    background-origin: padding-box, padding-box, border-box;
-    background-clip: padding-box, padding-box, border-box;
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55);
+    border: 1px solid hsl(var(--primary) / 0.28);
+    background:
+      radial-gradient(ellipse at 88% 14%, hsl(var(--primary) / 0.07), transparent 42%),
+      linear-gradient(135deg, hsl(var(--muted) / 0.7), hsl(var(--card)));
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
     transition:
       transform 0.25s ease,
+      border-color 0.25s ease,
       box-shadow 0.25s ease;
-  }
-
-  :global(.dark) .interview-card {
-    background-image:
-      linear-gradient(
-        to bottom right,
-        rgb(129 140 248 / 0.16),
-        rgb(214 199 170 / 0.05),
-        rgb(99 102 241 / 0.12)
-      ),
-      linear-gradient(hsl(var(--background)), hsl(var(--background))),
-      linear-gradient(135deg, #6366f1, #a78bfa 35%, rgb(100 116 139 / 0.4) 65%, #818cf8);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
   }
 
   .interview-card:hover,
   .interview-card:focus-visible {
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.7),
-      0 10px 30px -12px rgb(99 102 241 / 0.45);
-  }
-
-  :global(.dark) .interview-card:hover,
-  :global(.dark) .interview-card:focus-visible {
-    box-shadow:
-      inset 0 0 0 1px rgb(255 255 255 / 0.1),
-      0 10px 30px -12px rgb(129 140 248 / 0.5);
+    border-color: hsl(var(--primary) / 0.45);
+    box-shadow: 0 16px 42px hsl(var(--foreground) / 0.09);
   }
 
   .interview-badge {
-    border-color: rgb(99 102 241 / 0.35);
-    background-color: rgb(99 102 241 / 0.12);
-    color: #4338ca;
-  }
-
-  :global(.dark) .interview-badge {
-    border-color: rgb(129 140 248 / 0.4);
-    background-color: rgb(129 140 248 / 0.16);
-    color: #c7d2fe;
-  }
-
-  .interview-title {
-    width: fit-content;
-    background-image: linear-gradient(to right, #4f46e5, #6366f1, #7c3aed);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-
-  :global(.dark) .interview-title {
-    background-image: linear-gradient(to right, #a5b4fc, #818cf8, #c4b5fd);
+    border-color: hsl(var(--primary) / 0.3);
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
   }
 
   .interview-cta {
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--background) / 0.72);
     transition:
       background-color 0.25s ease,
       border-color 0.25s ease,
-      transform 0.25s ease;
+      color 0.25s ease;
   }
 
   .interview-card:hover .interview-cta,
   .interview-card:focus-visible .interview-cta {
-    border-color: rgb(99 102 241 / 0.45);
-    background-color: rgb(99 102 241 / 0.1);
+    border-color: hsl(var(--primary) / 0.45);
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
   }
 
   .interview-arrow {
@@ -734,56 +686,31 @@ const latestTalk = talks[0]
   }
 
   .interview-promo-backdrop {
-    background-color: rgb(9 9 11 / 0.55);
-    backdrop-filter: blur(4px);
+    /* 遮罩：background 打底压住页面，再叠一层 foreground 低 alpha 压暗，两个主题都成立 */
+    background-color: hsl(var(--background) / 0.72);
+    background-image: linear-gradient(hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0.12));
+    backdrop-filter: blur(6px);
     animation: interview-fade-in 0.25s ease both;
   }
 
-  :global(.dark) .interview-promo-backdrop {
-    background-color: rgb(0 0 0 / 0.68);
-  }
-
   .interview-promo-card {
-    border: 1.5px solid transparent;
-    background-image:
-      linear-gradient(to bottom right, rgb(129 140 248 / 0.1), rgb(214 199 170 / 0.08)),
-      linear-gradient(hsl(var(--background)), hsl(var(--background))),
-      linear-gradient(135deg, #818cf8, #c4b5fd 45%, #6366f1);
-    background-origin: padding-box, padding-box, border-box;
-    background-clip: padding-box, padding-box, border-box;
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
     animation: interview-pop-up 0.42s cubic-bezier(0.18, 0.9, 0.18, 1.12) both;
   }
 
-  :global(.dark) .interview-promo-card {
-    background-image:
-      linear-gradient(to bottom right, rgb(129 140 248 / 0.14), rgb(99 102 241 / 0.1)),
-      linear-gradient(hsl(var(--background)), hsl(var(--background))),
-      linear-gradient(135deg, #6366f1, #a78bfa 45%, #818cf8);
-  }
-
+  /* 弹窗 / popout 的主按钮：沿用 FeatureCalloutCard 的 is-primary 配方 */
   .interview-promo-cta {
-    border: 1px solid rgb(99 102 241 / 0.45);
-    background-color: rgb(99 102 241 / 0.12);
-    color: #4338ca;
+    border: 1px solid hsl(var(--primary) / 0.35);
+    background-color: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
     transition:
       background-color 0.25s ease,
       border-color 0.25s ease;
   }
 
   .interview-promo-cta:hover {
-    background-color: rgb(99 102 241 / 0.2);
-    border-color: rgb(99 102 241 / 0.6);
-  }
-
-  :global(.dark) .interview-promo-cta {
-    border-color: rgb(129 140 248 / 0.45);
-    background-color: rgb(129 140 248 / 0.16);
-    color: #c7d2fe;
-  }
-
-  :global(.dark) .interview-promo-cta:hover {
-    background-color: rgb(129 140 248 / 0.26);
-    border-color: rgb(129 140 248 / 0.65);
+    border-color: hsl(var(--primary) / 0.5);
+    background-color: hsl(var(--primary) / 0.16);
   }
 
   .interview-promo-cta:hover .interview-arrow {
@@ -792,23 +719,10 @@ const latestTalk = talks[0]
 
   /* 左下角 popout：入场弹跳 + 定时 nudge，沿用原 SOA 的动画曲线 */
   .interview-popout-panel {
-    border: 1.5px solid transparent;
     backdrop-filter: blur(6px);
-    background-image:
-      linear-gradient(to bottom right, rgb(129 140 248 / 0.1), rgb(214 199 170 / 0.06)),
-      linear-gradient(hsl(var(--background) / 0.95), hsl(var(--background) / 0.95)),
-      linear-gradient(135deg, #818cf8, #c4b5fd 45%, #6366f1);
-    background-origin: padding-box, padding-box, border-box;
-    background-clip: padding-box, padding-box, border-box;
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
     transform-origin: bottom left;
     animation: interview-pop-up 980ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
-  }
-
-  :global(.dark) .interview-popout-panel {
-    background-image:
-      linear-gradient(to bottom right, rgb(129 140 248 / 0.14), rgb(99 102 241 / 0.1)),
-      linear-gradient(hsl(var(--background) / 0.95), hsl(var(--background) / 0.95)),
-      linear-gradient(135deg, #6366f1, #a78bfa 45%, #818cf8);
   }
 
   .interview-popout-nudge {
@@ -873,12 +787,15 @@ const latestTalk = talks[0]
     }
 
     .interview-cta,
-    .interview-arrow {
+    .interview-arrow,
+    .interview-card,
+    .interview-promo-cta {
       transition: none;
     }
 
     .interview-card:hover .interview-arrow,
-    .interview-card:focus-visible .interview-arrow {
+    .interview-card:focus-visible .interview-arrow,
+    .interview-promo-cta:hover .interview-arrow {
       transform: none;
     }
   }
