@@ -89,8 +89,6 @@ const talks = sortTalks(
   (await getCollection('talks')).filter((t) => !t.data.draft && t.data.status === 'published')
 )
 const latestTalk = talks[0]
-const agentHackathonLink =
-  'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
@@ -156,42 +154,66 @@ const agentHackathonLink =
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
           墨尔本大学在读，专注 AI Agent 产品开发 —— 从 Adastra Labs（石墨文档海外）的
-          Playyy.ai、特赞 Tezign 的 atypica（商业研究 Multi-Agent），到 fAIshion.ai 与
-          Goshu Tech 的全栈与剪辑 Agent，都是这条线上的实践。 在意 LLM
-          的底层机制，也在意产品能不能真正跑起来。 Build fast, learn faster —
-          平时弹琴、拉大提琴、玩摄影。
+          Playyy.ai、特赞 Tezign 的 atypica（商业研究 Multi-Agent），到 fAIshion.ai 与 Goshu Tech
+          的全栈与剪辑 Agent，都是这条线上的实践。 在意 LLM 的底层机制，也在意产品能不能真正跑起来。
+          Build fast, learn faster — 平时弹琴、拉大提琴、玩摄影。
         </p>
-        <Button
-          title='More about me'
-          class='w-fit self-end'
-          href='/about'
-          style='ahead'
-        />
+        <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
-      <a
-        href='/agent-teams'
-        class='soa-card group flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
-      >
-        <div class='min-w-0'>
-          <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
-            <span
-              class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-300'
-            >
-              第一届
-            </span>
-            <span class='text-muted-foreground'>Joye 粉丝 Agent 比赛 · 比赛进行中</span>
-          </div>
-          <h3 class='soa-title mt-1.5 text-2xl font-bold sm:text-3xl'>Summer of Agents</h3>
-          <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
-            组队已经截止，各队正在开发中。感兴趣欢迎进群围观，说不定还会有第二届 😄
-          </p>
-        </div>
-        <span
-          class='inline-flex shrink-0 items-center gap-1 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground transition-transform group-hover:translate-x-0.5 sm:self-center'
+      {/* 导流：另一个产品「面试手记」joyehuang.dev */}
+      <section id='product' aria-labelledby='product-heading'>
+        <h2 id='product-heading' class='sr-only'>Product</h2>
+        <a
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='hd interview-card group relative flex flex-col gap-3 p-5 no-underline sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+          data-hd-frame
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_interview'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
         >
-          进去看看 →
-        </span>
-      </a>
+          {/* 手绘墨线边框：路径按卡片实际尺寸生成，进入视口时 draw-on */}
+          <svg class='hd-frame' aria-hidden='true' focusable='false'>
+            <path class='hd-frame-path' pathLength='1' d=''></path>
+          </svg>
+
+          <div class='relative min-w-0'>
+            <div class='flex flex-wrap items-center gap-2 text-xs'>
+              <span class='hd-badge'>新企划 · 即将上线</span>
+              <span class='hd-sub'>joyehuang.dev · 现已开放预约</span>
+            </div>
+            <h3 class='hd-heading mt-2 text-2xl font-bold sm:text-3xl'>
+              <span class='hd-marker'>
+                面试手记
+                <svg
+                  class='hd-marker-svg'
+                  viewBox='0 0 200 18'
+                  preserveAspectRatio='none'
+                  aria-hidden='true'
+                  focusable='false'
+                >
+                  <path
+                    class='hd-marker-path'
+                    pathLength='1'
+                    d='M3 12 C 48 5, 116 16, 197 7'
+                    vector-effect='non-scaling-stroke'></path>
+                </svg>
+              </span>
+            </h3>
+            <p class='hd-body mt-2 text-sm leading-relaxed'>
+              158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
+            </p>
+          </div>
+
+          <span class='hd-cta relative shrink-0 self-start text-sm sm:self-center'>
+            去看看
+            <span class='hd-arrow' aria-hidden='true'>→</span>
+          </span>
+        </a>
+      </section>
       {
         allPostsByDate.length > 0 && (
           <Section title='Blog'>
@@ -202,12 +224,7 @@ const agentHackathonLink =
                 </li>
               ))}
             </ul>
-            <Button
-              title='More blogs'
-              class='w-fit self-end'
-              href='/blog'
-              style='ahead'
-            />
+            <Button title='More blogs' class='w-fit self-end' href='/blog' style='ahead' />
           </Section>
         )
       }
@@ -258,12 +275,7 @@ const agentHackathonLink =
                 </li>
               ))}
             </ul>
-            <Button
-              title='More notes'
-              class='w-fit self-end'
-              href='/notes'
-              style='ahead'
-            />
+            <Button title='More notes' class='w-fit self-end' href='/notes' style='ahead' />
           </Section>
         )
       }
@@ -282,12 +294,7 @@ const agentHackathonLink =
               href='/talks'
               target='_self'
             />
-            <Button
-              title='全部分享'
-              class='w-fit self-end'
-              href='/talks'
-              style='ahead'
-            />
+            <Button title='全部分享' class='w-fit self-end' href='/talks' style='ahead' />
           </Section>
         )
       }
@@ -395,25 +402,24 @@ const agentHackathonLink =
     </div>
   </div>
 
-  <aside
-    id='agent-popout'
-    class='agent-popout fixed bottom-4 start-4 z-50 w-[calc(100vw-2rem)] max-w-sm md:bottom-6 md:start-6 md:max-w-xs'
-    aria-label='第一届 Joye 粉丝 Agent 比赛'
+  {/* 首访弹窗：面试手记推广，localStorage 记住，每位访客只弹一次 */}
+  <div
+    id='interview-promo'
+    class='interview-promo fixed inset-0 z-60 items-center justify-center p-4'
+    hidden
   >
+    <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss></div>
     <div
-      data-agent-popout-panel
-      class='agent-popout-panel overflow-hidden rounded-2xl border bg-background/95 shadow-xl backdrop-blur'
+      class='hd hd-sheet interview-promo-card relative w-full max-w-md p-6'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='interview-promo-title'
     >
-      <div class='pointer-events-none absolute -inset-px rounded-2xl border border-foreground/10'>
-      </div>
       <button
         type='button'
-        data-agent-popout-close
-        class='absolute end-2 top-2 z-10 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-        aria-label='关闭 Agent 比赛弹窗'
-        data-analytics-event='agent_competition_click'
-        data-analytics-surface='agent_popout'
-        data-analytics-action='close'
+        data-promo-dismiss
+        class='hd-close absolute end-3 top-3 flex size-8 items-center justify-center'
+        aria-label='关闭弹窗'
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -432,295 +438,607 @@ const agentHackathonLink =
         </svg>
       </button>
 
-      <div class='relative flex items-start gap-3 p-4 pe-10'>
-        <div
-          class='relative flex size-11 shrink-0 items-center justify-center rounded-xl border bg-muted text-base'
-        >
-          <span
-            class='absolute -end-1 -top-1 size-3 rounded-full border bg-background ring-2 ring-background'
-            aria-hidden='true'></span>
-          <span aria-hidden='true'>01</span>
-        </div>
-        <div class='min-w-0 flex-1'>
-          <div class='mb-1 flex flex-wrap items-center gap-2'>
-            <span class='rounded-full border bg-muted px-2 py-0.5 text-xs text-muted-foreground'>
-              第一届
-            </span>
-            <span class='text-xs text-muted-foreground'>Joye 粉丝 Agent 比赛</span>
-          </div>
-          <h2 class='text-base font-semibold leading-tight'>Summer of Agents</h2>
-          <p
-            class='mt-1 min-h-[4.5rem] text-sm leading-relaxed text-muted-foreground'
-            data-agent-popout-copy
-            data-text='组队已经截止，各队正在开发中。感兴趣欢迎进群围观，说不定还会有第二届 😄'
+      <span class='hd-badge'>新企划 · 即将上线</span>
+      <h2 id='interview-promo-title' class='hd-heading mt-3 text-3xl font-bold'>
+        <span class='hd-marker'>
+          面试手记
+          <svg
+            class='hd-marker-svg'
+            viewBox='0 0 200 18'
+            preserveAspectRatio='none'
+            aria-hidden='true'
+            focusable='false'
           >
-            <span data-agent-popout-output></span><span class='agent-type-caret' aria-hidden='true'
-            ></span>
-          </p>
-          <div class='mt-3 flex flex-wrap items-center gap-2'>
-            <a
-              href='/agent-teams'
-              class='group inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-sm font-medium text-background no-underline transition-transform hover:-translate-y-0.5'
-            >
-              去围观
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                width='16'
-                height='16'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                stroke-width='2.5'
-                stroke-linecap='round'
-                stroke-linejoin='round'
-                class='transition-transform group-hover:translate-x-0.5'
-                aria-hidden='true'
-              >
-                <path d='M5 12h14'></path>
-                <path d='m12 5 7 7-7 7'></path>
-              </svg>
-            </a>
-            <a
-              href={agentHackathonLink}
-              target='_blank'
-              rel='noopener noreferrer'
-              class='inline-flex items-center gap-1 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline'
-              data-analytics-event='agent_competition_click'
-              data-analytics-surface='agent_popout'
-              data-analytics-action='external_link'
-            >
-              活动详情 ↗
-            </a>
-          </div>
-        </div>
+            <path
+              class='hd-marker-path'
+              pathLength='1'
+              d='M3 12 C 48 5, 116 16, 197 7'
+              vector-effect='non-scaling-stroke'></path>
+          </svg>
+        </span>
+      </h2>
+      <p class='hd-body mt-3 text-sm leading-relaxed'>
+        158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
+      </p>
+      <p class='hd-body mt-1 text-sm leading-relaxed'>
+        逐字稿回放，看一场面试真实的样子，而不是事后美化过的复盘。
+      </p>
+
+      <div class='mt-5 flex flex-wrap items-center gap-3'>
+        <a
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='hd-cta text-sm no-underline'
+          data-promo-dismiss
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_popup'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
+        >
+          去看看
+          <span class='hd-arrow' aria-hidden='true'>→</span>
+        </a>
+        <button type='button' data-promo-dismiss class='hd-quiet text-sm'>先不看</button>
+      </div>
+    </div>
+  </div>
+
+  {/* 左下角 popout：跟随原 SOA 的位置（右下角是 JoJo），关闭后 localStorage 记住 */}
+  <aside
+    id='interview-popout'
+    class='fixed bottom-4 start-4 z-50 w-[270px] max-w-[calc(100vw-2rem)] md:bottom-6 md:start-6'
+    aria-label='面试手记'
+    hidden
+  >
+    <div data-popout-panel class='hd hd-sheet interview-popout-panel relative p-4'>
+      <button
+        type='button'
+        data-popout-close
+        class='hd-close absolute end-2 top-2 z-10 flex size-7 items-center justify-center'
+        aria-label='关闭面试手记弹窗'
+      >
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='16'
+          height='16'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2.5'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          aria-hidden='true'
+        >
+          <path d='M18 6 6 18'></path>
+          <path d='m6 6 12 12'></path>
+        </svg>
+      </button>
+
+      <div class='pe-7'>
+        <span class='hd-badge'>即将上线</span>
+        <h2 class='hd-heading mt-2 text-lg font-bold'>面试手记</h2>
+        <p class='hd-body mt-1 text-xs leading-relaxed'>
+          158 道真题一字不删，连答砸的都有 —— 逐字稿回放。
+        </p>
+        <a
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='hd-cta mt-3 text-xs no-underline'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_popout'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
+        >
+          去看看
+          <span class='hd-arrow' aria-hidden='true'>→</span>
+        </a>
       </div>
     </div>
   </aside>
 
   <script is:inline>
     ;(() => {
-      const root = document.getElementById('agent-popout')
-      if (!root) return
+      const promo = document.getElementById('interview-promo')
+      const popout = document.getElementById('interview-popout')
+      if (!promo || !popout) return
 
-      const panel = root.querySelector('[data-agent-popout-panel]')
-      const closeButton = root.querySelector('[data-agent-popout-close]')
-      const copy = root.querySelector('[data-agent-popout-copy]')
-      const output = root.querySelector('[data-agent-popout-output]')
-      const storageKey = 'joye-agent-popout-state'
+      const panel = popout.querySelector('[data-popout-panel]')
+      const promoKey = 'joye-interview-promo-seen'
+      const popoutKey = 'joye-interview-popout-state'
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const fullText = copy?.dataset.text || ''
-      let typeTimer = 0
       let nudgeTimer = 0
       let nudgeInterval = 0
 
-      const typeText = () => {
-        if (!output) return
-        window.clearTimeout(typeTimer)
-        output.textContent = ''
-
-        if (reduceMotion || !fullText) {
-          output.textContent = fullText
-          return
+      const read = (key) => {
+        try {
+          return window.localStorage.getItem(key)
+        } catch (e) {
+          return null
         }
-
-        let index = 0
-        const tick = () => {
-          output.textContent = fullText.slice(0, index)
-          index += 1
-          if (index <= fullText.length) {
-            typeTimer = window.setTimeout(tick, index < 8 ? 24 : 32)
-          }
-        }
-        typeTimer = window.setTimeout(tick, 180)
+      }
+      const write = (key, value) => {
+        try {
+          window.localStorage.setItem(key, value)
+        } catch (e) {}
       }
 
       const nudge = () => {
-        if (reduceMotion || root.dataset.state === 'closed' || !panel) return
-        panel.classList.remove('agent-popout-nudge')
+        if (reduceMotion || popout.hidden || !panel) return
+        panel.classList.remove('interview-popout-nudge')
         void panel.offsetWidth
-        panel.classList.add('agent-popout-nudge')
-        window.setTimeout(() => panel.classList.remove('agent-popout-nudge'), 1600)
+        panel.classList.add('interview-popout-nudge')
+        window.setTimeout(() => panel.classList.remove('interview-popout-nudge'), 1600)
       }
 
       const scheduleNudge = () => {
         window.clearTimeout(nudgeTimer)
         window.clearInterval(nudgeInterval)
-        if (reduceMotion || root.dataset.state === 'closed') return
+        if (reduceMotion || popout.hidden) return
         nudgeTimer = window.setTimeout(() => {
           nudge()
           nudgeInterval = window.setInterval(nudge, 24000)
         }, 10000)
       }
 
-      const setState = (state) => {
-        if (!panel) return
-        root.dataset.state = state
-        panel.classList.toggle('hidden', state !== 'open')
-        root.classList.toggle('hidden', state === 'closed')
-        // 关闭只在本次会话记住（sessionStorage）——下次访问弹窗会重新出现，
-        // 不像以前 localStorage 那样关一次就永久消失。
-        window.sessionStorage.setItem(storageKey, state)
-        if (state === 'open') typeText()
+      const openPopout = () => {
+        // 关过就永久不再弹（localStorage），不因刷新复活。
+        if (read(popoutKey) === 'closed') return
+        popout.hidden = false
         scheduleNudge()
       }
 
-      // 只剩 open / closed 两态；只认本次会话的关闭状态。
-      const savedState = window.sessionStorage.getItem(storageKey)
-      setState(savedState === 'closed' ? 'closed' : 'open')
+      const closePopout = () => {
+        popout.hidden = true
+        write(popoutKey, 'closed')
+        window.clearTimeout(nudgeTimer)
+        window.clearInterval(nudgeInterval)
+      }
 
-      closeButton?.addEventListener('click', () => setState('closed'))
+      const closePromo = () => {
+        if (promo.hidden) return
+        promo.hidden = true
+        document.documentElement.style.overflow = ''
+        write(promoKey, String(Date.now()))
+        openPopout()
+      }
+
+      const openPromo = () => {
+        promo.hidden = false
+        document.documentElement.style.overflow = 'hidden'
+        promo.querySelector('[data-promo-dismiss]')?.focus()
+      }
+
+      promo.querySelectorAll('[data-promo-dismiss]').forEach((el) => {
+        el.addEventListener('click', closePromo)
+      })
+      popout.querySelector('[data-popout-close]')?.addEventListener('click', closePopout)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closePromo()
+      })
+
+      // 入场动画还在放的时候不要抢镜：等 intro overlay 落到静止态再开始。
+      const afterIntro = (run) => {
+        const overlay = document.getElementById('intro-overlay')
+        if (!overlay) return run()
+        const settled = () =>
+          overlay.classList.contains('intro-idle') || overlay.classList.contains('intro-done')
+        if (settled()) return run()
+        const observer = new MutationObserver(() => {
+          if (!settled()) return
+          observer.disconnect()
+          run()
+        })
+        observer.observe(overlay, { attributes: true, attributeFilter: ['class'] })
+      }
+
+      afterIntro(() => {
+        window.setTimeout(() => {
+          // 首访弹一次大弹窗；看过的访客直接走 popout。
+          if (read(promoKey)) openPopout()
+          else openPromo()
+        }, 900)
+      })
+
+      // ---- 手绘墨线边框：按卡片实际尺寸生成路径，进入视口时画出来 ----
+      const card = document.querySelector('[data-hd-frame]')
+      if (!card) return
+      const svg = card.querySelector('.hd-frame')
+      const path = svg && svg.querySelector('.hd-frame-path')
+      if (!svg || !path) return
+
+      // 手绘感的圆角矩形：四角半径不等（呼应 sk-1 的 255/15/225/15 走势），
+      // 直边中点带 1.5px 抖动，看起来像一笔画歪的框。
+      const framePath = (w, h) => {
+        const inset = 1
+        const x0 = inset
+        const y0 = inset
+        const x1 = w - inset
+        const y1 = h - inset
+        const cap = Math.max(6, Math.min(28, (Math.min(w, h) - 2 * inset) / 2.2))
+        const tl = cap
+        const tr = Math.max(6, cap * 0.3)
+        const br = cap * 0.85
+        const bl = Math.max(6, cap * 0.3)
+        const wob = 1.5
+        return [
+          `M ${x0 + tl} ${y0}`,
+          `Q ${(x0 + x1) / 2} ${y0 - wob} ${x1 - tr} ${y0}`,
+          `Q ${x1} ${y0} ${x1} ${y0 + tr}`,
+          `Q ${x1 + wob} ${(y0 + y1) / 2} ${x1} ${y1 - br}`,
+          `Q ${x1} ${y1} ${x1 - br} ${y1}`,
+          `Q ${(x0 + x1) / 2} ${y1 + wob} ${x0 + bl} ${y1}`,
+          `Q ${x0} ${y1} ${x0} ${y1 - bl}`,
+          `Q ${x0 - wob} ${(y0 + y1) / 2} ${x0} ${y0 + tl}`,
+          `Q ${x0} ${y0} ${x0 + tl} ${y0}`,
+          'Z'
+        ].join(' ')
+      }
+
+      const drawFrame = () => {
+        const rect = card.getBoundingClientRect()
+        const w = Math.round(rect.width)
+        const h = Math.round(rect.height)
+        if (!w || !h) return
+        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h)
+        path.setAttribute('d', framePath(w, h))
+      }
+
+      drawFrame()
+      if (window.ResizeObserver) new ResizeObserver(drawFrame).observe(card)
+      else window.addEventListener('resize', drawFrame)
+
+      if (window.IntersectionObserver) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return
+              card.classList.add('is-drawn')
+              io.disconnect()
+            })
+          },
+          { threshold: 0.25 }
+        )
+        io.observe(card)
+      } else {
+        card.classList.add('is-drawn')
+      }
     })()
   </script>
 </PageLayout>
 
 <style>
-  /* Summer of Agents 首页入口卡：暖色渐变底（UnoCSS 不生成 bg-gradient 工具类，手写） */
-  @property --soa-border-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
+  /* 手绘推广层：joyehuang.dev 的设计语言（handdrawn-ui skill），
+     只作用于这三个推广面（横幅卡 / 首访弹窗 / 左下 popout），
+     用局部 --hd-* token，不碰站点的语义 token —— 页面其余部分保持原样。
+     该设计系统只有亮色版，所以这三张「纸」在暗色下依然是纸。 */
+  .hd {
+    --hd-paper: #fffdf8;
+    --hd-ink: #3a3a3a;
+    --hd-sub: #5a564c;
+    --hd-weak: #8d887c;
+    --hd-hairline: #d8d2c2;
+    --hd-yellow: #ffe08a;
+    --hd-yellow2: #fff3b0;
+    --hd-shadow: rgba(58, 58, 58, 0.18);
+    --hd-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+    color: var(--hd-ink);
+    background-color: var(--hd-paper);
+    /* 点阵纸面，低强度 */
+    background-image: radial-gradient(circle, rgba(30, 30, 30, 0.05) 1.1px, transparent 1.1px);
+    background-size: 22px 22px;
   }
 
-  .soa-card {
-    position: relative;
-    z-index: 0;
-    background-image: linear-gradient(
-      to bottom right,
-      rgb(250 204 21 / 0.1),
-      rgb(245 158 11 / 0.04),
-      rgb(249 115 22 / 0.08)
-    );
+  :global(.dark) .hd {
+    /* 暗色下保持亮卡，只把硬阴影压深，让纸片从暗背景里立起来 */
+    --hd-shadow: rgba(0, 0, 0, 0.55);
   }
 
-  /* 旋转光环：conic-gradient 只保留在边框环上（mask 挖空内容区），
-     角度通过 @property 动画驱动，让光带绕卡片流转 */
-  .soa-card::before {
-    content: '';
+  /* ---------- 横幅卡：SVG 墨线边框 + draw-on ---------- */
+  .interview-card {
+    isolation: isolate;
+    border-radius: 28px 8px 24px 8px;
+    box-shadow: 3px 3px 0 var(--hd-shadow);
+    transition:
+      transform 0.13s var(--hd-ease),
+      box-shadow 0.13s var(--hd-ease);
+  }
+
+  .interview-card:hover,
+  .interview-card:focus-visible {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--hd-shadow);
+  }
+
+  .hd-frame {
     position: absolute;
-    inset: -1.5px;
-    z-index: -1;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: conic-gradient(
-      from var(--soa-border-angle),
-      transparent 0deg,
-      transparent 250deg,
-      rgba(148, 163, 184, 0.45) 280deg,
-      rgba(255, 255, 255, 0.95) 310deg,
-      rgba(226, 232, 240, 0.6) 335deg,
-      transparent 360deg
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    animation: soa-border-spin 2.5s linear infinite;
-    animation-play-state: paused;
-    transition: opacity 0.25s ease;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
     pointer-events: none;
   }
 
-  .soa-card:hover::before,
-  .soa-card:focus-visible::before {
-    opacity: 1;
-    animation-play-state: running;
+  .hd-frame-path {
+    fill: none;
+    stroke: var(--hd-ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
   }
 
-  @keyframes soa-border-spin {
-    to {
-      --soa-border-angle: 360deg;
-    }
+  .interview-card.is-drawn .hd-frame-path {
+    animation: hd-draw 0.9s var(--hd-ease) both;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .soa-card::before {
-      animation: none;
-      transition: none;
-    }
+  /* ---------- 弹窗 / popout 的纸片 ---------- */
+  .hd-sheet {
+    border: 2px solid var(--hd-ink);
+    box-shadow: 3px 3px 0 var(--hd-shadow);
   }
 
-  .soa-title {
-    width: fit-content;
-    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+  .interview-promo-card {
+    /* sk-2 的不规则圆角 */
+    border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+    animation: hd-rise 0.4s var(--hd-ease) both;
   }
 
-  .agent-popout-panel {
-    position: relative;
+  .interview-popout-panel {
+    /* sk-3 的不规则圆角 + 便利贴式微旋转 */
+    border-radius: 225px 15px 255px 15px / 15px 255px 15px 225px;
+    transform: rotate(-1deg);
     transform-origin: bottom left;
-    animation: agent-pop-up 980ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
+    animation: hd-rise 0.5s var(--hd-ease) both;
   }
 
-  .agent-popout-nudge {
-    animation: agent-pop-nudge 1400ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
+  /* ---------- 排版原语 ---------- */
+  .hd-heading {
+    color: var(--hd-ink);
+    line-height: 1.25;
   }
 
-  .agent-type-caret {
+  .hd-body {
+    color: var(--hd-sub);
+  }
+
+  .hd-sub {
+    color: var(--hd-weak);
+  }
+
+  .hd-badge {
     display: inline-block;
-    width: 0.6ch;
-    height: 1em;
-    margin-left: 0.1ch;
-    border-right: 2px solid currentColor;
-    transform: translateY(0.14em);
-    animation: agent-caret 850ms steps(1) infinite;
+    border: 2px solid var(--hd-ink);
+    border-radius: 9999px;
+    background-color: var(--hd-yellow);
+    padding: 0.1rem 0.6rem;
+    color: var(--hd-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transform: rotate(-1.5deg);
   }
 
-  @keyframes agent-pop-up {
-    0% {
+  /* 马克笔下划线：粗黄笔压在文字底层 */
+  .hd-marker {
+    position: relative;
+    isolation: isolate;
+    display: inline-block;
+  }
+
+  .hd-marker-svg {
+    position: absolute;
+    inset-inline: -0.35rem;
+    bottom: 0.05em;
+    z-index: -1;
+    width: calc(100% + 0.7rem);
+    height: 0.55em;
+    overflow: visible;
+  }
+
+  .hd-marker-path {
+    fill: none;
+    stroke: var(--hd-yellow);
+    stroke-width: 15;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    mix-blend-mode: multiply;
+    animation: hd-draw 0.7s 0.35s ease-out both;
+  }
+
+  .interview-card .hd-marker-path {
+    animation: none;
+  }
+
+  .interview-card.is-drawn .hd-marker-path {
+    animation: hd-draw 0.7s 0.45s ease-out both;
+  }
+
+  /* ---------- 按钮 ---------- */
+  .hd-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 2px solid var(--hd-ink);
+    border-radius: 9999px;
+    background-color: var(--hd-paper);
+    box-shadow: 3px 3px 0 var(--hd-shadow);
+    padding: 0.4rem 0.9rem;
+    color: var(--hd-ink);
+    font-weight: 600;
+    transition:
+      transform 0.13s var(--hd-ease),
+      box-shadow 0.13s var(--hd-ease),
+      background-color 0.13s var(--hd-ease);
+  }
+
+  .interview-card:hover .hd-cta,
+  .interview-card:focus-visible .hd-cta,
+  .hd-cta:hover {
+    background-color: var(--hd-yellow2);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--hd-shadow);
+  }
+
+  .hd-cta:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--hd-shadow);
+  }
+
+  .hd-arrow {
+    transition: transform 0.13s var(--hd-ease);
+  }
+
+  .interview-card:hover .hd-arrow,
+  .interview-card:focus-visible .hd-arrow,
+  .hd-cta:hover .hd-arrow {
+    transform: translateX(3px);
+  }
+
+  .hd-close {
+    border-radius: 9999px;
+    color: var(--hd-weak);
+    transition: color 0.13s var(--hd-ease);
+  }
+
+  .hd-close:hover {
+    color: var(--hd-ink);
+  }
+
+  .hd-quiet {
+    color: var(--hd-weak);
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-underline-offset: 4px;
+  }
+
+  .hd-quiet:hover {
+    color: var(--hd-ink);
+  }
+
+  /* ---------- 首访弹窗容器（遮罩保持原来的语义 token 写法） ---------- */
+  .interview-promo {
+    display: flex;
+  }
+
+  .interview-promo[hidden] {
+    display: none;
+  }
+
+  .interview-promo-backdrop {
+    background-color: hsl(var(--background) / 0.72);
+    background-image: linear-gradient(hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0.12));
+    backdrop-filter: blur(6px);
+    animation: hd-fade-in 0.25s ease both;
+  }
+
+  .interview-popout-nudge {
+    animation: hd-nudge 1400ms var(--hd-ease);
+  }
+
+  @keyframes hd-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes hd-rise {
+    from {
       opacity: 0;
-      transform: translateY(34px) scale(0.94, 1.06);
+      transform: translateY(14px);
     }
-    38% {
+    to {
       opacity: 1;
-      transform: translateY(-10px) scale(1.02, 0.96);
-    }
-    58% {
-      transform: translateY(5px) scale(0.99, 1.02);
-    }
-    76% {
-      transform: translateY(-3px) scale(1.01, 0.99);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1, 1);
+      transform: none;
     }
   }
 
-  @keyframes agent-pop-nudge {
+  @keyframes hd-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hd-nudge {
     0%,
     100% {
-      transform: translateY(0) scale(1, 1);
+      transform: rotate(-1deg) translateY(0);
     }
-    18% {
-      transform: translateY(8px) scale(0.98, 1.03);
+    22% {
+      transform: rotate(-1deg) translateY(7px);
     }
-    42% {
-      transform: translateY(-12px) scale(1.02, 0.97);
+    48% {
+      transform: rotate(-1deg) translateY(-11px);
     }
-    66% {
-      transform: translateY(4px) scale(0.99, 1.01);
+    72% {
+      transform: rotate(-1deg) translateY(4px);
     }
-    84% {
-      transform: translateY(-2px) scale(1.005, 0.995);
+    88% {
+      transform: rotate(-1deg) translateY(-2px);
     }
   }
 
-  @keyframes agent-caret {
-    50% {
+  /* popout 自带 rotate，入场动画要连同 rotate 一起做，否则会先正过来再转回去 */
+  .interview-popout-panel {
+    animation-name: hd-rise-tilt;
+  }
+
+  @keyframes hd-rise-tilt {
+    from {
       opacity: 0;
+      transform: rotate(-1deg) translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(-1deg) translateY(0);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .agent-popout-panel,
-    .agent-popout-nudge,
-    .agent-type-caret {
+    .interview-promo-backdrop,
+    .interview-promo-card,
+    .interview-popout-panel,
+    .interview-popout-nudge {
       animation: none;
+    }
+
+    .hd-frame-path,
+    .hd-marker-path,
+    .interview-card.is-drawn .hd-frame-path,
+    .interview-card.is-drawn .hd-marker-path {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+
+    .interview-card,
+    .hd-cta,
+    .hd-arrow,
+    .hd-close {
+      transition: none;
+    }
+
+    .interview-card:hover,
+    .interview-card:focus-visible,
+    .hd-cta:hover,
+    .interview-card:hover .hd-cta {
+      transform: none;
+    }
+
+    .interview-card:hover .hd-arrow,
+    .interview-card:focus-visible .hd-arrow,
+    .hd-cta:hover .hd-arrow {
+      transform: none;
     }
   }
 </style>
