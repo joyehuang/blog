@@ -167,28 +167,50 @@ const latestTalk = talks[0]
           href='https://joyehuang.dev'
           target='_blank'
           rel='noopener noreferrer'
-          class='interview-card group flex flex-col gap-3 rounded-2xl p-5 no-underline transition-all hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+          class='hd interview-card group relative flex flex-col gap-3 p-5 no-underline sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+          data-hd-frame
           data-analytics-event='project_link_click'
           data-analytics-surface='home_interview'
           data-analytics-section='interview'
           data-analytics-project='interview-notes'
           data-analytics-link-type='site'
         >
-          <div class='min-w-0'>
-            <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
-              <span class='interview-badge rounded-full border px-2 py-0.5'>新企划 · 即将上线</span>
-              <span class='text-muted-foreground'>joyehuang.dev · 现已开放预约</span>
+          {/* 手绘墨线边框：路径按卡片实际尺寸生成，进入视口时 draw-on */}
+          <svg class='hd-frame' aria-hidden='true' focusable='false'>
+            <path class='hd-frame-path' pathLength='1' d=''></path>
+          </svg>
+
+          <div class='relative min-w-0'>
+            <div class='flex flex-wrap items-center gap-2 text-xs'>
+              <span class='hd-badge'>新企划 · 即将上线</span>
+              <span class='hd-sub'>joyehuang.dev · 现已开放预约</span>
             </div>
-            <h3 class='mt-1.5 text-2xl font-bold text-foreground sm:text-3xl'>面试手记</h3>
-            <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
+            <h3 class='hd-heading mt-2 text-2xl font-bold sm:text-3xl'>
+              <span class='hd-marker'>
+                面试手记
+                <svg
+                  class='hd-marker-svg'
+                  viewBox='0 0 200 18'
+                  preserveAspectRatio='none'
+                  aria-hidden='true'
+                  focusable='false'
+                >
+                  <path
+                    class='hd-marker-path'
+                    pathLength='1'
+                    d='M3 12 C 48 5, 116 16, 197 7'
+                    vector-effect='non-scaling-stroke'></path>
+                </svg>
+              </span>
+            </h3>
+            <p class='hd-body mt-2 text-sm leading-relaxed'>
               158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
             </p>
           </div>
-          <span
-            class='interview-cta inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground sm:self-center'
-          >
+
+          <span class='hd-cta relative shrink-0 self-start text-sm sm:self-center'>
             去看看
-            <span class='interview-arrow' aria-hidden='true'>→</span>
+            <span class='hd-arrow' aria-hidden='true'>→</span>
           </span>
         </a>
       </section>
@@ -388,7 +410,7 @@ const latestTalk = talks[0]
   >
     <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss></div>
     <div
-      class='interview-promo-card relative w-full max-w-md rounded-2xl border border-input bg-card p-6'
+      class='hd hd-sheet interview-promo-card relative w-full max-w-md p-6'
       role='dialog'
       aria-modal='true'
       aria-labelledby='interview-promo-title'
@@ -396,7 +418,7 @@ const latestTalk = talks[0]
       <button
         type='button'
         data-promo-dismiss
-        class='absolute end-3 top-3 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+        class='hd-close absolute end-3 top-3 flex size-8 items-center justify-center'
         aria-label='关闭弹窗'
       >
         <svg
@@ -416,16 +438,29 @@ const latestTalk = talks[0]
         </svg>
       </button>
 
-      <span
-        class='interview-badge inline-block rounded-full border px-2 py-0.5 text-xs font-medium'
-      >
-        新企划 · 即将上线
-      </span>
-      <h2 id='interview-promo-title' class='mt-2 text-3xl font-bold text-foreground'>面试手记</h2>
-      <p class='mt-2 text-sm leading-relaxed text-muted-foreground'>
+      <span class='hd-badge'>新企划 · 即将上线</span>
+      <h2 id='interview-promo-title' class='hd-heading mt-3 text-3xl font-bold'>
+        <span class='hd-marker'>
+          面试手记
+          <svg
+            class='hd-marker-svg'
+            viewBox='0 0 200 18'
+            preserveAspectRatio='none'
+            aria-hidden='true'
+            focusable='false'
+          >
+            <path
+              class='hd-marker-path'
+              pathLength='1'
+              d='M3 12 C 48 5, 116 16, 197 7'
+              vector-effect='non-scaling-stroke'></path>
+          </svg>
+        </span>
+      </h2>
+      <p class='hd-body mt-3 text-sm leading-relaxed'>
         158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
       </p>
-      <p class='mt-1 text-sm leading-relaxed text-muted-foreground'>
+      <p class='hd-body mt-1 text-sm leading-relaxed'>
         逐字稿回放，看一场面试真实的样子，而不是事后美化过的复盘。
       </p>
 
@@ -434,7 +469,7 @@ const latestTalk = talks[0]
           href='https://joyehuang.dev'
           target='_blank'
           rel='noopener noreferrer'
-          class='interview-promo-cta group inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium no-underline'
+          class='hd-cta text-sm no-underline'
           data-promo-dismiss
           data-analytics-event='project_link_click'
           data-analytics-surface='home_popup'
@@ -443,15 +478,9 @@ const latestTalk = talks[0]
           data-analytics-link-type='site'
         >
           去看看
-          <span class='interview-arrow' aria-hidden='true'>→</span>
+          <span class='hd-arrow' aria-hidden='true'>→</span>
         </a>
-        <button
-          type='button'
-          data-promo-dismiss
-          class='text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline'
-        >
-          先不看
-        </button>
+        <button type='button' data-promo-dismiss class='hd-quiet text-sm'>先不看</button>
       </div>
     </div>
   </div>
@@ -459,18 +488,15 @@ const latestTalk = talks[0]
   {/* 左下角 popout：跟随原 SOA 的位置（右下角是 JoJo），关闭后 localStorage 记住 */}
   <aside
     id='interview-popout'
-    class='fixed bottom-4 start-4 z-50 w-[calc(100vw-2rem)] max-w-sm md:bottom-6 md:start-6 md:max-w-xs'
+    class='fixed bottom-4 start-4 z-50 w-[270px] max-w-[calc(100vw-2rem)] md:bottom-6 md:start-6'
     aria-label='面试手记'
     hidden
   >
-    <div
-      data-popout-panel
-      class='interview-popout-panel relative overflow-hidden rounded-2xl border border-input bg-card p-4'
-    >
+    <div data-popout-panel class='hd hd-sheet interview-popout-panel relative p-4'>
       <button
         type='button'
         data-popout-close
-        class='absolute end-2 top-2 z-10 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+        class='hd-close absolute end-2 top-2 z-10 flex size-7 items-center justify-center'
         aria-label='关闭面试手记弹窗'
       >
         <svg
@@ -490,21 +516,17 @@ const latestTalk = talks[0]
         </svg>
       </button>
 
-      <div class='pe-8'>
-        <span
-          class='interview-badge inline-block rounded-full border px-2 py-0.5 text-xs font-medium'
-        >
-          即将上线
-        </span>
-        <h2 class='mt-1.5 text-xl font-bold text-foreground'>面试手记</h2>
-        <p class='mt-1 text-sm leading-relaxed text-muted-foreground'>
+      <div class='pe-7'>
+        <span class='hd-badge'>即将上线</span>
+        <h2 class='hd-heading mt-2 text-lg font-bold'>面试手记</h2>
+        <p class='hd-body mt-1 text-xs leading-relaxed'>
           158 道真题一字不删，连答砸的都有 —— 逐字稿回放。
         </p>
         <a
           href='https://joyehuang.dev'
           target='_blank'
           rel='noopener noreferrer'
-          class='interview-promo-cta group mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium no-underline'
+          class='hd-cta mt-3 text-xs no-underline'
           data-analytics-event='project_link_click'
           data-analytics-surface='home_popout'
           data-analytics-section='interview'
@@ -512,7 +534,7 @@ const latestTalk = talks[0]
           data-analytics-link-type='site'
         >
           去看看
-          <span class='interview-arrow' aria-hidden='true'>→</span>
+          <span class='hd-arrow' aria-hidden='true'>→</span>
         </a>
       </div>
     </div>
@@ -620,63 +642,286 @@ const latestTalk = talks[0]
           else openPromo()
         }, 900)
       })
+
+      // ---- 手绘墨线边框：按卡片实际尺寸生成路径，进入视口时画出来 ----
+      const card = document.querySelector('[data-hd-frame]')
+      if (!card) return
+      const svg = card.querySelector('.hd-frame')
+      const path = svg && svg.querySelector('.hd-frame-path')
+      if (!svg || !path) return
+
+      // 手绘感的圆角矩形：四角半径不等（呼应 sk-1 的 255/15/225/15 走势），
+      // 直边中点带 1.5px 抖动，看起来像一笔画歪的框。
+      const framePath = (w, h) => {
+        const inset = 1
+        const x0 = inset
+        const y0 = inset
+        const x1 = w - inset
+        const y1 = h - inset
+        const cap = Math.max(6, Math.min(28, (Math.min(w, h) - 2 * inset) / 2.2))
+        const tl = cap
+        const tr = Math.max(6, cap * 0.3)
+        const br = cap * 0.85
+        const bl = Math.max(6, cap * 0.3)
+        const wob = 1.5
+        return [
+          `M ${x0 + tl} ${y0}`,
+          `Q ${(x0 + x1) / 2} ${y0 - wob} ${x1 - tr} ${y0}`,
+          `Q ${x1} ${y0} ${x1} ${y0 + tr}`,
+          `Q ${x1 + wob} ${(y0 + y1) / 2} ${x1} ${y1 - br}`,
+          `Q ${x1} ${y1} ${x1 - br} ${y1}`,
+          `Q ${(x0 + x1) / 2} ${y1 + wob} ${x0 + bl} ${y1}`,
+          `Q ${x0} ${y1} ${x0} ${y1 - bl}`,
+          `Q ${x0 - wob} ${(y0 + y1) / 2} ${x0} ${y0 + tl}`,
+          `Q ${x0} ${y0} ${x0 + tl} ${y0}`,
+          'Z'
+        ].join(' ')
+      }
+
+      const drawFrame = () => {
+        const rect = card.getBoundingClientRect()
+        const w = Math.round(rect.width)
+        const h = Math.round(rect.height)
+        if (!w || !h) return
+        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h)
+        path.setAttribute('d', framePath(w, h))
+      }
+
+      drawFrame()
+      if (window.ResizeObserver) new ResizeObserver(drawFrame).observe(card)
+      else window.addEventListener('resize', drawFrame)
+
+      if (window.IntersectionObserver) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return
+              card.classList.add('is-drawn')
+              io.disconnect()
+            })
+          },
+          { threshold: 0.25 }
+        )
+        io.observe(card)
+      } else {
+        card.classList.add('is-drawn')
+      }
     })()
   </script>
 </PageLayout>
 
 <style>
-  /* 面试手记入口卡 / 弹窗：只用 app.css 的语义 token（hsl(var(--x) / alpha)），
-     取色与层次沿用 FeatureCalloutCard 的写法，见 DESIGN.md「Colors / Elevation」 */
+  /* 手绘推广层：joyehuang.dev 的设计语言（handdrawn-ui skill），
+     只作用于这三个推广面（横幅卡 / 首访弹窗 / 左下 popout），
+     用局部 --hd-* token，不碰站点的语义 token —— 页面其余部分保持原样。
+     该设计系统只有亮色版，所以这三张「纸」在暗色下依然是纸。 */
+  .hd {
+    --hd-paper: #fffdf8;
+    --hd-ink: #3a3a3a;
+    --hd-sub: #5a564c;
+    --hd-weak: #8d887c;
+    --hd-hairline: #d8d2c2;
+    --hd-yellow: #ffe08a;
+    --hd-yellow2: #fff3b0;
+    --hd-shadow: rgba(58, 58, 58, 0.18);
+    --hd-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+    color: var(--hd-ink);
+    background-color: var(--hd-paper);
+    /* 点阵纸面，低强度 */
+    background-image: radial-gradient(circle, rgba(30, 30, 30, 0.05) 1.1px, transparent 1.1px);
+    background-size: 22px 22px;
+  }
+
+  :global(.dark) .hd {
+    /* 暗色下保持亮卡，只把硬阴影压深，让纸片从暗背景里立起来 */
+    --hd-shadow: rgba(0, 0, 0, 0.55);
+  }
+
+  /* ---------- 横幅卡：SVG 墨线边框 + draw-on ---------- */
   .interview-card {
-    border: 1px solid hsl(var(--primary) / 0.28);
-    background:
-      radial-gradient(ellipse at 88% 14%, hsl(var(--primary) / 0.07), transparent 42%),
-      linear-gradient(135deg, hsl(var(--muted) / 0.7), hsl(var(--card)));
-    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
+    isolation: isolate;
+    border-radius: 28px 8px 24px 8px;
+    box-shadow: 3px 3px 0 var(--hd-shadow);
     transition:
-      transform 0.25s ease,
-      border-color 0.25s ease,
-      box-shadow 0.25s ease;
+      transform 0.13s var(--hd-ease),
+      box-shadow 0.13s var(--hd-ease);
   }
 
   .interview-card:hover,
   .interview-card:focus-visible {
-    border-color: hsl(var(--primary) / 0.45);
-    box-shadow: 0 16px 42px hsl(var(--foreground) / 0.09);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--hd-shadow);
   }
 
-  .interview-badge {
-    border-color: hsl(var(--primary) / 0.3);
-    background-color: hsl(var(--primary) / 0.1);
-    color: hsl(var(--primary));
+  .hd-frame {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
   }
 
-  .interview-cta {
-    border-color: hsl(var(--border));
-    background-color: hsl(var(--background) / 0.72);
+  .hd-frame-path {
+    fill: none;
+    stroke: var(--hd-ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  .interview-card.is-drawn .hd-frame-path {
+    animation: hd-draw 0.9s var(--hd-ease) both;
+  }
+
+  /* ---------- 弹窗 / popout 的纸片 ---------- */
+  .hd-sheet {
+    border: 2px solid var(--hd-ink);
+    box-shadow: 3px 3px 0 var(--hd-shadow);
+  }
+
+  .interview-promo-card {
+    /* sk-2 的不规则圆角 */
+    border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+    animation: hd-rise 0.4s var(--hd-ease) both;
+  }
+
+  .interview-popout-panel {
+    /* sk-3 的不规则圆角 + 便利贴式微旋转 */
+    border-radius: 225px 15px 255px 15px / 15px 255px 15px 225px;
+    transform: rotate(-1deg);
+    transform-origin: bottom left;
+    animation: hd-rise 0.5s var(--hd-ease) both;
+  }
+
+  /* ---------- 排版原语 ---------- */
+  .hd-heading {
+    color: var(--hd-ink);
+    line-height: 1.25;
+  }
+
+  .hd-body {
+    color: var(--hd-sub);
+  }
+
+  .hd-sub {
+    color: var(--hd-weak);
+  }
+
+  .hd-badge {
+    display: inline-block;
+    border: 2px solid var(--hd-ink);
+    border-radius: 9999px;
+    background-color: var(--hd-yellow);
+    padding: 0.1rem 0.6rem;
+    color: var(--hd-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transform: rotate(-1.5deg);
+  }
+
+  /* 马克笔下划线：粗黄笔压在文字底层 */
+  .hd-marker {
+    position: relative;
+    isolation: isolate;
+    display: inline-block;
+  }
+
+  .hd-marker-svg {
+    position: absolute;
+    inset-inline: -0.35rem;
+    bottom: 0.05em;
+    z-index: -1;
+    width: calc(100% + 0.7rem);
+    height: 0.55em;
+    overflow: visible;
+  }
+
+  .hd-marker-path {
+    fill: none;
+    stroke: var(--hd-yellow);
+    stroke-width: 15;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    mix-blend-mode: multiply;
+    animation: hd-draw 0.7s 0.35s ease-out both;
+  }
+
+  .interview-card .hd-marker-path {
+    animation: none;
+  }
+
+  .interview-card.is-drawn .hd-marker-path {
+    animation: hd-draw 0.7s 0.45s ease-out both;
+  }
+
+  /* ---------- 按钮 ---------- */
+  .hd-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 2px solid var(--hd-ink);
+    border-radius: 9999px;
+    background-color: var(--hd-paper);
+    box-shadow: 3px 3px 0 var(--hd-shadow);
+    padding: 0.4rem 0.9rem;
+    color: var(--hd-ink);
+    font-weight: 600;
     transition:
-      background-color 0.25s ease,
-      border-color 0.25s ease,
-      color 0.25s ease;
+      transform 0.13s var(--hd-ease),
+      box-shadow 0.13s var(--hd-ease),
+      background-color 0.13s var(--hd-ease);
   }
 
-  .interview-card:hover .interview-cta,
-  .interview-card:focus-visible .interview-cta {
-    border-color: hsl(var(--primary) / 0.45);
-    background-color: hsl(var(--primary) / 0.1);
-    color: hsl(var(--primary));
+  .interview-card:hover .hd-cta,
+  .interview-card:focus-visible .hd-cta,
+  .hd-cta:hover {
+    background-color: var(--hd-yellow2);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--hd-shadow);
   }
 
-  .interview-arrow {
-    transition: transform 0.25s ease;
+  .hd-cta:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--hd-shadow);
   }
 
-  .interview-card:hover .interview-arrow,
-  .interview-card:focus-visible .interview-arrow {
+  .hd-arrow {
+    transition: transform 0.13s var(--hd-ease);
+  }
+
+  .interview-card:hover .hd-arrow,
+  .interview-card:focus-visible .hd-arrow,
+  .hd-cta:hover .hd-arrow {
     transform: translateX(3px);
   }
 
-  /* 首访弹窗 */
+  .hd-close {
+    border-radius: 9999px;
+    color: var(--hd-weak);
+    transition: color 0.13s var(--hd-ease);
+  }
+
+  .hd-close:hover {
+    color: var(--hd-ink);
+  }
+
+  .hd-quiet {
+    color: var(--hd-weak);
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    text-underline-offset: 4px;
+  }
+
+  .hd-quiet:hover {
+    color: var(--hd-ink);
+  }
+
+  /* ---------- 首访弹窗容器（遮罩保持原来的语义 token 写法） ---------- */
   .interview-promo {
     display: flex;
   }
@@ -686,50 +931,37 @@ const latestTalk = talks[0]
   }
 
   .interview-promo-backdrop {
-    /* 遮罩：background 打底压住页面，再叠一层 foreground 低 alpha 压暗，两个主题都成立 */
     background-color: hsl(var(--background) / 0.72);
     background-image: linear-gradient(hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0.12));
     backdrop-filter: blur(6px);
-    animation: interview-fade-in 0.25s ease both;
-  }
-
-  .interview-promo-card {
-    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
-    animation: interview-pop-up 0.42s cubic-bezier(0.18, 0.9, 0.18, 1.12) both;
-  }
-
-  /* 弹窗 / popout 的主按钮：沿用 FeatureCalloutCard 的 is-primary 配方 */
-  .interview-promo-cta {
-    border: 1px solid hsl(var(--primary) / 0.35);
-    background-color: hsl(var(--primary) / 0.1);
-    color: hsl(var(--primary));
-    transition:
-      background-color 0.25s ease,
-      border-color 0.25s ease;
-  }
-
-  .interview-promo-cta:hover {
-    border-color: hsl(var(--primary) / 0.5);
-    background-color: hsl(var(--primary) / 0.16);
-  }
-
-  .interview-promo-cta:hover .interview-arrow {
-    transform: translateX(3px);
-  }
-
-  /* 左下角 popout：入场弹跳 + 定时 nudge，沿用原 SOA 的动画曲线 */
-  .interview-popout-panel {
-    backdrop-filter: blur(6px);
-    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
-    transform-origin: bottom left;
-    animation: interview-pop-up 980ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
+    animation: hd-fade-in 0.25s ease both;
   }
 
   .interview-popout-nudge {
-    animation: interview-nudge 1400ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
+    animation: hd-nudge 1400ms var(--hd-ease);
   }
 
-  @keyframes interview-fade-in {
+  @keyframes hd-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes hd-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes hd-fade-in {
     from {
       opacity: 0;
     }
@@ -738,43 +970,38 @@ const latestTalk = talks[0]
     }
   }
 
-  @keyframes interview-pop-up {
-    0% {
-      opacity: 0;
-      transform: translateY(34px) scale(0.94, 1.06);
-    }
-    38% {
-      opacity: 1;
-      transform: translateY(-10px) scale(1.02, 0.96);
-    }
-    58% {
-      transform: translateY(5px) scale(0.99, 1.02);
-    }
-    76% {
-      transform: translateY(-3px) scale(1.01, 0.99);
-    }
+  @keyframes hd-nudge {
+    0%,
     100% {
-      opacity: 1;
-      transform: translateY(0) scale(1, 1);
+      transform: rotate(-1deg) translateY(0);
+    }
+    22% {
+      transform: rotate(-1deg) translateY(7px);
+    }
+    48% {
+      transform: rotate(-1deg) translateY(-11px);
+    }
+    72% {
+      transform: rotate(-1deg) translateY(4px);
+    }
+    88% {
+      transform: rotate(-1deg) translateY(-2px);
     }
   }
 
-  @keyframes interview-nudge {
-    0%,
-    100% {
-      transform: translateY(0) scale(1, 1);
+  /* popout 自带 rotate，入场动画要连同 rotate 一起做，否则会先正过来再转回去 */
+  .interview-popout-panel {
+    animation-name: hd-rise-tilt;
+  }
+
+  @keyframes hd-rise-tilt {
+    from {
+      opacity: 0;
+      transform: rotate(-1deg) translateY(14px);
     }
-    18% {
-      transform: translateY(8px) scale(0.98, 1.03);
-    }
-    42% {
-      transform: translateY(-12px) scale(1.02, 0.97);
-    }
-    66% {
-      transform: translateY(4px) scale(0.99, 1.01);
-    }
-    84% {
-      transform: translateY(-2px) scale(1.005, 0.995);
+    to {
+      opacity: 1;
+      transform: rotate(-1deg) translateY(0);
     }
   }
 
@@ -786,16 +1013,31 @@ const latestTalk = talks[0]
       animation: none;
     }
 
-    .interview-cta,
-    .interview-arrow,
+    .hd-frame-path,
+    .hd-marker-path,
+    .interview-card.is-drawn .hd-frame-path,
+    .interview-card.is-drawn .hd-marker-path {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+
     .interview-card,
-    .interview-promo-cta {
+    .hd-cta,
+    .hd-arrow,
+    .hd-close {
       transition: none;
     }
 
-    .interview-card:hover .interview-arrow,
-    .interview-card:focus-visible .interview-arrow,
-    .interview-promo-cta:hover .interview-arrow {
+    .interview-card:hover,
+    .interview-card:focus-visible,
+    .hd-cta:hover,
+    .interview-card:hover .hd-cta {
+      transform: none;
+    }
+
+    .interview-card:hover .hd-arrow,
+    .interview-card:focus-visible .hd-arrow,
+    .hd-cta:hover .hd-arrow {
       transform: none;
     }
   }
