@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "sync": "astro sync",
     "check": "astro-pure check && astro check",
+    "geo:audit": "node scripts/geo-audit.mjs",
     "astro": "astro",
     "pure": "astro-pure",
     "new": "astro-pure new",
