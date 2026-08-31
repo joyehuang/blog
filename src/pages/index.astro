@@ -156,17 +156,11 @@ const agentHackathonLink =
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
           墨尔本大学在读，专注 AI Agent 产品开发 —— 从 Adastra Labs（石墨文档海外）的
-          Playyy.ai、特赞 Tezign 的 atypica（商业研究 Multi-Agent），到 fAIshion.ai 与
-          Goshu Tech 的全栈与剪辑 Agent，都是这条线上的实践。 在意 LLM
-          的底层机制，也在意产品能不能真正跑起来。 Build fast, learn faster —
-          平时弹琴、拉大提琴、玩摄影。
+          Playyy.ai、特赞 Tezign 的 atypica（商业研究 Multi-Agent），到 fAIshion.ai 与 Goshu Tech
+          的全栈与剪辑 Agent，都是这条线上的实践。 在意 LLM 的底层机制，也在意产品能不能真正跑起来。
+          Build fast, learn faster — 平时弹琴、拉大提琴、玩摄影。
         </p>
-        <Button
-          title='More about me'
-          class='w-fit self-end'
-          href='/about'
-          style='ahead'
-        />
+        <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
       <a
         href='/agent-teams'
@@ -202,15 +196,41 @@ const agentHackathonLink =
                 </li>
               ))}
             </ul>
-            <Button
-              title='More blogs'
-              class='w-fit self-end'
-              href='/blog'
-              style='ahead'
-            />
+            <Button title='More blogs' class='w-fit self-end' href='/blog' style='ahead' />
           </Section>
         )
       }
+
+      {/* 导流：另一个产品「面试手记」joyehuang.dev */}
+      <Section title='Interview'>
+        <p class='text-muted-foreground'>
+          另一个正在做的产品 ——「面试手记」，把真实面试现场原样留下来，不做事后美化。
+        </p>
+        <LinkCard
+          heading='面试手记 · joyehuang.dev'
+          subheading='158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子'
+          date='即将上线 · 现已开放预约'
+          href='https://joyehuang.dev'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_interview'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
+        />
+        <Button
+          title='去看看'
+          class='w-fit self-end'
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          style='ahead'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_interview'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
+        />
+      </Section>
 
       {
         latestNotes.length > 0 && (
@@ -258,12 +278,7 @@ const agentHackathonLink =
                 </li>
               ))}
             </ul>
-            <Button
-              title='More notes'
-              class='w-fit self-end'
-              href='/notes'
-              style='ahead'
-            />
+            <Button title='More notes' class='w-fit self-end' href='/notes' style='ahead' />
           </Section>
         )
       }
@@ -282,12 +297,7 @@ const agentHackathonLink =
               href='/talks'
               target='_self'
             />
-            <Button
-              title='全部分享'
-              class='w-fit self-end'
-              href='/talks'
-              style='ahead'
-            />
+            <Button title='全部分享' class='w-fit self-end' href='/talks' style='ahead' />
           </Section>
         )
       }

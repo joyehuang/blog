@@ -315,15 +315,15 @@ Fire once per method per pageview.
 
 ### `project_link_click`
 
-User clicks a project destination from the Projects page or homepage experience
-section.
+User clicks a project destination from the Projects page or a homepage product
+section (Experience, Interview).
 
 Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_experience` | `projects`
-- `section`: `experience` | `open_source` | `programs` | `learnings` | `theme`
+- `surface`: `home_experience` | `home_interview` | `projects`
+- `section`: `experience` | `open_source` | `programs` | `learnings` | `theme` | `interview`
 - `project`: stable project identifier
 - `link_type`: `site` | `github` | `doc` | `release`
 - `href`: destination URL
