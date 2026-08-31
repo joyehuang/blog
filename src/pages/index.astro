@@ -161,35 +161,34 @@ const latestTalk = talks[0]
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
       {/* 导流：另一个产品「面试手记」joyehuang.dev */}
-      <Section title='Interview'>
-        <p class='text-muted-foreground'>
-          另一个正在做的产品 ——「面试手记」，把真实面试现场原样留下来，不做事后美化。
-        </p>
-        <LinkCard
-          heading='面试手记 · joyehuang.dev'
-          subheading='158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子'
-          date='即将上线 · 现已开放预约'
-          href='https://joyehuang.dev'
-          data-analytics-event='project_link_click'
-          data-analytics-surface='home_interview'
-          data-analytics-section='interview'
-          data-analytics-project='interview-notes'
-          data-analytics-link-type='site'
-        />
-        <Button
-          title='去看看'
-          class='w-fit self-end'
-          href='https://joyehuang.dev'
-          target='_blank'
-          rel='noopener noreferrer'
-          style='ahead'
-          data-analytics-event='project_link_click'
-          data-analytics-surface='home_interview'
-          data-analytics-section='interview'
-          data-analytics-project='interview-notes'
-          data-analytics-link-type='site'
-        />
-      </Section>
+      <a
+        href='https://joyehuang.dev'
+        target='_blank'
+        rel='noopener noreferrer'
+        class='interview-card group flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+        data-analytics-event='project_link_click'
+        data-analytics-surface='home_interview'
+        data-analytics-section='interview'
+        data-analytics-project='interview-notes'
+        data-analytics-link-type='site'
+      >
+        <div class='min-w-0'>
+          <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
+            <span class='interview-badge rounded-full border px-2 py-0.5'>新企划 · 即将上线</span>
+            <span class='text-muted-foreground'>joyehuang.dev · 现已开放预约</span>
+          </div>
+          <h3 class='interview-title mt-1.5 text-2xl font-bold sm:text-3xl'>面试手记</h3>
+          <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
+            158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
+          </p>
+        </div>
+        <span
+          class='interview-cta inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground sm:self-center'
+        >
+          去看看
+          <span class='interview-arrow' aria-hidden='true'>→</span>
+        </span>
+      </a>
       {
         allPostsByDate.length > 0 && (
           <Section title='Blog'>
@@ -378,3 +377,139 @@ const latestTalk = talks[0]
     </div>
   </div>
 </PageLayout>
+
+<style>
+  /* 面试手记首页入口卡：墨蓝 / 纸感渐变底（UnoCSS 只启用了语义 token，
+     调色板类不存在，所以这里手写颜色，见 DESIGN.md「Colors」） */
+  @property --interview-border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  .interview-card {
+    position: relative;
+    z-index: 0;
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(129 140 248 / 0.12),
+      rgb(214 199 170 / 0.1),
+      rgb(59 91 219 / 0.08)
+    );
+  }
+
+  :global(.dark) .interview-card {
+    background-image: linear-gradient(
+      to bottom right,
+      rgb(129 140 248 / 0.16),
+      rgb(214 199 170 / 0.05),
+      rgb(99 102 241 / 0.12)
+    );
+  }
+
+  /* 旋转光环：conic-gradient 只保留在边框环上（mask 挖空内容区），
+     角度通过 @property 动画驱动，让光带绕卡片流转 */
+  .interview-card::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--interview-border-angle),
+      transparent 0deg,
+      transparent 250deg,
+      rgba(129, 140, 248, 0.45) 280deg,
+      rgba(226, 232, 255, 0.95) 310deg,
+      rgba(196, 181, 253, 0.6) 335deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    animation: interview-border-spin 2.5s linear infinite;
+    animation-play-state: paused;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .interview-card:hover::before,
+  .interview-card:focus-visible::before {
+    opacity: 1;
+    animation-play-state: running;
+  }
+
+  @keyframes interview-border-spin {
+    to {
+      --interview-border-angle: 360deg;
+    }
+  }
+
+  .interview-badge {
+    border-color: rgb(99 102 241 / 0.35);
+    background-color: rgb(99 102 241 / 0.12);
+    color: #4338ca;
+  }
+
+  :global(.dark) .interview-badge {
+    border-color: rgb(129 140 248 / 0.4);
+    background-color: rgb(129 140 248 / 0.16);
+    color: #c7d2fe;
+  }
+
+  .interview-title {
+    width: fit-content;
+    background-image: linear-gradient(to right, #4f46e5, #6366f1, #7c3aed);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  :global(.dark) .interview-title {
+    background-image: linear-gradient(to right, #a5b4fc, #818cf8, #c4b5fd);
+  }
+
+  .interview-cta {
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .interview-card:hover .interview-cta,
+  .interview-card:focus-visible .interview-cta {
+    border-color: rgb(99 102 241 / 0.45);
+    background-color: rgb(99 102 241 / 0.1);
+  }
+
+  .interview-arrow {
+    transition: transform 0.25s ease;
+  }
+
+  .interview-card:hover .interview-arrow,
+  .interview-card:focus-visible .interview-arrow {
+    transform: translateX(3px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .interview-card::before {
+      animation: none;
+      transition: none;
+    }
+
+    .interview-cta,
+    .interview-arrow {
+      transition: none;
+    }
+
+    .interview-card:hover .interview-arrow,
+    .interview-card:focus-visible .interview-arrow {
+      transform: none;
+    }
+  }
+</style>
