@@ -161,34 +161,37 @@ const latestTalk = talks[0]
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
       {/* 导流：另一个产品「面试手记」joyehuang.dev */}
-      <a
-        href='https://joyehuang.dev'
-        target='_blank'
-        rel='noopener noreferrer'
-        class='interview-card group flex flex-col gap-3 rounded-2xl border p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
-        data-analytics-event='project_link_click'
-        data-analytics-surface='home_interview'
-        data-analytics-section='interview'
-        data-analytics-project='interview-notes'
-        data-analytics-link-type='site'
-      >
-        <div class='min-w-0'>
-          <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
-            <span class='interview-badge rounded-full border px-2 py-0.5'>新企划 · 即将上线</span>
-            <span class='text-muted-foreground'>joyehuang.dev · 现已开放预约</span>
-          </div>
-          <h3 class='interview-title mt-1.5 text-2xl font-bold sm:text-3xl'>面试手记</h3>
-          <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
-            158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
-          </p>
-        </div>
-        <span
-          class='interview-cta inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground sm:self-center'
+      <section id='product' aria-labelledby='product-heading'>
+        <h2 id='product-heading' class='sr-only'>Product</h2>
+        <a
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='interview-card group flex flex-col gap-3 rounded-2xl p-5 no-underline transition-all hover:-translate-y-0.5 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_interview'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
         >
-          去看看
-          <span class='interview-arrow' aria-hidden='true'>→</span>
-        </span>
-      </a>
+          <div class='min-w-0'>
+            <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
+              <span class='interview-badge rounded-full border px-2 py-0.5'>新企划 · 即将上线</span>
+              <span class='text-muted-foreground'>joyehuang.dev · 现已开放预约</span>
+            </div>
+            <h3 class='interview-title mt-1.5 text-2xl font-bold sm:text-3xl'>面试手记</h3>
+            <p class='mt-1.5 text-sm leading-relaxed text-muted-foreground'>
+              158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
+            </p>
+          </div>
+          <span
+            class='interview-cta inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border px-4 py-2 text-sm font-medium text-foreground sm:self-center'
+          >
+            去看看
+            <span class='interview-arrow' aria-hidden='true'>→</span>
+          </span>
+        </a>
+      </section>
       {
         allPostsByDate.length > 0 && (
           <Section title='Blog'>
@@ -376,77 +379,302 @@ const latestTalk = talks[0]
       <JoJo client:load size='md' quipPool='idle' />
     </div>
   </div>
+
+  {/* 首访弹窗：面试手记推广，localStorage 记住，每位访客只弹一次 */}
+  <div
+    id='interview-promo'
+    class='interview-promo fixed inset-0 z-60 items-center justify-center p-4'
+    hidden
+  >
+    <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss></div>
+    <div
+      class='interview-promo-card relative w-full max-w-md rounded-2xl bg-background p-6 shadow-xl'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='interview-promo-title'
+    >
+      <button
+        type='button'
+        data-promo-dismiss
+        class='absolute end-3 top-3 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+        aria-label='关闭弹窗'
+      >
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='16'
+          height='16'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2.5'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          aria-hidden='true'
+        >
+          <path d='M18 6 6 18'></path>
+          <path d='m6 6 12 12'></path>
+        </svg>
+      </button>
+
+      <span
+        class='interview-badge inline-block rounded-full border px-2 py-0.5 text-xs font-medium'
+      >
+        新企划 · 即将上线
+      </span>
+      <h2 id='interview-promo-title' class='interview-title mt-2 text-3xl font-bold'>面试手记</h2>
+      <p class='mt-2 text-sm leading-relaxed text-muted-foreground'>
+        158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
+      </p>
+      <p class='mt-1 text-sm leading-relaxed text-muted-foreground'>
+        逐字稿回放，看一场面试真实的样子，而不是事后美化过的复盘。
+      </p>
+
+      <div class='mt-5 flex flex-wrap items-center gap-3'>
+        <a
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='interview-promo-cta group inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium no-underline'
+          data-promo-dismiss
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_popup'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
+        >
+          去看看
+          <span class='interview-arrow' aria-hidden='true'>→</span>
+        </a>
+        <button
+          type='button'
+          data-promo-dismiss
+          class='text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline'
+        >
+          先不看
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* 左下角 popout：跟随原 SOA 的位置（右下角是 JoJo），关闭后 localStorage 记住 */}
+  <aside
+    id='interview-popout'
+    class='fixed bottom-4 start-4 z-50 w-[calc(100vw-2rem)] max-w-sm md:bottom-6 md:start-6 md:max-w-xs'
+    aria-label='面试手记'
+    hidden
+  >
+    <div
+      data-popout-panel
+      class='interview-popout-panel relative overflow-hidden rounded-2xl bg-background/95 p-4 shadow-xl'
+    >
+      <button
+        type='button'
+        data-popout-close
+        class='absolute end-2 top-2 z-10 flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+        aria-label='关闭面试手记弹窗'
+      >
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='16'
+          height='16'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2.5'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          aria-hidden='true'
+        >
+          <path d='M18 6 6 18'></path>
+          <path d='m6 6 12 12'></path>
+        </svg>
+      </button>
+
+      <div class='pe-8'>
+        <span
+          class='interview-badge inline-block rounded-full border px-2 py-0.5 text-xs font-medium'
+        >
+          即将上线
+        </span>
+        <h2 class='interview-title mt-1.5 text-xl font-bold'>面试手记</h2>
+        <p class='mt-1 text-sm leading-relaxed text-muted-foreground'>
+          158 道真题一字不删，连答砸的都有 —— 逐字稿回放。
+        </p>
+        <a
+          href='https://joyehuang.dev'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='interview-promo-cta group mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium no-underline'
+          data-analytics-event='project_link_click'
+          data-analytics-surface='home_popout'
+          data-analytics-section='interview'
+          data-analytics-project='interview-notes'
+          data-analytics-link-type='site'
+        >
+          去看看
+          <span class='interview-arrow' aria-hidden='true'>→</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <script is:inline>
+    ;(() => {
+      const promo = document.getElementById('interview-promo')
+      const popout = document.getElementById('interview-popout')
+      if (!promo || !popout) return
+
+      const panel = popout.querySelector('[data-popout-panel]')
+      const promoKey = 'joye-interview-promo-seen'
+      const popoutKey = 'joye-interview-popout-state'
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      let nudgeTimer = 0
+      let nudgeInterval = 0
+
+      const read = (key) => {
+        try {
+          return window.localStorage.getItem(key)
+        } catch (e) {
+          return null
+        }
+      }
+      const write = (key, value) => {
+        try {
+          window.localStorage.setItem(key, value)
+        } catch (e) {}
+      }
+
+      const nudge = () => {
+        if (reduceMotion || popout.hidden || !panel) return
+        panel.classList.remove('interview-popout-nudge')
+        void panel.offsetWidth
+        panel.classList.add('interview-popout-nudge')
+        window.setTimeout(() => panel.classList.remove('interview-popout-nudge'), 1600)
+      }
+
+      const scheduleNudge = () => {
+        window.clearTimeout(nudgeTimer)
+        window.clearInterval(nudgeInterval)
+        if (reduceMotion || popout.hidden) return
+        nudgeTimer = window.setTimeout(() => {
+          nudge()
+          nudgeInterval = window.setInterval(nudge, 24000)
+        }, 10000)
+      }
+
+      const openPopout = () => {
+        // 关过就永久不再弹（localStorage），不因刷新复活。
+        if (read(popoutKey) === 'closed') return
+        popout.hidden = false
+        scheduleNudge()
+      }
+
+      const closePopout = () => {
+        popout.hidden = true
+        write(popoutKey, 'closed')
+        window.clearTimeout(nudgeTimer)
+        window.clearInterval(nudgeInterval)
+      }
+
+      const closePromo = () => {
+        if (promo.hidden) return
+        promo.hidden = true
+        document.documentElement.style.overflow = ''
+        write(promoKey, String(Date.now()))
+        openPopout()
+      }
+
+      const openPromo = () => {
+        promo.hidden = false
+        document.documentElement.style.overflow = 'hidden'
+        promo.querySelector('[data-promo-dismiss]')?.focus()
+      }
+
+      promo.querySelectorAll('[data-promo-dismiss]').forEach((el) => {
+        el.addEventListener('click', closePromo)
+      })
+      popout.querySelector('[data-popout-close]')?.addEventListener('click', closePopout)
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closePromo()
+      })
+
+      // 入场动画还在放的时候不要抢镜：等 intro overlay 落到静止态再开始。
+      const afterIntro = (run) => {
+        const overlay = document.getElementById('intro-overlay')
+        if (!overlay) return run()
+        const settled = () =>
+          overlay.classList.contains('intro-idle') || overlay.classList.contains('intro-done')
+        if (settled()) return run()
+        const observer = new MutationObserver(() => {
+          if (!settled()) return
+          observer.disconnect()
+          run()
+        })
+        observer.observe(overlay, { attributes: true, attributeFilter: ['class'] })
+      }
+
+      afterIntro(() => {
+        window.setTimeout(() => {
+          // 首访弹一次大弹窗；看过的访客直接走 popout。
+          if (read(promoKey)) openPopout()
+          else openPromo()
+        }, 900)
+      })
+    })()
+  </script>
 </PageLayout>
 
 <style>
   /* 面试手记首页入口卡：墨蓝 / 纸感渐变底（UnoCSS 只启用了语义 token，
      调色板类不存在，所以这里手写颜色，见 DESIGN.md「Colors」） */
-  @property --interview-border-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-  }
-
   .interview-card {
     position: relative;
     z-index: 0;
-    background-image: linear-gradient(
-      to bottom right,
-      rgb(129 140 248 / 0.12),
-      rgb(214 199 170 / 0.1),
-      rgb(59 91 219 / 0.08)
-    );
+    /* 双层描边：外圈 1.5px 渐变环（border-box 层）+ 内圈一道高光 inset，
+       和 SOA 卡的「hover 才转起来的光环」区分开——这条边一直亮着。 */
+    border: 1.5px solid transparent;
+    background-image:
+      linear-gradient(
+        to bottom right,
+        rgb(129 140 248 / 0.12),
+        rgb(214 199 170 / 0.1),
+        rgb(59 91 219 / 0.08)
+      ),
+      linear-gradient(hsl(var(--background)), hsl(var(--background))),
+      linear-gradient(135deg, #818cf8, #c4b5fd 35%, rgb(148 163 184 / 0.35) 65%, #6366f1);
+    background-origin: padding-box, padding-box, border-box;
+    background-clip: padding-box, padding-box, border-box;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
   }
 
   :global(.dark) .interview-card {
-    background-image: linear-gradient(
-      to bottom right,
-      rgb(129 140 248 / 0.16),
-      rgb(214 199 170 / 0.05),
-      rgb(99 102 241 / 0.12)
-    );
+    background-image:
+      linear-gradient(
+        to bottom right,
+        rgb(129 140 248 / 0.16),
+        rgb(214 199 170 / 0.05),
+        rgb(99 102 241 / 0.12)
+      ),
+      linear-gradient(hsl(var(--background)), hsl(var(--background))),
+      linear-gradient(135deg, #6366f1, #a78bfa 35%, rgb(100 116 139 / 0.4) 65%, #818cf8);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
   }
 
-  /* 旋转光环：conic-gradient 只保留在边框环上（mask 挖空内容区），
-     角度通过 @property 动画驱动，让光带绕卡片流转 */
-  .interview-card::before {
-    content: '';
-    position: absolute;
-    inset: -1.5px;
-    z-index: -1;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: conic-gradient(
-      from var(--interview-border-angle),
-      transparent 0deg,
-      transparent 250deg,
-      rgba(129, 140, 248, 0.45) 280deg,
-      rgba(226, 232, 255, 0.95) 310deg,
-      rgba(196, 181, 253, 0.6) 335deg,
-      transparent 360deg
-    );
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    animation: interview-border-spin 2.5s linear infinite;
-    animation-play-state: paused;
-    transition: opacity 0.25s ease;
-    pointer-events: none;
+  .interview-card:hover,
+  .interview-card:focus-visible {
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.7),
+      0 10px 30px -12px rgb(99 102 241 / 0.45);
   }
 
-  .interview-card:hover::before,
-  .interview-card:focus-visible::before {
-    opacity: 1;
-    animation-play-state: running;
-  }
-
-  @keyframes interview-border-spin {
-    to {
-      --interview-border-angle: 360deg;
-    }
+  :global(.dark) .interview-card:hover,
+  :global(.dark) .interview-card:focus-visible {
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.1),
+      0 10px 30px -12px rgb(129 140 248 / 0.5);
   }
 
   .interview-badge {
@@ -496,10 +724,152 @@ const latestTalk = talks[0]
     transform: translateX(3px);
   }
 
+  /* 首访弹窗 */
+  .interview-promo {
+    display: flex;
+  }
+
+  .interview-promo[hidden] {
+    display: none;
+  }
+
+  .interview-promo-backdrop {
+    background-color: rgb(9 9 11 / 0.55);
+    backdrop-filter: blur(4px);
+    animation: interview-fade-in 0.25s ease both;
+  }
+
+  :global(.dark) .interview-promo-backdrop {
+    background-color: rgb(0 0 0 / 0.68);
+  }
+
+  .interview-promo-card {
+    border: 1.5px solid transparent;
+    background-image:
+      linear-gradient(to bottom right, rgb(129 140 248 / 0.1), rgb(214 199 170 / 0.08)),
+      linear-gradient(hsl(var(--background)), hsl(var(--background))),
+      linear-gradient(135deg, #818cf8, #c4b5fd 45%, #6366f1);
+    background-origin: padding-box, padding-box, border-box;
+    background-clip: padding-box, padding-box, border-box;
+    animation: interview-pop-up 0.42s cubic-bezier(0.18, 0.9, 0.18, 1.12) both;
+  }
+
+  :global(.dark) .interview-promo-card {
+    background-image:
+      linear-gradient(to bottom right, rgb(129 140 248 / 0.14), rgb(99 102 241 / 0.1)),
+      linear-gradient(hsl(var(--background)), hsl(var(--background))),
+      linear-gradient(135deg, #6366f1, #a78bfa 45%, #818cf8);
+  }
+
+  .interview-promo-cta {
+    border: 1px solid rgb(99 102 241 / 0.45);
+    background-color: rgb(99 102 241 / 0.12);
+    color: #4338ca;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .interview-promo-cta:hover {
+    background-color: rgb(99 102 241 / 0.2);
+    border-color: rgb(99 102 241 / 0.6);
+  }
+
+  :global(.dark) .interview-promo-cta {
+    border-color: rgb(129 140 248 / 0.45);
+    background-color: rgb(129 140 248 / 0.16);
+    color: #c7d2fe;
+  }
+
+  :global(.dark) .interview-promo-cta:hover {
+    background-color: rgb(129 140 248 / 0.26);
+    border-color: rgb(129 140 248 / 0.65);
+  }
+
+  .interview-promo-cta:hover .interview-arrow {
+    transform: translateX(3px);
+  }
+
+  /* 左下角 popout：入场弹跳 + 定时 nudge，沿用原 SOA 的动画曲线 */
+  .interview-popout-panel {
+    border: 1.5px solid transparent;
+    backdrop-filter: blur(6px);
+    background-image:
+      linear-gradient(to bottom right, rgb(129 140 248 / 0.1), rgb(214 199 170 / 0.06)),
+      linear-gradient(hsl(var(--background) / 0.95), hsl(var(--background) / 0.95)),
+      linear-gradient(135deg, #818cf8, #c4b5fd 45%, #6366f1);
+    background-origin: padding-box, padding-box, border-box;
+    background-clip: padding-box, padding-box, border-box;
+    transform-origin: bottom left;
+    animation: interview-pop-up 980ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
+  }
+
+  :global(.dark) .interview-popout-panel {
+    background-image:
+      linear-gradient(to bottom right, rgb(129 140 248 / 0.14), rgb(99 102 241 / 0.1)),
+      linear-gradient(hsl(var(--background) / 0.95), hsl(var(--background) / 0.95)),
+      linear-gradient(135deg, #6366f1, #a78bfa 45%, #818cf8);
+  }
+
+  .interview-popout-nudge {
+    animation: interview-nudge 1400ms cubic-bezier(0.18, 0.9, 0.18, 1.12);
+  }
+
+  @keyframes interview-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes interview-pop-up {
+    0% {
+      opacity: 0;
+      transform: translateY(34px) scale(0.94, 1.06);
+    }
+    38% {
+      opacity: 1;
+      transform: translateY(-10px) scale(1.02, 0.96);
+    }
+    58% {
+      transform: translateY(5px) scale(0.99, 1.02);
+    }
+    76% {
+      transform: translateY(-3px) scale(1.01, 0.99);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1, 1);
+    }
+  }
+
+  @keyframes interview-nudge {
+    0%,
+    100% {
+      transform: translateY(0) scale(1, 1);
+    }
+    18% {
+      transform: translateY(8px) scale(0.98, 1.03);
+    }
+    42% {
+      transform: translateY(-12px) scale(1.02, 0.97);
+    }
+    66% {
+      transform: translateY(4px) scale(0.99, 1.01);
+    }
+    84% {
+      transform: translateY(-2px) scale(1.005, 0.995);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .interview-card::before {
+    .interview-promo-backdrop,
+    .interview-promo-card,
+    .interview-popout-panel,
+    .interview-popout-nudge {
       animation: none;
-      transition: none;
     }
 
     .interview-cta,

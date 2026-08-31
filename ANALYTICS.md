@@ -315,14 +315,15 @@ Fire once per method per pageview.
 
 ### `project_link_click`
 
-User clicks a project destination from the Projects page or a homepage product
-section (Experience, Interview).
+User clicks a project destination from the Projects page, a homepage product
+section (Experience, Interview), or a homepage product promo surface (first-visit
+popup, corner popout).
 
 Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_experience` | `home_interview` | `projects`
+- `surface`: `home_experience` | `home_interview` | `home_popup` | `home_popout` | `projects`
 - `section`: `experience` | `open_source` | `programs` | `learnings` | `theme` | `interview`
 - `project`: stable project identifier
 - `link_type`: `site` | `github` | `doc` | `release`
