@@ -26,9 +26,9 @@ const databaseUrl = import.meta.env.WALINE_DATABASE_URL
 if (databaseUrl) {
   try {
     const { neon } = await import('@neondatabase/serverless')
-    const rows: Array<{ total: string | number }> = await neon(
+    const rows = (await neon(
       databaseUrl
-    )`SELECT SUM(time) AS total FROM wl_counter`
+    )`SELECT SUM(time) AS total FROM wl_counter`) as Array<{ total: string | number }>
     const n = Number(rows[0]?.total)
     if (Number.isFinite(n)) pageViews = n
   } catch {
