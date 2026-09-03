@@ -140,9 +140,67 @@ MCP 层有个**优雅的降级设计**（`rest-proxy.ts` + `standalone.ts`）：
 - **固定正文顺序**：$ARGUMENTS → Quick start（含 Expected output，给出期望的输出样式）→ Why（支配性原则）→ Workflow（编号步骤含决策关卡）→ Anti-patterns（**只写最容易犯的那一个错**，WRONG/RIGHT 对照，比列十条泛泛建议有效）→ Checklist → See also（交叉引用**只允许一层深**）→ Troubleshooting（单点共享 `_shared/TROUBLESHOOTING.md`，禁止内联）
 - **AUTOGEN 防漂移**：参考类 skill 里的数据表由源码直接生成，`<!-- AUTOGEN:key -->` 包裹，`npm run skills:check` 跑 `--check` 模式——源码改了文档没改就 CI fail
 
-8 个可调用 skills 里几个设计亮点：`remember` 强制抽 2-5 个具体 concept 短语并回显给用户（"A memory is only as useful as the terms that retrieve it"）；`forget` 强制**先展示匹配项、拿到用户明确确认才删**；`commit-context` 用 `git blame` 拿 SHA 反查产出该 commit 的 Agent session——回答"这段代码为什么在这"，这个能力 markdown 方案做不到。
+8 个可调用 skills（remember / recall / recap / handoff / forget / session-history / commit-context / commit-history）+ 7 个参考类 skills（MCP 工具索引、REST 全表面、配置说明、适配器矩阵、hooks 说明、架构说明、以及写 skill 的元 skill）。几个设计亮点：`remember` 强制抽 2-5 个具体 concept 短语并回显给用户（"A memory is only as useful as the terms that retrieve it"）；`forget` 强制**先展示匹配项、拿到用户明确确认才删**；`handoff` 恢复最近 session 时**先抛出未回答的问题**再给 next step；`commit-context` 用 `git blame` 拿 SHA 反查产出该 commit 的 Agent session——回答"这段代码为什么在这"，这个能力 markdown 方案做不到。
+
+`remember/SKILL.md` 全文值得完整看一遍，因为它是整个规范的范本：
+
+```markdown
+---
+name: remember
+description: Save an insight, decision, or learning to agentmemory's long-term
+  storage with searchable concept tags. Use when the user says "remember this",
+  "save this", "note that", "don't forget", or wants to preserve knowledge for
+  future sessions.
+argument-hint: "[what to remember]"
+user-invocable: true
+---
+
+The user wants to save this to long-term memory: $ARGUMENTS
+
+## Quick start
+memory_save {
+  "content": "We rotate JWT refresh tokens on every use; the old token is
+              revoked server-side in auth/refresh.ts.",
+  "concepts": "jwt-refresh-rotation, token-revocation, auth-flow",
+  "files": "src/auth/refresh.ts"
+}
+Expected output:
+Saved memory abc12345 with 3 concepts: jwt-refresh-rotation, ...
+
+## Why
+A memory is only as useful as the terms that retrieve it. Tag with specific
+concepts so a future recall finds it, and preserve the user's own phrasing.
+
+## Workflow
+1. Pull the core insight out of $ARGUMENTS.
+2. Extract 2-5 lowercased concept phrases. Prefer specific over generic
+   (jwt-refresh-rotation beats auth).
+3. Extract referenced file paths. Empty if none.
+4. Call memory_save with content / concepts / files.
+5. Confirm the save and echo the concepts.
+
+## Anti-patterns
+WRONG: concepts: "stuff, code, notes" (generic tags nothing can find later).
+RIGHT: concepts: "jwt-refresh-rotation, token-revocation" (specific).
+
+## Checklist
+- Content preserves the user's phrasing, not a paraphrase.
+- Concepts are specific, lowercased, 2-5 items.
+- File paths are real references, not guesses.
+
+## See also
+- recall: retrieve what you save here (the pair to this skill).
+- forget: remove a memory you saved by mistake.
+
+## Troubleshooting
+See ../_shared/TROUBLESHOOTING.md if memory_save is not available.
+```
+
+注意它的几个措辞决策："Preserve the user's phrasing, not a paraphrase"（保留用户原话而不是转述）写进了 Checklist；"Prefer specific over generic" 给了具体对比例子而不是抽象原则；See only 只链两个直接相关的兄弟 skill。
 
 ## pi 集成现状
+
+集成路径有三条：**A. 完整插件**（Claude Code / Codex marketplace 一次装齐 hooks + skills + MCP）；**B. `agentmemory connect <agent>`**（往宿主配置文件合并 MCP server 块，共 25 个适配器：claude-code、cursor、codex、gemini-cli、cline、warp、zed、kiro、hermes、pi……）；**C. `npx skills add`**（把 15 个 SKILL.md 装进宿主原生 skill 目录，号称支持 50+ agents）。`connect` 只让**工具可用**；`skills add` 才教 Agent **何时该用**——两者互补，官方明确要求都装。
 
 仓库里**已经有现成的 pi 集成**：`integrations/pi/index.ts`（302 行）是完整的 pi 原生扩展，用 `ExtensionAPI` 而非 MCP，直接钩进 agent 生命周期：
 
@@ -151,7 +209,13 @@ MCP 层有个**优雅的降级设计**（`rest-proxy.ts` + `standalone.ts`）：
 - `agent_end`：把最后一条 assistant 消息写回（fire-and-forget）
 - 状态栏 🧠 显示连接状态
 
-细节做得不错：`resolveProjectName()` 复刻 hooks 的 project 解析顺序并缓存，目的是让 pi 会话和其他 Agent 落到**同一个 project 桶**；`security.ts` 实现了明文 HTTP 传 Bearer token 的告警。但 8 个可调用 skill 里只有 `remember` 开箱即用——`recall` 要改工具名，`recap`/`handoff`/`forget`/`commit-*` 依赖 pi 扩展没注册的工具。另外 `agentmemory connect pi` 适配器是残缺的（47 行，只会打印手动步骤，`kind: "stub"`）。
+细节做得不错：`resolveProjectName()` 复刻 hooks 的 project 解析顺序（env 覆盖 → git toplevel basename → cwd basename）并缓存，目的是让 pi 会话和其他 Agent 落到**同一个 project 桶**；`security.ts` 实现了明文 HTTP 传 Bearer token 的告警/拒绝。但 8 个可调用 skill 里只有 `remember` 开箱即用——`recall` 要改工具名（扩展注册的是 `memory_search`，skill 写的是 `memory_smart_search`），`recap`/`handoff`/`forget`/`commit-*` 依赖 pi 扩展没注册的工具（`memory_recall`/`memory_sessions`/`memory_commits`/`memory_governance_delete` 都有现成 REST 端点，每个约 20 行就能补上）。另外 `agentmemory connect pi` 适配器是残缺的（47 行，只会打印手动步骤，`kind: "stub"`）。
+
+如果想适配，三档方案摆在这：
+
+- **① 直接用现成扩展**（约 10 分钟）：自动召回注入 + 自动回写 + 3 个工具 + 状态栏，不需要写任何代码，但只有 remember/recall 两个 skill 有意义
+- **② 扩展 + 补工具 + 装 skills**（约半天）：照现有模式补注册缺的 5 个工具，改名 `memory_search`，把 15 个 SKILL.md 拷进 `~/.agents/skills/`——8 个 skill 全部可用
+- **③ 只偷 skill 规范，不要后端**（1-2 小时）：抄家规 + CI 校验套在自己的 markdown 记忆方案上，零运行时依赖。**性价比明显最高**，理由见上一节的 benchmark 解读
 
 ## 最重要的一节：检索质量的诚实解读
 
