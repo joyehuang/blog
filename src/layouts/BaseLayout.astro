@@ -8,6 +8,7 @@ import type { SiteMeta } from 'astro-pure/types'
 import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
 import BaseHead from '@/components/BaseHead.astro'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
+import ConsoleGreeting from '@/components/ConsoleGreeting.astro'
 import Header from '@/components/Header.astro'
 import DevModeHost from '@/components/terminal/DevModeHost'
 import ThemeProvider from '@/components/ThemeProvider.astro'
@@ -56,6 +57,7 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
       {chrome && <Footer />}
     </div>
     <DevModeHost client:only='react' />
+    <ConsoleGreeting />
     <Analytics />
     <AnalyticsEvents />
     <SpeedInsights />

@@ -1,0 +1,53 @@
+---
+/**
+ * Easter egg for whoever opens devtools: JoJo says hi from the console and
+ * points at the parts of the site that are not linked from the nav.
+ *
+ * Mounted once in BaseLayout. Zero visual footprint — nothing here touches the
+ * page, so it stays out of the way of the calm reading surfaces.
+ */
+---
+
+<script>
+  // Console colors cannot read the theme's CSS variables, so these two are
+  // picked to stay legible against both a light and a dark devtools panel.
+  const ACCENT = '#3f8fa8'
+  const MUTED = '#8b8b93'
+  const MONO = "font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace"
+
+  // Guard against a double greeting if this module is ever evaluated twice.
+  const flag = globalThis as typeof globalThis & { __joyeConsoleGreeted?: boolean }
+
+  if (!flag.__joyeConsoleGreeted) {
+    flag.__joyeConsoleGreeted = true
+
+    const en = window.location.pathname === '/en' || window.location.pathname.startsWith('/en/')
+
+    const mascot = ['  ╭──────╮', '  │ ●  ● │', '  │  ᴗ   │', '  ╰─┬──┬─╯', '    ╵  ╵'].join('\n')
+
+    const lines = en
+      ? [
+          "hi — i'm jojo. people who open the console are usually colleagues.",
+          '',
+          '  `        open the dev-mode terminal, on any page',
+          '  /lab     small self-contained frontend demos',
+          '  /talks   the weekly sharing session',
+          '',
+          '  mail     huangdeshiou@gmail.com',
+          '  source   https://github.com/joyehuang'
+        ]
+      : [
+          '你好，我是 jojo。会翻控制台的，一般是同行。',
+          '',
+          '  `        在任意页面打开 dev mode 终端',
+          '  /lab     前端小实验，每个都能直接玩',
+          '  /talks   每周的分享会',
+          '',
+          '  邮箱     huangdeshiou@gmail.com',
+          '  源码     https://github.com/joyehuang'
+        ]
+
+    console.log(`%c${mascot}`, `color:${ACCENT};${MONO};line-height:1.15`)
+    console.log(`%c${lines.join('\n')}`, `color:${MUTED};${MONO};line-height:1.6`)
+  }
+</script>

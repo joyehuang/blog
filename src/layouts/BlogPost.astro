@@ -12,6 +12,7 @@ import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import CopyrightEn from '@/components/blog/CopyrightEn.astro'
 import HeroEn from '@/components/blog/HeroEn.astro'
+import ReadingReward, { READING_REWARD_MIN_WORDS } from '@/components/blog/ReadingReward'
 import Comment from '@/components/comment/Comment.astro'
 import JsonLd from '@/components/JsonLd.astro'
 import TableOfContents from '@/components/navigation/TableOfContents.astro'
@@ -37,12 +38,7 @@ const {
   enHero = false
 } = Astro.props
 
-const {
-  description,
-  publishDate,
-  title,
-  updatedDate
-} = data
+const { description, publishDate, title, updatedDate } = data
 
 // English mirrors (id ends in `.en`) reuse the Chinese post's generated OG image
 // unless a post provides a custom static social card.
@@ -57,6 +53,10 @@ const tocHeadings = headings
     ...heading,
     text: tocLabels[heading.slug] ?? heading.text
   }))
+
+// Only long posts get the read-to-the-end easter egg — gated here so short
+// ones never ship the island at all.
+const words = typeof remarkPluginFrontmatter.words === 'number' ? remarkPluginFrontmatter.words : 0
 
 // Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
 const lang = getLangFromUrl(Astro.url)
@@ -116,6 +116,7 @@ const breadcrumbLd = {
   }
 
   <slot />
+  {words >= READING_REWARD_MIN_WORDS && <ReadingReward client:idle slug={id} {lang} />}
 
   <Fragment slot='bottom'>
     {/* Copyright */}
