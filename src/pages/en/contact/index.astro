@@ -1,7 +1,6 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
-import wechat from '@/assets/wechat-contact.jpg'
 import qqGroup from '@/assets/qq-group-contact.jpg'
 
 const headings = [
@@ -17,7 +16,10 @@ const headings = [
   </p>
 
   <h2 id='how-to-reach'>How to reach me</h2>
-  <p>Hover over a card to reveal the QR code. For everyday discussion, join the fan QQ group — there's a weekly online talk too. WeChat is for paid consulting; add a note when you reach out.</p>
+  <p>
+    <strong>📢 Notice: as of September 3, 2026, all paid services (paid consulting / mock interviews / résumé coaching) have been discontinued and new bookings are no longer accepted. Thank you for all the support.</strong>
+  </p>
+  <p>Hover over a card to reveal the QR code. For everyday discussion, join the fan QQ group — there's a weekly online talk too.</p>
   <ContactQR
     class='my-6'
     items={[
@@ -27,13 +29,6 @@ const headings = [
         image: qqGroup,
         methodName: 'qq_group',
         note: 'Group number 831907794 · Verification: title of my latest blog post.'
-      },
-      {
-        name: 'Paid consulting · WeChat',
-        hint: 'Hover to reveal QR',
-        image: wechat,
-        methodName: 'wechat',
-        note: 'Paid consulting / mock interviews only · include what you need'
       }
     ]}
   />

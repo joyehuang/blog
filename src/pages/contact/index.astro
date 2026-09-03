@@ -1,7 +1,6 @@
 ---
 import PageLayout from '@/layouts/CommonPage.astro'
 import ContactQR from '@/components/contact/ContactQR.astro'
-import wechat from '@/assets/wechat-contact.jpg'
 import qqGroup from '@/assets/qq-group-contact.jpg'
 
 const headings = [
@@ -18,7 +17,10 @@ const headings = [
 
   <h2 id='how-to-reach'>如何联系我</h2>
   <p>
-    把鼠标移到卡片上即可看到二维码。日常交流请走粉丝群，每周还有线上分享会；微信留给付费咨询，加的时候请备注来意。
+    <strong>📢 公告：自 2026 年 9 月 3 日起，所有付费咨询服务（付费咨询 / 模拟面试 / 简历辅导）全面下架，不再接受新的预约。感谢大家一直以来的支持。</strong>
+  </p>
+  <p>
+    把鼠标移到卡片上即可看到二维码。日常交流请走粉丝群，每周还有线上分享会。
   </p>
   <ContactQR
     class='my-6'
@@ -29,13 +31,6 @@ const headings = [
         image: qqGroup,
         methodName: 'qq_group',
         note: '群号 831907794 · 入群答题：博客最新一篇文章的标题'
-      },
-      {
-        name: '付费咨询 · 微信',
-        hint: '悬停显示二维码',
-        image: wechat,
-        methodName: 'wechat',
-        note: '仅限付费咨询 / 模拟面试 · 备注你的具体需求'
       }
     ]}
   />
