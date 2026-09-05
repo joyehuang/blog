@@ -2,6 +2,7 @@ import { trackSiteEvent } from '@/lib/analytics'
 import { useCallback, useEffect, useState } from 'react'
 
 import DevMode from './DevMode'
+import { observeTerminalEligibility, terminalEligible } from './eligibility'
 import { fetchSiteFs } from './fs/client'
 import type { FsNode } from './fs/types'
 
@@ -64,11 +65,7 @@ export default function DevModeHost() {
   const [loadFailed, setLoadFailed] = useState(false)
 
   const enter = useCallback((method: string) => {
-    if (
-      window.matchMedia('(max-width: 640px)').matches ||
-      document.querySelector('.blog-chat[open]')
-    )
-      return
+    if (!terminalEligible() || document.querySelector('.blog-chat[open]')) return
     trackSiteEvent('terminal_open', {
       method,
       surface: 'dev_mode',
@@ -125,8 +122,9 @@ export default function DevModeHost() {
   // custom events from non-React callers (Header button, future callers)
   useEffect(() => {
     const onToggle = () => {
-      if (!window.matchMedia('(max-width: 640px)').matches)
-        setMode((m) => (m === 'dev' ? 'human' : 'dev'))
+      if (!terminalEligible()) return
+      if (mode === 'dev') exit()
+      else enter('window_control')
     }
     const onEnter = () => enter('window_control')
     const onExit = () => setMode('human')
@@ -138,7 +136,7 @@ export default function DevModeHost() {
       window.removeEventListener('joye:enter-dev', onEnter)
       window.removeEventListener('joye:exit-dev', onExit)
     }
-  }, [enter])
+  }, [enter, exit, mode])
 
   // keep the Header's button icon in sync so non-React code can read
   // the current mode without importing this component
@@ -147,17 +145,15 @@ export default function DevModeHost() {
     document.documentElement.dataset.mode = mode
   }, [mode])
 
-  useEffect(() => {
-    const query = window.matchMedia('(max-width: 640px)')
-    const changed = () => {
-      if (query.matches) setMode('human')
-    }
-    query.addEventListener('change', changed)
-    changed()
-    return () => query.removeEventListener('change', changed)
-  }, [])
+  useEffect(
+    () =>
+      observeTerminalEligibility((eligible) => {
+        if (!eligible) setMode('human')
+      }),
+    []
+  )
 
-  if (mode !== 'dev') return null
+  if (mode !== 'dev' || !terminalEligible()) return null
   if (!fs) return <DevModeLoading failed={loadFailed} />
   return <DevMode fs={fs} onExit={exit} />
 }

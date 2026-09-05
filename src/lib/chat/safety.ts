@@ -1,12 +1,21 @@
+import { safeWebUrl } from './web-url'
+
 export const PUBLIC_ORIGIN = 'https://www.joyehuang.me'
-export type Source = { title: string; url: string; text: string }
+export type Source = { title: string; url: string; text: string; kind?: 'site' | 'web' }
 
 export function safeSourceUrl(value: string): string | undefined {
   try {
     const u = new URL(value, PUBLIC_ORIGIN)
-    if (u.origin !== PUBLIC_ORIGIN || u.username || u.password || u.search || u.hash) return
     if (
-      !/^\/(?:blog|notes)(?:\/[a-z0-9_./-]+)?$|^\/about$|^\/en\/(?:blog|notes)(?:\/[a-z0-9_./-]+)?$/i.test(
+      u.origin !== PUBLIC_ORIGIN ||
+      u.username ||
+      u.password ||
+      u.search ||
+      (u.hash && (!/^\/(talks|curated)$/.test(u.pathname) || !/^#[a-z0-9_-]+$/i.test(u.hash)))
+    )
+      return
+    if (
+      !/^\/(?:blog|notes|talks|curated|lab)(?:\/[a-z0-9_./-]+)?$|^\/(?:about|projects|talks)$|^\/en\/(?:blog|notes|talks|curated|lab)(?:\/[a-z0-9_./-]+)?$/i.test(
         u.pathname
       )
     )
@@ -67,4 +76,8 @@ export function emailAddress(value: unknown): string {
   )
     throw new Error('invalid_email')
   return email
+}
+
+export function safeCitationUrl(source: { url: string; kind?: string }): string | undefined {
+  return source.kind === 'web' ? safeWebUrl(source.url) : safeSourceUrl(source.url)
 }

@@ -3,7 +3,8 @@ import type { APIRoute } from 'astro'
 import { chatConfig } from '@/lib/chat/config'
 import { generator } from '@/lib/chat/model'
 import corpus from '@/lib/chat/public-corpus.json'
-import { emailAddress, retrieve } from '@/lib/chat/safety'
+import { conversationSources } from '@/lib/chat/retrieval'
+import { emailAddress } from '@/lib/chat/safety'
 import {
   COOKIE,
   digest,
@@ -67,12 +68,19 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
       )
         return json({ error: 'invalid_question' }, 400)
       const question = body.question.trim()
-      const sources = retrieve(question, corpus.sources)
       result = await store('reserve', sid, { ip, question, conversation: id(body.conversation) })
       if (result.error) return json(result, result.error === 'login_required' ? 401 : 429)
+      const sources = conversationSources(question, result.history ?? [], corpus.sources)
       return new Response(
         answerStream(
-          { store, generate: generator(config.key), sources },
+          {
+            store,
+            generate: generator(config.key, fetch, {
+              corpus: corpus.sources,
+              searchKey: config.searchKey
+            }),
+            sources
+          },
           sid,
           { turn: result.turn!, conversation: result.conversation!, history: result.history ?? [] },
           question,

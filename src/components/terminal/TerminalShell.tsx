@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 
 import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
+import { observeTerminalEligibility, terminalEligible } from './eligibility'
 import { fetchSiteFs } from './fs/client'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath } from './fs/path'
@@ -123,7 +124,7 @@ function MatrixRain() {
     }
   }, [])
 
-  if (typeof document === 'undefined') return null
+  if (typeof document === 'undefined' || !terminalEligible()) return null
   return createPortal(
     <div className='wt-matrix-root' aria-hidden>
       <canvas ref={canvasRef} className='wt-matrix-canvas' />
@@ -136,20 +137,18 @@ const COLLAPSE_KEY = 'wt-collapsed'
 const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'design', 'theme dark', 'matrix']
 
 export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
-  const [desktop, setDesktop] = useState(true)
-  useEffect(() => {
-    const query = window.matchMedia('(min-width: 641px)')
-    const change = () => {
-      setDesktop(query.matches)
-      if (!query.matches) {
-        setMatrixOn(false)
-        setCollapsed(true)
-      }
-    }
-    change()
-    query.addEventListener('change', change)
-    return () => query.removeEventListener('change', change)
-  }, [])
+  const [desktop, setDesktop] = useState(false)
+  useEffect(
+    () =>
+      observeTerminalEligibility((eligible) => {
+        setDesktop(eligible)
+        if (!eligible) {
+          setMatrixOn(false)
+          setCollapsed(true)
+        }
+      }),
+    []
+  )
   const [fs, setFs] = useState<FsNode | null>(null)
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
@@ -206,11 +205,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const expand = useCallback(
     (method = 'shell_click') => {
-      if (
-        window.matchMedia('(max-width: 640px)').matches ||
-        document.querySelector('.blog-chat[open]')
-      )
-        return
+      if (!terminalEligible() || document.querySelector('.blog-chat[open]')) return
       trackSiteEvent('terminal_open', {
         method,
         surface: 'home_terminal',
@@ -296,7 +291,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const runInput = useCallback(
     async (raw: string) => {
-      if (window.matchMedia('(max-width: 640px)').matches) return
+      if (!terminalEligible()) return
       const trimmed = raw.trim()
       appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
@@ -392,11 +387,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
   // global hotkey: ` to focus / expand · Esc to collapse
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (
-        window.matchMedia('(max-width: 640px)').matches ||
-        document.querySelector('.blog-chat[open]')
-      )
-        return
+      if (!terminalEligible() || document.querySelector('.blog-chat[open]')) return
       const target = e.target as HTMLElement | null
       const inField =
         target &&

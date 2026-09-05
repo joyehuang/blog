@@ -1,4 +1,5 @@
 import { safeSourceUrl } from '@/lib/chat/safety'
+import { safeWebUrl } from '@/lib/chat/web-url'
 import Markdown from 'react-markdown'
 
 export default function AnswerMarkdown({ text, urls }: { text: string; urls: string[] }) {
@@ -24,7 +25,7 @@ export default function AnswerMarkdown({ text, urls }: { text: string; urls: str
         'br'
       ]}
       urlTransform={(url) => {
-        const safe = safeSourceUrl(url)
+        const safe = safeSourceUrl(url) ?? safeWebUrl(url)
         return safe && urls.includes(safe) ? safe : ''
       }}
       components={{

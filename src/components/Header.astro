@@ -130,6 +130,8 @@ const searchHref = localizedPath('/search', lang)
 
   import { setTheme, showToast } from 'astro-pure/utils'
 
+  import { terminalEligible } from './terminal/eligibility'
+
   class Header extends HTMLElement {
     private toggleMenuBtn: HTMLElement | null = null
 
@@ -175,6 +177,7 @@ const searchHref = localizedPath('/search', lang)
       })
 
       this.querySelector('#toggleDevMode')?.addEventListener('click', () => {
+        if (!terminalEligible()) return
         if (document.documentElement.dataset.mode !== 'dev') {
           trackSiteEvent('terminal_open', {
             method: 'window_control',
@@ -329,14 +332,6 @@ const searchHref = localizedPath('/search', lang)
   @media (prefers-reduced-motion: reduce) {
     #toggleDarkMode .theme-icon {
       transition: none;
-    }
-  }
-</style>
-
-<style>
-  @media (max-width: 640px) {
-    #toggleDevMode {
-      display: none !important;
     }
   }
 </style>

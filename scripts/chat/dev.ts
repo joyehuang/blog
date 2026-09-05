@@ -13,6 +13,14 @@ if (
 const config = JSON.parse(await readFile(file, 'utf8'))
 if (!Object.keys(config).every((k) => k.startsWith('CHAT_')))
   throw Error('Only CHAT_ configuration is allowed')
+// Read the existing authorized search credential into the child environment only;
+// do not duplicate it into another configuration file. This launcher is local-only.
+if (!config.CHAT_TINYFISH_KEY) {
+  const searchKeyFile = resolve(homedir(), '.config/tinyfish/key')
+  if (((await stat(searchKeyFile)).mode & 0o777) !== 0o600)
+    throw Error('Search key must be mode0600')
+  config.CHAT_TINYFISH_KEY = (await readFile(searchKeyFile, 'utf8')).trim()
+}
 const origin = new URL(config.CHAT_ORIGIN)
 if (!['localhost', '127.0.0.1'].includes(origin.hostname)) throw Error('Local runner only')
 const child = spawn('bun', ['dev', '--host', origin.hostname, '--port', origin.port], {

@@ -93,7 +93,7 @@ BEGIN
    IF (SELECT count(*) FROM blog_chat_turns WHERE conversation_id=c AND delivered)>=100 THEN RETURN '{"error":"conversation_full"}'; END IF;
    INSERT INTO blog_chat_turns(conversation_id,owner,session_id,ip,question) VALUES(c,o,sid,request_ip,p->>'question') RETURNING * INTO t;
    SELECT coalesce(jsonb_agg(x ORDER BY x.created_at),'[]') INTO result FROM (
-     SELECT question,left(answer,6000) AS answer,created_at FROM blog_chat_turns WHERE conversation_id=c AND delivered ORDER BY created_at DESC LIMIT 6
+     SELECT question,left(answer,6000) AS answer,sources,created_at FROM blog_chat_turns WHERE conversation_id=c AND delivered ORDER BY created_at DESC LIMIT 6
    ) x;
    RETURN jsonb_build_object('turn',t.id,'conversation',c,'history',result);
  ELSIF a IN ('mark','finish') THEN

@@ -19,3 +19,17 @@ test('Markdown escapes code and rejects HTML, image tracking and fabricated sour
   expect(html).toContain('https://www.joyehuang.me/blog/real')
   expect(html).toContain('&lt;img')
 })
+
+test('web citations require retrieved authority and reject internal addresses', () => {
+  const html = renderToStaticMarkup(
+    <AnswerMarkdown
+      text={
+        '[docs](https://docs.astro.build/en/guides/) [guessed](https://github.com/fabricated) [private](https://127.0.0.1/admin)'
+      }
+      urls={['https://docs.astro.build/en/guides/', 'https://127.0.0.1/admin']}
+    />
+  )
+  expect(html).toContain('href="https://docs.astro.build/en/guides/"')
+  expect(html).not.toContain('href="https://github.com')
+  expect(html).not.toContain('href="https://127')
+})

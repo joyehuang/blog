@@ -1,16 +1,18 @@
+import { trackSiteEvent } from '@/lib/analytics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { trackSiteEvent } from '@/lib/analytics'
-
+import JoJo from '../mascot/JoJo'
 import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
+import { terminalEligible } from './eligibility'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath, getNode } from './fs/path'
 import type { FileNode, FsNode } from './fs/types'
 import PostViewer from './PostViewer'
-import JoJo from '../mascot/JoJo'
+
 import './terminal.css'
 import './devmode.css'
+
 import type { HistoryEntry, OutputLine, Tone } from './types'
 
 type Props = {
@@ -76,12 +78,7 @@ function Prompt({ user, host, cwd }: { user: string; host: string; cwd: string }
   )
 }
 
-export default function DevMode({
-  fs,
-  user = 'joye',
-  host = ROOT_LABEL,
-  onExit
-}: Props) {
+export default function DevMode({ fs, user = 'joye', host = ROOT_LABEL, onExit }: Props) {
   const [bootLines, setBootLines] = useState<BootLine[]>([])
   const [bootDone, setBootDone] = useState(false)
   const [entries, setEntries] = useState<RenderEntry[]>([])
@@ -107,12 +104,9 @@ export default function DevMode({
     setEntries((prev) => [...prev, { ...entry, id: newId() }])
   }, [])
 
-  const updateStream = useCallback(
-    (id: string, fn: (e: HistoryEntry) => HistoryEntry) => {
-      setEntries((prev) => prev.map((e) => (e.id === id ? { ...fn(e), id } : e)))
-    },
-    []
-  )
+  const updateStream = useCallback((id: string, fn: (e: HistoryEntry) => HistoryEntry) => {
+    setEntries((prev) => prev.map((e) => (e.id === id ? { ...fn(e), id } : e)))
+  }, [])
 
   const ctxNavigate = useCallback((path: string) => {
     if (typeof window !== 'undefined') window.location.assign(path)
@@ -247,6 +241,7 @@ export default function DevMode({
 
   const runInput = useCallback(
     async (raw: string) => {
+      if (!terminalEligible()) return
       const trimmed = raw.trim()
       appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
@@ -286,9 +281,7 @@ export default function DevMode({
           appendEntry({ kind: 'stream', id, lines: [], done: false })
         },
         appendStream: (id: string, line: OutputLine) => {
-          updateStream(id, (e) =>
-            e.kind === 'stream' ? { ...e, lines: [...e.lines, line] } : e
-          )
+          updateStream(id, (e) => (e.kind === 'stream' ? { ...e, lines: [...e.lines, line] } : e))
         },
         endStream: (id: string) => {
           updateStream(id, (e) => (e.kind === 'stream' ? { ...e, done: true } : e))
@@ -388,10 +381,13 @@ export default function DevMode({
           </div>
           <span className='dev-chrome-title'>dev mode</span>
           <span>·</span>
-          <span>{user}@{host}</span>
+          <span>
+            {user}@{host}
+          </span>
         </div>
         <div className='dev-chrome-hint'>
-          press <span className='wt-kbd'>Esc</span> or type <code className='wt-tone-primary'>exit</code> to leave
+          press <span className='wt-kbd'>Esc</span> or type{' '}
+          <code className='wt-tone-primary'>exit</code> to leave
         </div>
       </div>
 
@@ -476,10 +472,7 @@ export default function DevMode({
             <Prompt user={user} host={host} cwd={displayPath(cwd)} />
             <span className='dev-input-display'>
               <span className='wt-tone-fg'>{input}</span>
-              <span
-                className={`dev-caret ${focused ? '' : 'dev-caret--idle'}`}
-                aria-hidden
-              />
+              <span className={`dev-caret ${focused ? '' : 'dev-caret--idle'}`} aria-hidden />
               <input
                 ref={inputRef}
                 className='dev-input-hidden'

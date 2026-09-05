@@ -1,6 +1,7 @@
 // Only fetch content already exposed by the production site's public APIs.
 // Never read another checkout, QQ corpus, interview sources, or local notes.
 import { writeFile } from 'node:fs/promises'
+import { parse } from 'parse5'
 
 import { safeSourceUrl, type Source } from '../../src/lib/chat/safety'
 
@@ -22,7 +23,7 @@ async function walk(node: any) {
     url &&
     !sources.some((s) => s.url === url) &&
     meta?.endpoint &&
-    ['blog', 'blog_en', 'notes', 'notes_en'].includes(meta.collection)
+    ['blog', 'blog_en', 'notes', 'notes_en', 'talks', 'curated'].includes(meta.collection)
   ) {
     const body = await get(meta.endpoint)
     if (typeof body.markdown === 'string')
@@ -31,6 +32,33 @@ async function walk(node: any) {
   for (const child of node.children ?? []) await walk(child)
 }
 await walk(index.tree)
+// Static biography and project pages are fetched from their published HTML,
+// never inferred from repository configuration or private working documents.
+for (const path of ['/about', '/projects']) {
+  const response = await fetch(origin + path, {
+    redirect: 'error',
+    signal: AbortSignal.timeout(15000)
+  })
+  if (!response.ok) throw Error('public_page_unavailable')
+  const tree = parse(await response.text())
+  const find = (node: any, tag: string): any =>
+    node.tagName === tag
+      ? node
+      : (node.childNodes ?? []).map((n: any) => find(n, tag)).find(Boolean)
+  const text = (node: any): string =>
+    ['script', 'style', 'nav', 'footer', 'button'].includes(node.tagName)
+      ? ''
+      : node.nodeName === '#text'
+        ? node.value
+        : (node.childNodes ?? []).map(text).join(' ')
+  const main = find(tree, 'main')
+  if (!main) throw Error('public_main_missing')
+  sources.push({
+    title: text(find(tree, 'title')).trim(),
+    url: origin + path,
+    text: text(main).replace(/\s+/g, ' ').trim()
+  })
+}
 if (!sources.length) throw Error('empty_public_corpus')
 await writeFile(
   new URL('../../src/lib/chat/public-corpus.json', import.meta.url),

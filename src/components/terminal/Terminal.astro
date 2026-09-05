@@ -1,4 +1,5 @@
 ---
+import { TERMINAL_MEDIA } from './eligibility'
 import TerminalShell from './TerminalShell'
 ---
 
@@ -11,12 +12,5 @@ import TerminalShell from './TerminalShell'
       >.
     </span>
   </div>
-  <TerminalShell client:media='(min-width: 641px)' />
+  <TerminalShell client:media={TERMINAL_MEDIA} />
 </div>
-<style>
-  @media (max-width: 640px) {
-    .desktop-terminal {
-      display: none;
-    }
-  }
-</style>

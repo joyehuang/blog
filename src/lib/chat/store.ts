@@ -1,6 +1,7 @@
 import postgres from 'postgres'
 
 import { chatConfig } from './config'
+import type { HistoryTurn } from './retrieval'
 
 export type StoreResult = {
   error?: string
@@ -9,7 +10,7 @@ export type StoreResult = {
   used?: boolean
   conversation?: string
   turn?: string
-  history?: { question: string; answer: string }[]
+  history?: HistoryTurn[]
   conversations?: { id: string; title: string }[]
   turns?: {
     id: string

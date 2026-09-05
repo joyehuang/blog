@@ -5,6 +5,7 @@ export function chatConfig() {
     'CHAT_DATABASE_URL',
     'CHAT_COOKIE_SECRET',
     'CHAT_CC_KEY',
+    'CHAT_TINYFISH_KEY',
     'CHAT_RESEND_KEY',
     'CHAT_EMAIL_FROM',
     'CHAT_ORIGIN'
@@ -28,6 +29,7 @@ export function chatConfig() {
     database: env.CHAT_DATABASE_URL!,
     secret: env.CHAT_COOKIE_SECRET!,
     key: env.CHAT_CC_KEY!,
+    searchKey: env.CHAT_TINYFISH_KEY!,
     resend: env.CHAT_RESEND_KEY!,
     from: env.CHAT_EMAIL_FROM!,
     origin

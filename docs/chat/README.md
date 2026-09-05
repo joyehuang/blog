@@ -1,99 +1,103 @@
 # Joye blog Chat — release handoff
 
-Status: implemented; **production launch is blocked on isolated database/secrets
-configuration and inbox delivery checks**. This branch does not deploy production.
-Chat's API returns a safe 503 unless explicitly enabled. An inherited preview is
-also disabled unless separately enabled with its own configuration.
+Status: draft PR [#150](https://github.com/joyehuang/blog/pull/150). Production launch
+requires isolated database and server secrets, including TinyFish, plus user-owned
+QQ/163 deliverability checks. Actual agent inbox receipt is independently VERIFIED
+by the acceptance agent using mail list/read. No further email was sent in rework1.
+No production configuration, services, deployment or DNS were changed.
 
-## Architecture and boundaries
+## Architecture and public capability
 
-An Astro React island supplies a native modal conversation panel, expandable on
-desktop and fullscreen at 640px and below. Header, homepage, article and terminal
-entry points share it. The desktop terminal keeps its existing commands; `chat`
-opens the panel with an editable draft. Mobile suppresses both terminal render
-and keyboard/custom-event entry, including after resizing from desktop.
+The Astro React island opens a native modal panel, expandable on desktop and
+fullscreen on touch/coarse-pointer devices or narrow screens. Header, homepage,
+article and terminal CTAs share it. The terminal's commands remain available only
+when `eligibility.ts` permits width ≥641px AND primary fine pointer AND hover.
+SSR defaults closed. Hydration, header, backtick/custom events, shell commands,
+active-mode capability changes and matrix portals follow that same policy.
+Touch landscape remains Chat-only. Short viewports get a compact composer.
 
-The same-origin Astro `/api/chat` POST endpoint runs on Vercel Node 22. A pooled
-PostgreSQL connection (Neon pooled connection string is suitable) handles all
-state. The adapter emits a streaming function with `maxDuration: 60`. The model
-request has a 45-second deadline, leaving time for persistence. The database
-statement timeout is eight seconds. Vercel must build using the repository's
-`engines.node: 22.x`; an older adapter can emit an unsupported fallback when
-building locally under Node 24. Use Node 22 for release builds.
+The same-origin POST `/api/chat` endpoint runs in Vercel Node 22 with a pooled
+PostgreSQL connection. The function allows 60 seconds; generation has a 45-second
+deadline, leaving time for persistence (database statement timeout: eight seconds).
+Build with Node 22; the installed adapter emits an unsupported fallback under
+local Node 24. No package-manager change: this repository still uses Bun.
 
-The upstream is `https://api.commandcode.ai/provider/v1/chat/completions`, with
-`deepseek/deepseek-v4-flash` pinned in code. This was derived from the existing
-Command Code provider/proxy mapping, then exercised directly. No Mac proxy,
-fallback provider, mutable QQ model selection or host service is involved.
-Each call is capped at 1,800 output tokens, six history turns and six 1,200-character
-public excerpts. There are no model-callable tools, shell, filesystem, web fetch,
-admin actions or personal-agent resources. No pi coding session is instantiated:
-its resource loader and local coding permissions are unnecessary for this bounded
-retrieval use case. The pi SDK/security documentation was inspected before making
-that decision.
+The request-isolated public agent calls the supported public Command Code endpoint
+`https://api.commandcode.ai/provider/v1/chat/completions`, independently pinned to
+`deepseek/deepseek-v4-flash`. It never contacts the Mac proxy, reads QQ live model
+selection or falls back to another model/provider. See the official
+[Provider API documentation](https://commandcode.ai/docs/provider).
 
-The Latin/CJK tokenizer adapts the algorithm in Joye's QQ bot
-`src/tools/corpus-search.ts`, inspected read-only on 2026-09-06. No QQ runtime
-imports, persona, state flags, corpus files, transcripts or admin code were copied.
-The web persona is independently written. Public corpus snapshots are fetched
-only from the live site's public knowledge API. The sync command refuses external
-origins and redirects and never reads another checkout. Source titles and canonical
-paths come from that metadata. Each document contributes at most two excerpts.
-Both source cards and Markdown links are checked; Markdown links must also occur
-in the retrieved source cards. Raw HTML and image embedding are disabled.
+Each agent run makes at most two model calls: tool planning (600 output tokens)
+and streaming synthesis (1,200 output tokens). It executes at most two calls to
+`corpus_search` or `web_search`. Command Code rejected forced `tool_choice:
+required` for this model; planning uses supported `auto`, requires a valid tool
+plan before proceeding, and synthesis uses `none`. Invalid/prohibited tools or
+excess calls terminate the run. Reasoning fragments needed for protocol continuity
+stay in the current request; they are never streamed or saved in conversations.
+Context is capped at six history turns and 60,000 serialized characters. Up to
+twelve source records are retained, with bounded excerpts.
 
-## Persistence, authentication and spending limits
+This small public tool loop avoids coding-session resource loading, agent home
+directories and extensions on Vercel. The pi SDK/security documentation was read;
+there is no need to instantiate its local coding runtime. Public retrieval and web
+search are implemented as real tools, not a single plain completion.
 
-`scripts/chat/schema.sql` defines accounts, signed-session backing records,
-conversations, turns, OTP challenges and rate counters. A short locked singleton
-row serializes state transitions, including anonymous quota admission, OTP
-consumption and migration. Network calls happen after the database transaction
-commits. This deliberately favors easy auditing over high throughput for the
-first, low-volume release. There is no process-local authorization state.
+Provenance: the Latin/CJK tokenizer adapts QQ `src/tools/corpus-search.ts`; the
+fixed-host TinyFish adapter and public tool descriptions adapt
+`src/tools/tinyfish.ts` and `src/tools/index.ts`. Public persona behavior adapts
+`persona.ts` and the retrieval-first orchestration in `brain.ts`. All were inspected
+READ ONLY on 2026-09-06. These are adapted public capabilities with no runtime QQ
+imports, shared mutable flags, QQ histories, private corpus or administrative code.
 
-Cookies are HMAC-signed, HttpOnly, SameSite=Strict, path-scoped and Secure outside
-explicit loopback development. POST requires exact configured Origin, same-origin
-request URL and JSON. The body is limited to 10 KB and questions to 2,000 characters.
-On Vercel only the platform-controlled `x-vercel-forwarded-for` is used for IP
-rate keys; arbitrary `x-forwarded-for` is not accepted. IP and email rate keys
-are HMAC-derived and never sent to analytics.
+The snapshot contains 56 documents fetched only from published blog/notes/talks/
+curated APIs and rendered About/Projects pages. The sync script never reads local
+content repositories. Referential follow-ups use source metadata from the
+owner-validated reservation transaction. Prior site URLs must still match the
+public snapshot; web excerpts come only from stored retrieved metadata. New topics
+retrieve independently. URLs in user/model prose are never source authority.
 
-Only the first answered anonymous question is free. A pending lease blocks
-parallel questions from that owner or IP. The first nonempty answer is durably
-marked before it is streamed, consuming entitlement. Empty/failed attempts can
-retry without losing the free answer; upstream attempts still consume spending
-limits. A stopped partial answer counts as answered. A process crash leaves a
-65-second lease; stale unanswered leases recover on the next request. A delivered
-partial answer remains consumed even after a crash. Saving or delivery failure
-is reported; a client disconnect aborts generation. A hard serverless termination
-may retain just the first saved fragment, marked interrupted after lease expiry.
+`web_search` calls only `https://api.search.tinyfish.ai/` with an encoded query,
+redirects disabled, a 10-second timeout and a 160 KB response limit. Each tool
+returns at most four public HTTPS results with 1,200-character excerpts. Local/IP/
+credential-bearing links and unsafe protocols are rejected. No result-selected
+host is fetched by the application, preventing result-driven SSRF. Markdown
+rejects raw HTML/images and links only to validated source metadata. Search
+outages produce a visible notice and explicit tool error, never invented results.
 
-Initial hard limits (change deliberately in SQL, with tests):
+## Identity, quotas and retention
 
-- Two concurrent model calls globally; one pending call per owner or IP.
-- 100 upstream attempts per rolling day globally, 10 per IP and 20 per owner.
-- 30 question attempts/hour/IP and 40 new-session calls/hour/IP.
-- One anonymous answered question/day/IP, in addition to cookie entitlement.
-- Five OTP sends/hour/session, three/hour/email, 10/day/IP, 30/day globally.
-- 60-second resend cooldown, 10-minute code TTL, five attempts/challenge and
-  20 verification attempts/hour/IP. Codes are HMAC hashes in the database.
-- Six prior answered turns in model context, 100 answered turns/conversation.
+Signed HttpOnly SameSite cookies identify anonymous sessions. Origin/CSRF checks,
+secure production cookies and hashed IP abuse controls protect the endpoint.
+PostgreSQL serializes short state transitions with a row lock; no external I/O
+occurs under that lock. First question entitlement is enforced atomically, across
+refreshes and parallel requests. First nonempty output is persisted before it is
+streamed. Unanswered failures release entitlement; partial delivered answers count.
+Attempts still consume budget. A 65-second lease recovers crashed requests.
 
-OTP accepts normal email domains including QQ and 163. Sign-in rotates the session,
-consumes the challenge once and migrates only conversations owned by the
-anonymous session. Existing account conversations cannot be moved by switching
-accounts. No email/account identifiers enter model context. New sessions can
-resume the account's saved conversations. Logout revokes the current session;
-account deletion removes the account, email, every session and owned conversations.
-Conversation deletion does not reset free entitlement. Short-lived abuse counters
-remain until expiration, including after deletion, to prevent quota resets.
+- Two concurrent agent runs globally; one pending run per owner or IP.
+- 100 agent attempts/day globally, 10/IP and 20/owner. Each permits at most two
+  model calls and two public tool calls, not an unlimited loop.
+- 30 question attempts/hour/IP; 40 session calls/hour/IP.
+- One anonymous answered question/day/IP plus signed-cookie entitlement.
+- OTP: five sends/hour/session, three/hour/email, 10/day/IP, 30/day globally;
+  60-second cooldown, ten-minute TTL, five attempts/challenge, 20 verifies/hour/IP.
+- Six prior answered turns in context; 100 answered turns/conversation.
 
-Chats expire after 30 days; anonymous sessions/chats after one day. Expired data
-is excluded/removed on the next chat API action. Physical cleanup is lazy, so a
-completely idle deployment can retain expired rows until traffic resumes. Operators
-requiring a strict physical-deletion deadline should schedule the SQL cleanup
-below daily in the database before launch. Database backup retention remains an
-operator/provider responsibility. No analytics identifiers are stored with chats.
+Email OTP accepts normal domains including QQ/163. Successful single-use
+verification rotates the session and migrates only its anonymous conversations.
+No email/account identifiers are added to model context. Authenticated users can
+resume their own conversations. Logout revokes the current session; account deletion
+removes account/email/sessions/conversations. Conversation deletion does not reset
+entitlement. Short-lived abuse counters survive deletion until expiry.
+
+Signed-in conversations expire after **30 days of inactivity** (`updated_at`),
+not 30 days per turn. Older turns remain in active conversations. Anonymous
+sessions/chats expire after one day. Expiry is enforced before every API action;
+physical cleanup is lazy, so an idle deployment retains expired rows until the
+next request. UI wording explicitly states this. Backup retention is the operator's
+responsibility. If strict physical cleanup is needed, schedule the following SQL
+in the database before launch; this task did not create a production scheduler.
 
 ```sql
 DELETE FROM blog_chat_conversations WHERE updated_at < now() - interval '30 days';
@@ -105,106 +109,78 @@ DELETE FROM blog_chat_otp WHERE expires_at < now();
 DELETE FROM blog_chat_limits WHERE expires_at < now();
 ```
 
-The database records internal owner/turn IDs, attempt counts, completion status,
-input/output usage and latency. These are private operational records. The API
-returns stable error buckets, never raw provider/database errors. The Vercel-only
-funnel contract is in `ANALYTICS.md`; payloads use explicit enum allowlists.
-The pre-existing Umami script was removed to comply with that contract.
+Internal IDs, usage, latency/status and quotas stay in backend observability.
+Vercel Analytics is the sole analytics service; `ANALYTICS.md` defines safe enum
+payloads without questions, email, account identifiers or raw commands. Source
+clicks use the existing `other` bucket for web results; no new PII properties.
 
-## Configuration and launch checklist
+## Launch/configuration checklist
 
-`environment.names` lists names only. Never commit filled-in env files. Keep local
-configuration under `~/.config` with mode 0600; pass production values through the
-hosting platform's server-only secret configuration during a separately authorized
-launch. This release does not modify production environments.
-
-1. Create/select an **isolated** PostgreSQL database/Neon branch and least-privilege
-   application role. Do not reuse the signup board database implicitly. Apply
-   `scripts/chat/schema.sql` explicitly using the deployment owner. The function
-   uses invoker privileges; grant the application role only the needed chat table
-   DML and EXECUTE on `blog_chat_action`/`blog_chat_limit`, with no access to other
-   schemas. Use a pooled TLS connection string for Vercel.
-2. Set `CHAT_DATABASE_URL`, a cryptographically random `CHAT_COOKIE_SECRET` of
-   at least 32 characters, `CHAT_CC_KEY`, `CHAT_RESEND_KEY`, `CHAT_EMAIL_FROM` and
-   exact `CHAT_ORIGIN`. The keys may be sourced from the existing authorized
-   Command Code and Resend config files. There is no production file fallback.
-3. Verify the chosen sender's outbound SPF/DKIM and review the provider's sending
-   permissions and public website usage terms. Set sensible provider spending
-   alerts in addition to the conservative server attempt caps. No paid
-   infrastructure or subscription changes were made in this task.
-4. Verify actual receipt and code entry at the authorized agent inbox, then at
-   user-owned QQ and 163 inboxes. Check inbox and spam folders. Provider
-   acceptance or `delivered` status is **not** inbox-receipt evidence.
-5. Confirm Node 22 and a permitted 60-second function duration. Build with
-   `bun run build:checked` under Node 22. Inspect the generated
-   `.vercel/output/functions/_render.func/.vc-config.json`.
-6. Enable `CHAT_ENABLED=true` only after database migration and secrets are ready.
-   For a preview, additionally set `CHAT_PREVIEW_ENABLED=true`, use an isolated
-   preview DB, and set its exact HTTPS origin. Unconfigured previews fail closed.
-   Do not point preview at production chat data. Apply Vercel firewall/rate rules
-   suitable for public launch and verify platform IP-header behavior in preview.
-7. Choose and document backup retention, schedule physical cleanup if needed,
-   and confirm delete-account behavior. Inspect Vercel Analytics event receipt
-   after an authorized launch without logging questions or identifiers.
-8. Review `announcement-draft.md`. Publish/send it only after launch authorization;
-   it is staged documentation, not a scheduled or auto-published post.
-
-References: [Vercel Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions),
-[Astro Vercel adapter](https://docs.astro.build/en/guides/integrations-guide/vercel/).
+1. Select an isolated PostgreSQL/Neon branch and least-privilege application role.
+   Explicitly apply `scripts/chat/schema.sql`; grant only necessary chat table DML
+   and function EXECUTE. Use a pooled TLS connection; do not reuse unrelated data.
+2. `environment.names` lists names only. Set server-only `CHAT_DATABASE_URL`,
+   `CHAT_COOKIE_SECRET` (≥32 random characters), `CHAT_CC_KEY`, `CHAT_TINYFISH_KEY`,
+   `CHAT_RESEND_KEY`, `CHAT_EMAIL_FROM` and exact `CHAT_ORIGIN`. Local values belong
+   under `~/.config` in mode0600 files. There is no production file fallback.
+3. Confirm provider terms, sender SPF/DKIM and spending alerts. Existing authorized
+   keys suffice for bounded tests; no subscription or paid infrastructure was added.
+4. Agent inbox receipt is verified. QQ/163 actual inbox receipt is UNVERIFIED;
+   test only user-owned addresses when supplied, including spam folders. Provider
+   acceptance is not inbox receipt. Do not invent recipients.
+5. Build under Node22; check emitted `nodejs22.x`, streaming and 60-second duration.
+6. Enable `CHAT_ENABLED` only after configuration. Preview additionally requires
+   `CHAT_PREVIEW_ENABLED`, its own isolated database and exact HTTPS origin.
+   Unconfigured deployments fail closed; inherited previews remain protected.
+7. Decide physical cleanup/backup retention and verify deletion. Confirm Vercel
+   IP-header behavior and safe analytics receipt after separately authorized launch.
+8. Review the staged `announcement-draft.md`; do not publish/send before launch
+   authorization. No production merge/deploy is part of this PR.
 
 ## Reproduce without secrets
 
-Run `bun install --frozen-lockfile`, `bun test`, `bun run check`, then
-`bun run build` under Node 22. Tests run the actual SQL functions in PGlite;
-model/network test doubles are explicit and confined to tests. With no chat
-configuration, `bun dev` displays the real UI and the API safely returns 503.
-No key, email send or model call is required for these checks.
+Run `bun install --frozen-lockfile`, `bun test`, `bun run check`, and `bun run build`
+under Node22. PGlite tests execute real SQL; model/network doubles are explicit and
+confined to tests. With no configuration, the UI works and `/api/chat` returns503.
+No credentials, model calls or email are needed for these deterministic checks.
 
-For a real local integration, initialize a dedicated loopback PostgreSQL instance,
-apply the schema, and put real configuration in a mode-0600 JSON file under
-`~/.config`. `bun scripts/chat/dev.ts <config-file>` starts the existing Astro dev
-command with that server environment. `bun scripts/chat/verify-postgres.ts
-<config-file>` runs eight parallel connections against a loopback database only.
-Stop that server and database when finished. No daemon configuration is needed.
+For authorized local integration, use a dedicated loopback PostgreSQL instance
+and mode0600 JSON config under `~/.config`. Run `bun scripts/chat/dev.ts <config>`
+and `bun scripts/chat/verify-postgres.ts <config>`. The existing local test cluster
+must be started with `pg_ctl -D ~/.config/blog-agent-chat-test/pgdata -o '-h
+127.0.0.1 -p 55439' start`; never use default5432. Stop both test servers afterward.
 
-`bun scripts/chat/sync-corpus.ts` refreshes the public snapshot explicitly and
-fails on an empty result. Review the snapshot diff before committing. It is not
-an automatic read of local private content or a live model fetch tool.
+`bun scripts/chat/sync-corpus.ts` refreshes only actual public content. Review its
+diff. It rejects unexpected origins/redirects and missing public pages.
 
-## Deferred extension boundary
+## Future boundary
 
-QQ identity binding is a future feature. It would require a server-verified,
-expiring challenge completed through the actual QQ identity, explicit import
-consent and a separately audited data-selection boundary. A typed QQ ID must
-never establish identity or grant access. No QQ binding/import endpoint exists
-in this release.
+Verified QQ identity binding requires an expiring server-verified challenge,
+explicit import consent and separate public/private data audit. Self-claimed QQ
+IDs cannot establish ownership. No QQ import/binding endpoint exists here.
 
-## Validation recorded for this branch
+## Validation
 
-- 44 Bun tests passed (385 assertions), including real SQL transition tests in
-  PGlite, Markdown/XSS handling, stream cancellation/error handling, OTP limits,
-  migration/deletion, identity separation and safe analytics.
-- Eight simultaneous connections to a dedicated local PostgreSQL instance
-  admitted exactly one anonymous question; failed-answer retry and second-question
-  gating passed there too.
-- Astro check: zero errors/warnings; two existing hints in unrelated scripts.
-- Node 22 production build passed; emitted runtime is `nodejs22.x`, streaming
-  enabled, `maxDuration: 60`.
-- One real Command Code question completed: 4,376 input tokens, 827 output tokens,
-  8,322 ms; the source-linked answer was persisted and resumed after login.
-- One authorized email test reached Resend's `delivered` event. Sender-side code
-  verification passed the browser login/migration flow. Actual inbox receipt,
-  including QQ/163, remains UNVERIFIED.
-- Desktop commands/Chat handoff, article CTA, mobile backtick/custom-event guards,
-  account deletion, native dialog Escape/focus return and 375/390px overflow
-  checks passed. Both themes and desktop expansion were checked. Qwen
-  `vision_chat` reviewed the final scrolled screenshots and found no critical
-  visual defects. Browser task space, local Astro server and temporary PostgreSQL
-  server were closed after verification.
+Original release validation covered SQL OTP abuse, quotas/races, ownership,
+migration/deletion, Markdown safety, stream cancellation/errors, safe analytics,
+real PostgreSQL eight-connection concurrency, email login, and browser flows.
+Rework adds contextual/cold/resumed source isolation, topic switches, bounded
+public-tool execution, web URL safety, inactivity retention, and mobile landscape
+capability/resize/portal checks. See the local handoff for current exact results.
 
-Screenshots (public article content and synthetic UI questions only):
+A real rework public-agent smoke completed in 7,595ms: two model calls, two web
+search calls, 1,841 input /382 output tokens. Two initial compatibility requests
+were rejected for forced tool selection; no model fallback was used. No further
+email was sent. Screenshots and sanitized evidence are retained locally.
 
-![Desktop dark Chat](screenshots/desktop-dark.png)
-![Desktop expanded light Chat](screenshots/desktop-light-expanded.png)
-![Mobile 375px light Chat](screenshots/mobile-375-light.png)
-![Mobile 390px dark Chat](screenshots/mobile-390-dark.png)
+Rework deterministic validation: **55 tests /463 assertions**, Astro check **zero
+errors/warnings** (two pre-existing hints), and eight real PostgreSQL connections
+with exactly one winner. Mobile375 and touch844×390 reject header clicks,
+backtick and both entry events; desktop1440 fine/hover permits entry and exits
+when capability changes. Active matrix portal removal also passed. Landscape
+email input and send/cancel controls are reachable without horizontal overflow.
+
+![Touch landscape light](screenshots/rework1-landscape-light.png)
+![Touch landscape dark](screenshots/rework1-landscape-dark.png)
+![Portrait light](screenshots/rework1-portrait-light.png)
+![Desktop dark](screenshots/rework1-desktop-dark.png)

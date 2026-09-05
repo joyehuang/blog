@@ -1,4 +1,5 @@
 import type { Generate } from './model'
+import type { HistoryTurn } from './retrieval'
 import type { Source } from './safety'
 import type { Store } from './store'
 
@@ -6,13 +7,13 @@ import type { Store } from './store'
 export function answerStream(
   deps: { store: Store; generate: Generate; sources: Source[] },
   sid: string,
-  reserved: { turn: string; conversation: string; history: { question: string; answer: string }[] },
+  reserved: { turn: string; conversation: string; history: HistoryTurn[] },
   question: string,
   requestSignal: AbortSignal
 ) {
   const abort = new AbortController()
   const signal = AbortSignal.any([abort.signal, requestSignal, AbortSignal.timeout(45000)])
-  const cards = [...new Map(deps.sources.map(({ title, url }) => [url, { title, url }])).values()]
+  let cards = deps.sources.map((s) => ({ ...s, text: s.text.slice(0, 1200) }))
   let cancelled = false
   return new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -29,6 +30,8 @@ export function answerStream(
         for await (const part of deps.generate(question, reserved.history, deps.sources, signal)) {
           signal.throwIfAborted()
           if (part.usage) usage = part.usage
+          if (part.sources) cards = part.sources
+          if (part.notice) send({ type: 'notice', code: part.notice })
           if (part.text) {
             text += part.text
             if (!marked && text.trim()) {

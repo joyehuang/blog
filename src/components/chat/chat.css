@@ -313,7 +313,7 @@
     transform: translateY(0);
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 640px), (hover: none), (pointer: coarse) {
   .blog-chat,
   .blog-chat-expanded {
     inset: 0;
@@ -347,5 +347,65 @@
   }
   .blog-chat button {
     transition: none;
+  }
+}
+
+@media (max-height: 500px) {
+  .chat-header {
+    padding: 8px 16px;
+  }
+  .chat-header .chat-eyebrow {
+    display: none;
+  }
+  .chat-header h2 {
+    font-size: 17px;
+    margin: 0;
+  }
+  .chat-toolbar {
+    padding-block: 4px;
+  }
+  .chat-scroll {
+    padding: 12px 20px;
+    min-height: 70px;
+  }
+  .chat-composer {
+    padding: 6px 14px;
+  }
+  .chat-composer textarea {
+    padding: 4px;
+    height: 38px;
+  }
+  .chat-composer .chat-small {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+  .chat-welcome {
+    padding-top: 0;
+  }
+  .chat-welcome h3 {
+    margin-top: 0;
+  }
+}
+
+@media (max-height: 500px) and (min-width: 641px) {
+  .chat-welcome .chat-spark {
+    display: none;
+  }
+  .chat-welcome h3 {
+    font-size: 18px;
+    margin: 0 0 4px;
+  }
+  .chat-welcome p {
+    margin: 4px 0;
+    font-size: 12px;
+  }
+  .chat-suggestions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 8px 0;
+  }
+  .chat-suggestions button {
+    padding: 8px;
+    font-size: 12px;
+    gap: 6px;
   }
 }

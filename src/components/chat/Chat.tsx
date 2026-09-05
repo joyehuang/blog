@@ -1,5 +1,5 @@
 import { chatTrack, type Surface } from '@/lib/chat/analytics'
-import { safeSourceUrl } from '@/lib/chat/safety'
+import { safeCitationUrl } from '@/lib/chat/safety'
 import { useEffect, useRef, useState } from 'react'
 
 import AnswerMarkdown from './AnswerMarkdown'
@@ -10,7 +10,7 @@ type Turn = {
   id: string
   question: string
   answer: string
-  sources: { title: string; url: string }[]
+  sources: { title: string; url: string; kind?: 'site' | 'web' }[]
   status: string
 }
 type State = {
@@ -203,6 +203,13 @@ export default function Chat() {
           while ((end = buffer.indexOf('\n')) >= 0) {
             const part = JSON.parse(buffer.slice(0, end))
             buffer = buffer.slice(end + 1)
+            if (part.type === 'notice')
+              setNotice(
+                t(
+                  '公共搜索暂不可用；回答可能缺少最新资料。',
+                  'Public search is unavailable; the answer may lack current sources.'
+                )
+              )
             if (part.type === 'start') setConversation(part.conversation)
             if (part.type === 'sources')
               setTurns((ts) =>
@@ -431,7 +438,12 @@ export default function Chat() {
             <div className='chat-question'>{turn.question}</div>
             <div className='chat-answer'>
               <span className='chat-eyebrow'>Joye blog Chat</span>
-              <AnswerMarkdown text={turn.answer} urls={turn.sources.map((s) => s.url)} />
+              <AnswerMarkdown
+                text={turn.answer}
+                urls={turn.sources
+                  .map((s) => safeCitationUrl(s))
+                  .filter((url): url is string => !!url)}
+              />
               {turn.status === 'pending' && !turn.answer && (
                 <p className='chat-small'>
                   {t('正在查找文章并准备回答…', 'Finding sources and preparing an answer…')}
@@ -440,7 +452,7 @@ export default function Chat() {
               {turn.sources.length > 0 && (
                 <div className='chat-sources' aria-label={t('参考来源', 'Sources')}>
                   {turn.sources
-                    .filter((s) => safeSourceUrl(s.url))
+                    .filter((s) => safeCitationUrl(s))
                     .map((s) => (
                       <a
                         key={s.url}
@@ -623,8 +635,8 @@ export default function Chat() {
         </form>
         <p className='chat-small'>
           {t(
-            'AI 回答可能有误，请核对来源。聊天保存 30 天；匿名记录保存 1 天。问题及相关对话会发送给模型服务商。',
-            'AI can make mistakes. Check the sources. Chats are saved for 30 days; anonymous chats for 1 day. Questions and relevant history are sent to the model provider.'
+            'AI 回答可能有误，请核对来源。登录对话在最后活动 30 天后过期，活跃对话的旧消息会继续保留；匿名记录 1 天后过期。过期数据在后续请求时清理。问题及相关对话发送给模型服务商，搜索词发送给公共搜索服务商。',
+            'AI can make mistakes. Check the sources. Signed-in conversations expire after 30 days of inactivity; older turns remain in active conversations. Anonymous records expire after 1 day. Expired data is cleaned up on subsequent requests. Questions and relevant history go to the model provider; search terms go to the public search provider.'
           )}{' '}
           {state.authenticated && (
             <button disabled={busy} onClick={() => setConfirmDelete('account')}>
