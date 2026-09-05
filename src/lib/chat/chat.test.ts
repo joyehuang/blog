@@ -517,3 +517,41 @@ test('retention is conversation inactivity: active old turns survive, expired co
   )
   expect((await call('load', s.id, { conversation: r.conversation })).error).toBe('not_found')
 })
+
+test('real generator no-tool replies persist and gate; empty stops release the free question', async () => {
+  for (const text of ['你好，很高兴见到你。', '']) {
+    const s = await session(),
+      r = await reserve(s, '你好')
+    const fake = (async () =>
+      new Response(
+        'data: ' +
+          JSON.stringify({
+            choices: [{ delta: { content: text }, finish_reason: 'stop' }],
+            usage: { prompt_tokens: 12, completion_tokens: 3 }
+          }) +
+          '\n\ndata: [DONE]\n\n'
+      )) as typeof fetch
+    const body = await new Response(
+      answerStream(
+        { store: call, generate: generator('test-only', fake), sources: [] },
+        s.id,
+        { turn: r.turn!, conversation: r.conversation!, history: [] },
+        '你好',
+        new AbortController().signal
+      )
+    ).text()
+    const next = await reserve(s)
+    if (text) {
+      expect(body).toContain('"type":"done"')
+      expect(body).toContain(text)
+      expect(next.error).toBe('login_required')
+      const saved = await call('load', s.id, { conversation: r.conversation })
+      expect(saved.turns?.[0].answer).toBe(text)
+    } else {
+      expect(body).toContain('answer_failed')
+      expect(body).not.toContain('"type":"done"')
+      expect(next.turn).toBeDefined()
+      await call('finish', s.id, { turn: next.turn, answer: '' })
+    }
+  }
+})

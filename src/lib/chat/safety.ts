@@ -38,20 +38,58 @@ export function tokenize(text: string): string[] {
   return tokens
 }
 
+// Navigation/entity intent comes from public URL metadata, not answer templates.
+// In particular, English "about" as a preposition must not select the About page.
+export function requestedSections(query: string): string[] {
+  const sections: string[] = []
+  if (/\btalks\b|演讲|分享栏目|有哪些分享/i.test(query)) sections.push('talks')
+  if (
+    /\bAbout\b(?=\s*(?:页|栏目|是|section|page|[?？。!！]|$))/.test(query) ||
+    /^about[?？。!！\s]*$/i.test(query) ||
+    /\babout\s+page\b|\bjoye['’]?s?\s+about\b|\bwho\s+is\s+joye\b|Joye\s*是谁|关于\s*Joye/i.test(
+      query
+    )
+  )
+    sections.push('about')
+  if (
+    /\bprojects\b|(?:Joye\s*(?:的)?\s*|有哪些|公开|个人)(?:项目|作品)|(?:项目|作品)(?:页|栏目)/i.test(
+      query
+    )
+  )
+    sections.push('projects')
+  if (/\bcurated\b|精选|策展/i.test(query)) sections.push('curated')
+  if (/\bblog\b|博客|博文/i.test(query)) sections.push('blog')
+  if (/\bnotes\b|笔记/i.test(query)) sections.push('notes')
+  return sections
+}
+
 export function retrieve(query: string, sources: Source[]): Source[] {
   const terms = [...new Set(tokenize(query))].slice(0, 80)
   const counts = new Map<string, number>()
-  return sources
-    .filter((s) => safeSourceUrl(s.url))
+  const sections = requestedSections(query)
+  const published = sources.filter((s) => safeSourceUrl(s.url))
+  const section = (s: Source) =>
+    new URL(s.url, PUBLIC_ORIGIN).pathname.split('/').filter((p) => p && p !== 'en')[0]
+  const scoped = published.filter((s) => sections.includes(section(s)))
+  // Explicit section intent searches that section when present. This prevents
+  // incidental mentions elsewhere from replacing the actual section's records.
+  return (scoped.length ? scoped : published)
     .flatMap((s) => {
       const parts: { source: Source; score: number }[] = []
       for (let i = 0; i < s.text.length; i += 1000) {
         const text = s.text.slice(i, i + 1200)
         const tokens = tokenize(text)
         const title = tokenize(s.title)
+        const metadata = tokenize(
+          new URL(s.url, PUBLIC_ORIGIN).pathname + new URL(s.url, PUBLIC_ORIGIN).hash
+        )
         const score = terms.reduce(
-          (n, t) => n + (tokens.includes(t) ? 1 : 0) + (title.includes(t) ? 3 : 0),
-          0
+          (n, t) =>
+            n +
+            (tokens.includes(t) ? 1 : 0) +
+            (title.includes(t) ? 3 : 0) +
+            (metadata.includes(t) ? 2 : 0),
+          scoped.length ? 1 : 0
         )
         if (score) parts.push({ source: { ...s, text }, score })
       }

@@ -31,8 +31,10 @@ selection or falls back to another model/provider. See the official
 Each agent run makes at most two model calls: tool planning (600 output tokens)
 and streaming synthesis (1,200 output tokens). It executes at most two calls to
 `corpus_search` or `web_search`. Command Code rejected forced `tool_choice:
-required` for this model; planning uses supported `auto`, requires a valid tool
-plan before proceeding, and synthesis uses `none`. Invalid/prohibited tools or
+required` for this model; the first response uses supported `auto` and may answer directly. A nonempty
+text response with a normal finish emits authoritative sources, answer, usage and
+done without a tool or second model call. Empty stops fail honestly without an
+automatic retry. Tool responses require a valid plan; synthesis uses `none`. Invalid/prohibited tools or
 excess calls terminate the run. Reasoning fragments needed for protocol continuity
 stay in the current request; they are never streamed or saved in conversations.
 Context is capped at six history turns and 60,000 serialized characters. Up to
@@ -184,3 +186,30 @@ email input and send/cancel controls are reachable without horizontal overflow.
 ![Touch landscape dark](screenshots/rework1-landscape-dark.png)
 ![Portrait light](screenshots/rework1-portrait-light.png)
 ![Desktop dark](screenshots/rework1-desktop-dark.png)
+
+## Acceptance rework 2
+
+Valid no-tool greetings, thanks and source-grounded follow-ups now complete using
+one model call. Empty stops remain retryable failures without consuming the free
+answered-question entitlement; malformed/prohibited tool calls cannot masquerade
+as direct text. Cancellation, source events, usage accounting and the two-call /
+two-tool /1,800-token maximum remain covered.
+
+Retrieval now indexes public URL metadata and recognizes explicit section/entity
+intent. Talks/About/Projects/Curated queries search those published sections when
+available, instead of incidental mentions in other articles. Normal “about
+embeddings” or “React 项目性能优化” queries retain topical retrieval. No source
+facts, cadence or generated answers are hardcoded. Dated descriptions are not
+proof of a currently ongoing schedule, and citations must retain exact retrieved
+URLs, including anchors.
+
+See the local handoff for final live evidence. This remains a draft awaiting
+independent acceptance, with production configuration and QQ/163 inbox receipt
+checks outstanding. No production changes, new servers/browser tasks or email
+sends were needed for this backend-only round.
+
+Rework2 validation: **63 tests /522 assertions**, check zero errors/warnings
+(two existing hints). Live greeting completed in1.8s with one model call/no tools.
+Final Talks check completed in5.8s, identified both actual talks, cited exact source
+anchors and qualified current update availability. Three bounded live questions
+total; no fallback or benchmark loop. Independent acceptance is still pending.
