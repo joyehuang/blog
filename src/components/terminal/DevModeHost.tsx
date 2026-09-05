@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-
 import { trackSiteEvent } from '@/lib/analytics'
+import { useCallback, useEffect, useState } from 'react'
 
 import DevMode from './DevMode'
 import { fetchSiteFs } from './fs/client'
@@ -65,6 +64,11 @@ export default function DevModeHost() {
   const [loadFailed, setLoadFailed] = useState(false)
 
   const enter = useCallback((method: string) => {
+    if (
+      window.matchMedia('(max-width: 640px)').matches ||
+      document.querySelector('.blog-chat[open]')
+    )
+      return
     trackSiteEvent('terminal_open', {
       method,
       surface: 'dev_mode',
@@ -120,7 +124,10 @@ export default function DevModeHost() {
 
   // custom events from non-React callers (Header button, future callers)
   useEffect(() => {
-    const onToggle = () => setMode((m) => (m === 'dev' ? 'human' : 'dev'))
+    const onToggle = () => {
+      if (!window.matchMedia('(max-width: 640px)').matches)
+        setMode((m) => (m === 'dev' ? 'human' : 'dev'))
+    }
     const onEnter = () => enter('window_control')
     const onExit = () => setMode('human')
     window.addEventListener('joye:toggle-dev', onToggle)
@@ -139,6 +146,16 @@ export default function DevModeHost() {
     if (typeof document === 'undefined') return
     document.documentElement.dataset.mode = mode
   }, [mode])
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 640px)')
+    const changed = () => {
+      if (query.matches) setMode('human')
+    }
+    query.addEventListener('change', changed)
+    changed()
+    return () => query.removeEventListener('change', changed)
+  }, [])
 
   if (mode !== 'dev') return null
   if (!fs) return <DevModeLoading failed={loadFailed} />

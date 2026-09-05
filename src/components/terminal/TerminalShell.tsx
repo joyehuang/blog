@@ -1,7 +1,6 @@
+import { trackSiteEvent } from '@/lib/analytics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-
-import { trackSiteEvent } from '@/lib/analytics'
 
 import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
@@ -137,6 +136,20 @@ const COLLAPSE_KEY = 'wt-collapsed'
 const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'design', 'theme dark', 'matrix']
 
 export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
+  const [desktop, setDesktop] = useState(true)
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 641px)')
+    const change = () => {
+      setDesktop(query.matches)
+      if (!query.matches) {
+        setMatrixOn(false)
+        setCollapsed(true)
+      }
+    }
+    change()
+    query.addEventListener('change', change)
+    return () => query.removeEventListener('change', change)
+  }, [])
   const [fs, setFs] = useState<FsNode | null>(null)
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
@@ -193,6 +206,11 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const expand = useCallback(
     (method = 'shell_click') => {
+      if (
+        window.matchMedia('(max-width: 640px)').matches ||
+        document.querySelector('.blog-chat[open]')
+      )
+        return
       trackSiteEvent('terminal_open', {
         method,
         surface: 'home_terminal',
@@ -278,6 +296,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const runInput = useCallback(
     async (raw: string) => {
+      if (window.matchMedia('(max-width: 640px)').matches) return
       const trimmed = raw.trim()
       appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
@@ -297,7 +316,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
       const args = parts.slice(1)
       const spec = commands[name]
       trackSiteEvent('terminal_command', {
-        command: name,
+        command: spec ? name : 'unknown',
         surface: 'terminal',
         target: 'terminal_shell',
         ...classifyTerminalCommand(name, args, fs, cwd, Boolean(spec))
@@ -373,6 +392,11 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
   // global hotkey: ` to focus / expand · Esc to collapse
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (
+        window.matchMedia('(max-width: 640px)').matches ||
+        document.querySelector('.blog-chat[open]')
+      )
+        return
       const target = e.target as HTMLElement | null
       const inField =
         target &&
@@ -461,6 +485,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const stopPropagation = (e: React.MouseEvent) => e.stopPropagation()
 
+  if (!desktop) return null
   return (
     <div
       className={`wt-shell ${collapsed ? 'wt-shell--collapsed' : ''}`}

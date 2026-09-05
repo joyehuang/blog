@@ -1,5 +1,11 @@
 ---
-import { getLangFromUrl, hasEnAlternate, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
+import {
+  getLangFromUrl,
+  hasEnAlternate,
+  localizedPath,
+  useTranslations,
+  type Lang
+} from '@/i18n/ui'
 
 import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
@@ -76,6 +82,11 @@ const searchHref = localizedPath('/search', lang)
 
     {/* buttons */}
     <div class='z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
+      <button
+        data-chat-open='header'
+        class='rounded-md border px-2 text-xs text-primary'
+        aria-label='Open Chat'>Chat</button
+      >
       <LanguageSwitcher lang={lang} />
       <button
         id='toggleDevMode'
@@ -115,8 +126,9 @@ const searchHref = localizedPath('/search', lang)
   }
 </script>
 <script>
-  import { setTheme, showToast } from 'astro-pure/utils'
   import { trackSiteEvent } from '@/lib/analytics'
+
+  import { setTheme, showToast } from 'astro-pure/utils'
 
   class Header extends HTMLElement {
     private toggleMenuBtn: HTMLElement | null = null
@@ -317,6 +329,14 @@ const searchHref = localizedPath('/search', lang)
   @media (prefers-reduced-motion: reduce) {
     #toggleDarkMode .theme-icon {
       transition: none;
+    }
+  }
+</style>
+
+<style>
+  @media (max-width: 640px) {
+    #toggleDevMode {
+      display: none !important;
     }
   }
 </style>

@@ -12,34 +12,6 @@ type SearchApiResult = {
   excerpt: string
 }
 
-const MOCK_AGENT_REPLIES: Record<string, string[]> = {
-  default: [
-    'Hey, this is Joye (well, a tiny mock of him).',
-    'Real agent endpoint is wiring up — for now I just rehearse lines.',
-    'Try `chat what are you building?` or `chat hire you?` for canned answers.'
-  ],
-  building: [
-    'Right now: this terminal, an AI persona for the homepage,',
-    'and a few half-finished blog posts about Astro + RSC + agent UX.'
-  ],
-  hire: [
-    'Open to chats — frontend / full-stack / AI-product roles.',
-    'Best path: `mail` (agent@joyehuang.dev) or `connect` for socials.'
-  ],
-  stack: [
-    'Astro 5 · React 19 · UnoCSS · TypeScript · deployed on Vercel.',
-    'I lean into server-rendered HTML with small interactive islands.'
-  ]
-}
-
-function pickReply(msg: string): string[] {
-  const m = msg.toLowerCase()
-  if (m.includes('build')) return MOCK_AGENT_REPLIES.building
-  if (m.includes('hire') || m.includes('job') || m.includes('work')) return MOCK_AGENT_REPLIES.hire
-  if (m.includes('stack') || m.includes('tech')) return MOCK_AGENT_REPLIES.stack
-  return MOCK_AGENT_REPLIES.default
-}
-
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
 function nodeBadge(node: FsNode): string {
@@ -461,29 +433,12 @@ export const commands: CommandRegistry = {
 
   chat: {
     name: 'chat',
-    summary: 'talk to my agent (mock)',
+    summary: 'open Joye blog Chat',
     usage: 'chat [message]',
-    run: async ({ args, startStream, appendStream, endStream }) => {
-      const message = args.join(' ').trim()
-      const id = `chat-${Date.now()}`
-      startStream(id)
-      appendStream(id, { kind: 'text', tone: 'muted', text: '⠋ thinking…' })
-      await sleep(420)
-      const lines = message ? pickReply(message) : MOCK_AGENT_REPLIES.default
-      appendStream(id, { kind: 'spacer' })
-      for (const line of lines) {
-        appendStream(id, {
-          kind: 'node',
-          node: (
-            <span>
-              <span className='wt-tone-primary'>agent ▸ </span>
-              <span className='wt-tone-fg'>{line}</span>
-            </span>
-          )
-        })
-        await sleep(260)
-      }
-      endStream(id)
+    run: ({ args }) => {
+      window.dispatchEvent(
+        new CustomEvent('joye:chat', { detail: { surface: 'terminal', draft: args.join(' ') } })
+      )
     }
   },
 

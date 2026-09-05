@@ -188,7 +188,7 @@ export default function DevMode({
       { t: 0, text: 'booting joye-shell v0.1 …' },
       { t: 180, text: 'loading /etc/personality.conf' },
       { t: 420, text: `mounting /blog (${blogCount} entries)` },
-      { t: 710, text: 'spinning up agent mock on localhost:∞' },
+      { t: 710, text: 'registering Joye blog Chat entry' },
       { t: 1020, text: 'resolving @mascot/jojo → ok' },
       { t: 1260, text: 'ready.' }
     ]
@@ -258,7 +258,7 @@ export default function DevMode({
       const args = parts.slice(1)
       const spec = commands[name]
       trackSiteEvent('terminal_command', {
-        command: name,
+        command: spec ? name : 'unknown',
         surface: 'terminal',
         target: 'terminal_shell',
         ...classifyTerminalCommand(name, args, fs, cwd, Boolean(spec))
