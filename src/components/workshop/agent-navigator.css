@@ -1,0 +1,681 @@
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.explore-cue {
+  display: none;
+}
+.scene-caption {
+  display: none;
+}
+[data-agent-error='true'] .agent-console-note {
+  display: none;
+}
+.agent-console {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  bottom: 116px;
+  transform: translateX(-50%);
+  width: min(510px, 40vw);
+}
+.agent-console-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 2px 12px;
+  font-size: 9px;
+  color: #9aa797;
+}
+.agent-signature {
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.agent-signature i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px #d6f09d55;
+}
+.agent-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px 9px 22px;
+  border: 1px solid #d6f09d55;
+  border-radius: 6px;
+  background: #242b23ed;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 55px #0003;
+}
+.agent-form:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #d6f09d11;
+}
+.agent-form input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  padding: 13px 0;
+  color: var(--paper);
+  background: transparent;
+  font-size: 14px;
+}
+.agent-form input::placeholder {
+  color: #ced3c4;
+}
+.agent-form button {
+  flex-shrink: 0;
+  width: 43px;
+  height: 43px;
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 24px;
+  transition: background 0.2s;
+}
+.agent-form button:hover {
+  background: #e7ffb9;
+}
+.agent-presets {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.agent-presets > span {
+  color: #8a9989;
+  margin-right: 4px;
+  font-size: 9px;
+}
+.agent-presets button {
+  padding: 7px 10px;
+  border: 1px solid #d6f09d20;
+  border-radius: 25px;
+  color: #cdd4c5;
+  background: #171b19;
+}
+.agent-presets button span {
+  color: var(--accent);
+  margin-left: 8px;
+}
+.agent-presets button:hover {
+  background: #d6f09d15;
+  border-color: #d6f09d66;
+}
+.agent-console-note {
+  font-size: 9px;
+  color: #849181;
+  margin: 12px 2px 0;
+}
+.agent-console-note > span {
+  color: #b0bba8;
+}
+.agent-feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.7;
+  margin-top: 11px;
+  color: #cbd6bd;
+}
+.agent-feedback p {
+  margin: 0;
+  flex: 1;
+}
+.feedback-indicator {
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.agent-feedback button {
+  flex-shrink: 0;
+  color: #a1ae95;
+  font-size: 9px;
+  padding: 4px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.agent-activity {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  width: 100%;
+  padding: 18px 22px 18px 35px;
+  max-height: 200px;
+  overflow: auto;
+  background: #273023f7;
+  border: 1px solid #d6f09d44;
+  border-radius: 4px;
+  color: #d9e2ce;
+  font-size: 11px;
+  line-height: 1.8;
+  box-shadow: 0 12px 55px #0006;
+}
+.agent-activity li + li {
+  margin-top: 8px;
+}
+[data-agent-error='true'] .agent-feedback {
+  color: #f1c4a9;
+}
+[data-agent-busy='true'] .feedback-indicator {
+  animation: guide-pulse 1.2s ease-in-out infinite;
+}
+.agent-cursor {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  top: 0;
+  left: 0;
+  z-index: 7;
+  pointer-events: none;
+  opacity: 0;
+  border: 1px solid #d6f09d66;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #293520bb;
+  box-shadow:
+    0 0 40px #b4ee5633,
+    inset 0 0 12px #d6f09d33;
+}
+.agent-cursor > span {
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 18px #d6f09d88;
+}
+.agent-cursor i {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border: 1px dashed #d6f09d44;
+  border-radius: 50%;
+}
+[data-agent-busy='true'] .agent-cursor i {
+  animation: guide-orbit 4s linear infinite;
+}
+#journey-path {
+  fill: none;
+  stroke: #d6f09d80;
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+.artifact[data-selected='true'] {
+  box-shadow:
+    0 0 0 1px #e4ffad88,
+    0 30px 70px #0005,
+    0 0 70px #a5c95318;
+}
+.route-panel {
+  position: absolute;
+  z-index: 6;
+  left: 6%;
+  top: 25%;
+  width: min(380px, 28vw);
+}
+.route-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.6px;
+}
+.route-kicker button {
+  font-size: 10px;
+  color: #a4b199;
+  padding: 6px 0 6px 10px;
+  letter-spacing: 0;
+}
+.route-question {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #8e9c86;
+  margin: 24px 0 13px;
+}
+.route-panel h2 {
+  font-size: clamp(28px, 2.9vw, 46px);
+  font-weight: 550;
+  line-height: 1.24;
+  letter-spacing: -1.8px;
+  margin: 0 0 36px;
+  text-wrap: balance;
+}
+.route-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.route-number {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent);
+  border: 1px solid #d6f09d66;
+  padding: 5px 7px;
+}
+.route-current h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+}
+.route-reason {
+  color: #b4c0a9;
+  font-size: 12px;
+  line-height: 1.95;
+  margin: 15px 0 24px;
+  max-width: 360px;
+}
+.route-read {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  border-bottom: 1px solid #d6f09d77;
+  padding: 10px 0;
+  font-size: 11px;
+  color: var(--paper);
+}
+.route-read:hover {
+  color: var(--accent);
+}
+.route-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+.route-navigation > button {
+  font-size: 16px;
+  border: 1px solid #d6f09d44;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.route-navigation > button:disabled {
+  opacity: 0.25;
+}
+.route-steps {
+  display: flex;
+  gap: 5px;
+}
+.route-steps button {
+  padding: 8px;
+  font-size: 10px;
+  color: #859179;
+  border-bottom: 1px solid transparent;
+}
+.route-steps button[aria-current] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+#route-count {
+  color: #859179;
+  font-size: 10px;
+  margin-left: auto;
+}
+.route-followups {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+.route-followups button {
+  padding: 5px 0;
+  font-size: 10px;
+  color: var(--accent);
+}
+.route-back {
+  color: #96a388;
+  font-size: 10px;
+  margin-top: 16px;
+  padding: 0;
+}
+[data-route='true'] .scroll-journey {
+  height: 100svh;
+}
+[data-route='true'] .identity,
+[data-route='true'] .chapter-copy,
+[data-route='true'] .scene-caption,
+[data-route='true'] .space-connections #orbit-path,
+[data-route='true'] #connection-paths,
+[data-route='true'] .journey-nav {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+[data-route='true'] .scene-utilities {
+  top: 43%;
+}
+[data-route='true'] .agent-console-note,
+[data-route='true'] .agent-presets > span {
+  display: none;
+}
+[data-route='true'] .agent-console {
+  width: min(530px, 40vw);
+}
+[data-route='true'] .agent-presets {
+  margin-top: 10px;
+}
+[data-agent-busy='true'] .agent-console-note {
+  display: none;
+}
+@keyframes guide-pulse {
+  50% {
+    opacity: 0.3;
+    transform: scale(1.6);
+  }
+}
+@keyframes guide-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 1100px) {
+  .agent-console {
+    width: 43vw;
+    bottom: 104px;
+  }
+  .agent-presets > span {
+    display: none;
+  }
+  .agent-form input {
+    font-size: 12px;
+  }
+  .route-panel {
+    left: 5%;
+    width: 29vw;
+  }
+  .route-panel h2 {
+    font-size: 31px;
+  }
+  .route-reason {
+    font-size: 11px;
+  }
+  .route-current h3 {
+    font-size: 13px;
+  }
+  .route-navigation {
+    gap: 5px;
+  }
+}
+@media (max-width: 700px) {
+  .identity {
+    top: 40%;
+    width: 290px;
+  }
+  .identity h1 {
+    font-size: 112px;
+    letter-spacing: -11px;
+    line-height: 1.05;
+    margin-bottom: 11px;
+  }
+  .identity-star {
+    font-size: 26px;
+    top: 18px;
+    right: 15px;
+  }
+  .identity-bottom p {
+    font-size: 9px;
+  }
+  .identity-bottom p > span {
+    font-size: 7px;
+  }
+  .identity-eyebrow {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .agent-console {
+    width: 88%;
+    bottom: 151px;
+  }
+  .agent-console-heading {
+    font-size: 8px;
+    margin-bottom: 8px;
+  }
+  .agent-signature {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .agent-form {
+    padding: 6px 7px 6px 14px;
+    gap: 5px;
+  }
+  .agent-form input {
+    font-size: 13px;
+    padding: 12px 0;
+  }
+  .agent-form button {
+    width: 37px;
+    height: 37px;
+    font-size: 21px;
+  }
+  .agent-presets {
+    gap: 8px;
+    margin-top: 9px;
+  }
+  .agent-presets button {
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+  .agent-console-note {
+    font-size: 8px;
+    margin-top: 9px;
+  }
+  .agent-feedback {
+    font-size: 9px;
+    margin-top: 8px;
+  }
+  .scene-utilities {
+    display: none;
+  }
+  .journey-footer {
+    height: 127px;
+  }
+  #guide-focus {
+    display: none;
+  }
+  .journey-footer .footer-location {
+    align-self: flex-start;
+    margin-top: 13px;
+  }
+  .journey-footer .journey-nav {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  .route-panel {
+    left: 6%;
+    top: 100px;
+    width: 88%;
+  }
+  .route-kicker {
+    font-size: 8px;
+  }
+  .route-kicker button {
+    font-size: 9px;
+  }
+  .route-question {
+    margin: 9px 0 8px;
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .route-panel h2 {
+    font-size: 28px;
+    letter-spacing: -0.8px;
+    margin-bottom: 16px;
+    line-height: 1.25;
+    text-wrap: initial;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .route-number {
+    font-size: 9px;
+    padding: 3px 5px;
+  }
+  .route-current {
+    gap: 9px;
+  }
+  .route-current h3 {
+    font-size: 12px;
+  }
+  .route-reason {
+    font-size: 10px;
+    line-height: 1.8;
+    margin: 9px 0 0;
+    max-width: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .route-read {
+    position: fixed;
+    left: 6%;
+    bottom: 218px;
+    font-size: 10px;
+    gap: 24px;
+    padding: 8px 0;
+  }
+  .route-navigation {
+    position: fixed;
+    right: 6%;
+    bottom: 214px;
+    margin: 0;
+    gap: 6px;
+  }
+  .route-navigation > button {
+    width: 27px;
+    height: 27px;
+    font-size: 13px;
+  }
+  .route-steps {
+    gap: 1px;
+  }
+  .route-steps button {
+    padding: 6px;
+    font-size: 9px;
+  }
+  #route-count {
+    display: none;
+  }
+  .route-followups {
+    display: none;
+  }
+  .route-back {
+    position: fixed;
+    left: 6%;
+    bottom: 193px;
+    font-size: 8px;
+    margin: 0;
+  }
+  [data-route='true'] .agent-console {
+    width: 88%;
+    bottom: 65px;
+  }
+  [data-route='true'] .journey-footer {
+    height: 43px;
+  }
+  [data-route='true'] .journey-footer .footer-location {
+    margin-top: 0;
+  }
+  .agent-cursor {
+    width: 34px;
+    height: 34px;
+    margin: 10px 6px 0;
+  }
+  .agent-cursor i {
+    width: 45px;
+    height: 45px;
+  }
+  .agent-cursor span {
+    width: 9px;
+    height: 9px;
+  }
+}
+@media (max-height: 740px) and (max-width: 700px) {
+  .agent-console {
+    bottom: 92px;
+  }
+  .journey-footer {
+    height: 75px;
+  }
+  .route-panel {
+    top: 79px;
+  }
+  .route-panel h2 {
+    font-size: 23px;
+    margin-bottom: 10px;
+  }
+  .route-reason {
+    font-size: 9px;
+  }
+  [data-route='true'] .agent-console {
+    bottom: 40px;
+  }
+  [data-route='true'] .journey-footer {
+    height: 28px;
+  }
+  .route-read {
+    bottom: 187px;
+  }
+  .route-navigation {
+    bottom: 183px;
+  }
+  .route-back {
+    bottom: 161px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-cursor i,
+  .feedback-indicator {
+    animation: none !important;
+  }
+}
+@media (max-height: 850px) and (min-width: 701px) {
+  .identity {
+    top: 42%;
+    width: 430px;
+  }
+  .identity h1 {
+    font-size: 180px;
+    letter-spacing: -17px;
+  }
+  .identity-star {
+    right: 0;
+    font-size: 38px;
+  }
+  .route-panel {
+    top: 18%;
+  }
+  .route-panel h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+  .route-question {
+    margin-top: 15px;
+  }
+  .route-reason {
+    margin-bottom: 15px;
+  }
+  .route-navigation {
+    margin-top: 18px;
+  }
+}
