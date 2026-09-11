@@ -1,0 +1,34 @@
+name: Notify IndexNow after production deployment
+on:
+  deployment_status:
+permissions:
+  contents: write
+concurrency:
+  group: indexnow-production
+  cancel-in-progress: false
+jobs:
+  notify:
+    if: >-
+      github.repository == 'joyehuang/blog' &&
+      github.event.repository.fork == false &&
+      github.event.deployment.environment == 'Production' &&
+      github.event.deployment_status.environment == 'Production' &&
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.creator.login == 'vercel[bot]' &&
+      github.event.deployment_status.creator.login == 'vercel[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+      - name: Submit changed production URLs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          INDEXNOW_ALLOW_INITIAL: ${{ vars.INDEXNOW_ALLOW_INITIAL }}
+        run: bun scripts/seo/indexnow.mjs

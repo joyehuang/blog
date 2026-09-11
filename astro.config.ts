@@ -1,5 +1,3 @@
-import { copyFile } from 'node:fs/promises'
-import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
@@ -12,6 +10,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkMath from 'remark-math'
 
+import { buildSeo } from './scripts/seo/build.mjs'
 // Others
 // import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -47,7 +46,7 @@ const exposeSingleSitemap = (): AstroIntegration => ({
   hooks: {
     'astro:build:done': async ({ dir }) => {
       const outputDir = fileURLToPath(dir)
-      await copyFile(join(outputDir, 'sitemap-0.xml'), join(outputDir, 'sitemap.xml'))
+      await buildSeo(outputDir)
     }
   }
 })
@@ -93,14 +92,7 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      filter: shouldIncludeInSitemap,
-      i18n: {
-        defaultLocale: 'zh',
-        locales: {
-          zh: 'zh-CN',
-          en: 'en'
-        }
-      }
+      filter: shouldIncludeInSitemap
     }),
     exposeSingleSitemap(),
     // astro-pure will automatically add sitemap, mdx & unocss

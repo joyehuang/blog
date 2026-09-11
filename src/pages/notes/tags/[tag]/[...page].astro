@@ -1,4 +1,5 @@
 ---
+import { listingMetadata } from '@/lib/seo/metadata'
 /**
  * Note Tag Filter Page with Pagination
  * Shows note entries filtered by tag
@@ -51,10 +52,7 @@ const statusColors: Record<string, string> = {
   archived: 'text-gray-500 dark:text-gray-400'
 }
 
-const meta = {
-  title: `Note Tag: ${tag}`,
-  description: `Note entries tagged with ${tag}`
-}
+const meta = listingMetadata('notes', false, page.currentPage, page.data.map((entry) => entry.data.title), tag)
 
 const paginationProps = {
   ...(page.url.prev && {

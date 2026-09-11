@@ -1,4 +1,5 @@
 ---
+import { contentLastModified } from '@/lib/seo/lastmod'
 import { getCollection, render, type CollectionEntry } from 'astro:content'
 
 import { Button, Icon } from 'astro-pure/user'
@@ -11,7 +12,7 @@ export const prerender = true
 export async function getStaticPaths() {
   const notes = await getCollection('notesEn')
   return notes
-    .filter((entry) => entry.data.translationKey)
+    .filter((entry) => !entry.data.draft && entry.data.translationKey)
     .map((entry) => ({
       params: { id: entry.data.translationKey! },
       props: { entry }
@@ -61,7 +62,7 @@ const noteLd = {
   ...(description ? { description } : {}),
   inLanguage: 'en',
   datePublished: date.toISOString(),
-  dateModified: (updatedDate ?? date).toISOString(),
+  dateModified: contentLastModified(entry.filePath, updatedDate),
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },

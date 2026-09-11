@@ -3,6 +3,7 @@
 
 import { hasEnVersion } from '@/i18n/translations'
 import { getLangFromUrl, stripLangPrefix, withLangPrefix } from '@/i18n/ui'
+import { sectionMetadata } from '@/lib/seo/metadata'
 
 import type { SiteMeta } from 'astro-pure/types'
 import JsonLd from '@/components/JsonLd.astro'
@@ -12,7 +13,8 @@ type Props = SiteMeta & {
   noindex?: boolean
 }
 
-const { articleDate, description, noindex = false, ogImage, title } = Astro.props
+const { articleDate, noindex = false, ogImage } = Astro.props
+const { title, description } = sectionMetadata(Astro.url.pathname) ?? Astro.props
 
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
@@ -23,7 +25,7 @@ const socialImageAlt = `${title} social preview`
 // that exist in both languages (never fabricate an /en URL for zh-only content).
 const lang = getLangFromUrl(Astro.url)
 const barePath = stripLangPrefix(Astro.url.pathname)
-const hasAlt = await hasEnVersion(barePath)
+const hasAlt = !noindex && (await hasEnVersion(barePath))
 const ogLocale = lang === 'en' ? 'en_US' : 'zh_CN'
 const ogLocaleAlternate = hasAlt ? (lang === 'en' ? 'zh_CN' : 'en_US') : null
 const hreflangAlternates = hasAlt

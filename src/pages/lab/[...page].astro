@@ -1,4 +1,5 @@
 ---
+import { listingMetadata } from '@/lib/seo/metadata'
 /**
  * Lab index — /lab
  * A gallery of small frontend demos & tips. Each entry is a self-contained
@@ -27,10 +28,7 @@ interface Props {
 
 const { page } = Astro.props as unknown as Props
 
-const meta = {
-  title: page.currentPage === 1 ? 'Lab' : `Lab - Page ${page.currentPage}`,
-  description: '前端展示与小 tips：把平时积累的排版、布局、动效、交互技巧，做成可交互的小样。'
-}
+const meta = listingMetadata('lab', false, page.currentPage, page.data.map((entry) => entry.data.title))
 
 const paginationProps = {
   ...(page.url.prev && { prevUrl: { text: '← 上一页', url: page.url.prev } }),

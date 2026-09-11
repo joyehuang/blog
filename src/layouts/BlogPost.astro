@@ -1,4 +1,5 @@
 ---
+import { contentLastModified } from '@/lib/seo/lastmod'
 import type { MarkdownHeading } from 'astro'
 import type { CollectionEntry } from 'astro:content'
 
@@ -71,7 +72,7 @@ const articleLd = {
   description,
   inLanguage: lang === 'en' ? 'en' : 'zh-CN',
   datePublished: publishDate.toISOString(),
-  dateModified: (updatedDate ?? publishDate).toISOString(),
+  dateModified: contentLastModified(Astro.props.post.filePath, updatedDate),
   image: new URL(socialImage, Astro.site).href,
   ...(data.tags.length ? { keywords: data.tags } : {}),
   author: { '@id': `${origin}/#person` },
