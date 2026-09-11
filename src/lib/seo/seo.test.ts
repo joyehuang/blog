@@ -287,3 +287,26 @@ test('lastmod uses source history, omits uncommitted dates, and rejects shallow 
     expect(contentLastModified(path)).toBeUndefined()
     expect(contentLastModified(undefined)).toBeUndefined()
   }))
+
+test('explicit SSR sections join the sitemap and source changes update their fingerprint', async () =>
+  temporary(async (dir) => {
+    const source = join(dir, 'about.astro')
+    await writeFile(source, 'About fixture')
+    const page = {
+      path: '/about',
+      title: 'About',
+      description: 'About fixture',
+      noindex: false,
+      alternates: [],
+      sources: [source]
+    }
+    await buildSeo(dir, { VERCEL_GIT_COMMIT_SHA: sha }, [page])
+    const first = JSON.parse(
+      await readFile(join(dir, '.well-known/indexnow-manifest.json'), 'utf8')
+    )
+    expect(await readFile(join(dir, 'sitemap.xml'), 'utf8')).toContain(origin + '/about')
+    await writeFile(source, 'Updated About fixture')
+    await buildSeo(dir, { VERCEL_GIT_COMMIT_SHA: sha }, [page])
+    const next = JSON.parse(await readFile(join(dir, '.well-known/indexnow-manifest.json'), 'utf8'))
+    expect(changedUrls(first, next)).toEqual([origin + '/about'])
+  }))

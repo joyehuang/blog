@@ -11,6 +11,7 @@ import remarkCjkFriendly from 'remark-cjk-friendly'
 import remarkMath from 'remark-math'
 
 import { buildSeo } from './scripts/seo/build.mjs'
+import { sectionMetadata } from './src/lib/seo/metadata'
 // Others
 // import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -46,7 +47,25 @@ const exposeSingleSitemap = (): AstroIntegration => ({
   hooks: {
     'astro:build:done': async ({ dir }) => {
       const outputDir = fileURLToPath(dir)
-      await buildSeo(outputDir)
+      await buildSeo(
+        outputDir,
+        process.env,
+        ['/about', '/en/about'].map((path) => ({
+          path,
+          ...sectionMetadata(path),
+          noindex: false,
+          alternates: [
+            { lang: 'zh-CN', url: 'https://www.joyehuang.me/about' },
+            { lang: 'en', url: 'https://www.joyehuang.me/en/about' },
+            { lang: 'x-default', url: 'https://www.joyehuang.me/about' }
+          ],
+          sources: [
+            `src/pages${path}/index.astro`,
+            'src/components/about/Substats.astro',
+            'src/components/about/ToolSection.astro'
+          ]
+        }))
+      )
     }
   }
 })

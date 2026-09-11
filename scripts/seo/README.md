@@ -8,10 +8,13 @@ included. API, OG and internal endpoints are excluded. Tags and paginated lists
 remain indexable; every page keeps its own canonical. Sitemap alternates come
 from real HTML hreflang links, never inferred tag translations.
 
-Nine existing content routes (About, Contact, Projects, Links in both languages,
-and Chinese tags) now prerender. Their content and layout are unchanged. About's
-existing external follower counters are consequently sampled at deployment time,
-not per request; reviewers should explicitly accept this freshness tradeoff.
+Seven existing content routes (Contact, Projects, Links in both languages, and
+Chinese tags) now prerender. Their content and layout are unchanged. About remains
+SSR so its existing request-time follower counters keep refreshing. Its two
+explicit sitemap entries use the same sectionMetadata as BaseHead and source
+fingerprints of the page and About components (not volatile counter responses).
+Future indexable SSR routes must be registered explicitly and covered by the
+real-bundle audit; no arbitrary internal endpoint is inferred as indexable.
 Search stays server rendered and noindex. `capture-ssr.mjs` audits these routes
 using the actual Vercel Node bundle and closes its ephemeral server in `finally`.
 Use Node to run that audit helper because Bun does not resolve the adapter's

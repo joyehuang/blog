@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { indexable, origin, readPages } from './html.mjs'
+import { hash, indexable, origin, readPages } from './html.mjs'
 
 export const xml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
 export function validKey(key) {
@@ -15,8 +15,18 @@ export async function writeVerification(dir, key) {
   await writeFile(join(dir, 'indexnow-key.txt'), key, 'utf8')
   return true
 }
-export async function buildSeo(dir, env = process.env) {
+export async function buildSeo(dir, env = process.env, serverPages = []) {
   const pages = (await readPages(dir)).filter(indexable)
+  // Explicit SSR content routes retain request-time widgets. Their metadata is
+  // shared with BaseHead; source fingerprints ignore volatile follower counts.
+  for (const page of serverPages) {
+    const sources = await Promise.all(page.sources.map((file) => readFile(file, 'utf8')))
+    pages.push({
+      ...page,
+      canonical: new URL(page.path, origin).href,
+      fingerprint: hash(JSON.stringify([page.title, page.description, sources]))
+    })
+  }
   const urls = new Set(pages.map((p) => p.canonical))
   const entries = pages
     .map((p) => {
