@@ -1,5 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content'
+import { detailAvailable } from '@/lib/seo/drafts'
+import { contentLastModified } from '@/lib/seo/lastmod'
 
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/ContentLayout.astro'
@@ -11,7 +13,11 @@ export const prerender = true
 export async function getStaticPaths() {
   const notes = await getCollection('notesEn')
   return notes
-    .filter((entry) => entry.data.translationKey)
+    .filter(
+      (entry) =>
+        detailAvailable(entry.data.draft, import.meta.env.DRAFT_PREVIEW, import.meta.env.DEV) &&
+        entry.data.translationKey
+    )
     .map((entry) => ({
       params: { id: entry.data.translationKey! },
       props: { entry }
@@ -45,7 +51,8 @@ const typeLabels: Record<string, string> = {
 
 const meta = {
   title,
-  description: description || title
+  description: description || title,
+  noindex: entry.data.draft
 }
 
 // Structured data: BlogPosting + breadcrumbs; author/publisher reference the
@@ -61,7 +68,7 @@ const noteLd = {
   ...(description ? { description } : {}),
   inLanguage: 'en',
   datePublished: date.toISOString(),
-  dateModified: (updatedDate ?? date).toISOString(),
+  dateModified: contentLastModified(entry.filePath, updatedDate),
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },

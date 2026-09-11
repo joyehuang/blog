@@ -1,5 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content'
+import { detailAvailable } from '@/lib/seo/drafts'
+import { contentLastModified } from '@/lib/seo/lastmod'
 
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/ContentLayout.astro'
@@ -10,10 +12,14 @@ export const prerender = true
 
 export async function getStaticPaths() {
   const notes = await getCollection('notes')
-  return notes.map((entry) => ({
-    params: { id: entry.id },
-    props: { entry }
-  }))
+  return notes
+    .filter((entry) =>
+      detailAvailable(entry.data.draft, import.meta.env.DRAFT_PREVIEW, import.meta.env.DEV)
+    )
+    .map((entry) => ({
+      params: { id: entry.id },
+      props: { entry }
+    }))
 }
 
 type Props = {
@@ -39,14 +45,16 @@ const {
 let relatedBlogPosts: CollectionEntry<'blog'>[] = []
 if (relatedBlog && relatedBlog.length > 0) {
   const allBlogPosts = await getCollection('blog')
-  relatedBlogPosts = allBlogPosts.filter((post) => relatedBlog.includes(post.id))
+  relatedBlogPosts = allBlogPosts.filter(
+    (post) => !post.data.draft && relatedBlog.includes(post.id)
+  )
 }
 
 let relatedNoteEntries: CollectionEntry<'notes'>[] = []
 if (relatedNote && relatedNote.length > 0) {
   const allNotes = await getCollection('notes')
   relatedNoteEntries = allNotes.filter(
-    (note) => relatedNote.includes(note.id) && note.id !== entry.id
+    (note) => !note.data.draft && relatedNote.includes(note.id) && note.id !== entry.id
   )
 }
 
@@ -68,7 +76,8 @@ const typeLabels: Record<string, string> = {
 
 const meta = {
   title,
-  description: description || title
+  description: description || title,
+  noindex: entry.data.draft
 }
 
 // Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
@@ -83,7 +92,7 @@ const noteLd = {
   ...(description ? { description } : {}),
   inLanguage: 'zh-CN',
   datePublished: date.toISOString(),
-  dateModified: (updatedDate ?? date).toISOString(),
+  dateModified: contentLastModified(entry.filePath, updatedDate),
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },

@@ -1,4 +1,5 @@
 ---
+import { contentLastModified } from '@/lib/seo/lastmod'
 /**
  * Lab detail — /lab/<id>
  * Readable column for the write-up; the demo (rendered by the entry's MDX via
@@ -51,7 +52,7 @@ const labLd = {
   description: blurb,
   inLanguage: 'zh-CN',
   datePublished: date.toISOString(),
-  dateModified: (updatedDate ?? date).toISOString(),
+  dateModified: contentLastModified(entry.filePath, updatedDate),
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },

@@ -9,10 +9,22 @@ let cache: { blog: Set<string>; notes: Set<string> } | null = null
 
 async function translatedKeys() {
   if (!cache) {
-    const [blogEn, notesEn] = await Promise.all([getCollection('blogEn'), getCollection('notesEn')])
-    const pick = (entries: { data: { translationKey?: string } }[]) =>
-      new Set(entries.map((e) => e.data.translationKey).filter((k): k is string => !!k))
-    cache = { blog: pick(blogEn), notes: pick(notesEn) }
+    const [blogEn, notesEn, blog, notes] = await Promise.all([
+      getCollection('blogEn'),
+      getCollection('notesEn'),
+      getCollection('blog'),
+      getCollection('notes')
+    ])
+    const pick = (entries: { data: { translationKey?: string; draft?: boolean } }[]) =>
+      new Set(
+        entries
+          .filter((e) => !e.data.draft)
+          .map((e) => e.data.translationKey)
+          .filter((k): k is string => !!k)
+      )
+    const paired = (keys: Set<string>, originals: { id: string; data: { draft?: boolean } }[]) =>
+      new Set(originals.filter((e) => !e.data.draft && keys.has(e.id)).map((e) => e.id))
+    cache = { blog: paired(pick(blogEn), blog), notes: paired(pick(notesEn), notes) }
   }
   return cache
 }

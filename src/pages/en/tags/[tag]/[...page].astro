@@ -1,4 +1,5 @@
 ---
+import { listingMetadata } from '@/lib/seo/metadata'
 import type { GetStaticPaths, Page } from 'astro'
 import { getCollection, type CollectionEntry } from 'astro:content'
 
@@ -32,10 +33,7 @@ interface Props {
 const { page } = Astro.props
 const { tag } = Astro.params
 
-const meta = {
-  description: `View all English posts with the tag - ${tag}`,
-  title: `Tag: ${tag}`
-}
+const meta = listingMetadata('blog', true, page.currentPage, page.data.map((entry) => entry.data.title), tag)
 
 const paginationProps = {
   ...(page.url.prev && { prevUrl: { text: `← Previous`, url: page.url.prev } }),

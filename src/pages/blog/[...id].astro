@@ -1,16 +1,19 @@
 ---
-import { render, type CollectionEntry } from 'astro:content'
+import { getCollection, render, type CollectionEntry } from 'astro:content'
+import { detailAvailable, published } from '@/lib/seo/drafts'
 
-import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import { sortMDByDate } from 'astro-pure/server'
 import PostLayout from '@/layouts/BlogPost.astro'
 
 export const prerender = true
 
 export async function getStaticPaths() {
-  const posts = sortMDByDate(await getBlogCollection())
+  const posts = sortMDByDate(await getCollection('blog')).filter((post) =>
+    detailAvailable(post.data.draft, import.meta.env.DRAFT_PREVIEW, import.meta.env.DEV)
+  )
   return posts.map((post) => ({
     params: { id: post.id },
-    props: { post, posts }
+    props: { post, posts: posts.filter(published) }
   }))
 }
 
