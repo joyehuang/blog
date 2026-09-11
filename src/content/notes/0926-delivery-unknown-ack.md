@@ -256,7 +256,7 @@ digest:edition-a:channel-a:revision-1
 
 为避免只讲状态图，我给这篇 note 写了一个独立的教学测试：
 
-[查看完整合成案例与模型代码](https://github.com/joyehuang/blog/blob/notes/night-exploration-20260912/demos/delivery-ack/fixture.test.ts)。
+[查看完整合成案例与模型代码](https://github.com/joyehuang/blog/blob/94f91154a568e3018b33b44878dcd17ea6022fb1/demos/delivery-ack/fixture.test.ts)。
 
 运行方式是在本分支的项目根目录执行：
 
@@ -372,7 +372,7 @@ bun test demos/delivery-ack/fixture.test.ts
 
 ## 相关内容与证据边界
 
-- [本文的离线教学测试](https://github.com/joyehuang/blog/blob/notes/night-exploration-20260912/demos/delivery-ack/fixture.test.ts)：包含完整合成模型、十二个断言场景，以及明确保留的局限。可以复制运行，不需要密钥或外部服务。
+- [本文的离线教学测试](https://github.com/joyehuang/blog/blob/94f91154a568e3018b33b44878dcd17ea6022fb1/demos/delivery-ack/fixture.test.ts)：包含完整合成模型、十二个断言场景，以及明确保留的局限。可以复制运行，不需要密钥或外部服务。
 - [站内的 Message 类型整理](/notes/0426-vercel-ai-sdk-message-types)：讨论模型输入与应用状态的分层；本文进一步关注外部副作用发生后，本地状态凭什么恢复。两者相关，但不是同一个问题。
 - 私有项目只作为机制观察来源，不公开仓库、真实投递记录或运行环境。文中关于现有实现的描述来自源码静态阅读；教学测试验证的是这里重新表达的模型。没有提供线上改善比例，也没有把模拟结果换算成真实交付指标。
 
