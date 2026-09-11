@@ -163,6 +163,9 @@ export default defineConfig({
     contentIntellisense: true
   },
   vite: {
+    define: {
+      'import.meta.env.DRAFT_PREVIEW': JSON.stringify(process.env.VERCEL_ENV === 'preview')
+    },
     plugins: [
       //   visualizer({
       //     emitFile: true,

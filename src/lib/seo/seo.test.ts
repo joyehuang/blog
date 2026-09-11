@@ -13,6 +13,7 @@ import {
   submit,
   validateManifest
 } from '../../../scripts/seo/indexnow.mjs'
+import { detailAvailable, published } from './drafts'
 import { listingMetadata, sectionMetadata } from './metadata'
 
 const key = 'TEST-FIXTURE-NOT-A-REAL-KEY'
@@ -310,3 +311,41 @@ test('explicit SSR sections join the sitemap and source changes update their fin
     const next = JSON.parse(await readFile(join(dir, '.well-known/indexnow-manifest.json'), 'utf8'))
     expect(changedUrls(first, next)).toEqual([origin + '/about'])
   }))
+
+describe('draft publication policy', () => {
+  test('production denies drafts; explicit Preview and local dev allow detail only', () => {
+    for (const preview of [false, true])
+      for (const dev of [false, true]) {
+        expect(detailAvailable(false, preview, dev)).toBe(true)
+        expect(detailAvailable(true, preview, dev)).toBe(preview || dev)
+        expect(published({ data: { draft: true } })).toBe(false)
+      }
+  })
+  test('Contact metadata does not advertise discontinued services in either language', () => {
+    for (const path of ['/contact', '/en/contact']) {
+      const description = sectionMetadata(path)!.description
+      expect(description).toContain('QQ')
+      expect(description).not.toMatch(
+        /付费|模拟面试|简历辅导|微信|paid|consulting|mock interview|coaching|WeChat/i
+      )
+    }
+  })
+})
+
+test('fingerprints ignore generated IDs and temporary counts but retain content changes', () => {
+  const page = (
+    id: string,
+    count: number,
+    copy = 'Article',
+    href = '/article',
+    image = '/image.png'
+  ) =>
+    parseHtml(
+      `<title>Title</title><body><main id="${id}" data-astro-cid-${id}><a id="${id}" href="${href}">${copy}</a><img src="${image}" alt="Illustration"><span data-seo-volatile>${count}</span><span>★ ${count}</span><figure class="gh-contrib not-prose">${count}</figure></main></body>`,
+      '/'
+    ).fingerprint
+  expect(page('random1', 1)).toBe(page('random2', 99))
+  expect(page('random1', 1)).not.toBe(page('random1', 1, 'Updated'))
+  expect(page('random1', 1)).not.toBe(page('random1', 1, 'Article', '/changed'))
+  expect(page('random1', 1)).not.toBe(page('random1', 1, 'Article', '/article', '/new.png'))
+})

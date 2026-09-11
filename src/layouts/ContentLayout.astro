@@ -2,12 +2,12 @@
 import type { SiteMeta } from 'astro-pure/types'
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
-import BackToTop from '@/components/navigation/BackToTop.astro'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import BackToTop from '@/components/navigation/BackToTop.astro'
 import { integ } from '@/site-config'
 
 interface Props {
-  meta: SiteMeta
+  meta: SiteMeta & { noindex?: boolean }
   highlightColor?: string
   back?: string
 }

@@ -19,6 +19,29 @@ export function attrs(tag) {
     [...tag.matchAll(/([\w:-]+)\s*=\s*(["'])([\s\S]*?)\2/g)].map((m) => [m[1], decode(m[3])])
   )
 }
+export function stableContent(html) {
+  return decode(
+    html
+      .replace(
+        /<figure\b[^>]*class=["'][^"']*\bgh-contrib\b[^"']*["'][^>]*>[\s\S]*?<\/figure>/g,
+        ''
+      )
+      .replace(/<span data-seo-volatile(?:="[^"]*")?[^>]*>[\s\S]*?<\/span>/g, '')
+      .replace(/(?:⭐|★)\s*[\d,]+/g, '★')
+      .replace(/[\d,]+\+ GitHub Stars/g, 'GitHub Stars')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<([\w-]+)\b(?:"[^"]*"|'[^']*'|[^'">])*>/g, (tag, name) => {
+        const attributes = attrs(tag)
+        const semantic = ['href', 'src', 'srcset', 'alt', 'title']
+          .filter((key) => attributes[key] !== undefined)
+          .map((key) => [key, attributes[key]])
+        return `<${name}${JSON.stringify(semantic)}>`
+      })
+  )
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function parseHtml(html, path) {
   const metas = [...html.matchAll(/<meta\b(?:"[^"]*"|'[^']*'|[^'">])*>/g)].map((m) => attrs(m[0]))
   const links = [...html.matchAll(/<link\b(?:"[^"]*"|'[^']*'|[^'">])*>/g)].map((m) => attrs(m[0]))
@@ -38,11 +61,10 @@ export function parseHtml(html, path) {
   const alternates = links
     .filter((l) => l.rel === 'alternate' && l.hreflang)
     .map((l) => ({ lang: l.hreflang, url: l.href }))
-  // Main/article HTML preserves links and images for change detection; omit volatile scripts/styles and Astro scope hashes.
-  const content = (body.match(/<main\b[\s\S]*?<\/main>/)?.[0] || body).replace(
-    /data-astro-cid-[\w]+(?:="[^"]*")?/g,
-    ''
-  )
+  // Fingerprint semantic main content, not hydration IDs, style/scope hashes or
+  // request-time GitHub activity. Preserve text, link targets and image metadata.
+  const content = stableContent(body.match(/<main\b[\s\S]*?<\/main>/)?.[0] || body)
+
   return {
     path,
     canonical,

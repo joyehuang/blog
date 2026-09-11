@@ -14,9 +14,9 @@ const sections: Record<string, [string, string, string, string]> = {
   ],
   '/contact': [
     '联系我',
-    '查看 Joye 的联系方式：QQ 群用于日常技术交流与每周分享，微信用于付费咨询和模拟面试，另有邮件及社交平台入口。',
+    '通过 QQ 群与 Joye 交流 Agent / AI Native 技术、学习心得和项目实践，参与每周线上分享，并了解联系前的说明。',
     'Contact',
-    'Find Joye’s contact channels: QQ for community discussions and weekly talks, WeChat for paid consulting and mock interviews, plus email and social links.'
+    'Join Joye’s QQ community for Agent / AI Native discussions, learning notes, project retrospectives, and weekly talks. Read the guidelines before reaching out.'
   ],
   '/projects': [
     '项目',

@@ -39,14 +39,30 @@ editorial claim about how much the prose changed. Columns, tags, home, and decks
 omit lastmod because they have no audited aggregate-content modification rule.
 There is no build-time “today” fallback and no global git commit date.
 
-The manifest fingerprint includes metadata, the rendered main content (including
-links/images), explicit content dates and real alternates. Scripts, styles and
-Astro scope attributes are removed. List membership changes therefore notify the
-relevant listing pages. Existing dynamic home/portfolio/stat content may change
-its fingerprint on rebuild even if source is unchanged; it is limited to those
-pages, not a full-site submission. The stored previous manifest retains deleted
-URLs and pages that become noindex. No drafts are added to a collection or made
-public by this change; note detail routes now explicitly filter draft entries.
+The manifest fingerprint includes metadata, semantic main content (text, links,
+images), reliable content dates and real alternates. DOM IDs, presentation and
+hydration attributes, scripts/styles, GitHub activity widgets, star counters and
+the marked external page-view counter do not trigger submissions. Content edits,
+link/image changes and list membership still do. About keeps source fingerprints
+and request-time counters. This avoids random IDs and transient external responses
+causing notifications; it is not a visual/layout change detector.
+
+## Draft review
+
+Astro config compiles `VERCEL_ENV === 'preview'` into
+`import.meta.env.DRAFT_PREVIEW` for route code. No SSR process variable is needed.
+Blog and notes detail routes (both languages) allow drafts only in this Preview
+build or local `bun dev`; ordinary local production builds exclude drafts.
+Draft details always carry noindex and no hreflang, and cannot enter sitemap or
+IndexNow manifest. Recommendations exclude drafts even in development. Published
+hreflang pairs require both original and translation to be published. Existing
+Vercel Preview access protection remains unchanged. Lists stay publication-oriented
+in Preview; opening an explicit draft URL is the review workflow.
+
+Run `node scripts/seo/check-draft-fixtures.mjs` for actual production and Preview
+builds with temporary Chinese/English blog and note fixtures. It verifies direct
+routes, noindex, sitemap/manifest exclusion, no draft recommendations/hreflang,
+and removes fixtures in finally. Rebuild without fixtures afterward.
 
 ## Activation by the production reviewer
 

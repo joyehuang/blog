@@ -26,9 +26,9 @@ const databaseUrl = import.meta.env.WALINE_DATABASE_URL
 if (databaseUrl) {
   try {
     const { neon } = await import('@neondatabase/serverless')
-    const rows = (await neon(
-      databaseUrl
-    )`SELECT SUM(time) AS total FROM wl_counter`) as Array<{ total: string | number }>
+    const rows = (await neon(databaseUrl)`SELECT SUM(time) AS total FROM wl_counter`) as Array<{
+      total: string | number
+    }>
     const n = Number(rows[0]?.total)
     if (Number.isFinite(n)) pageViews = n
   } catch {
@@ -66,7 +66,9 @@ const items = [
     {
       items.map(({ label, value }) => (
         <div class='rounded-xl border bg-muted/30 px-4 py-3 text-center'>
-          <div class='text-2xl font-medium tabular-nums'>{value}</div>
+          <div class='text-2xl font-medium tabular-nums'>
+            {label === labels.pageViews ? <span data-seo-volatile>{value}</span> : value}
+          </div>
           <div class='mt-1 text-xs text-muted-foreground'>{label}</div>
         </div>
       ))
