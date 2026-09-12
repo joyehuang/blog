@@ -481,3 +481,25 @@ Legacy events retained only for historical data interpretation:
 5. Avoid high-cardinality or personal fields. Do not send raw user input.
 6. Verify in production with DevTools Network by checking for
    `/_vercel/insights/event`.
+
+## Blog Chat release contract
+
+Vercel Analytics is the only analytics provider, including the shared layout.
+Chat instrumentation constructs an allowlisted payload; it never forwards form
+values, question text, source titles, email, IP, session/account IDs, or terminal
+arguments. `page` is a route bucket (`home`, `article`, `other`) for these events.
+
+- `chat_open`: `surface` = `header` | `home` | `article` | `terminal`.
+- `chat_question`: `surface` as above; `kind` = `example` | `custom`.
+- `chat_result`: `surface`; `result` = `complete` | `stopped` | `error` | `login_required`.
+- `chat_login`: `surface`; `action` = `required` | `code_sent` | `verified` | `logout` | `error`.
+- `chat_source_click`: `surface`; `target` = `blog` | `notes` | `about` | `other`.
+
+All five also include `locale` = `zh` | `en`. Source clicks measure recommendation
+intent; ordinary links remain covered by Pages. No arbitrary URL is sent.
+`terminal_open` and `terminal_command` remain; unknown commands are bucketed as
+`unknown` so a question typed into the terminal cannot become an event property.
+Backend usage records use internal IDs in the private database only.
+
+Implementation status: release implementation and tests accompany this contract;
+production event receipt must be verified after an authorized launch.

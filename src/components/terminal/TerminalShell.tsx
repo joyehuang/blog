@@ -1,10 +1,10 @@
+import { trackSiteEvent } from '@/lib/analytics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { trackSiteEvent } from '@/lib/analytics'
-
 import { classifyTerminalCommand } from './analytics'
 import { commands, completeInput } from './commands'
+import { observeTerminalEligibility, terminalEligible } from './eligibility'
 import { fetchSiteFs } from './fs/client'
 import { ROOT_LABEL } from './fs/content'
 import { displayPath } from './fs/path'
@@ -124,7 +124,7 @@ function MatrixRain() {
     }
   }, [])
 
-  if (typeof document === 'undefined') return null
+  if (typeof document === 'undefined' || !terminalEligible()) return null
   return createPortal(
     <div className='wt-matrix-root' aria-hidden>
       <canvas ref={canvasRef} className='wt-matrix-canvas' />
@@ -137,6 +137,18 @@ const COLLAPSE_KEY = 'wt-collapsed'
 const PEEK_DEMOS = ['whoami', 'help', 'ls blog', 'chat hire-me', 'design', 'theme dark', 'matrix']
 
 export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
+  const [desktop, setDesktop] = useState(false)
+  useEffect(
+    () =>
+      observeTerminalEligibility((eligible) => {
+        setDesktop(eligible)
+        if (!eligible) {
+          setMatrixOn(false)
+          setCollapsed(true)
+        }
+      }),
+    []
+  )
   const [fs, setFs] = useState<FsNode | null>(null)
   const [entries, setEntries] = useState<RenderEntry[]>([])
   const [input, setInput] = useState('')
@@ -193,6 +205,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const expand = useCallback(
     (method = 'shell_click') => {
+      if (!terminalEligible() || document.querySelector('.blog-chat[open]')) return
       trackSiteEvent('terminal_open', {
         method,
         surface: 'home_terminal',
@@ -278,6 +291,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const runInput = useCallback(
     async (raw: string) => {
+      if (!terminalEligible()) return
       const trimmed = raw.trim()
       appendEntry({ kind: 'input', raw: trimmed, cwd })
       if (!trimmed) return
@@ -297,7 +311,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
       const args = parts.slice(1)
       const spec = commands[name]
       trackSiteEvent('terminal_command', {
-        command: name,
+        command: spec ? name : 'unknown',
         surface: 'terminal',
         target: 'terminal_shell',
         ...classifyTerminalCommand(name, args, fs, cwd, Boolean(spec))
@@ -373,6 +387,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
   // global hotkey: ` to focus / expand · Esc to collapse
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (!terminalEligible() || document.querySelector('.blog-chat[open]')) return
       const target = e.target as HTMLElement | null
       const inField =
         target &&
@@ -461,6 +476,7 @@ export default function Terminal({ user = 'joye', host = ROOT_LABEL }: Props) {
 
   const stopPropagation = (e: React.MouseEvent) => e.stopPropagation()
 
+  if (!desktop) return null
   return (
     <div
       className={`wt-shell ${collapsed ? 'wt-shell--collapsed' : ''}`}

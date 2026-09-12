@@ -1,0 +1,17 @@
+<script>
+  import { observeTerminalEligibility } from './eligibility'
+
+  observeTerminalEligibility((eligible) => {
+    document.documentElement.dataset.terminalEligible = String(eligible)
+    if (!eligible) {
+      document.documentElement.dataset.mode = 'human'
+      window.dispatchEvent(new Event('joye:exit-dev'))
+    }
+  })
+</script>
+<style is:global>
+  html:not([data-terminal-eligible='true'])
+    :is(#toggleDevMode, .desktop-terminal, .dev-root, .wt-matrix-root) {
+    display: none !important;
+  }
+</style>

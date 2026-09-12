@@ -13,6 +13,7 @@ import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import CopyrightEn from '@/components/blog/CopyrightEn.astro'
 import HeroEn from '@/components/blog/HeroEn.astro'
+import ChatCTA from '@/components/chat/ChatCTA.astro'
 import Comment from '@/components/comment/Comment.astro'
 import JsonLd from '@/components/JsonLd.astro'
 import TableOfContents from '@/components/navigation/TableOfContents.astro'
@@ -114,6 +115,7 @@ const breadcrumbLd = {
   <slot />
 
   <Fragment slot='bottom'>
+    <ChatCTA surface='article' lang={lang} />
     {/* Copyright */}
     {lang === 'en' ? <CopyrightEn {data} /> : <Copyright {data} />}
     {/* Article recommend */}

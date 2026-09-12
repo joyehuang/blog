@@ -1,5 +1,11 @@
 ---
-import { getLangFromUrl, hasEnAlternate, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
+import {
+  getLangFromUrl,
+  hasEnAlternate,
+  localizedPath,
+  useTranslations,
+  type Lang
+} from '@/i18n/ui'
 
 import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
@@ -76,6 +82,11 @@ const searchHref = localizedPath('/search', lang)
 
     {/* buttons */}
     <div class='z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
+      <button
+        data-chat-open='header'
+        class='rounded-md border px-2 text-xs text-primary'
+        aria-label='Open Chat'>Chat</button
+      >
       <LanguageSwitcher lang={lang} />
       <button
         id='toggleDevMode'
@@ -115,8 +126,11 @@ const searchHref = localizedPath('/search', lang)
   }
 </script>
 <script>
-  import { setTheme, showToast } from 'astro-pure/utils'
   import { trackSiteEvent } from '@/lib/analytics'
+
+  import { setTheme, showToast } from 'astro-pure/utils'
+
+  import { terminalEligible } from './terminal/eligibility'
 
   class Header extends HTMLElement {
     private toggleMenuBtn: HTMLElement | null = null
@@ -163,6 +177,7 @@ const searchHref = localizedPath('/search', lang)
       })
 
       this.querySelector('#toggleDevMode')?.addEventListener('click', () => {
+        if (!terminalEligible()) return
         if (document.documentElement.dataset.mode !== 'dev') {
           trackSiteEvent('terminal_open', {
             method: 'window_control',
