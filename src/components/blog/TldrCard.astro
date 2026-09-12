@@ -1,6 +1,6 @@
 ---
 /**
- * TL;DR card for the top of a blog post.
+ * TL;DR block for the top of a blog post.
  *
  * Usage (mdx):
  *   <TldrCard>
@@ -8,8 +8,9 @@
  *     - point two
  *   </TldrCard>
  *
- * The slot is expected to be a markdown list; it is rendered as prose so the
- * post's own list styling applies.
+ * Quiet, editorial: a muted fill with a hairline border, no shadow, no
+ * accent gradient, body font only (see DESIGN.md → Overview, Typography).
+ * The slot is a markdown list; the post's prose list styling applies.
  */
 interface Props {
   label?: string
@@ -18,54 +19,33 @@ interface Props {
 const { label = 'TL;DR' } = Astro.props
 ---
 
-<aside class='tldr-card' aria-label={label}>
-  <div class='tldr-card-label'>{label}</div>
-  <div class='tldr-card-body'>
+<aside class='tldr not-prose my-8 rounded-lg border bg-muted/40 px-5 py-4 sm:px-6' aria-label={label}>
+  <p class='m-0 text-xs font-medium uppercase tracking-wider text-muted-foreground'>{label}</p>
+  <div class='tldr-body mt-2 text-[0.95rem] leading-relaxed text-foreground'>
     <slot />
   </div>
 </aside>
 
 <style>
-  .tldr-card {
-    margin: 1.5rem 0 2rem;
-    border: 1px solid hsl(var(--border));
-    border-left: 3px solid hsl(var(--primary) / 0.7);
-    border-radius: 8px;
-    background: linear-gradient(135deg, hsl(var(--muted) / 0.6), hsl(var(--background)));
-    padding: 1rem 1.25rem;
-    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
+  .tldr-body :global(ul) {
+    margin: 0;
+    padding-left: 1.1rem;
+    list-style: disc;
   }
 
-  .tldr-card-label {
-    color: hsl(var(--primary));
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.78rem;
+  .tldr-body :global(li) {
+    margin: 0.4rem 0;
+  }
+
+  .tldr-body :global(li::marker) {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .tldr-body :global(p) {
+    margin: 0;
+  }
+
+  .tldr-body :global(strong) {
     font-weight: 600;
-    letter-spacing: 0.04em;
-  }
-
-  .tldr-card-body {
-    margin-top: 0.35rem;
-    font-size: 0.95rem;
-    line-height: 1.7;
-  }
-
-  .tldr-card-body :global(ul) {
-    margin: 0;
-    padding-left: 1.2rem;
-  }
-
-  .tldr-card-body :global(li) {
-    margin: 0.35rem 0;
-  }
-
-  .tldr-card-body :global(p) {
-    margin: 0;
-  }
-
-  @media (max-width: 640px) {
-    .tldr-card {
-      padding: 0.9rem 1rem;
-    }
   }
 </style>
