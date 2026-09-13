@@ -36,6 +36,9 @@ describe('SOA QQ registration boundary', () => {
     ]) {
       expect(source).toContain(text)
     }
+    // Global link hover colors must not become identical to the solid CTA background.
+    expect(source).toContain('hover:text-primary-foreground')
+    expect(source).toContain('focus-visible:text-primary-foreground')
     expect(source).not.toContain('<form')
     expect(source).toContain('setInterval(refresh, 1000)')
     expect(source).toContain('copy.disabled = isCompetitionClosed()')
