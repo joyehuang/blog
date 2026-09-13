@@ -179,6 +179,14 @@ Required properties:
 successful signup. Never send the submitted nickname, contact, or note — they
 are personal data. Use this to see which topics attract real signup intent.
 
+### `soa_registration_intent`
+
+Implemented on `/agent-teams`: QQ registration guidance interactions, not confirmed registrations.
+Required properties: `locale`, `page`, `surface: soa_registration`,
+`action: join_group | copy`, `target: qq_group | registration_example`.
+Join opens the existing group QR guidance; copy records a click on a fixed public
+example or group number. No QQ identity, repository input or clipboard content is collected.
+
 ### `intro_start`
 
 Home page entrance animation starts.
@@ -445,6 +453,7 @@ Implemented in current code:
 - `github_link_click`
 - `agent_competition_click`
 - `agent_team_signup`
+- `soa_registration_intent`
 - `intro_start`
 - `intro_complete`
 - `intro_skip`

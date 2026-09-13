@@ -4,6 +4,7 @@
 // 一旦撞车或被改动，报名名单就会串。这些是纯数据断言，`bun test` 直接跑，无需 DB。
 
 import { describe, expect, test } from 'bun:test'
+
 import { activity, isSignupClosed, teams } from './agent-teams'
 
 describe('teams 配置', () => {
@@ -59,8 +60,8 @@ describe('teams 配置', () => {
 
 describe('activity 配置', () => {
   test('deadline 是合法的 YYYY-MM-DD', () => {
-    expect(activity.deadline).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(Number.isNaN(Date.parse(activity.deadline))).toBe(false)
+    expect(activity.legacyTeamDeadline).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(Number.isNaN(Date.parse(activity.legacyTeamDeadline))).toBe(false)
   })
 
   test('title / subtitle / tagline 非空', () => {
@@ -78,7 +79,7 @@ describe('activity 配置', () => {
     expect(Number.isNaN(closes)).toBe(false)
     expect(activity.signupClosesAt).toMatch(/[+-]\d{2}:\d{2}$/)
     // 晚 12 点 = deadline 次日 00:00
-    const deadlineMidnight = Date.parse(`${activity.deadline}T00:00:00+08:00`)
+    const deadlineMidnight = Date.parse(`${activity.legacyTeamDeadline}T00:00:00+08:00`)
     expect(closes - deadlineMidnight).toBe(24 * 60 * 60 * 1000)
   })
 

@@ -23,10 +23,12 @@ export const activity = {
   /** 比赛的英文名 / 品牌名 */
   name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
-  subtitle: '比赛进行中',
-  tagline: '组队已经截止啦，现在各队都在开发中。围观、追进度、找灵感都欢迎，对 Agent 感兴趣就来看看 🤖',
+  subtitle: '延期至 2026 年 9 月 30 日',
+  tagline:
+    '第一届 SOA 延期至 2026 年 9 月 30 日 23:59（北京时间）。截止前加入粉丝群 831907794，@bot 发送明确报名句与公开 GitHub 仓库即可登记。',
   /** 组队截止日（YYYY-MM-DD，测试会校验格式） */
-  deadline: '2026-07-10',
+  legacyTeamDeadline: '2026-07-10',
+  competitionClosesAt: '2026-10-01T00:00:00+08:00',
   /** 组队截止时刻（北京时间 7/10 晚 12 点）——过点后 API 与看板同时关闭报名/建队 */
   signupClosesAt: '2026-07-11T00:00:00+08:00',
   /** 活动详情文档（飞书 wiki） */
@@ -36,6 +38,17 @@ export const activity = {
 /** 组队是否已截止——报名 / 建队通道随之关闭（API 与看板共用） */
 export function isSignupClosed(now: number = Date.now()): boolean {
   return now >= Date.parse(activity.signupClosesAt)
+}
+
+/** QQ 新报名与修改的关闭边界；不影响旧网站 API。 */
+export function isCompetitionClosed(now: number = Date.now()): boolean {
+  return now >= Date.parse(activity.competitionClosesAt)
+}
+
+export function competitionStatus(now: number = Date.now()) {
+  return isCompetitionClosed(now)
+    ? { label: '比赛已截止 · 仍可查询本人登记', cta: '进粉丝群查询既有登记' }
+    : { label: 'QQ bot 直报开放中', cta: '进粉丝群找 bot 报名' }
 }
 
 /** 第一届比赛的真实赛道 —— 简介 / tags 可随时改，id 上线后勿动 */
