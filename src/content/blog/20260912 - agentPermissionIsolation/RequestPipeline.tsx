@@ -7,11 +7,17 @@
  * 1. 点一个检查点：看它问什么、硬约束是什么、跳过会怎样、对应哪条负向测试。
  * 2. 选一条请求：看它一关一关走到哪里被拦下（通过 / 拦下 / 部分 / 没走到）。
  *
+ * 布局稳定性：
+ * - 节点里的判定徽章绝对定位在右上角、宽度固定，出现 / 消失只改透明度，
+ *   节点尺寸不随场景变化。
+ * - 下方面板的两种内容（检查点说明 / 场景推演）叠在同一个 grid 单元里做淡入淡出，
+ *   外层高度由 ResizeObserver 量出来后用 transition 平滑过渡，而不是跳变。
+ * - 场景推演的五行始终渲染，逐关揭示只改透明度和位移，不改行高。
+ *
  * 样式只用站点的语义 token（--border / --card / --primary / --destructive …），
- * 明暗主题自动跟随，不需要 .dark 覆盖。动画只有颜色过渡和逐关揭示，
- * prefers-reduced-motion 下全部取消。
+ * 明暗主题自动跟随。prefers-reduced-motion 下所有过渡和逐关动画取消。
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 type CheckpointId = 'entry' | 'context' | 'tools' | 'runtime' | 'exit'
 type Verdict = 'pass' | 'deny' | 'partial' | 'skip'
@@ -188,6 +194,9 @@ const VERDICT_LABEL: Record<Verdict, string> = {
   skip: '没走到'
 }
 
+const STEP_MS = 320
+const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'
+
 const CSS = `
 .rp {
   --rp-line: hsl(var(--border));
@@ -198,6 +207,8 @@ const CSS = `
   --rp-accent: hsl(var(--primary));
   --rp-deny: hsl(var(--destructive));
   --rp-deny-fg: hsl(var(--destructive-foreground));
+  --rp-ease: ${EASE};
+  --rp-dur: 0.32s;
   margin: 1.5rem 0 2rem;
   border: 1px solid var(--rp-line);
   border-radius: 8px;
@@ -218,6 +229,7 @@ const CSS = `
 .rp-title { font-weight: 600; }
 .rp-hint { color: var(--rp-muted); font-size: 0.8rem; }
 
+/* ---------- 五个节点 ---------- */
 .rp-flow {
   display: flex;
   align-items: stretch;
@@ -236,6 +248,7 @@ const CSS = `
   user-select: none;
 }
 .rp-node {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -251,10 +264,10 @@ const CSS = `
   font: inherit;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    opacity 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color var(--rp-dur) var(--rp-ease),
+    background-color var(--rp-dur) var(--rp-ease),
+    opacity var(--rp-dur) var(--rp-ease),
+    box-shadow var(--rp-dur) var(--rp-ease);
 }
 .rp-node:hover { border-color: hsl(var(--foreground) / 0.3); }
 .rp-node:focus-visible { outline: 2px solid var(--rp-accent); outline-offset: 2px; }
@@ -274,23 +287,47 @@ const CSS = `
   overflow: hidden;
 }
 
+/* ---------- 判定徽章：固定宽度、居中、只用透明度进出 ---------- */
 .rp-badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 600;
-  line-height: 1.4;
-  padding: 0.05rem 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 4.4em;
+  height: 1.5em;
+  padding: 0 0.5em;
   border-radius: 999px;
   border: 1px solid var(--rp-line);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
+  transition:
+    color var(--rp-dur) var(--rp-ease),
+    background-color var(--rp-dur) var(--rp-ease),
+    border-color var(--rp-dur) var(--rp-ease),
+    opacity var(--rp-dur) var(--rp-ease),
+    transform var(--rp-dur) var(--rp-ease);
 }
 .rp-badge[data-verdict='pass'] { color: var(--rp-accent); border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.12); }
 .rp-badge[data-verdict='deny'] { color: var(--rp-deny-fg); border-color: transparent; background: var(--rp-deny); }
 .rp-badge[data-verdict='partial'] { color: var(--rp-muted); border-style: dashed; }
-.rp-badge[data-verdict='skip'] { color: var(--rp-muted); }
+.rp-badge[data-verdict='skip'],
 .rp-badge[data-verdict='idle'] { color: var(--rp-muted); }
-.rp-node .rp-badge { margin-top: 0.25rem; }
+.rp-node-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 1;
+  transform: none;
+}
+.rp-node-badge[data-verdict='idle'] {
+  opacity: 0;
+  transform: translateY(-2px) scale(0.92);
+  pointer-events: none;
+}
 
+/* ---------- 场景按钮 ---------- */
 .rp-scenarios {
   display: flex;
   flex-wrap: wrap;
@@ -311,29 +348,54 @@ const CSS = `
   font-size: 0.8rem;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease;
+    border-color var(--rp-dur) var(--rp-ease),
+    background-color var(--rp-dur) var(--rp-ease),
+    color var(--rp-dur) var(--rp-ease);
 }
 .rp-chip:hover { border-color: hsl(var(--foreground) / 0.3); }
 .rp-chip:focus-visible { outline: 2px solid var(--rp-accent); outline-offset: 2px; }
 .rp-chip[aria-pressed='true'] { border-color: var(--rp-accent); background: hsl(var(--primary) / 0.12); color: var(--rp-accent); }
 
+/* ---------- 面板：高度平滑过渡，两种内容叠放淡入淡出 ---------- */
 .rp-panel {
   margin-top: 0.9rem;
   border-radius: 8px;
   background: hsl(var(--muted) / 0.45);
-  padding: 0.8rem 0.9rem;
+  overflow: hidden;
+  transition: height var(--rp-dur) var(--rp-ease);
 }
-.rp-panel h4 { margin: 0 0 0.55rem; font-size: 0.95rem; font-weight: 600; line-height: 1.4; }
-.rp-panel dl {
+.rp-stack {
+  display: grid;
+}
+.rp-pane {
+  grid-area: 1 / 1;
+  align-self: start;
+  padding: 0.8rem 0.9rem;
+  transition:
+    opacity var(--rp-dur) var(--rp-ease),
+    transform var(--rp-dur) var(--rp-ease),
+    visibility 0s linear var(--rp-dur);
+  opacity: 0;
+  transform: translateY(4px);
+  visibility: hidden;
+  pointer-events: none;
+}
+.rp-pane[data-active='true'] {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.rp-pane h4 { margin: 0 0 0.55rem; font-size: 0.95rem; font-weight: 600; line-height: 1.4; }
+.rp-pane dl {
   margin: 0;
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 0.4rem 0.9rem;
 }
-.rp-panel dt { color: var(--rp-muted); font-size: 0.8rem; padding-top: 0.1rem; }
-.rp-panel dd { margin: 0; }
+.rp-pane dt { color: var(--rp-muted); font-size: 0.8rem; padding-top: 0.1rem; }
+.rp-pane dd { margin: 0; }
 
 .rp-msg {
   display: flex;
@@ -348,43 +410,62 @@ const CSS = `
 .rp-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
 .rp-step {
   display: grid;
-  grid-template-columns: 6.5rem 3.6rem 1fr;
+  grid-template-columns: 6.5rem max-content 1fr;
   gap: 0.5rem;
-  align-items: baseline;
+  align-items: center;
   padding: 0.3rem 0.45rem;
   border-radius: 6px;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  opacity: 0.35;
+  transform: translateX(-4px);
+  transition:
+    background-color var(--rp-dur) var(--rp-ease),
+    opacity var(--rp-dur) var(--rp-ease),
+    transform var(--rp-dur) var(--rp-ease);
 }
+.rp-step[data-shown='true'] { opacity: 1; transform: none; }
+.rp-step[data-shown='true'][data-verdict='skip'] { opacity: 0.5; }
 .rp-step[data-focus='true'] { background: hsl(var(--background) / 0.8); }
-.rp-step[data-verdict='idle'],
-.rp-step[data-verdict='skip'] { opacity: 0.5; }
 .rp-step-name { font-weight: 500; white-space: nowrap; }
-.rp-step-note { font-size: 0.85rem; }
+.rp-step-note {
+  font-size: 0.85rem;
+  transition: opacity var(--rp-dur) var(--rp-ease);
+}
+.rp-step[data-shown='false'] .rp-step-note { opacity: 0; }
 .rp-outcome {
   margin: 0.7rem 0 0;
   padding-top: 0.6rem;
   border-top: 1px dashed var(--rp-line);
   font-weight: 500;
+  opacity: 0;
+  transform: translateY(3px);
+  transition:
+    opacity var(--rp-dur) var(--rp-ease),
+    transform var(--rp-dur) var(--rp-ease);
 }
+.rp-outcome[data-shown='true'] { opacity: 1; transform: none; }
 
 @media (max-width: 640px) {
   .rp { padding: 0.85rem 0.8rem 0.9rem; }
   .rp-flow { flex-direction: column; gap: 0.2rem; }
   .rp-arrow { transform: rotate(90deg); }
-  .rp-node { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.5rem; }
+  .rp-node { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.5rem; padding-right: 5.2rem; }
   .rp-q { -webkit-line-clamp: 1; }
-  .rp-panel dl { grid-template-columns: 1fr; gap: 0.15rem; }
-  .rp-panel dd { margin-bottom: 0.45rem; }
-  .rp-step { grid-template-columns: 1fr auto; }
+  .rp-node-badge { top: 50%; transform: translateY(-50%); }
+  .rp-node-badge[data-verdict='idle'] { transform: translateY(-50%) scale(0.92); }
+  .rp-pane dl { grid-template-columns: 1fr; gap: 0.15rem; }
+  .rp-pane dd { margin-bottom: 0.45rem; }
+  .rp-step { grid-template-columns: 1fr max-content; }
   .rp-step-note { grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rp-node, .rp-chip, .rp-step { transition: none; }
+  .rp-node, .rp-badge, .rp-chip, .rp-panel, .rp-pane, .rp-step, .rp-step-note, .rp-outcome {
+    transition: none;
+  }
 }
 `
 
-function NodePanel({ cp }: { cp: Checkpoint }) {
+function NodePane({ cp }: { cp: Checkpoint }) {
   return (
     <div>
       <h4>
@@ -402,7 +483,7 @@ function NodePanel({ cp }: { cp: Checkpoint }) {
   )
 }
 
-function ScenarioPanel({
+function ScenarioPane({
   scenario,
   revealed,
   focus
@@ -422,21 +503,28 @@ function ScenarioPanel({
         {CHECKPOINTS.map((cp, i) => {
           const step = scenario.steps[cp.id]
           const shown = i < revealed
-          const verdict: NodeVerdict = shown ? step.verdict : 'idle'
           return (
-            <li className='rp-step' data-verdict={verdict} data-focus={focus === cp.id} key={cp.id}>
+            <li
+              className='rp-step'
+              data-shown={shown}
+              data-verdict={step.verdict}
+              data-focus={focus === cp.id}
+              key={cp.id}
+            >
               <span className='rp-step-name'>
                 {cp.num} {cp.name}
               </span>
-              <span className='rp-badge' data-verdict={verdict}>
+              <span className='rp-badge' data-verdict={shown ? step.verdict : 'idle'}>
                 {shown ? VERDICT_LABEL[step.verdict] : '…'}
               </span>
-              <span className='rp-step-note'>{shown ? step.note : ''}</span>
+              <span className='rp-step-note'>{step.note}</span>
             </li>
           )
         })}
       </ul>
-      {done && <p className='rp-outcome'>{scenario.outcome}</p>}
+      <p className='rp-outcome' data-shown={done}>
+        {scenario.outcome}
+      </p>
     </div>
   )
 }
@@ -445,11 +533,27 @@ export default function RequestPipeline() {
   const [node, setNode] = useState<CheckpointId>('entry')
   const [scenarioId, setScenarioId] = useState<string | null>(null)
   const [revealed, setRevealed] = useState(0)
+  const [panelHeight, setPanelHeight] = useState<number | null>(null)
+
+  // 场景清掉后，徽章淡出期间仍显示上一次的判定文字，避免文字先消失再淡出。
+  const lastLabel = useRef<Record<CheckpointId, string>>({
+    entry: '',
+    context: '',
+    tools: '',
+    runtime: '',
+    exit: ''
+  })
+  // 面板淡出期间仍渲染上一次的场景，同样是为了过渡不闪。
+  const lastScenario = useRef<Scenario>(SCENARIOS[0])
 
   const scenario = SCENARIOS.find((s) => s.id === scenarioId) ?? null
+  if (scenario) lastScenario.current = scenario
   const current = CHECKPOINTS.find((cp) => cp.id === node) ?? CHECKPOINTS[0]
 
-  // Reveal the verdicts one checkpoint at a time; instantly under reduced motion.
+  const nodePaneRef = useRef<HTMLDivElement>(null)
+  const scenarioPaneRef = useRef<HTMLDivElement>(null)
+
+  // 逐关揭示判定；reduced-motion 下一次性全部显示。
   useEffect(() => {
     if (!scenarioId) {
       setRevealed(0)
@@ -466,9 +570,23 @@ export default function RequestPipeline() {
       i += 1
       setRevealed(i)
       if (i >= CHECKPOINTS.length) window.clearInterval(timer)
-    }, 260)
+    }, STEP_MS)
     return () => window.clearInterval(timer)
   }, [scenarioId])
+
+  // 面板高度跟随当前可见的那一块内容，用 transition 平滑到位。
+  useLayoutEffect(() => {
+    const active = scenario ? scenarioPaneRef.current : nodePaneRef.current
+    if (!active) return
+    const measure = () => {
+      const h = active.getBoundingClientRect().height
+      if (h > 0) setPanelHeight(Math.ceil(h))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(active)
+    return () => ro.disconnect()
+  }, [scenario, node])
 
   return (
     <div className='rp not-prose'>
@@ -483,6 +601,7 @@ export default function RequestPipeline() {
         {CHECKPOINTS.map((cp, i) => {
           const step = scenario?.steps[cp.id]
           const verdict: NodeVerdict = scenario && step && i < revealed ? step.verdict : 'idle'
+          if (verdict !== 'idle') lastLabel.current[cp.id] = VERDICT_LABEL[verdict]
           return (
             <li className='rp-cell' key={cp.id}>
               <button
@@ -495,11 +614,13 @@ export default function RequestPipeline() {
                 <span className='rp-num'>{cp.num}</span>
                 <span className='rp-name'>{cp.name}</span>
                 <span className='rp-q'>{cp.question}</span>
-                {verdict !== 'idle' && (
-                  <span className='rp-badge' data-verdict={verdict}>
-                    {VERDICT_LABEL[verdict]}
-                  </span>
-                )}
+                <span
+                  className='rp-badge rp-node-badge'
+                  data-verdict={verdict}
+                  aria-hidden={verdict === 'idle'}
+                >
+                  {verdict === 'idle' ? lastLabel.current[cp.id] : VERDICT_LABEL[verdict]}
+                </span>
               </button>
               {i < CHECKPOINTS.length - 1 && (
                 <span className='rp-arrow' aria-hidden='true'>
@@ -526,12 +647,19 @@ export default function RequestPipeline() {
         ))}
       </div>
 
-      <div className='rp-panel' aria-live='polite'>
-        {scenario ? (
-          <ScenarioPanel scenario={scenario} revealed={revealed} focus={node} />
-        ) : (
-          <NodePanel cp={current} />
-        )}
+      <div
+        className='rp-panel'
+        aria-live='polite'
+        style={panelHeight === null ? undefined : { height: panelHeight }}
+      >
+        <div className='rp-stack'>
+          <div className='rp-pane' data-active={!scenario} aria-hidden={!!scenario} ref={nodePaneRef}>
+            <NodePane cp={current} />
+          </div>
+          <div className='rp-pane' data-active={!!scenario} aria-hidden={!scenario} ref={scenarioPaneRef}>
+            <ScenarioPane scenario={lastScenario.current} revealed={revealed} focus={node} />
+          </div>
+        </div>
       </div>
     </div>
   )
