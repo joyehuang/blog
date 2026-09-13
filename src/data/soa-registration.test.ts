@@ -21,14 +21,11 @@ describe('SOA QQ registration boundary', () => {
   test('static page gives timezone, explicit bot syntax and separate historical data', () => {
     const source = read('../components/agent-teams/SoaRegistration.astro').replace(/\s+/g, ' ')
     for (const text of [
-      '2026 年 9 月 30 日 23:59',
-      '北京时间，UTC+8',
+      '9月30日23:59截止（北京时间）',
       '我要报名SOA owner/repo',
-      '我要报名SOA https://github.com/owner/repo',
       '查询我的SOA报名',
       '更新我的SOA报名 owner/repo',
       '报名编号',
-      'QQ 新报名暂不自动出现在此列表',
       '仅分享 repo 不会自动报名',
       'qq-group-contact.jpg',
       'navigator.clipboard.writeText',
@@ -41,12 +38,17 @@ describe('SOA QQ registration boundary', () => {
     expect(source).toContain('focus-visible:text-primary-foreground')
     expect(source).not.toContain('<form')
     expect(source).toContain('setInterval(refresh, 1000)')
-    expect(source).toContain('copy.disabled = isCompetitionClosed()')
+    expect(source).toContain('copy.disabled = closed')
+    expect(source).toContain('if (closed === previousClosed) return')
+    expect(source).toContain('panel.inert = !open')
+    expect(source).toContain('prefers-reduced-motion: reduce')
   })
 
   test('historical board retains API, roster and repository rendering', () => {
     const source = read('../components/agent-teams/AgentTeamsBoard.astro')
     for (const text of [
+      '此列表为原网站队伍，QQ 新报名暂未同步',
+      '旧成员无需重复报名',
       'data-roster',
       'data-github-link',
       'githubUrl',

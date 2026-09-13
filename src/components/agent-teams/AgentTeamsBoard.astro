@@ -1,6 +1,7 @@
 ---
-import SoaRegistration from './SoaRegistration.astro'
 import { activity, isSignupClosed, teams } from '@/data/agent-teams'
+
+import SoaRegistration from './SoaRegistration.astro'
 
 // 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
 // 脚本挂载后 fetch('/api/agent-teams') 填充。这样页面本身可静态缓存。
@@ -9,53 +10,50 @@ const signupClosed = isSignupClosed()
 ---
 
 <section class='agent-board not-prose mt-6 flex flex-col' data-agent-board>
-  <header class='board-hero mb-6 overflow-visible rounded-2xl border p-5 sm:mb-8 sm:overflow-hidden sm:p-8'>
-    <div class='board-hero-inner flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6'>
-      <div class='min-w-0 sm:flex-1'>
-        <div class='flex flex-wrap items-center gap-2 text-xs font-medium'>
-          <span
-            class='rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-0.5 text-amber-700 dark:text-amber-300'
-          >
-            {activity.title}
-          </span>
-          <span class='text-muted-foreground'>{activity.subtitle}</span>
-        </div>
-        <h1 class='board-title mt-3 text-3xl font-bold tracking-tight sm:text-5xl'>
-          {activity.name}
-        </h1>
-        <SoaRegistration />
-      </div>
-
-      {/* 参评队伍数：只统计至少有一位报名队员、最终可以参加评选的队伍。
-          名单还没拉到前无法判断，先播放 loading 动效，数据到手后再数字滚动到位。 */}
-      <div
-        class='team-count-card shrink-0 self-start overflow-hidden rounded-xl border px-6 py-5 text-center sm:self-center'
-        data-team-count-card
-      >
-        <div class='team-count-stage'>
-          <div class='team-count-loader' data-team-count-loader aria-hidden='true'>
-            <span class='team-count-dot'></span>
-            <span class='team-count-dot'></span>
-            <span class='team-count-dot'></span>
-          </div>
-          <div
-            class='team-count-number text-5xl font-bold leading-none sm:text-6xl'
-            data-team-count-number
-            aria-live='polite'
-            aria-hidden='true'
-          >
-            0
-          </div>
-        </div>
-        <div class='team-count-label mt-1.5 text-xs font-medium text-muted-foreground'>
-          <span class='sr-only' data-team-count-loading-label>原网站队伍数量加载中，</span>支原网站队伍
-        </div>
-      </div>
-    </div>
+  <header class='board-hero mb-8 border-b pb-8'>
+    <p class='text-sm text-muted-foreground'>{activity.title}</p>
+    <h1 class='board-title mt-2 text-3xl font-medium tracking-tight sm:text-4xl'>
+      {activity.name}
+    </h1>
+    <p class='mt-3 text-base leading-relaxed text-muted-foreground'>
+      用公开的 GitHub 项目，做一个你想用的 Agent。
+    </p>
+    <SoaRegistration />
   </header>
 
+  <div class='mb-4'>
+    <div class='flex flex-wrap items-baseline gap-x-3 gap-y-1'>
+      <h2 class='text-xl font-medium' id='historical-teams'>原网站队伍</h2>
+      <div
+        class='team-count-card flex items-center gap-1 text-sm text-muted-foreground'
+        data-team-count-card
+      >
+        <span class='team-count-stage'>
+          <span class='team-count-loader' data-team-count-loader aria-hidden='true'>…</span>
+          <span
+            class='team-count-number'
+            data-team-count-number
+            aria-live='polite'
+            aria-hidden='true'>0</span
+          >
+        </span>
+        <span
+          ><span class='sr-only' data-team-count-loading-label>队伍数量加载中，</span>支队伍</span
+        >
+      </div>
+    </div>
+    <p class='mt-2 text-sm leading-relaxed text-muted-foreground'>
+      此列表为原网站队伍，QQ 新报名暂未同步。旧成员无需重复报名。
+    </p>
+  </div>
+
   {/* 首次拉取名单 / 自定义赛道期间的进度条，加载完成后由脚本隐藏 */}
-  <div class='board-loading-bar mb-5' data-board-loading role='status' aria-label='正在加载赛道数据…'>
+  <div
+    class='board-loading-bar mb-5'
+    data-board-loading
+    role='status'
+    aria-label='正在加载赛道数据…'
+  >
     <span class='board-loading-fill'></span>
   </div>
 
@@ -68,7 +66,14 @@ const signupClosed = isSignupClosed()
   </p>
 
   <div class='team-search mb-5 flex items-center gap-3 rounded-xl border bg-background px-3 py-2.5'>
-    <svg aria-hidden='true' viewBox='0 0 24 24' class='size-4 shrink-0 text-muted-foreground' fill='none' stroke='currentColor' stroke-width='2'>
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 24 24'
+      class='size-4 shrink-0 text-muted-foreground'
+      fill='none'
+      stroke='currentColor'
+      stroke-width='2'
+    >
       <circle cx='11' cy='11' r='8'></circle>
       <path d='m21 21-4.3-4.3'></path>
     </svg>
@@ -81,10 +86,14 @@ const signupClosed = isSignupClosed()
       autocomplete='off'
       data-team-search
     />
-    <span class='shrink-0 text-xs text-muted-foreground' data-search-status aria-live='polite'></span>
+    <span class='shrink-0 text-xs text-muted-foreground' data-search-status aria-live='polite'
+    ></span>
   </div>
 
-  <p class='mb-5 hidden rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground' data-search-empty>
+  <p
+    class='mb-5 hidden rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground'
+    data-search-empty
+  >
     没找到匹配的队伍，换个关键词试试。
   </p>
 
@@ -93,13 +102,15 @@ const signupClosed = isSignupClosed()
     {
       teams.map((team) => (
         <article
-          class='team-card relative flex flex-col gap-3 rounded-xl border bg-background p-4 sm:p-5 sm:min-h-[15rem]'
+          class='team-card relative flex flex-col gap-3 rounded-lg border bg-card p-4 sm:p-5 sm:min-h-[15rem]'
           data-team-id={team.id}
           data-capacity={team.capacity ?? ''}
           data-loaded='false'
         >
           <div class='flex items-start justify-between gap-3'>
-            <h2 class='m-0 text-lg font-medium text-foreground' data-title>{team.title}</h2>
+            <h2 class='m-0 text-lg font-medium text-foreground' data-title>
+              {team.title}
+            </h2>
             <span
               class='skeleton count-label inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
               data-count-label
@@ -129,7 +140,7 @@ const signupClosed = isSignupClosed()
             rel='noopener noreferrer'
           >
             <svg aria-hidden='true' viewBox='0 0 24 24' class='size-3.5' fill='currentColor'>
-              <path d='M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.74-1.55-2.57-.29-5.27-1.29-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18a10.9 10.9 0 0 1 5.75 0c2.19-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.71 5.4-5.29 5.68.42.36.78 1.07.78 2.16v3.2c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z'></path>
+              <path d='M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2.23c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.74-1.55-2.57-.29-5.27-1.29-5.27-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18a10.9 10.9 0 0 1 5.75 0c2.19-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.71 5.4-5.29 5.68.42.36.78 1.07.78 2.16v3.2c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z' />
             </svg>
             GitHub 仓库 ↗
           </a>
@@ -139,7 +150,10 @@ const signupClosed = isSignupClosed()
               <span class='sr-only'>名单加载中…</span>
               {/* 骨架屏的人数跟着名额走（名额越大占位越多），加载完切成真名单时不会跳得太突兀。 */}
               {Array.from({
-                length: Math.min(5, Math.max(2, team.capacity ? Math.round(team.capacity / 2.5) : 3))
+                length: Math.min(
+                  5,
+                  Math.max(2, team.capacity ? Math.round(team.capacity / 2.5) : 3)
+                )
               }).map((_, i) => (
                 <span
                   class={`skeleton h-5 rounded-full ${['w-16', 'w-12', 'w-14', 'w-10', 'w-16'][i % 5]}`}
@@ -219,7 +233,11 @@ const signupClosed = isSignupClosed()
                 placeholder='想说的一句话'
               />
             </label>
-            <label class='passcode-field flex-col gap-1 text-xs text-muted-foreground' data-passcode-field hidden>
+            <label
+              class='passcode-field flex-col gap-1 text-xs text-muted-foreground'
+              data-passcode-field
+              hidden
+            >
               报名口令
               <input
                 class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
@@ -253,7 +271,7 @@ const signupClosed = isSignupClosed()
               >
                 收起
               </button>
-              <p class='form-msg m-0 text-xs' data-form-msg role='status'></p>
+              <p class='form-msg m-0 text-xs' data-form-msg role='status' />
             </div>
           </form>
 
@@ -264,118 +282,125 @@ const signupClosed = isSignupClosed()
                   <h2 class='m-0 text-lg font-medium text-foreground'>队伍管理</h2>
                   <p class='manage-dialog-subtitle'>退出报名、维护资料或管理队员</p>
                 </div>
-                <button type='button' class='manage-dialog-close' data-manage-close aria-label='关闭'>✕</button>
+                <button
+                  type='button'
+                  class='manage-dialog-close'
+                  data-manage-close
+                  aria-label='关闭'
+                >
+                  ✕
+                </button>
               </header>
               <div class='manage-dialog-body'>
-            <section class='manage-section'>
-              <h3 class='manage-section-title'>个人退出</h3>
-              <p class='manage-section-hint'>仅退出你自己的报名，需要 QQ 群口令。</p>
-          <form class='leave-form manage-form' data-leave-form>
-            <label class='manage-field'>
-              你的 QQ 昵称（要和报名时一致）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='name'
-                type='text'
-                maxlength='24'
-                required
-                autocomplete='off'
-                placeholder='报名时填的昵称'
-              />
-            </label>
-            <label class='manage-field'>
-              QQ 群口令（和报名时一致）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='passcode'
-                type='text'
-                maxlength='40'
-                required
-                autocomplete='off'
-                placeholder='群里公布的口令'
-              />
-            </label>
-            <div class='manage-actions'>
-              <button
-                type='submit'
-                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                确认退出
-              </button>
-              <p class='form-msg m-0 text-xs' data-leave-msg role='status'></p>
-            </div>
-          </form>
-            </section>
+                <section class='manage-section'>
+                  <h3 class='manage-section-title'>个人退出</h3>
+                  <p class='manage-section-hint'>仅退出你自己的报名，需要 QQ 群口令。</p>
+                  <form class='leave-form manage-form' data-leave-form>
+                    <label class='manage-field'>
+                      你的 QQ 昵称（要和报名时一致）
+                      <input
+                        class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                        name='name'
+                        type='text'
+                        maxlength='24'
+                        required
+                        autocomplete='off'
+                        placeholder='报名时填的昵称'
+                      />
+                    </label>
+                    <label class='manage-field'>
+                      QQ 群口令（和报名时一致）
+                      <input
+                        class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                        name='passcode'
+                        type='text'
+                        maxlength='40'
+                        required
+                        autocomplete='off'
+                        placeholder='群里公布的口令'
+                      />
+                    </label>
+                    <div class='manage-actions'>
+                      <button
+                        type='submit'
+                        class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+                      >
+                        确认退出
+                      </button>
+                      <p class='form-msg m-0 text-xs' data-leave-msg role='status' />
+                    </div>
+                  </form>
+                </section>
 
-            <section class='manage-section manage-section-divided' data-captain-management>
-              <h3 class='manage-section-title'>队长管理</h3>
-              <p class='manage-section-hint'>维护项目资料、转让队长或移除摸鱼队员。</p>
-          <form class='detail-form manage-form' data-detail-form>
-            <label class='manage-field'>
-              口令（粉丝群的名字）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='passcode'
-                type='text'
-                maxlength='40'
-                autocomplete='off'
-                placeholder='粉丝群的名字'
-                required
-              />
-            </label>
-            <label class='manage-field'>
-              详细介绍（会公开显示，最多 600 字，可分段）
-              <textarea
-                class='min-h-[7rem] rounded-lg border bg-background px-2.5 py-1.5 text-sm leading-relaxed text-foreground'
-                name='detail'
-                maxlength='600'
-                placeholder='多写点：这支队想做成什么样、技术路线、想找什么样的队友…'
-              ></textarea>
-            </label>
-            <label class='manage-field'>
-              GitHub 仓库（可选）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='githubUrl'
-                type='url'
-                maxlength='200'
-                autocomplete='url'
-                placeholder='https://github.com/用户名/仓库名'
-              />
-            </label>
-            <label class='manage-field'>
-              转让队长给（可选，填名单里某人的昵称）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='captain'
-                type='text'
-                maxlength='24'
-                autocomplete='off'
-                placeholder='留空则不变'
-              />
-            </label>
-            <label class='manage-field'>
-              移除队员（可选，填名单里的昵称）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='kick'
-                type='text'
-                maxlength='24'
-                autocomplete='off'
-                placeholder='队长本人需先转让队长'
-              />
-            </label>
-            <div class='manage-actions'>
-              <button
-                type='submit'
-                class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                保存
-              </button>
-              <p class='form-msg m-0 text-xs' data-detail-msg role='status'></p>
-            </div>
-          </form>
-            </section>
+                <section class='manage-section manage-section-divided' data-captain-management>
+                  <h3 class='manage-section-title'>队长管理</h3>
+                  <p class='manage-section-hint'>维护项目资料、转让队长或移除摸鱼队员。</p>
+                  <form class='detail-form manage-form' data-detail-form>
+                    <label class='manage-field'>
+                      口令（粉丝群的名字）
+                      <input
+                        class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                        name='passcode'
+                        type='text'
+                        maxlength='40'
+                        autocomplete='off'
+                        placeholder='粉丝群的名字'
+                        required
+                      />
+                    </label>
+                    <label class='manage-field'>
+                      详细介绍（会公开显示，最多 600 字，可分段）
+                      <textarea
+                        class='min-h-[7rem] rounded-lg border bg-background px-2.5 py-1.5 text-sm leading-relaxed text-foreground'
+                        name='detail'
+                        maxlength='600'
+                        placeholder='多写点：这支队想做成什么样、技术路线、想找什么样的队友…'
+                      />
+                    </label>
+                    <label class='manage-field'>
+                      GitHub 仓库（可选）
+                      <input
+                        class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                        name='githubUrl'
+                        type='url'
+                        maxlength='200'
+                        autocomplete='url'
+                        placeholder='https://github.com/用户名/仓库名'
+                      />
+                    </label>
+                    <label class='manage-field'>
+                      转让队长给（可选，填名单里某人的昵称）
+                      <input
+                        class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                        name='captain'
+                        type='text'
+                        maxlength='24'
+                        autocomplete='off'
+                        placeholder='留空则不变'
+                      />
+                    </label>
+                    <label class='manage-field'>
+                      移除队员（可选，填名单里的昵称）
+                      <input
+                        class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
+                        name='kick'
+                        type='text'
+                        maxlength='24'
+                        autocomplete='off'
+                        placeholder='队长本人需先转让队长'
+                      />
+                    </label>
+                    <div class='manage-actions'>
+                      <button
+                        type='submit'
+                        class='inline-flex items-center rounded-lg border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50'
+                      >
+                        保存
+                      </button>
+                      <p class='form-msg m-0 text-xs' data-detail-msg role='status' />
+                    </div>
+                  </form>
+                </section>
               </div>
             </div>
           </dialog>
@@ -392,7 +417,7 @@ const signupClosed = isSignupClosed()
   >
   </div>
 
-  {/* 自命题：自助创建一个新赛道卡片（排在队伍列表上方），加个光环效果突出它是入口 */}
+  {/* 保留旧建队结构，关闭状态下不可见。 */}
   <div
     class='create-card mb-4 rounded-xl border bg-background p-4 sm:p-5'
     data-create-card
@@ -446,12 +471,16 @@ const signupClosed = isSignupClosed()
       <div class='flex flex-col gap-1.5 text-xs text-muted-foreground'>
         类型
         <div class='kind-picker grid grid-cols-2 gap-2' data-create-kind>
-          <label class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'>
+          <label
+            class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'
+          >
             <input class='sr-only' type='radio' name='kind' value='team' checked />
             <span class='text-sm font-medium text-foreground'>👥 组队</span>
             <span class='text-xs text-muted-foreground'>多人一起做，你自动当队长</span>
           </label>
-          <label class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'>
+          <label
+            class='kind-option flex cursor-pointer flex-col gap-0.5 rounded-lg border px-3 py-2 transition-colors'
+          >
             <input class='sr-only' type='radio' name='kind' value='solo' />
             <span class='text-sm font-medium text-foreground'>🧍 个人</span>
             <span class='text-xs text-muted-foreground'>就我一个，别人不能加入</span>
@@ -544,43 +573,48 @@ const signupClosed = isSignupClosed()
 </section>
 
 <style>
-  /* 头部 hero：暖色渐变底 + 渐变标题（UnoCSS 不生成 bg-gradient 工具类，这里手写） */
-  .board-hero {
-    background-image: linear-gradient(
-      to bottom right,
-      rgb(250 204 21 / 0.1),
-      rgb(245 158 11 / 0.05),
-      rgb(249 115 22 / 0.08)
-    );
-  }
   .board-title {
-    /* text-5xl 默认 line-height:1，行框正好等于字号，会让 g/y 这类降部字母露到框外
-       盖住下面的段落。加回一点行高留出降部空间。 */
-    line-height: 1.15 !important;
-    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    width: fit-content;
+    line-height: 1.2;
   }
-
-  .qq-group-popover {
-    visibility: hidden;
-    opacity: 0;
-    transform: translateY(-0.35rem) scale(0.97);
-    transform-origin: top left;
+  .team-count-stage {
+    position: relative;
+    display: inline-grid;
+    min-width: 1.5rem;
+    text-align: center;
+  }
+  .team-count-loader,
+  .team-count-number {
+    grid-area: 1 / 1;
     transition:
-      opacity 180ms ease,
-      transform 180ms ease,
-      visibility 180ms;
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
   }
-  .qq-group-wrap:hover .qq-group-popover,
-  .qq-group-wrap:focus-within .qq-group-popover,
-  .qq-group-wrap[data-open] .qq-group-popover {
-    visibility: visible;
+  .team-count-number {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+  [data-count-ready] .team-count-loader {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+  [data-count-ready] .team-count-number {
     opacity: 1;
-    transform: none;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  .agent-board :is(button, a, input, textarea):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .agent-board,
+    .agent-board :global(*) {
+      animation: none !important;
+      transition: none !important;
+    }
   }
 
   .manage-dialog {
@@ -691,190 +725,6 @@ const signupClosed = isSignupClosed()
     margin-top: 0.25rem;
   }
 
-  /* 参评队伍数：单独一块摆在 hero 右侧，用暖色描边与正文区隔。 */
-  .team-count-card {
-    position: relative;
-    border-color: rgb(245 158 11 / 0.4);
-    background-image: linear-gradient(
-      to bottom right,
-      rgb(250 204 21 / 0.14),
-      rgb(245 158 11 / 0.07),
-      rgb(249 115 22 / 0.12)
-    );
-  }
-  /* 加载期间让一束很淡的暖光掠过数字区；只动 transform，避免触发布局。 */
-  .team-count-card:not([data-count-ready])::after {
-    content: '';
-    position: absolute;
-    inset: -60% -100%;
-    background: linear-gradient(
-      100deg,
-      transparent 42%,
-      rgb(251 191 36 / 0.14) 50%,
-      transparent 58%
-    );
-    animation: team-count-shine 1.8s ease-in-out infinite;
-    pointer-events: none;
-  }
-  .team-count-stage {
-    position: relative;
-    display: grid;
-    width: 6rem;
-    height: 3.75rem;
-    margin-inline: auto;
-    place-items: center;
-  }
-  .team-count-loader,
-  .team-count-number {
-    grid-area: 1 / 1;
-  }
-  .team-count-loader {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    transition:
-      opacity 180ms ease,
-      transform 240ms ease;
-  }
-  .team-count-dot {
-    display: block;
-    width: 0.55rem;
-    height: 0.55rem;
-    border-radius: 9999px;
-    background: linear-gradient(135deg, #fbbf24, #f97316);
-    box-shadow: 0 0 12px rgb(245 158 11 / 0.3);
-    animation: team-count-dot 1.1s ease-in-out infinite;
-  }
-  .team-count-dot:nth-child(2) {
-    animation-delay: 120ms;
-  }
-  .team-count-dot:nth-child(3) {
-    animation-delay: 240ms;
-  }
-  /* 真数字与 loading 共用同一块固定尺寸区域，切换时卡片不会跳。 */
-  .team-count-number {
-    opacity: 0;
-    transform: translateY(0.45rem) scale(0.94);
-    transition:
-      opacity 220ms ease,
-      transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
-    background-image: linear-gradient(to right, #fbbf24, #f59e0b, #f97316);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-  .team-count-card[data-count-ready] .team-count-loader {
-    opacity: 0;
-    transform: translateY(-0.35rem) scale(0.85);
-  }
-  .team-count-card[data-count-ready] .team-count-number {
-    opacity: 1;
-    transform: none;
-  }
-  @keyframes team-count-dot {
-    0%,
-    60%,
-    100% {
-      opacity: 0.35;
-      transform: translateY(0) scale(0.78);
-    }
-    30% {
-      opacity: 1;
-      transform: translateY(-0.4rem) scale(1);
-    }
-  }
-  @keyframes team-count-shine {
-    from {
-      transform: translateX(-45%);
-    }
-    to {
-      transform: translateX(45%);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .team-count-card:not([data-count-ready])::after,
-    .team-count-dot {
-      animation: none;
-    }
-    .team-count-loader,
-    .team-count-number {
-      transition: none;
-    }
-    .qq-group-popover {
-      transition: none;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .board-hero-inner {
-      gap: 0;
-    }
-    .board-hero .team-count-card {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 100%;
-      align-self: stretch;
-      margin-top: 1rem;
-      padding: 1rem 0 0;
-      border: 0;
-      border-top: 1px solid hsl(var(--border));
-      border-radius: 0;
-      background: none;
-      text-align: left;
-    }
-    .team-count-card::after {
-      display: none;
-    }
-    .team-count-stage {
-      width: 2.5rem;
-      height: 2rem;
-      margin-inline: 0;
-    }
-    .team-count-number {
-      font-size: 1.75rem !important;
-    }
-    .team-count-card .team-count-label {
-      margin-top: 0;
-      font-size: 0.75rem;
-    }
-  }
-
-  /* 创建赛道卡：暖色描边 + 呼吸光环，让它在一堆队伍卡里跳出来，别人一眼就知道这是入口。 */
-  .create-card {
-    position: relative;
-    border-color: rgb(245 158 11 / 0.45);
-    background-image: linear-gradient(
-      to bottom right,
-      rgb(250 204 21 / 0.07),
-      rgb(245 158 11 / 0.03),
-      rgb(249 115 22 / 0.05)
-    );
-    animation: create-card-glow 3s ease-in-out infinite;
-  }
-  @keyframes create-card-glow {
-    0%,
-    100% {
-      box-shadow:
-        0 0 0 1px rgb(245 158 11 / 0.12),
-        0 0 22px 2px rgb(245 158 11 / 0.1);
-    }
-    50% {
-      box-shadow:
-        0 0 0 1px rgb(245 158 11 / 0.28),
-        0 0 34px 6px rgb(245 158 11 / 0.2);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .create-card {
-      animation: none;
-      box-shadow:
-        0 0 0 1px rgb(245 158 11 / 0.18),
-        0 0 22px 2px rgb(245 158 11 / 0.12);
-    }
-  }
-
   /* 蜜罐字段：对真人完全不可见，但对填表机器人仍存在 */
   .hp-field {
     position: absolute;
@@ -940,7 +790,7 @@ const signupClosed = isSignupClosed()
     height: 100%;
     width: 40%;
     border-radius: inherit;
-    background: linear-gradient(90deg, #fbbf24, #f97316);
+    background: hsl(var(--primary));
     animation: board-loading-slide 1.1s ease-in-out infinite;
   }
   @keyframes board-loading-slide {
@@ -974,7 +824,7 @@ const signupClosed = isSignupClosed()
     color: hsl(var(--foreground));
   }
   .detail-dialog::backdrop {
-    background: rgb(0 0 0 / 0.5);
+    background: hsl(var(--foreground) / 0.4);
   }
   .detail-dialog-inner {
     display: flex;
@@ -1053,11 +903,11 @@ const signupClosed = isSignupClosed()
     background: hsl(var(--muted) / 0.5);
   }
   .kind-option:has(input:checked) {
-    border-color: rgb(245 158 11 / 0.6);
-    background: rgb(245 158 11 / 0.1);
+    border-color: hsl(var(--primary) / 0.6);
+    background: hsl(var(--primary) / 0.1);
   }
   .kind-option:has(input:focus-visible) {
-    outline: 2px solid rgb(245 158 11 / 0.5);
+    outline: 2px solid hsl(var(--primary) / 0.5);
     outline-offset: 1px;
   }
 
@@ -1115,13 +965,13 @@ const signupClosed = isSignupClosed()
       animation: none;
     }
   }
-  /* 队长：琥珀色描边 + 淡底，配一个小皇冠 */
+  /* 队长以语义主色和皇冠区分。 */
   :global(.roster-chip.is-captain) {
-    border-color: rgb(245 158 11 / 0.5);
-    background: rgb(245 158 11 / 0.12);
+    border-color: hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.12);
   }
   :global(.roster-crown) {
-    color: #f59e0b;
+    color: hsl(var(--primary));
     flex-shrink: 0;
   }
 
@@ -1130,9 +980,9 @@ const signupClosed = isSignupClosed()
     opacity: 0.5;
   }
   .development-status {
-    border-color: rgb(245 158 11 / 0.45);
-    background: rgb(245 158 11 / 0.12);
-    color: #b45309;
+    border-color: hsl(var(--primary) / 0.45);
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
   }
   .development-status[hidden],
   .signup-toggle[hidden] {
@@ -1143,24 +993,23 @@ const signupClosed = isSignupClosed()
     width: 0.4rem;
     height: 0.4rem;
     border-radius: 9999px;
-    background: #f59e0b;
-    box-shadow: 0 0 0 3px rgb(245 158 11 / 0.14);
+    background: hsl(var(--primary));
   }
   :global(.dark) .development-status {
-    color: #fcd34d;
+    color: hsl(var(--primary));
   }
 
   .form-msg[data-tone='error'] {
-    color: #dc2626;
+    color: hsl(var(--destructive));
   }
   .form-msg[data-tone='success'] {
-    color: #16a34a;
+    color: hsl(var(--primary));
   }
   :global(.dark) .form-msg[data-tone='error'] {
-    color: #f87171;
+    color: hsl(var(--destructive));
   }
   :global(.dark) .form-msg[data-tone='success'] {
-    color: #4ade80;
+    color: hsl(var(--primary));
   }
 </style>
 
@@ -1216,28 +1065,6 @@ const signupClosed = isSignupClosed()
     else delete el.dataset.tone
   }
 
-  // 参评队伍数「数字滚动」：从当前显示的值滚到目标值，而不是直接跳字。
-  function animateCount(el: HTMLElement, to: number, duration = 700) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      el.textContent = String(to)
-      return
-    }
-    const from = Number.parseInt(el.textContent ?? '0', 10) || 0
-    if (from === to) {
-      el.textContent = String(to)
-      return
-    }
-    const start = performance.now()
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration)
-      const eased = 1 - (1 - t) ** 3 // ease-out，滚到最后再放慢
-      el.textContent = String(Math.round(from + (to - from) * eased))
-      if (t < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }
-
-  // 跳动圆点 → 数字滚动：两种状态叠在固定尺寸的 stage 里，切换时不引发布局跳动。
   function revealTeamCount(board: HTMLElement, total: number) {
     const card = board.querySelector<HTMLElement>('[data-team-count-card]')
     const number = board.querySelector<HTMLElement>('[data-team-count-number]')
@@ -1248,7 +1075,7 @@ const signupClosed = isSignupClosed()
       const loadingLabel = board.querySelector<HTMLElement>('[data-team-count-loading-label]')
       if (loadingLabel) loadingLabel.remove()
     }
-    animateCount(number, total)
+    number.textContent = String(total)
   }
 
   function renderDetail(card: HTMLElement, value: string | null) {
@@ -1352,7 +1179,7 @@ const signupClosed = isSignupClosed()
     })
   }
 
-  // 队长标记：Lucide 皇冠（描边款，继承文字色，用 CSS 染成琥珀色）。
+  // 队长标记：Lucide 皇冠（描边款，继承文字色，继承语义主色）。
   function captainIcon(): SVGSVGElement {
     const ns = 'http://www.w3.org/2000/svg'
     const svg = document.createElementNS(ns, 'svg')
@@ -1549,9 +1376,11 @@ const signupClosed = isSignupClosed()
       if (board.dataset.configured !== 'true') return
       setManageOpen(!(managePanel?.open ?? false))
     })
-    managePanel?.querySelector<HTMLButtonElement>('[data-manage-close]')?.addEventListener('click', () => {
-      setManageOpen(false)
-    })
+    managePanel
+      ?.querySelector<HTMLButtonElement>('[data-manage-close]')
+      ?.addEventListener('click', () => {
+        setManageOpen(false)
+      })
     managePanel?.addEventListener('close', () => {
       manageToggle?.setAttribute('aria-expanded', 'false')
     })
@@ -1561,7 +1390,6 @@ const signupClosed = isSignupClosed()
 
     // 退出 / 退赛：按昵称软删除自己的有效报名。
     if (leaveForm) {
-
       leaveForm.addEventListener('submit', async (event) => {
         event.preventDefault()
         const teamId = card.dataset.teamId || ''
@@ -1589,7 +1417,12 @@ const signupClosed = isSignupClosed()
             setMsg(leaveForm, '已退出', 'success', '[data-leave-msg]')
             board.dispatchEvent(new CustomEvent('agent-teams:reload'))
           } else {
-            setMsg(leaveForm, (body && body.message) || '操作失败，请稍后再试', 'error', '[data-leave-msg]')
+            setMsg(
+              leaveForm,
+              (body && body.message) || '操作失败，请稍后再试',
+              'error',
+              '[data-leave-msg]'
+            )
           }
         } catch {
           setMsg(leaveForm, '网络错误，请稍后再试', 'error', '[data-leave-msg]')
@@ -1597,7 +1430,6 @@ const signupClosed = isSignupClosed()
           if (submitBtn) submitBtn.disabled = false
         }
       })
-
     }
 
     // 队长维护项目资料、转让队长、移除队员。
@@ -1627,7 +1459,12 @@ const signupClosed = isSignupClosed()
           })
           const body = await res.json()
           if (!(res.ok && body.ok)) {
-            setMsg(detailForm, (body && body.message) || '保存失败，请稍后再试', 'error', '[data-detail-msg]')
+            setMsg(
+              detailForm,
+              (body && body.message) || '保存失败，请稍后再试',
+              'error',
+              '[data-detail-msg]'
+            )
             return
           }
           renderDetail(card, typeof body.detail === 'string' ? body.detail : '')
@@ -1641,7 +1478,12 @@ const signupClosed = isSignupClosed()
             })
             const cbody = await cres.json()
             if (!(cres.ok && cbody.ok)) {
-              setMsg(detailForm, (cbody && cbody.message) || '队长转让失败', 'error', '[data-detail-msg]')
+              setMsg(
+                detailForm,
+                (cbody && cbody.message) || '队长转让失败',
+                'error',
+                '[data-detail-msg]'
+              )
               return
             }
           }
@@ -1654,7 +1496,12 @@ const signupClosed = isSignupClosed()
             })
             const kbody = await kres.json()
             if (!(kres.ok && kbody.ok)) {
-              setMsg(detailForm, (kbody && kbody.message) || '移除队员失败', 'error', '[data-detail-msg]')
+              setMsg(
+                detailForm,
+                (kbody && kbody.message) || '移除队员失败',
+                'error',
+                '[data-detail-msg]'
+              )
               return
             }
           }
@@ -1668,7 +1515,6 @@ const signupClosed = isSignupClosed()
           if (saveBtn) saveBtn.disabled = false
         }
       })
-
     }
   }
 
@@ -1681,7 +1527,11 @@ const signupClosed = isSignupClosed()
     const matchingCards = cardEls.filter((card) => (card.dataset.searchText ?? '').includes(query))
     const requestedPage = Number.parseInt(board.dataset.page ?? '0', 10)
     const pageSize = pageSizeForWidth(window.innerWidth)
-    const { page, pageCount, start, end } = paginationFor(matchingCards.length, requestedPage, pageSize)
+    const { page, pageCount, start, end } = paginationFor(
+      matchingCards.length,
+      requestedPage,
+      pageSize
+    )
     board.dataset.page = String(page)
 
     const matchingSet = new Set(matchingCards)
@@ -1754,14 +1604,18 @@ const signupClosed = isSignupClosed()
         ? `${pageBtnClass} border-foreground bg-foreground text-background`
         : `${pageBtnClass} text-foreground`
       pageButton.textContent = String(pageNumber)
-      pageButton.setAttribute('aria-label', current ? `当前第 ${pageNumber} 页` : `跳转到第 ${pageNumber} 页`)
+      pageButton.setAttribute(
+        'aria-label',
+        current ? `当前第 ${pageNumber} 页` : `跳转到第 ${pageNumber} 页`
+      )
       if (current) pageButton.setAttribute('aria-current', 'page')
       else pageButton.addEventListener('click', () => goTo(index))
       pageButtons.appendChild(pageButton)
     }
 
     const pageSelect = document.createElement('select')
-    pageSelect.className = 'rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground sm:hidden'
+    pageSelect.className =
+      'rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground sm:hidden'
     pageSelect.setAttribute('aria-label', '跳转到指定页')
     for (let index = 0; index < pageCount; index += 1) {
       const option = document.createElement('option')
@@ -1897,7 +1751,8 @@ const signupClosed = isSignupClosed()
     // 昵称现在两种类型都要填（创建者自动加入并当队长）；名额上限只有「组队」才需要。
     const capacityField = form.querySelector<HTMLElement>('[data-team-capacity-field]')
     const syncKind = () => {
-      const solo = form.querySelector<HTMLInputElement>('input[name="kind"]:checked')?.value === 'solo'
+      const solo =
+        form.querySelector<HTMLInputElement>('input[name="kind"]:checked')?.value === 'solo'
       if (capacityField) {
         if (solo) {
           delete capacityField.dataset.show
@@ -1963,7 +1818,12 @@ const signupClosed = isSignupClosed()
           setMsg(form, '创建成功！已加到下面', 'success', '[data-create-msg]')
           await reload()
         } else {
-          setMsg(form, (body && body.message) || '创建失败，请稍后再试', 'error', '[data-create-msg]')
+          setMsg(
+            form,
+            (body && body.message) || '创建失败，请稍后再试',
+            'error',
+            '[data-create-msg]'
+          )
         }
       } catch {
         setMsg(form, '网络错误，请稍后再试', 'error', '[data-create-msg]')
