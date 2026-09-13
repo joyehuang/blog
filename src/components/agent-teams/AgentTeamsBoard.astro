@@ -1,5 +1,4 @@
 ---
-import SoaRegistration from './SoaRegistration.astro'
 import { activity, isSignupClosed, teams } from '@/data/agent-teams'
 
 // 服务端只渲染静态壳（队伍卡 + 表单结构）；实时名单、计数、配置状态由客户端
@@ -23,7 +22,42 @@ const signupClosed = isSignupClosed()
         <h1 class='board-title mt-3 text-3xl font-bold tracking-tight sm:text-5xl'>
           {activity.name}
         </h1>
-        <SoaRegistration />
+        <p class='mt-3 max-w-2xl leading-relaxed text-muted-foreground'>{activity.tagline}</p>
+        <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
+          <span class='inline-flex items-center gap-1.5'>
+            <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
+            比赛延期至9月30日23:59（北京时间）
+          </span>
+          <a
+            class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
+            href={activity.docHref}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            活动详情 ↗
+          </a>
+          <span class='qq-group-wrap relative inline-flex' data-qq-group-wrap>
+            <button
+              type='button'
+              class='inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 font-medium text-amber-950 transition-colors hover:bg-amber-400'
+              data-analytics-event='soa_registration_intent'
+              data-analytics-surface='soa_registration'
+              data-analytics-action='join_group'
+              data-analytics-target='qq_group'
+              data-qq-group-toggle
+              aria-expanded='false'
+            >
+              加入 QQ 群报名 <span aria-hidden='true'>↗</span>
+            </button>
+            <span
+              class='qq-group-popover absolute left-0 top-full z-20 mt-2 whitespace-nowrap rounded-lg border bg-background px-3 py-2 text-sm shadow-lg'
+              data-qq-group-popover
+              role='tooltip'
+            >
+              QQ 群：<strong class='font-semibold text-foreground'>831907794</strong>
+            </span>
+          </span>
+        </div>
       </div>
 
       {/* 参评队伍数：只统计至少有一位报名队员、最终可以参加评选的队伍。
@@ -48,7 +82,7 @@ const signupClosed = isSignupClosed()
           </div>
         </div>
         <div class='team-count-label mt-1.5 text-xs font-medium text-muted-foreground'>
-          <span class='sr-only' data-team-count-loading-label>原网站队伍数量加载中，</span>支原网站队伍
+          <span class='sr-only' data-team-count-loading-label>参评队伍数量加载中，</span>支队伍参评
         </div>
       </div>
     </div>
@@ -1800,7 +1834,7 @@ const signupClosed = isSignupClosed()
     const banner = board.querySelector<HTMLElement>('[data-board-banner]')
     if (banner) {
       if (!data.configured) {
-        banner.textContent = '原网站名单服务暂未配置；QQ 报名与查询请按上方说明联系群内 bot。'
+        banner.textContent = '历史名单暂未配置，请稍后再试。'
         banner.hidden = false
         banner.classList.remove('hidden')
       } else if (data.degraded) {
