@@ -6,6 +6,10 @@
  *   bun run render.ts                     full video → out/frames/ + out/video.mp4
  *
  * Options: --fps 24 (default) · --no-mp4 · --out <dir>
+ *
+ * Setup: `bun install` (postinstall fetches the matching Chromium) + ffmpeg on PATH.
+ * Fonts (Noto Sans SC, JetBrains Mono) come from Google Fonts; offline the page falls back to
+ * the system CJK/mono stack, so frames still render but glyph metrics differ.
  */
 import { chromium } from 'playwright'
 import { mkdirSync, rmSync, existsSync } from 'node:fs'
@@ -20,12 +24,14 @@ const opt = (n: string, d?: string) => { const i = argv.indexOf(`--${n}`); retur
 const here = path.dirname(fileURLToPath(import.meta.url))
 const outRoot = path.resolve(here, opt('out', 'out')!)
 const fps = Number(opt('fps', '24'))
+if (!Number.isFinite(fps) || fps <= 0) throw new Error('--fps must be a positive finite number')
 const htmlUrl = 'file://' + path.join(here, 'scenes.html')
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 })
-await page.goto(htmlUrl, { waitUntil: 'networkidle' })
-await page.evaluate(() => (document as any).fonts.ready)
+await page.goto(htmlUrl, { waitUntil: 'load' })
+// Give web fonts a bounded window; fall through to system fonts if they never arrive.
+await Promise.race([page.evaluate(() => (document as any).fonts.ready), new Promise((r) => setTimeout(r, 15_000))])
 const scenes: { id: string; start: number; dur: number }[] = await page.evaluate(() => (window as any).SCENE_STARTS)
 const total: number = await page.evaluate(() => (window as any).TOTAL)
 

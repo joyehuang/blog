@@ -415,7 +415,6 @@ S('cp-exit', 11, (root) => {
   const right = h('div', ''); right.style.cssText = 'display:grid;gap:26px';
   const n1 = R('card', '<div class="neq" style="font-size:34px"><span class="box">加群</span><span class="sym">≠</span><span class="box">上看板</span></div><div class="lead" style="font-size:26px;margin-top:14px;color:var(--muted)">聊天服务的准入和内容发布的准入，是两个开关。</div>');
   const n2 = R('card', '<div class="neq" style="font-size:34px"><span class="box">转交资料</span><span class="sym">≠</span><span class="box">转交授权</span></div><div class="lead" style="font-size:26px;margin-top:14px;color:var(--muted)">「转给个人助手看看」只授权了传递和阅读，没授权文章里的 shell 命令在我电脑上执行。接收端把它当资料，不升级成系统指令。<br/><span class="meta">confused deputy</span> 有权限的助手被诱导替没权限的人办事。</div>');
-  const n3 = R('card', '<div class="meta">confused deputy</div><div class="lead" style="font-size:27px;margin-top:8px">一个有权限的助手，被诱导替没有权限的人办事。低权限入口不需要自己拿到 shell，只要能让高权限助手误以为「这是主人要求的任务」。</div>');
   right.append(n1, n2); cols.append(tree, right); root.append(lead, cols);
   const ts = ['t0', 't1', 't2', 't3', 't4', 't5'].map((id) => tree.querySelector('#' + id));
   return (t) => { rv(lead, t, 0.3, 0.7); rv(tree, t, 1.8, 0.6); ts.forEach((e, i) => { e.style.opacity = P(t, 2.4 + i * 0.45, 0.35); }); rv(n1, t, 5.4, 0.6); rv(n2, t, 6.8, 0.6); };

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "playwright install chromium",
     "render": "bun run render.ts"
   },
   "dependencies": {
