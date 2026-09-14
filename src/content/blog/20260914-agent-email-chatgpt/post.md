@@ -1,5 +1,5 @@
 ---
-title: '给 Agent 一个邮箱之后：我想要的不只是工具，而是能共事的伙伴'
+title: '给 Agent 一个邮箱：从工具到能一起做事的伙伴'
 description: '从一次不用手机号的 ChatGPT 邮箱注册说起：独立身份、支付授权、记忆与 QQ 分身，怎样把个人 Agent 从一次性工具，慢慢变成可以长期共事的同伴。'
 publishDate: 2026-09-14T16:50:00+10:00
 tags: ['Agent', 'Identity', 'Harness', '实战', 'ChatGPT']
