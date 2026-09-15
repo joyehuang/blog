@@ -1,0 +1,15 @@
+{
+  "objectId": "fixture-root",
+  "nick": "Anonymous",
+  "mail": null,
+  "link": null,
+  "ua": null,
+  "ip": null,
+  "comment": "Historical anonymous comment",
+  "status": "approved",
+  "insertedAt": "2020-01-01T00:00:00Z",
+  "pid": null,
+  "rid": null,
+  "user_id": null,
+  "like": 0
+}
