@@ -187,10 +187,12 @@ test('Waline reader uses canonical API, bounded complete pagination, real IDs an
   await expect(bad.scan()).rejects.toThrow('exceeds')
   const err = new Waline(undefined, async () => ({ errno: 500 }))
   await expect(err.scan()).rejects.toThrow()
-  for (const url of ['/other', undefined]) {
+  for (const url of ['/other', null]) {
     const wrongScope = new Waline(undefined, async () => ({ errno: 0, data: { totalPages: 1, data: [{ ...c, url }] } }))
     await expect(wrongScope.scan()).rejects.toThrow('scope')
   }
+  const modern = new Waline(undefined, async () => ({ errno: 0, data: { totalPages: 1, data: [{ ...c, url: undefined }] } }))
+  expect((await modern.scan())[0].url).toBe('/links')
 })
 test('production requires matching content and rendered page, not just an HTTP success', async () => {
   const payload = { friends: [{ link_list: [app] }] }

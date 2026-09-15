@@ -85,9 +85,12 @@ export class Waline {
       expectedPages = result.totalPages
       for (const c of result.data) {
         const created = typeof c.time === 'number' ? c.time : Date.parse(c.insertedAt)
-        if (!c.objectId || !Number.isFinite(created) || c.url !== '/links') throw Error('invalid Waline identity/time/scope')
+        // Waline 1.41.4 filters by the fixed path query, but omits url from its field projection.
+        // Reject a conflicting explicit field; absent scope is derived from that audited endpoint contract.
+        if (!c.objectId || !Number.isFinite(created) || (c.url !== undefined && c.url !== '/links')) throw Error('invalid Waline identity/time/scope')
         comments.set(String(c.objectId), {
           ...c,
+          url: '/links',
           insertedAt: new Date(created).toISOString()
         })
       }
