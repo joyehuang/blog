@@ -88,8 +88,12 @@ there is no raw-text production enqueue. Stop the service before a mutating CLI 
 
 Webhook ACK means only durable acceptance of an ID. The worker re-fetches the real
 comment, validates its type/status/content on every step, and advances one stage per
-pass. A 60-second serial loop scans at most 20 pages × 50 root comments, at most 20
-jobs per pass, fairly ordered by last attempt. Compensation and webhook processing
+pass. A 60-second local scheduler handles new webhook inbox entries and due jobs;
+without work it does not query Waline until the six-hour compensation interval
+(`compensationMs`, optional, 5 minutes to 24 hours). This avoids keeping the remote
+database awake continuously. Failed scans/jobs back off from one minute to one hour;
+progress resets job backoff. Each complete scan is bounded to 20 pages × 50 root
+comments, with at most 20 due jobs per pass, fairly ordered by last attempt. Compensation and webhook processing
 use the same state. Sticky comments cannot terminate the scan early. Exceeding the
 scan cap, source errors or changing page counts leave the watermark unchanged and
 raise a deduplicated alert; raise capacity only after review. Inbox is capped at

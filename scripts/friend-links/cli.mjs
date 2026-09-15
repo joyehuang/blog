@@ -70,8 +70,20 @@ function cleanup() {
 process.on('SIGINT', () => process.exit(0))
 process.on('SIGTERM', () => process.exit(0))
 async function tick() {
+  const now = Date.now()
+  const dueJobs = store.all().filter((j) => j.stage !== 'notified' && !j.hold && (!j.nextAttemptAt || j.nextAttemptAt <= now))
+  const hasInbox = store.db.query('SELECT id FROM inbox WHERE at >= ? LIMIT 1').get(store.meta('lastInboxScanStart') ?? 0)
+  const lastScan = Date.parse(store.meta('lastScan') || '')
+  // Webhook jobs remain prompt; idle compensation must not keep the remote DB awake every minute.
+  const compensationMs = config.compensationMs ?? 6 * 60 * 60 * 1000
+  if (!Number.isInteger(compensationMs) || compensationMs < 300000 || compensationMs > 86400000) throw Error('invalid compensation interval')
+  if (!hasInbox && !dueJobs.length && (store.meta('nextScanAt') ?? 0) > now) return
+  if (!hasInbox && !dueJobs.length && Number.isFinite(lastScan) && now - lastScan < compensationMs) return
   try {
     const comments = await compensate(store, io)
+    store.meta('lastInboxScanStart', now)
+    store.meta('scanFailures', 0)
+    store.meta('nextScanAt', 0)
     for (const row of store.db.query('SELECT id FROM inbox LIMIT 100').all()) {
       const c = comments.find((c) => String(c.objectId) === row.id)
       if (c) {
@@ -84,6 +96,9 @@ async function tick() {
     }
     store.db.query('DELETE FROM inbox WHERE at < ?').run(Date.now() - 86400000)
   } catch {
+    const failures = Math.min(7, (store.meta('scanFailures') ?? 0) + 1)
+    store.meta('scanFailures', failures)
+    store.meta('nextScanAt', now + Math.min(3600000, 60000 * 2 ** (failures - 1)))
     store.meta(
       'scanError',
       'Waline scan failed; watermark unchanged; inspect endpoint and capacity'
@@ -91,7 +106,7 @@ async function tick() {
   }
   for (const job of store
     .all()
-    .filter((j) => j.stage !== 'notified' && !j.hold)
+    .filter((j) => j.stage !== 'notified' && !j.hold && (!j.nextAttemptAt || j.nextAttemptAt <= Date.now()))
     .sort((a, b) => (a.lastAttemptAt || '').localeCompare(b.lastAttemptAt || ''))
     .slice(0, 20)) {
     job.lastAttemptAt = new Date().toISOString()

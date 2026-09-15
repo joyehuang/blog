@@ -39,6 +39,8 @@ export class Store {
   }
   transition(job, stage, evidence = {}) {
     Object.assign(job, evidence, { stage, error: null })
+    delete job.nextAttemptAt
+    delete job.failureCount
     job.history.push({ stage, at: new Date().toISOString(), ...evidence })
     this.save(job)
   }
@@ -248,6 +250,8 @@ export async function step(store, job, io) {
       return
     }
     job.error = String(e.message).slice(0, 300)
+    job.failureCount = Math.min(7, (job.failureCount || 0) + 1)
+    job.nextAttemptAt = Date.now() + Math.min(3600000, 60000 * 2 ** (job.failureCount - 1))
     job.lastFailureAt = new Date().toISOString()
     store.save(job)
   }
