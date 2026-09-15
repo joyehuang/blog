@@ -103,7 +103,7 @@ async function tick() {
       try {
         await command([
           '/Users/joye/bin/notify-telegram.py',
-          '⚠️ 友链自动化暂停，需要核对状态。https://joyehuang.me/links'
+          '⚠️ 友链自动化暂停，需要核对状态；未确认新的处理结果。'
         ])
       } catch {}
     }
@@ -114,7 +114,7 @@ async function tick() {
     try {
       await command([
         '/Users/joye/bin/notify-telegram.py',
-        '⚠️ 友链评论回源失败，未确认新的处理结果。https://joyehuang.me/links'
+        '⚠️ 友链评论回源失败，未确认新的处理结果。'
       ])
     } catch {}
   }

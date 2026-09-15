@@ -167,6 +167,7 @@ test('Waline reader uses canonical API, bounded complete pagination, real IDs an
   const marker = `friend-link:${digest('123').slice(0, 24)}`
   const c = {
     objectId: '123',
+    url: '/links',
     time: Date.parse('2026-09-15T00:00:00Z'),
     comment: 'x',
     children: [{ objectId: '456', pid: '123', rid: '123', type: 'administrator', comment: marker }]
@@ -186,6 +187,10 @@ test('Waline reader uses canonical API, bounded complete pagination, real IDs an
   await expect(bad.scan()).rejects.toThrow('exceeds')
   const err = new Waline(undefined, async () => ({ errno: 500 }))
   await expect(err.scan()).rejects.toThrow()
+  for (const url of ['/other', undefined]) {
+    const wrongScope = new Waline(undefined, async () => ({ errno: 0, data: { totalPages: 1, data: [{ ...c, url }] } }))
+    await expect(wrongScope.scan()).rejects.toThrow('scope')
+  }
 })
 test('production requires matching content and rendered page, not just an HTTP success', async () => {
   const payload = { friends: [{ link_list: [app] }] }

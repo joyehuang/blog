@@ -85,10 +85,9 @@ export class Waline {
       expectedPages = result.totalPages
       for (const c of result.data) {
         const created = typeof c.time === 'number' ? c.time : Date.parse(c.insertedAt)
-        if (!c.objectId || !Number.isFinite(created)) throw Error('invalid Waline identity/time')
+        if (!c.objectId || !Number.isFinite(created) || c.url !== '/links') throw Error('invalid Waline identity/time/scope')
         comments.set(String(c.objectId), {
           ...c,
-          url: '/links',
           insertedAt: new Date(created).toISOString()
         })
       }
@@ -540,7 +539,7 @@ export function adapters(config) {
     findReply: waline.findReply.bind(waline),
     reply: waline.reply.bind(waline),
     notify: () =>
-      command(['/Users/joye/bin/notify-telegram.py', `✅ 友链已上线且回复已核实：${SITE}/links`]),
+      command(['/Users/joye/bin/notify-telegram.py', '✅ 新友链已上线，并已核实原申请下的回复。']),
     scan: waline.scan.bind(waline)
   }
 }

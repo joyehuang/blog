@@ -53,6 +53,7 @@ test('reply authenticates existing admin then checks current source; revoked cre
                 : [
                     {
                       objectId: '123',
+                      url: '/links',
                       time: 1,
                       status: 'approved',
                       comment: scenario === 'edited' ? 'changed' : body

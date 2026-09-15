@@ -108,7 +108,7 @@ a possibly successful reply. Replies include a deterministic marker tied to the 
 parent ID, and reconciliation requires an administrator reply with matching pid/rid.
 If facts remain unavailable, the intent remains pending with an explicit error.
 Operator resolution requires proving the outcome; never delete state to "retry".
-A lost notification ACK is also held instead of spammed.
+A lost notification ACK is also held instead of spammed. Worker status notices are short text without raw URLs; the existing original-comment notification retains its clickable page link. The main agent's final delivery supplies the public site link.
 
 ## Safety and rollout limits
 
@@ -124,7 +124,7 @@ No production deployment or natural new-comment trigger has been verified by thi
 change. The task deployment plan contains the inspected Waline patch and launchd/
 route templates. Waline remains HTTP 500 until the reviewed [compatibility patch](waline-compat/README.md)
 is staged and deployed by the main agent. Do not initialize an incomplete baseline.
-Zaixi PR167 is already merged and live; do not enqueue it or send another reply.
+Zaixi PR167 is already merged and live. Do not add it again. The main agent has not yet sent its comment reply; only after checking that fact may the main agent explicitly enqueue this already-authorized current application to finish reply reconciliation. All other historical comments remain quiet baseline entries.
 
 Back up configuration and SQLite with its backup API while stopped (or use a
 consistent SQLite backup), retaining the WAL/SHM if copying a running database.
