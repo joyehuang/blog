@@ -1,6 +1,16 @@
 import { spawn } from 'node:child_process'
+import { createHash } from 'node:crypto'
 
-import { digest, escapeHtml, renderFiles, safeGet, urlKey, validateReachability } from './data.mjs'
+import { readAdminToken } from './credentials.mjs'
+import {
+  digest,
+  eligible,
+  escapeHtml,
+  renderFiles,
+  safeGet,
+  urlKey,
+  validateReachability
+} from './data.mjs'
 
 const REPO = 'joyehuang/blog'
 const PATHS = ['public/links.json', 'src/site.config.ts']
@@ -44,6 +54,13 @@ async function fixedFetch(url, init = {}) {
     chunks.push(part)
   }
   return JSON.parse(Buffer.concat(chunks).toString())
+}
+export function assertSource(c, job) {
+  if (!eligible(c) || String(c.objectId) !== job.id || digest(c.comment) !== job.hash) {
+    const e = Error('source comment withdrawn, changed or no longer eligible')
+    e.code = 'SOURCE_DRIFT'
+    throw e
+  }
 }
 export class Waline {
   constructor(token, request = fixedFetch) {
@@ -99,12 +116,23 @@ export class Waline {
     return null
   }
   async reply(job) {
-    if (!this.token) throw Error('Waline admin token not configured')
+    const token = typeof this.token === 'function' ? this.token() : this.token
+    if (!token) throw Error('Waline admin token not configured')
+    const identity = await this.request('https://waline.joyehuang.me/api/token', {
+      headers: { Authorization: `Bearer ${token}`, Referer: `${SITE}/links` }
+    })
+    if (
+      identity.errno !== 0 ||
+      String(identity.data?.objectId) !== '1' ||
+      identity.data?.type !== 'administrator'
+    )
+      throw Error('Waline administrator identity revoked or unavailable')
     const c = await this.comment(job.id)
+    assertSource(c, job)
     const result = await this.request(WALINE, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${token}`,
         Referer: `${SITE}/links`,
         'Content-Type': 'application/json'
       },
@@ -200,15 +228,7 @@ export class GitHub {
     })
   }
   async check(job) {
-    const protection = await this.api('branches/main/protection')
-    if (
-      protection.required_status_checks?.strict !== true ||
-      protection.enforce_admins?.enabled !== true ||
-      !protection.required_status_checks?.checks?.some(
-        (c) => c.context === 'friend-link-check' && c.app_id === this.actionsAppId
-      )
-    )
-      throw Error('strict main protection and pinned required CI must be configured')
+    await this.policy()
     const p = await this.api(`pulls/${job.pr.number}`)
     const main = await this.api('git/ref/heads/main')
     if (main.object.sha !== job.plan.base) {
@@ -220,10 +240,15 @@ export class GitHub {
       p.state !== 'open' ||
       p.head.sha !== job.plan.head ||
       p.base.ref !== 'main' ||
+      p.base.sha !== job.plan.base ||
+      p.base.repo.full_name !== REPO ||
+      p.head.ref !== job.plan.branch ||
+      p.draft === true ||
       p.head.repo.full_name !== REPO ||
       p.mergeable !== true
     )
       throw Error('PR state/head/mergeability changed')
+    const tree = await this.exactTree(job)
     const comparison = await this.api(`compare/${job.plan.base}...${job.plan.head}`)
     if (
       comparison.behind_by !== 0 ||
@@ -245,6 +270,24 @@ export class GitHub {
     relevant.sort((a, b) => b.id - a.id)
     if (relevant[0]?.conclusion !== 'success' || relevant[0]?.status !== 'completed')
       throw Error('trusted CI missing/pending/failed')
+    const workflows = await this.api(
+      `actions/runs?head_sha=${job.plan.head}&event=pull_request&per_page=100`
+    )
+    if (
+      workflows.total_count > 100 ||
+      !workflows.workflow_runs?.some(
+        (r) =>
+          r.check_suite_id === relevant[0].check_suite?.id &&
+          r.path === '.github/workflows/friend-link-check.yml' &&
+          r.event === 'pull_request' &&
+          r.head_sha === job.plan.head &&
+          r.head_branch === job.plan.branch &&
+          r.head_repository?.full_name === REPO &&
+          r.status === 'completed' &&
+          r.conclusion === 'success'
+      )
+    )
+      throw Error('trusted workflow provenance missing or failed')
     // Require a GitHub deployment created by the verified Vercel bot identity, tied to this exact SHA.
     if (!this.vercelBotId || !this.previewHostSuffix)
       throw Error('Vercel provenance/preview hostname not configured')
@@ -279,29 +322,134 @@ export class GitHub {
     return {
       head: job.plan.head,
       base: job.plan.base,
+      tree,
       checkRun: relevant[0].id,
       preview: preview.origin,
       deployment: deployment.id
     }
   }
-  async merge(job) {
-    // CLI's match-head guard uses the reviewed commit, never a moving branch name.
-    await this.run([
-      'gh',
-      'pr',
-      'merge',
-      String(job.pr.number),
-      '--repo',
-      REPO,
-      '--squash',
-      '--match-head-commit',
-      job.plan.head
-    ])
+  async policy() {
+    // Ref updates can indirectly mark PRs merged without satisfying PR protections.
+    // Conservatively refuse ALL existing protection/rules, even if this account can bypass them.
+    const branch = await this.api('branches/main')
+    const rules = await this.api('rules/branches/main')
+    if (branch.protected !== false || !Array.isArray(rules) || rules.length)
+      throw Error('existing main protection/rules: ref merge disabled; no bypass or policy changes')
+  }
+  async exactTree(job) {
+    const head = await this.api(`git/commits/${job.plan.head}`)
+    if (head.parents.length !== 1 || head.parents[0].sha !== job.plan.base)
+      throw Error('head ancestry differs from reviewed base')
+    const base = await this.api(`git/commits/${job.plan.base}`)
+    const read = async (sha) => {
+      const t = await this.api(`git/trees/${sha}?recursive=1`)
+      if (t.truncated !== false || !Array.isArray(t.tree)) throw Error('incomplete tree')
+      return new Map(t.tree.map((f) => [f.path, f]))
+    }
+    const before = await read(base.tree.sha)
+    const after = await read(head.tree.sha)
+    if (before.size !== after.size) throw Error('unexpected tree paths')
+    for (const [path, f] of before) {
+      const next = after.get(path)
+      if (!next || next.mode !== f.mode || next.type !== f.type) throw Error('tree mode/path drift')
+      const content = job.plan.files[path]
+      if (PATHS.includes(path)) {
+        if (f.mode !== '100644' || f.type !== 'blob' || typeof content !== 'string')
+          throw Error('unexpected approved file type')
+        const bytes = Buffer.from(content)
+        const sha = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')
+        if (next.sha !== sha) throw Error('approved blob differs')
+      } else if (f.type === 'tree' && PATHS.some((p) => p.startsWith(path + '/'))) {
+        // Ancestor directory hashes necessarily change; their entries are checked individually.
+      } else if (next.sha !== f.sha) throw Error('unapproved tree change')
+    }
+    if (PATHS.some((p) => !before.has(p))) throw Error('missing approved path')
+    return head.tree.sha
+  }
+  async seal(job) {
+    const proof = await this.check(job)
+    const candidate = await this.api('git/commits', 'POST', {
+      message: `chore(links): merge reviewed application (#${job.pr.number})`,
+      tree: proof.tree,
+      parents: [job.plan.base, job.plan.head]
+    })
+    if (!/^[a-f0-9]{40}$/.test(candidate.sha)) throw Error('invalid merge commit identity')
+    return { sha: candidate.sha, tree: proof.tree, base: job.plan.base, head: job.plan.head }
+  }
+  async candidate(job) {
+    const c = job.mergeCandidate
+    if (!c || c.base !== job.plan.base || c.head !== job.plan.head)
+      throw Error('missing durable merge candidate; legacy intents require review')
+    const commit = await this.api(`git/commits/${c.sha}`)
+    if (
+      commit.tree.sha !== c.tree ||
+      commit.parents.length !== 2 ||
+      commit.parents[0].sha !== c.base ||
+      commit.parents[1].sha !== c.head ||
+      c.tree !== (await this.exactTree(job))
+    )
+      throw Error('merge candidate graph/tree differs')
+    return c
+  }
+  async merge(job, sourceGuard) {
+    const c = await this.candidate(job)
+    await this.check(job)
+    if (typeof sourceGuard !== 'function') throw Error('fresh source guard required')
+    await sourceGuard()
+    // Re-read moving refs after slow CI/Preview/source work. Only immutable SHAs go into the write.
+    const p = await this.api(`pulls/${job.pr.number}`)
+    if (
+      p.state !== 'open' ||
+      p.head.sha !== c.head ||
+      p.head.ref !== job.plan.branch ||
+      p.base.ref !== 'main' ||
+      p.base.repo.full_name !== REPO ||
+      p.head.repo.full_name !== REPO
+    )
+      throw Error('PR changed before publication')
+    await this.policy()
+    const main = await this.api('git/ref/heads/main')
+    if (main.object.sha !== c.base) {
+      const e = Error('base drift before publication')
+      e.code = 'BASE_DRIFT'
+      throw e
+    }
+    await sourceGuard()
+    // No force, no moving merge endpoint, no admin override. ACK is never a merged fact.
+    await this.api('git/refs/heads/main', 'PATCH', { sha: c.sha, force: false })
   }
   async merged(job) {
+    const c = await this.candidate(job)
     const p = await this.api(`pulls/${job.pr.number}`)
-    if (p.head.sha !== job.plan.head) throw Error('merged PR head differs')
-    return p.merged && p.merge_commit_sha ? { sha: p.merge_commit_sha, url: p.html_url } : null
+    if (
+      p.head.sha !== c.head ||
+      p.base.ref !== 'main' ||
+      p.head.repo.full_name !== REPO ||
+      p.base.repo.full_name !== REPO
+    )
+      throw Error('merged PR identity differs')
+    const main = (await this.api('git/ref/heads/main')).object.sha
+    const graph = await this.api(`compare/${c.sha}...${main}`)
+    const reachable = ['identical', 'ahead'].includes(graph.status) && graph.behind_by === 0
+    if (!reachable) {
+      const advance = await this.api(`compare/${c.base}...${main}`)
+      if (!p.merged && advance.status === 'ahead' && advance.behind_by === 0) {
+        const e = Error('concurrent main advance rejected candidate; rebuild and revalidate')
+        e.code = 'BASE_DRIFT'
+        throw e
+      }
+      throw Error('merge result unknown or history changed; no repeated publication')
+    }
+    if (!p.merged || p.state !== 'closed' || !p.merged_at || p.merge_commit_sha !== c.sha)
+      return null // GitHub may not have processed the indirect merge yet. Never PATCH PR state.
+    return {
+      sha: c.sha,
+      url: p.html_url,
+      mergedAt: p.merged_at,
+      main,
+      parents: [c.base, c.head],
+      tree: c.tree
+    }
   }
   async supersede(job) {
     const p = await this.api(`pulls/${job.pr.number}`)
@@ -375,7 +523,7 @@ export async function verifyPublished(origin, job, get = safeGet) {
   return { url: `${origin}/links`, at: new Date().toISOString(), bodySha256: digest(response.body) }
 }
 export function adapters(config) {
-  const waline = new Waline(config.walineAdminToken)
+  const waline = new Waline(readAdminToken)
   const github = new GitHub(config)
   return {
     comment: waline.comment.bind(waline),
@@ -384,6 +532,7 @@ export function adapters(config) {
     createPR: github.createPR.bind(github),
     findPR: github.findPR.bind(github),
     check: github.check.bind(github),
+    seal: github.seal.bind(github),
     merge: github.merge.bind(github),
     merged: github.merged.bind(github),
     supersede: github.supersede.bind(github),

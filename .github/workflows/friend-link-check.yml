@@ -5,6 +5,7 @@ permissions:
   contents: read
 jobs:
   validate:
+    if: startsWith(github.head_ref, 'auto/friend-link-') || github.head_ref == 'feat/friend-link-automation-20260915'
     name: friend-link-check
     runs-on: ubuntu-latest
     timeout-minutes: 15

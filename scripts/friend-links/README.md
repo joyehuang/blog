@@ -11,7 +11,7 @@ No service starts on import or during the blog build.
 - `state.mjs`: SQLite FULL-synchronous transactions, durable inbox/replay cache,
   quiet historical baseline, comment-ID/URL deduplication and recoverable stages.
 - `adapters.mjs`: fixed GitHub repository API, exact diff/head/CI/Preview checks,
-  match-head merge, production content readback, real-parent Waline reply reconciliation.
+  sealed dual-parent merge, production content readback, real-parent Waline reply reconciliation.
 - `cli.mjs` / `lock.py`: single-instance local receiver and serial worker; kernel lock
   survives exec and releases on process death. No working-tree Git operations.
 - `friend-link-hook.cjs`: optional Waline postSave handoff, signed and bounded to two seconds.
@@ -41,8 +41,7 @@ reviewed user's CLI configuration. Never put credentials in Git or command argum
   "port": 8796,
   "actionsAppId": 15368,
   "vercelBotId": 35613825,
-  "previewHostSuffix": "-joyehuangs-projects.vercel.app",
-  "walineAdminToken": "SET_PRIVATELY_AT_DEPLOYMENT"
+  "previewHostSuffix": "-joyehuangs-projects.vercel.app"
 }
 ```
 
@@ -52,11 +51,19 @@ Set `FRIEND_LINK_WEBHOOK_URL` to the approved HTTPS hostname with the exact path
 `/hooks/friend-links/v1`. Bind locally to `127.0.0.1:8796`; expose only that exact
 route through an existing reviewed tunnel. No control/status/enqueue HTTP routes exist.
 
-Before enabling, verify the Waline public read API works, the administrator token
-identity, `gh`/Vercel permissions, existing notifier, and strict main branch protection.
-Required check: `friend-link-check`, app 15368, strict/up-to-date checks, and admin
-enforcement. This closes the main-advance race between checking and match-head merge.
-The workflow runs on all PRs so the required check cannot strand unrelated PRs.
+Before enabling, verify the complete Waline public read API, administrator identity,
+`gh`/Vercel permissions and existing notifier. No repository protection changes are
+required or authorized. The worker refuses any existing main protection or active
+branch rules; it never uses an administrator bypass. The check job is scoped to
+friend-link branches and this implementation PR.
+
+Each merge candidate has the reviewed base and head as its two parents and exactly
+the reviewed head tree. Immediately before publication, recheck PR head, source,
+policy and main. Update main with `force: false`; unrelated concurrent main advancement
+is not an ancestor of that fixed candidate and the server rejects the update.
+Persist the candidate before publication. Lost results cause read-only reconciliation,
+never a second write. Require GitHub PR `merged`, timestamp, matching merge SHA and
+candidate ancestry on main before treating it as merged. See [merge protocol](merge-protocol.md).
 No `pull_request_target`, action secret, or `GITHUB_TOKEN`-created PR is used.
 PRs are created through the existing human-authorized `gh` credential, so ordinary
 PR CI events are not suppressed by the Actions token recursion rule.
@@ -115,8 +122,9 @@ it to ISO timestamps and also accepts the deprecated `insertedAt` field.
 
 No production deployment or natural new-comment trigger has been verified by this
 change. The task deployment plan contains the inspected Waline patch and launchd/
-route templates. Waline was returning HTTP 500 during implementation and main had
-no branch protection. Both must be resolved before enabling automatic work.
+route templates. Waline remains HTTP 500 until the reviewed [compatibility patch](waline-compat/README.md)
+is staged and deployed by the main agent. Do not initialize an incomplete baseline.
+Zaixi PR167 is already merged and live; do not enqueue it or send another reply.
 
 Back up configuration and SQLite with its backup API while stopped (or use a
 consistent SQLite backup), retaining the WAL/SHM if copying a running database.
@@ -124,3 +132,22 @@ On rollback, disable only the new Waline hook variables/route and stop this work
 Keep the database, application history, PRs and reply IDs; do not reinstall the
 unsafe original script. Restoring an older database can duplicate completed writes.
 The normal Waline Telegram notifier remains installed throughout.
+
+## Administrator credential lifecycle
+
+For the inspected `@waline/vercel` 1.41.4, `controller/token.js:65` signs a string
+user ID without `expiresIn`. `logic/base.js:32-40` verifies it and requires a string,
+then looks up the current non-banned user. This bearer has **no automatic expiration**;
+it is not a short-lived token. Changing the signing key invalidates it; deletion,
+banning or loss of administrator role prevents this worker from replying. Password
+changes alone do not revoke this string token. No refresh endpoint or per-job login
+is needed, and the worker does not hold the signing key or password.
+
+The main agent provisions an existing administrator bearer privately in
+`~/.config/friend-link-automation/waline-admin-token`, owned by the runtime user,
+regular file mode 0600, under a private directory. No real value is supplied here.
+The worker rejects symlinks/insecure modes and reloads the file on each reply, so
+reviewed atomic replacement supports key rotation without restart. It verifies
+`GET /api/token` returns administrator ID 1 before rechecking the source and posting.
+Revoked/unavailable credentials fail closed; unknown reply intents never resend.
+This lifecycle is version-specific: re-review when upgrading Waline authentication.

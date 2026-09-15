@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { expect, test } from 'bun:test'
 
 import { GitHub, verifyPreview, verifyPublished, Waline } from './adapters.mjs'
@@ -19,18 +20,36 @@ const job: any = {
 }
 function fixture(changes: any = {}) {
   const responses: any = {
-    'branches/main/protection': {
-      required_status_checks: {
-        strict: true,
-        checks: [{ context: 'friend-link-check', app_id: 15368 }]
-      },
-      enforce_admins: { enabled: true }
-    },
+    'branches/main': { protected: false },
+    'rules/branches/main': [],
     'pulls/1': {
       state: 'open',
-      head: { sha: 'head', repo: { full_name: 'joyehuang/blog' } },
-      base: { ref: 'main' },
+      head: { sha: 'head', ref: 'auto/test', repo: { full_name: 'joyehuang/blog' } },
+      base: { ref: 'main', sha: 'base', repo: { full_name: 'joyehuang/blog' } },
       mergeable: true
+    },
+    'git/commits/head': { parents: [{ sha: 'base' }], tree: { sha: 'ht' } },
+    'git/commits/base': { parents: [], tree: { sha: 'bt' } },
+    'git/trees/bt?recursive=1': {
+      truncated: false,
+      tree: Object.keys(job.plan.files).map((path) => ({
+        path,
+        mode: '100644',
+        type: 'blob',
+        sha: 'old'
+      }))
+    },
+    'git/trees/ht?recursive=1': {
+      truncated: false,
+      tree: Object.entries(job.plan.files).map(([path, value]) => ({
+        path,
+        mode: '100644',
+        type: 'blob',
+        sha: createHash('sha1')
+          .update(`blob ${Buffer.byteLength(value as string)}\0`)
+          .update(value as string)
+          .digest('hex')
+      }))
     },
     'git/ref/heads/main': { object: { sha: 'base' } },
     'compare/base...head': {
@@ -49,8 +68,24 @@ function fixture(changes: any = {}) {
           id: 1,
           head_sha: 'head',
           app: { id: 15368 },
+          check_suite: { id: 100 },
           conclusion: 'success',
           status: 'completed'
+        }
+      ]
+    },
+    'actions/runs?head_sha=head&event=pull_request&per_page=100': {
+      total_count: 1,
+      workflow_runs: [
+        {
+          check_suite_id: 100,
+          path: '.github/workflows/friend-link-check.yml',
+          event: 'pull_request',
+          head_sha: 'head',
+          head_branch: 'auto/test',
+          head_repository: { full_name: 'joyehuang/blog' },
+          status: 'completed',
+          conclusion: 'success'
         }
       ]
     },
@@ -82,11 +117,19 @@ function fixture(changes: any = {}) {
     publish: async () => ({ verified: true })
   })
 }
-test('actual GitHub check adapter validates strict base/head, full diff, pinned CI and preview provenance', async () => {
+test('actual GitHub check adapter validates fixed base/head, full diff, pinned CI and preview provenance', async () => {
   expect((await fixture().check(job)).head).toBe('head')
   const failures = [
     { 'git/ref/heads/main': { object: { sha: 'drift' } } },
-    { 'branches/main/protection': {} },
+    { 'branches/main': { protected: true } },
+    {
+      'actions/runs?head_sha=head&event=pull_request&per_page=100': {
+        total_count: 0,
+        workflow_runs: []
+      }
+    },
+    { 'rules/branches/main': [{ type: 'pull_request' }] },
+    { 'git/trees/ht?recursive=1': { truncated: true, tree: [] } },
     {
       'compare/base...head': {
         behind_by: 0,
@@ -119,27 +162,6 @@ test('actual GitHub check adapter validates strict base/head, full diff, pinned 
     }
   ]
   for (const change of failures) await expect(fixture(change).check(job)).rejects.toThrow()
-})
-test('merge adapter always passes the reviewed SHA and controlled repository', async () => {
-  let args: any
-  const github = new GitHub({
-    run: async (a: any) => {
-      args = a
-      return ''
-    }
-  })
-  await github.merge(job)
-  expect(args).toEqual([
-    'gh',
-    'pr',
-    'merge',
-    '1',
-    '--repo',
-    'joyehuang/blog',
-    '--squash',
-    '--match-head-commit',
-    'head'
-  ])
 })
 test('Waline reader uses canonical API, bounded complete pagination, real IDs and admin reply marker', async () => {
   const marker = `friend-link:${digest('123').slice(0, 24)}`

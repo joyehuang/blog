@@ -45,7 +45,9 @@ function fake(c = comment()) {
       calls.push('check')
       return { head: 'head' }
     },
-    merge: async () => {
+    seal: async () => ({ sha: 'merge', base: 'base', head: 'head', tree: 'tree' }),
+    merge: async (_job: any, guard: any) => {
+      await guard()
       calls.push('merge')
       facts.merged = { sha: 'merge' }
     },
@@ -156,8 +158,8 @@ test('PR, merge and reply ACK loss reconcile by facts across restart without rep
     s.store.ingest(comment())
     const f = fake()
     const original = f.io[effect]
-    f.io[effect] = async () => {
-      await original()
+    f.io[effect] = async (...args: any[]) => {
+      await original(...args)
       throw Error('connection lost')
     }
     await advance(s.store, f.io, 7)
@@ -240,3 +242,32 @@ test('base drift closes reviewed old PR then prepares again', async () => {
   expect(s.store.get('123').stage).toBe('notified')
   s.done()
 })
+
+for (const stage of ['checked', 'deployed']) {
+  test(`source withdrawn or edited during slow ${stage} checks blocks publication`, async () => {
+    for (const changed of [
+      undefined,
+      comment('123', { comment: 'changed' }),
+      comment('123', { status: 'waiting' })
+    ]) {
+      const s = setup()
+      s.store.ingest(comment())
+      const f = fake()
+      const j = s.store.get('123')
+      j.stage = stage
+      s.store.save(j)
+      const effect = stage === 'checked' ? 'seal' : 'production'
+      const original = f.io[effect]
+      f.io[effect] = async (...args: any[]) => {
+        const result = await original(...args)
+        f.io.comment = async () => changed
+        return result
+      }
+      await advance(s.store, f.io, 3)
+      expect(f.calls).not.toContain('merge')
+      expect(f.calls).not.toContain('reply')
+      expect(s.store.get('123').hold).toBe(true)
+      s.done()
+    }
+  })
+}

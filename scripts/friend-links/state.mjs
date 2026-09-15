@@ -3,6 +3,7 @@ import { chmodSync, mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { Database } from 'bun:sqlite'
 
+import { assertSource } from './adapters.mjs'
 import { digest, eligible, parseApplication, urlKey } from './data.mjs'
 
 export class Store {
@@ -159,9 +160,8 @@ export async function receive(request, store, secret) {
 export async function step(store, job, io) {
   if (job.hold || job.stage === 'notified') return
   try {
-    const c = await io.comment(job.id)
-    if (!eligible(c) || digest(c.comment) !== job.hash)
-      throw Error('comment changed or no longer eligible')
+    const sourceGuard = async () => assertSource(await io.comment(job.id), job)
+    await sourceGuard()
     switch (job.stage) {
       case 'accepted':
         await io.validate(job.app)
@@ -169,7 +169,7 @@ export async function step(store, job, io) {
         break
       case 'validated': {
         const plan = await io.prepare(job)
-        if (plan.existing) store.transition(job, 'merged', { existing: true })
+        if (plan.existing) store.transition(job, 'already-listed', { existing: true })
         else store.transition(job, 'prepared', { plan })
         break
       }
@@ -185,24 +185,32 @@ export async function step(store, job, io) {
       }
       case 'rebuild-intent':
         await io.supersede(job)
-        store.transition(job, 'validated', { plan: null, pr: null, proof: null })
+        store.transition(job, 'validated', {
+          plan: null,
+          pr: null,
+          proof: null,
+          mergeCandidate: null
+        })
         break
       case 'pr': {
         const proof = await io.check(job)
         store.transition(job, 'checked', { proof })
         break
       }
-      case 'checked':
-        await io.check(job) // Repeat exact base/head/content/check checks immediately before merge.
-        store.transition(job, 'merge-intent')
-        await io.merge(job)
+      case 'checked': {
+        const mergeCandidate = await io.seal(job)
+        await sourceGuard()
+        store.transition(job, 'merge-intent', { mergeCandidate })
+        await io.merge(job, sourceGuard)
         break
+      }
       case 'merge-intent': {
         const merged = await io.merged(job)
         if (!merged) throw Error('merge outcome unknown; no repeated merge')
         store.transition(job, 'merged', { merge: merged })
         break
       }
+      case 'already-listed':
       case 'merged':
         store.transition(job, 'deployed', { deployment: await io.production(job) })
         break
@@ -211,6 +219,7 @@ export async function step(store, job, io) {
         const reply = await io.findReply(job)
         if (reply) store.transition(job, 'replied', { reply })
         else {
+          await sourceGuard()
           store.transition(job, 'reply-intent')
           await io.reply(job)
         }
@@ -233,6 +242,7 @@ export async function step(store, job, io) {
         throw Error('unknown stage')
     }
   } catch (e) {
+    if (e.code === 'SOURCE_DRIFT') job.hold = true
     if (e.code === 'BASE_DRIFT') {
       store.transition(job, 'rebuild-intent')
       return
