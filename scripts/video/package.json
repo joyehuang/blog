@@ -1,0 +1,12 @@
+{
+  "name": "blog-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "playwright install chromium",
+    "render": "bun run render.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.58.0"
+  }
+}
