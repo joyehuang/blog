@@ -1,10 +1,5 @@
 --- a/node_modules/@waline/vercel/src/service/avatar.js
 +++ b/node_modules/@waline/vercel/src/service/avatar.js
-@@ -36,6 +36,6 @@
- 
-     const gravatarStr = GRAVATAR_STR || DEFAULT_GRAVATAR_STR;
- 
+@@ -39 +39 @@
 -    return env.renderString(gravatarStr, comment);
 +    return env.renderString(gravatarStr, { ...comment, mail: comment.mail ?? '' });
-   }
- };
