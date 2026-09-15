@@ -117,6 +117,10 @@ export const integ: IntegrationUserConfig = {
       {
         date: '2026-08-24',
         content: '添加 <a href="https://www.wutongyu.site/" target="_blank">Wutong Yu</a>。'
+      },
+      {
+        date: '2026-09-15',
+        content: '添加 <a href="https://lizaixi01.github.io/" target="_blank" rel="noopener noreferrer">Home · Zaixi</a>。'
       }
     ],
     // Yourself link info
