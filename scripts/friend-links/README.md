@@ -29,7 +29,7 @@ bun test scripts/friend-links
 bun scripts/friend-links/cli.mjs dry-run /absolute/path/to/application.txt
 ```
 
-Runtime uses Bun, Python 3 (kernel `flock`), the already authorized `gh` CLI, and the
+Runtime uses Bun, Python 3 (kernel `flock`), the already authorized `gh` and Vercel CLIs, and the
 existing `~/bin/notify-telegram.py`. GitHub authentication must come from the
 reviewed user's CLI configuration. Never put credentials in Git or command arguments.
 
@@ -53,7 +53,7 @@ Set `FRIEND_LINK_WEBHOOK_URL` to the approved HTTPS hostname with the exact path
 route through an existing reviewed tunnel. No control/status/enqueue HTTP routes exist.
 
 Before enabling, verify the Waline public read API works, the administrator token
-identity, `gh` permissions, existing notifier, and strict main branch protection.
+identity, `gh`/Vercel permissions, existing notifier, and strict main branch protection.
 Required check: `friend-link-check`, app 15368, strict/up-to-date checks, and admin
 enforcement. This closes the main-advance race between checking and match-head merge.
 The workflow runs on all PRs so the required check cannot strand unrelated PRs.
@@ -104,6 +104,14 @@ Operator resolution requires proving the outcome; never delete state to "retry".
 A lost notification ACK is also held instead of spammed.
 
 ## Safety and rollout limits
+
+Protected Preview readback uses `vercel curl` with the existing user authorization,
+a fixed deployment URL, GET-only requests, size/time limits, and no redirect forwarding.
+Ensure the launchd PATH includes the existing Vercel/Node installation; no new bypass
+secret is required. Public production readback still uses address-pinned HTTP.
+
+The modern Waline API exposes creation time as numeric `time`; the adapter normalizes
+it to ISO timestamps and also accepts the deprecated `insertedAt` field.
 
 No production deployment or natural new-comment trigger has been verified by this
 change. The task deployment plan contains the inspected Waline patch and launchd/

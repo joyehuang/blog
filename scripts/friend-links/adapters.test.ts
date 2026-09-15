@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 
-import { GitHub, verifyPublished, Waline } from './adapters.mjs'
+import { GitHub, verifyPreview, verifyPublished, Waline } from './adapters.mjs'
 import { digest, parseApplication } from './data.mjs'
 
 const app = parseApplication(
@@ -145,7 +145,7 @@ test('Waline reader uses canonical API, bounded complete pagination, real IDs an
   const marker = `friend-link:${digest('123').slice(0, 24)}`
   const c = {
     objectId: '123',
-    insertedAt: '2026-09-15T00:00:00Z',
+    time: Date.parse('2026-09-15T00:00:00Z'),
     comment: 'x',
     children: [{ objectId: '456', pid: '123', rid: '123', type: 'administrator', comment: marker }]
   }
@@ -155,6 +155,7 @@ test('Waline reader uses canonical API, bounded complete pagination, real IDs an
     return { errno: 0, data: { totalPages: 1, data: [c] } }
   })
   expect((await w.comment('123')).url).toBe('/links')
+  expect((await w.comment('123')).insertedAt).toBe('2026-09-15T00:00:00.000Z')
   expect(await w.findReply(job)).toEqual({ id: '456', parent: '123' })
   expect(
     urls.every((u) => u.startsWith('https://waline.joyehuang.me/api/comment?path=%2Flinks'))
@@ -179,4 +180,22 @@ test('production requires matching content and rendered page, not just an HTTP s
       body: Buffer.from('{"friends":[]}')
     }))
   ).rejects.toThrow()
+})
+
+test('protected preview uses official authorized CLI, exact deployment, GET and no redirect forwarding', async () => {
+  const calls: string[][] = []
+  const origin = 'https://blog-abc-joyehuangs-projects.vercel.app'
+  const run = async (args: string[]) => {
+    calls.push(args)
+    const body = args[2].startsWith('/links.json')
+      ? JSON.stringify({ friends: [{ link_list: [app] }] })
+      : `<a href="${app.link}">${app.name}</a>`
+    return body + '\n__FL_HTTP__200'
+  }
+  expect((await verifyPreview(origin, job, run)).url).toBe(origin + '/links')
+  expect(calls).toHaveLength(2)
+  expect(calls[0]).toContain('--max-redirs')
+  expect(calls[0]).toContain(origin)
+  expect(calls[0]).not.toContain('--location')
+  await expect(verifyPreview('https://evil.com', job, run)).rejects.toThrow()
 })

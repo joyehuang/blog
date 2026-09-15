@@ -67,9 +67,13 @@ export class Waline {
         throw Error('Waline pagination changed; retry scan')
       expectedPages = result.totalPages
       for (const c of result.data) {
-        if (!c.objectId || !Number.isFinite(Date.parse(c.insertedAt)))
-          throw Error('invalid Waline identity/time')
-        comments.set(String(c.objectId), { ...c, url: '/links' })
+        const created = typeof c.time === 'number' ? c.time : Date.parse(c.insertedAt)
+        if (!c.objectId || !Number.isFinite(created)) throw Error('invalid Waline identity/time')
+        comments.set(String(c.objectId), {
+          ...c,
+          url: '/links',
+          insertedAt: new Date(created).toISOString()
+        })
       }
       if (page >= result.totalPages) return [...comments.values()]
     }
@@ -124,7 +128,7 @@ export class GitHub {
     previewHostSuffix,
     api = gh,
     run = command,
-    publish = verifyPublished
+    publish = verifyPreview
   } = {}) {
     this.api = api
     this.run = run
@@ -305,6 +309,51 @@ export class GitHub {
     if (p.head.sha !== job.plan.head) throw Error('cannot rebuild changed head')
     if (p.state === 'open') await this.api(`pulls/${job.pr.number}`, 'PATCH', { state: 'closed' })
   }
+}
+export async function verifyPreview(origin, job, run = command) {
+  const get = async (url) => {
+    const target = new URL(url)
+    if (
+      target.origin !== origin ||
+      target.protocol !== 'https:' ||
+      !target.hostname.endsWith('-joyehuangs-projects.vercel.app')
+    )
+      throw Error('untrusted preview target')
+    // Official CLI reuses the user's existing authorization for protected deployments.
+    // No bypass secret is exported, printed, or sent across redirects.
+    const output = await run([
+      'vercel',
+      'curl',
+      target.pathname + target.search,
+      '--deployment',
+      origin,
+      '--',
+      '--request',
+      'GET',
+      '--max-time',
+      '15',
+      '--connect-timeout',
+      '5',
+      '--max-filesize',
+      '2097152',
+      '--max-redirs',
+      '0',
+      '--proto',
+      '=https',
+      '--proto-redir',
+      '=https',
+      '--fail',
+      '--silent',
+      '--show-error',
+      '--write-out',
+      '\n__FL_HTTP__%{http_code}'
+    ])
+    const marker = output.lastIndexOf('\n__FL_HTTP__')
+    if (marker < 0 || output.slice(marker + 12).trim() !== '200')
+      throw Error('preview HTTP readback failed')
+    return { body: Buffer.from(output.slice(0, marker)), url, status: 200 }
+  }
+  return verifyPublished(origin, job, get)
 }
 export async function verifyPublished(origin, job, get = safeGet) {
   const response = await get(`${origin}/links.json?fl=${Date.now()}`)
