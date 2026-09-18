@@ -66,7 +66,7 @@ const searchHref = localizedPath('/search', lang)
           ))
         }
         <div class='flex w-full grow flex-row justify-end gap-x-3 sm:w-fit sm:gap-x-5'>
-          <a class='px-1 py-2 transition-none sm:px-2' href={searchHref} title={t('nav.search')}>
+          <a class='px-1 py-2 transition-none sm:px-2' href={searchHref} data-tip={t('nav.search')}>
             <span class='sr-only'>{t('nav.search')}</span>
             <Icon name='search' class='size-5' />
           </a>
@@ -75,18 +75,19 @@ const searchHref = localizedPath('/search', lang)
     </div>
 
     {/* buttons */}
-    <div class='z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
+    <div id='headerTools' class='tip-host z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
       <LanguageSwitcher lang={lang} />
       <button
         id='toggleDevMode'
         class='group/dev box-content h-5 rounded-md border p-1.5 font-mono text-xs leading-5 tracking-tight text-muted-foreground transition-colors hover:bg-border hover:text-primary sm:group-[.not-top]:rounded-xl'
         aria-label='Enter dev mode'
-        title='dev mode (press `)'
+        data-tip='dev mode (press `)'
       >
         <span aria-hidden='true'>$_</span>
       </button>
       <button
         id='toggleDarkMode'
+        data-tip={t('nav.toggleDarkMode')}
         class='group/dark relative box-content size-5 rounded-md border p-1.5 transition-colors hover:bg-border sm:group-[.not-top]:rounded-xl'
       >
         <span class='sr-only'>{t('nav.toggleDarkMode')}</span>
@@ -99,6 +100,7 @@ const searchHref = localizedPath('/search', lang)
         class='rounded-md border p-1.5 transition-colors hover:bg-border sm:hidden sm:group-[.not-top]:rounded-xl'
         aria-controls='headerExpandContent'
         aria-expanded='false'
+        data-tip={t('nav.toggleMenu')}
       >
         <span class='sr-only'>{t('nav.toggleMenu')}</span>
         <Icon class='size-5' name='menu' />
@@ -179,6 +181,106 @@ const searchHref = localizedPath('/search', lang)
       })
 
       document.addEventListener('pointerdown', this.handleDocumentPointerDown)
+      this.mountWarmTooltips()
+    }
+
+    /**
+     * Warm tooltip for the toolbar icons.
+     *
+     * Cold entry waits out COLD_MS before the first tip — a pointer merely
+     * crossing the header shouldn't trigger anything. Once one tip has been
+     * shown the group stays warm, so sliding along neighbouring icons reads
+     * instantly instead of re-paying the delay each time. Warmth decays a
+     * short while after leaving.
+     *
+     * Keyboard focus shows the tip with no delay. Touch gets nothing at all:
+     * we only react to a mouse pointer, so the first tap still lands on the
+     * button rather than being spent summoning a tooltip.
+     */
+    private mountWarmTooltips() {
+      const host = this.querySelector('#headerTools')
+      if (!(host instanceof HTMLElement)) return
+
+      const COLD_MS = 420
+      const WARM_MS = 900
+      const bubble = document.createElement('span')
+      bubble.className = 'tip-bubble'
+      bubble.setAttribute('aria-hidden', 'true')
+      bubble.dataset.shown = 'false'
+      host.appendChild(bubble)
+
+      let showTimer: number | undefined
+      let warmTimer: number | undefined
+      let warm = false
+      let active: HTMLElement | null = null
+
+      const place = (target: HTMLElement) => {
+        bubble.textContent = target.dataset.tip ?? ''
+        bubble.dataset.shown = 'true'
+        // measure after the text is in, so the overflow test uses the real width
+        const center = target.offsetLeft + target.offsetWidth / 2
+        const overflowsEnd = center + bubble.offsetWidth / 2 > host.offsetWidth
+        if (overflowsEnd) {
+          bubble.dataset.align = 'end'
+          bubble.style.left = ''
+        } else {
+          delete bubble.dataset.align
+          bubble.style.left = `${center}px`
+        }
+      }
+
+      const hide = () => {
+        window.clearTimeout(showTimer)
+        active = null
+        bubble.dataset.shown = 'false'
+        warm = true
+        window.clearTimeout(warmTimer)
+        warmTimer = window.setTimeout(() => {
+          warm = false
+        }, WARM_MS)
+      }
+
+      const show = (target: HTMLElement, immediate: boolean) => {
+        window.clearTimeout(showTimer)
+        window.clearTimeout(warmTimer)
+        active = target
+        if (immediate || warm) {
+          place(target)
+          return
+        }
+        showTimer = window.setTimeout(() => {
+          if (active === target) place(target)
+        }, COLD_MS)
+      }
+
+      const tipTarget = (event: Event) => {
+        const node = event.target
+        return node instanceof Element ? node.closest<HTMLElement>('[data-tip]') : null
+      }
+
+      host.addEventListener('pointerover', (event) => {
+        // mouse only — a touch tap must reach the control, not a tooltip
+        if (event.pointerType !== 'mouse') return
+        const target = tipTarget(event)
+        if (!target || target === active) return
+        show(target, false)
+      })
+      host.addEventListener('pointerleave', (event) => {
+        if (event.pointerType !== 'mouse') return
+        hide()
+      })
+      // a click means the user has committed; the tip has done its job
+      host.addEventListener('pointerdown', hide)
+
+      host.addEventListener('focusin', (event) => {
+        const target = tipTarget(event)
+        if (target) show(target, true)
+      })
+      host.addEventListener('focusout', () => {
+        window.clearTimeout(showTimer)
+        active = null
+        bubble.dataset.shown = 'false'
+      })
     }
 
     disconnectedCallback() {

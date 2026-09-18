@@ -83,6 +83,11 @@ const shares = {
     <div class='flex flex-row gap-3'>
       <button
         id='copy-link'
+        type='button'
+        data-copy-location
+        data-copy-toast='Link copied!'
+        data-copy-toast-fail='Copy failed — please copy the address bar manually.'
+        aria-label='Copy link to this page'
         class='group rounded-full bg-muted p-1 text-muted-foreground transition-colors hover:text-primary sm:p-1.5'
       >
         <Icon class='size-5' name='link' />
@@ -126,15 +131,7 @@ const shares = {
 </div>
 
 <script>
-  import { showToast } from 'astro-pure/utils'
-
-  // Copy link
-  const copyLink = document.getElementById('copy-link')
-  copyLink?.addEventListener('click', () => {
-    navigator.clipboard.writeText(window.location.href)
-    // Show toast
-    showToast({ message: 'Link copied!' })
-  })
+  // 复制链接的行为统一由 CopyActions.astro 处理（等剪贴板确认后才报成功）
 
   // QRCode
   const getQRCode = document.getElementById('get-qrcode')

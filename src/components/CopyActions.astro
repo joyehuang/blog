@@ -1,0 +1,100 @@
+---
+/**
+ * 全站复制入口的唯一行为绑定：代码块复制按钮、复制链接、友链一键复制。
+ *
+ * 一个委托监听器挂在 document 上，所以 Astro 视图切换后不需要重新绑定，
+ * 也不会因为重复执行脚本而绑第二次（`__joyeCopyBound` 守卫，沿用本仓库
+ * ThemeProvider 里同样的写法）。
+ */
+---
+
+<script>
+  import { copyText, showToast } from '@/lib/copy'
+
+  declare global {
+    interface Window {
+      __joyeCopyBound?: boolean
+    }
+  }
+
+  const RESET_MS = 2000
+  /** 每个按钮各自记住自己的定时器，连续多次复制不会被上一次的定时器提前清掉 */
+  const timers = new WeakMap<Element, number>()
+
+  function flash(button: HTMLElement, state: 'copied' | 'failed') {
+    button.classList.remove('copied', 'failed')
+    // 强制回流，让同一个按钮连点时动画重新开始而不是卡在原状态
+    void button.offsetWidth
+    button.classList.add(state)
+    button.setAttribute('data-copy-state', state)
+    // 图标变化对读屏器是不可见的，结果同时播报出去
+    const live = button.querySelector('[role="status"]')
+    if (live) live.textContent = state === 'copied' ? 'Copied' : 'Copy failed'
+
+    const previous = timers.get(button)
+    if (previous) window.clearTimeout(previous)
+    timers.set(
+      button,
+      window.setTimeout(() => {
+        button.classList.remove('copied', 'failed')
+        button.removeAttribute('data-copy-state')
+        const status = button.querySelector('[role="status"]')
+        if (status) status.textContent = ''
+        timers.delete(button)
+      }, RESET_MS)
+    )
+  }
+
+  async function run(trigger: HTMLElement, text: string, messages?: { ok: string; fail: string }) {
+    // 复制在飞时忽略重复触发，避免两次结果互相覆盖
+    if (trigger.dataset.copyBusy === 'true') return
+    trigger.dataset.copyBusy = 'true'
+    const outcome = await copyText(text)
+    delete trigger.dataset.copyBusy
+
+    flash(trigger, outcome)
+    if (!messages) return
+    showToast(outcome === 'copied' ? messages.ok : messages.fail)
+  }
+
+  function bind() {
+    if (window.__joyeCopyBound) return
+    window.__joyeCopyBound = true
+
+    document.addEventListener('click', (event) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+
+      // 代码块复制按钮（由 shiki transformer 生成）
+      const codeButton = target.closest<HTMLElement>('button.copy[data-code]')
+      if (codeButton) {
+        void run(codeButton, codeButton.dataset.code ?? '')
+        return
+      }
+
+      // 其余复制入口：复制链接、友链单行 / 一键复制全部
+      const trigger = target.closest<HTMLElement>('[data-copy-text], [data-copy-location]')
+      if (!trigger) return
+      const text =
+        trigger.dataset.copyLocation !== undefined
+          ? window.location.href
+          : (trigger.dataset.copyText ?? '')
+      void run(trigger, text, {
+        ok: trigger.dataset.copyToast ?? 'Copied to clipboard!',
+        fail: trigger.dataset.copyToastFail ?? 'Copy failed — please copy manually.'
+      })
+    })
+
+    // 让 <samp> 这类非按钮入口也能用键盘触发
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      const target = event.target
+      if (!(target instanceof HTMLElement)) return
+      if (!target.matches('[data-copy-text][role="button"], [data-copy-location][role="button"]')) return
+      event.preventDefault()
+      target.click()
+    })
+  }
+
+  bind()
+</script>

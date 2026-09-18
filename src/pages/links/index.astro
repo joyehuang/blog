@@ -17,7 +17,6 @@ const { friends } = links
 const linksConf = config.integ.links
 
 const allApplyText = linksConf.applyTip.map(({ name, val }) => `${name}: ${val}`).join('\n')
-const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyText)});document.dispatchEvent(new CustomEvent('toast',{detail:{message:'已复制全部信息到剪贴板'}}))`
 ---
 
 <PageLayout title='Links' {headings} info='/links'>
@@ -43,7 +42,9 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
     <button
       type='button'
       class='cursor-pointer underline underline-offset-4'
-      onclick={copyAllScript}
+      data-copy-text={allApplyText}
+      data-copy-toast='已复制全部信息到剪贴板'
+      data-copy-toast-fail='复制失败，请手动选中复制'
     >
       一键复制全部
     </button>）：
@@ -51,11 +52,18 @@ const copyAllScript = `navigator.clipboard.writeText(${JSON.stringify(allApplyTe
   <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
     {
       linksConf.applyTip.map(({ name, val }) => {
-        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
         return (
           <>
             <span class='text-end'>{name}:</span>
-            <samp class='cursor-pointer' onclick={script}>
+            <samp
+              class='cursor-pointer'
+              role='button'
+              tabindex='0'
+              data-copy-text={val}
+              data-copy-toast={`Copied "${val}" to clipboard!`}
+              data-copy-toast-fail='复制失败，请手动选中复制'
+              aria-label={`Copy ${name}`}
+            >
               {val}
             </samp>
           </>
