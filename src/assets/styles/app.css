@@ -83,3 +83,115 @@ a {
     color: hsl(var(--primary) / var(--un-text-opacity, 1));
   }
 }
+
+/* Code block copy button
+ *
+ * Three states stacked in the same box, crossfaded with the Blurred Icon
+ * Transition from DESIGN.md (the same recipe the theme toggle uses). The
+ * success state only appears after the clipboard write actually resolves —
+ * see `CopyActions.astro`.
+ */
+.copy {
+  position: relative;
+  & .copy-state {
+    display: inline-flex;
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+    pointer-events: none;
+  }
+  /* the ready icon stays in flow so it keeps defining the button's box */
+  & .success,
+  & .failed {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+  }
+  & .ready {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  &.copied,
+  &.failed {
+    & .ready {
+      opacity: 0;
+      filter: blur(4px);
+      transform: scale(0.6);
+    }
+  }
+  &.copied .success {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+    color: hsl(var(--term-ok));
+  }
+  &.failed .failed {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+    color: hsl(var(--destructive));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .copy .copy-state {
+    transition: none;
+  }
+}
+
+/* Warm tooltip
+ *
+ * Cold entry waits before the first tip shows; while the pointer keeps moving
+ * across neighbouring icons the group stays "warm" and the next tip is
+ * immediate. Keyboard focus reads the same tip with no delay. Touch never
+ * gets one — the tap must reach the button itself.
+ */
+.tip-host {
+  position: relative;
+}
+.tip-bubble {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  z-index: 80;
+  width: max-content;
+  max-width: 14rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  background-color: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  box-shadow: 0 6px 18px hsl(var(--foreground) / 0.08);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -0.25rem);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+}
+.tip-bubble[data-shown='true'] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+/* keep the bubble inside the viewport at the right edge of the header */
+.tip-bubble[data-align='end'] {
+  left: auto;
+  right: 0;
+  transform: translate(0, -0.25rem);
+}
+.tip-bubble[data-align='end'][data-shown='true'] {
+  transform: translate(0, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tip-bubble {
+    transition: none;
+  }
+}

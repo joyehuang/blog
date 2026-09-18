@@ -7,6 +7,7 @@ import { Footer } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
 import BaseHead from '@/components/BaseHead.astro'
+import CopyActions from '@/components/CopyActions.astro'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
 import Header from '@/components/Header.astro'
 import DevModeHost from '@/components/terminal/DevModeHost'
@@ -39,6 +40,7 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
     <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
     <ThemeProvider />
     <script is:inline defer src='https://umami.joyehuang.dev/script.js' data-website-id='1d765b53-dc42-4361-8ad4-4e73420abdc7'></script>
+    <CopyActions />
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>

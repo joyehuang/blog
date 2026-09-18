@@ -91,50 +91,33 @@ export const addLanguage = (): ShikiTransformer => {
 }
 
 // Add a copy button to the code block
-export const addCopyButton = (timeout?: number): ShikiTransformer => {
-  const toggleMs = timeout || 3000
-
+//
+// 只产出标记与无障碍名称，行为交给 CopyActions.astro 的委托监听器：
+// 复制必须等剪贴板真的收下才切勾号，失败要看得见——内联 onclick 做不到这件事
+// （writeText 返回 Promise，原来的写法既不 await 也不接异常）。
+export const addCopyButton = (): ShikiTransformer => {
   return {
     name: 'shiki-transformer-copy-button',
     pre(node) {
+      const icon = (id: string, cls: string) =>
+        h('span', { class: cls, 'aria-hidden': 'true' }, [
+          h('svg', { class: 'size-5' }, [h('use', { href: `/icons/code.svg#${id}` })])
+        ])
+
       const button = h(
         'button',
         {
+          type: 'button',
           class: 'copy text-muted-foreground p-1 box-content border rounded bg-primary-foreground',
           'data-code': this.source,
-          onclick: `
-          navigator.clipboard.writeText(this.dataset.code);
-          this.classList.add('copied');
-          setTimeout(() => this.classList.remove('copied'), ${toggleMs})
-        `
+          'aria-label': 'Copy code'
         },
         [
-          h('div', { class: 'ready' }, [
-            h(
-              'svg',
-              {
-                class: 'size-5'
-              },
-              [
-                h('use', {
-                  href: '/icons/code.svg#mingcute-clipboard-line'
-                })
-              ]
-            )
-          ]),
-          h('div', { class: 'success hidden' }, [
-            h(
-              'svg',
-              {
-                class: 'size-5'
-              },
-              [
-                h('use', {
-                  href: '/icons/code.svg#mingcute-file-check-line'
-                })
-              ]
-            )
-          ])
+          icon('mingcute-clipboard-line', 'copy-state ready'),
+          icon('mingcute-file-check-line', 'copy-state success'),
+          icon('mingcute-close-line', 'copy-state failed'),
+          // 结果同时播报给读屏器，不只靠图标变化
+          h('span', { class: 'sr-only', role: 'status', 'aria-live': 'polite' }, '')
         ]
       )
 

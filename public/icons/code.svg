@@ -25,5 +25,14 @@
         ></path>
       </g>
     </symbol>
+    <!-- copy failed -->
+    <symbol viewBox="0 0 24 24" id="mingcute-close-line">
+      <g fill="none">
+        <path
+          fill="currentColor"
+          d="M12 10.586l4.95-4.95a1 1 0 1 1 1.414 1.414L13.414 12l4.95 4.95a1 1 0 0 1-1.414 1.414L12 13.414l-4.95 4.95a1 1 0 0 1-1.414-1.414L10.586 12l-4.95-4.95A1 1 0 0 1 7.05 5.636z"
+        ></path>
+      </g>
+    </symbol>
   </defs>
 </svg>
