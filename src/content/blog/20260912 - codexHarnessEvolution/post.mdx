@@ -22,7 +22,7 @@ import TldrCard from '@/components/blog/TldrCard.astro'
 import QQGroupReveal from '@/components/blog/QQGroupReveal.astro'
 import HarnessLayers from './HarnessLayers.astro'
 import AbsorbTimeline from './AbsorbTimeline.tsx'
-import SlopeChart from './SlopeChart.tsx'
+import SlopeFigure from './SlopeFigure.astro'
 
 前阵子听了 The Pragmatic Engineer 的一期播客，[主持人 Gergely 和 Codex 负责人 Tibo Sottiaux 聊了一个多小时](https://newsletter.pragmaticengineer.com/p/building-codex-with-tibo-sottiaux)。其中有一小段，我听完之后想了很久。
 
@@ -214,11 +214,9 @@ Thariq 在视频里讲了一个完整的例子。他想做一个内部工具，�
 
 所以只是「现在比裸模型强」还不够，**你的 Harness 必须增长得比模型快。** 增长的速度就是斜率：Harness 的斜率要高于底层模型的斜率，否则每过一代模型，你领先的部分就会变薄一些。
 
-可以在下面这张图里自己试一下，横轴是模型代际，两条线之间的距离就是用户为你付费的理由：
+<SlopeFigure />
 
-<SlopeChart client:visible />
-
-图里的「一次性领先」对应的就是 Todo List。在 Sonnet 3.5 的阶段，它带来的领先是实实在在的，有没有它差别很大。但这是一次性的领先，一年之后模型自己追平了。**当前领先多少并不说明问题，能不能持续领先才是关键。**
+Todo List 就是一个例子。在 Sonnet 3.5 的阶段，它带来的领先是实实在在的，有没有它差别很大。但这是一次性的领先，一年之后模型自己追平了。**当前领先多少并不说明问题，能不能持续领先才是关键。**
 
 斜率由什么决定？我认为主要是三点：
 
