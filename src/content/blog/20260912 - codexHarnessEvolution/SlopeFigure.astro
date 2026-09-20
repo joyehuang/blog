@@ -1,0 +1,231 @@
+---
+/**
+ * SlopeFigure.astro
+ *
+ * Harness 那篇博文第四节的图：产品的增长比底层模型快，还是慢。
+ * 图本身是静态的示意图，只有一个动效：进入视口时，三条线和它们之间的色块
+ * 从「今天」往右长出来，长到哪里，哪里的标注就跟着出现。
+ *
+ * 做法：三条线和色块放在同一个 clipPath 里，裁剪矩形从宽度 0 展开到完整宽度。
+ * 横轴是时间，所以「从左往右展开」和「线条从起点画到终点」是同一件事，
+ * 而且对虚线同样有效（stroke-dashoffset 的画线手法会和虚线样式冲突）。
+ *
+ * 过渡只写在播放状态（.slope-play）上：收起是瞬间完成的，页面加载时不会看到线条倒着缩回去。
+ * 没有 JS、打印、prefers-reduced-motion 时，图直接以终态展示。
+ * 样式只用站点的语义 token，明暗主题自动跟随。
+ */
+---
+
+<figure class='slope-fig not-prose' data-slope-fig>
+  <figcaption class='slope-cap'>
+    <strong>图 3 · 增长得比模型快，还是比模型慢。</strong>横轴是时间，纵轴是用户在你这个场景里能做成的事。产品线和模型线之间的距离，就是用户为你付费的理由。
+  </figcaption>
+
+  <svg
+    class='slope-svg'
+    viewBox='0 0 600 330'
+    role='img'
+    aria-label='示意图：一条代表底层模型能力的上升曲线；产品 A 的曲线比模型更陡，和模型的差距越来越大；产品 B 的曲线比模型平缓，起点高于模型，但在中途被模型追上。'
+  >
+    <defs>
+      <clipPath id='slope-wipe-clip'>
+        <rect class='slope-wipe' x='44' y='0' width='404' height='300'></rect>
+      </clipPath>
+    </defs>
+
+    <path class='slope-axis' d='M50,25 L50,285 L470,285'></path>
+
+    <g clip-path='url(#slope-wipe-clip)'>
+      <path class='slope-gap' d='M50,205 C180,172 310,100 440,40 L440,112 C315,168 190,222 50,240 Z'></path>
+      <path class='slope-slow' d='M50,195 L440,150'></path>
+      <path class='slope-model' d='M50,240 C190,222 315,168 440,112'></path>
+      <path class='slope-fast' d='M50,205 C180,172 310,100 440,40'></path>
+    </g>
+
+    <circle class='slope-dot slope-late' style='--at: 1.05s' cx='320' cy='164' r='5'></circle>
+    <text class='slope-t-muted slope-fs-sm slope-late' style='--at: 1.15s' x='320' y='196' text-anchor='middle'>在这里被追上</text>
+    <text class='slope-t-accent slope-fs-sm slope-late' style='--at: 1.35s' x='365' y='122' text-anchor='middle'>差距在变大</text>
+
+    <text class='slope-t-accent slope-late' style='--at: 1.6s' x='450' y='40'>
+      <tspan class='slope-fs-md' font-weight='600'>产品 A</tspan>
+      <tspan class='slope-fs-sm' x='450' dy='1.35em'>增长比模型快</tspan>
+    </text>
+    <text class='slope-fs-md slope-late' style='--at: 1.6s' x='450' y='110' font-weight='600'>底层模型</text>
+    <text class='slope-t-muted slope-late' style='--at: 1.6s' x='450' y='152'>
+      <tspan class='slope-fs-md' font-weight='600'>产品 B</tspan>
+      <tspan class='slope-fs-sm' x='450' dy='1.35em'>增长比模型慢</tspan>
+    </text>
+
+    <text class='slope-t-muted slope-fs-sm' x='60' y='38'>用户能做成的事</text>
+    <text class='slope-t-muted slope-fs-sm' x='470' y='308' text-anchor='end'>时间 →</text>
+  </svg>
+
+  <p class='slope-note'>示意图。B 的起点可以比 A 还高，但决定结局的是斜率。</p>
+</figure>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (!reduce && 'IntersectionObserver' in window) {
+    document.querySelectorAll<HTMLElement>('[data-slope-fig]').forEach((fig) => {
+      // 先瞬间收起；进入视口后换成播放状态，线条从左往右长出来
+      fig.classList.add('slope-armed')
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            fig.classList.add('slope-play')
+            fig.classList.remove('slope-armed')
+            io.disconnect()
+          }
+        },
+        { threshold: 0.45 }
+      )
+      io.observe(fig)
+    })
+  }
+</script>
+
+<style>
+  .slope-fig {
+    margin: 2rem 0;
+    color: hsl(var(--foreground));
+  }
+
+  .slope-cap {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .slope-cap strong {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .slope-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .slope-svg {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .slope-svg text {
+    font-family: inherit;
+    fill: hsl(var(--foreground));
+  }
+
+  .slope-svg .slope-t-muted {
+    fill: hsl(var(--muted-foreground));
+  }
+
+  .slope-svg .slope-t-accent {
+    fill: hsl(var(--primary));
+  }
+
+  /* 字号写在样式里：手机上整张图被缩小，需要把字放大回来 */
+  .slope-fs-sm {
+    font-size: 12.5px;
+  }
+
+  .slope-fs-md {
+    font-size: 14px;
+  }
+
+  .slope-axis {
+    fill: none;
+    stroke: hsl(var(--border));
+    stroke-width: 1.5;
+  }
+
+  .slope-model {
+    fill: none;
+    stroke: hsl(var(--foreground));
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .slope-fast {
+    fill: none;
+    stroke: hsl(var(--primary));
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .slope-slow {
+    fill: none;
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 2.5;
+    stroke-dasharray: 6 5;
+  }
+
+  .slope-gap {
+    fill: hsl(var(--primary) / 0.14);
+    stroke: none;
+  }
+
+  .slope-dot {
+    fill: hsl(var(--background));
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 2;
+  }
+
+  /* ---------- 动效 ---------- */
+
+  /* 裁剪矩形以左边缘为原点横向展开（SVG 元素的 transform-origin 用的是用户坐标） */
+  .slope-wipe {
+    transform-origin: 44px 0;
+  }
+
+  .slope-armed .slope-wipe {
+    transform: scaleX(0);
+  }
+
+  .slope-armed .slope-late {
+    opacity: 0;
+  }
+
+  .slope-play .slope-wipe {
+    transition: transform 1.9s cubic-bezier(0.35, 0.1, 0.25, 1);
+  }
+
+  .slope-play .slope-late {
+    transition: opacity 0.45s ease var(--at, 1.6s);
+  }
+
+  @media (max-width: 640px) {
+    .slope-fs-sm {
+      font-size: 19px;
+    }
+
+    .slope-fs-md {
+      font-size: 21px;
+    }
+  }
+
+  /* 打印时不会触发进入视口，收起状态必须失效 */
+  @media print {
+    .slope-armed .slope-wipe {
+      transform: none;
+    }
+
+    .slope-armed .slope-late {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slope-play .slope-wipe,
+    .slope-play .slope-late {
+      transition: none;
+    }
+  }
+</style>
