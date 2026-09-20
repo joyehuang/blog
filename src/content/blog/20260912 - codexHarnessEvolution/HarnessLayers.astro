@@ -2,49 +2,73 @@
 /**
  * HarnessLayers.astro
  *
- * 博文《下一代模型自己就会了，那我们做的 Harness 还剩什么？》的图 1：
- * 三层 Harness，从模型开始一层一层往外长。
+ * Harness 那篇博文第三节的图：三层 Harness，从模型开始一层一层往外长。
  *
- * 动效：
+ * 动效与交互：
  * - 进入视口时从里往外依次出现：模型 → 第一层 → 第二层 → 第三层。
  * - 之后每隔几秒有一道很淡的脉冲从模型向外扫过各层边框，
  *   表达「里面那层稳了，外面再长一层」。
- * - 悬停时只高亮鼠标所在的最内一层。
+ * - 点图里的任意一层，或者下面的按钮，面板切到这一层的细节：
+ *   文中的例子、会被模型和平台收走的通用部分、留给自己的部分。
  *
- * 每一层的边框和底色画在 ::before 上，这样外层的出现动画不会连带里面的内容一起隐藏。
- * 没有 JS、或者 prefers-reduced-motion 时，图直接以最终状态静态展示。
+ * 布局稳定性：
+ * - 每一层的边框和底色画在 ::before 上，外层的出现动画不会连带里面的内容一起隐藏。
+ * - 三块面板叠在同一个 grid 单元里做淡入淡出；面板高度跟着当前这一块走，用 transition 平滑过渡，
+ *   既不会硬跳，也不会为了最高的那一块在下面留一截空白。
+ *
+ * 没有 JS 时图以最终状态静态展示，面板停在第一层；prefers-reduced-motion 下取消全部动画和过渡。
  * 样式只用站点的语义 token，明暗主题自动跟随。
+ *
+ * 注意：根元素的类名不能叫 `hxl`，UnoCSS 会把它当成 `h-xl`（height: 36rem），图会被固定成 576px 高。
  */
 ---
 
-<figure class='hxl not-prose' data-hxl>
+<figure class='hxl-fig not-prose' data-hxl data-focus='1'>
   <figcaption class='hxl-cap'>
-    <strong>图 1 · 三层 Harness。</strong>每一层都包着里面那一层；越往外开始得越晚，也越依赖只属于你自己的东西。
+    <strong>图 2 · 三层 Harness。</strong>每一层都包着里面那一层；越往外开始得越晚，也越依赖只属于你、你的组织或企业的上下文。
   </figcaption>
 
-  <div class='hxl-layer hxl-l3' style='--i: 3'>
+  <div class='hxl-layer hxl-l3' data-layer='3' style='--i: 3'>
     <div class='hxl-head'>
       <span class='hxl-ord'>第三层</span>
       <span class='hxl-name'>整个组织</span>
       <span class='hxl-tag hxl-tag-hot'>刚开始</span>
+      <span class='hxl-who'>开发、运营、增长，和他们的 Agent</span>
     </div>
-    <p class='hxl-desc'>开发、运营、增长都在里面。团队的决定记在哪里，Agent 能代表谁发言，用户反馈怎么回到它手里。</p>
+    <ul class='hxl-chips'>
+      <li>团队的决定记在哪里</li>
+      <li>Agent 能代表谁发言</li>
+      <li>用户反馈怎么回到它手里</li>
+    </ul>
 
-    <div class='hxl-layer hxl-l2' style='--i: 2'>
+    <div class='hxl-layer hxl-l2' data-layer='2' style='--i: 2'>
       <div class='hxl-head'>
         <span class='hxl-ord'>第二层</span>
         <span class='hxl-name'>Repo</span>
         <span class='hxl-tag hxl-tag-hot'>各团队正在探索</span>
+        <span class='hxl-who'>几个人，几个 coding agent</span>
       </div>
-      <p class='hxl-desc'>几个人配几个 coding agent。AGENTS.md、CI/CD、文档、repo index，以及那些以前要问同事才知道的事。</p>
+      <ul class='hxl-chips'>
+        <li>AGENTS.md</li>
+        <li>CI/CD</li>
+        <li>文档</li>
+        <li>repo index</li>
+        <li>以前要问同事才知道的事</li>
+      </ul>
 
-      <div class='hxl-layer hxl-l1' style='--i: 1'>
+      <div class='hxl-layer hxl-l1' data-layer='1' style='--i: 1'>
         <div class='hxl-head'>
           <span class='hxl-ord'>第一层</span>
           <span class='hxl-name'>产品本身</span>
           <span class='hxl-tag'>coding 已成熟 · 其它垂类刚起步</span>
+          <span class='hxl-who'>一个 Agent 产品</span>
         </div>
-        <p class='hxl-desc'>Tool、MCP、上下文、记忆。一个 Agent 产品自己的 Harness。</p>
+        <ul class='hxl-chips'>
+          <li>Tool</li>
+          <li>MCP</li>
+          <li>上下文</li>
+          <li>记忆</li>
+        </ul>
 
         <div class='hxl-core'>
           <span class='hxl-halo' aria-hidden='true'></span>
@@ -57,34 +81,110 @@
       </div>
     </div>
   </div>
+
+  <div class='hxl-tabs' role='group' aria-label='选一层看细节'>
+    <span class='hxl-tabs-label'>点图里的一层，或者选：</span>
+    <button type='button' class='hxl-tab' data-layer='1' aria-pressed='true'>第一层 · 产品本身</button>
+    <button type='button' class='hxl-tab' data-layer='2' aria-pressed='false'>第二层 · Repo</button>
+    <button type='button' class='hxl-tab' data-layer='3' aria-pressed='false'>第三层 · 整个组织</button>
+  </div>
+
+  <div class='hxl-panel' aria-live='polite'>
+    <div class='hxl-pane' data-layer='1' data-active='true'>
+      <dl>
+        <dt>文中的例子</dt>
+        <dd>「改完记得跑测试」的提醒、被删掉的 80% 系统提示词、Todo 工具、AskUserQuestion。</dd>
+        <dt>会被收走的</dt>
+        <dd>通用的机制：工具调用已经是原生能力，MCP 是公共协议，记忆正在成为各家产品的标配。</dd>
+        <dt>留给自己的</dt>
+        <dd>你的工具，以及垂类里才有的做法。设计、剪辑、市场研究这些领域，这一层才刚开始探索。</dd>
+      </dl>
+    </div>
+    <div class='hxl-pane' data-layer='2' data-active='false' aria-hidden='true'>
+      <dl>
+        <dt>文中的例子</dt>
+        <dd>博客仓库里「不要直接 push 到 main」那条规定；Bun 的重写能成，靠的是一大套现成的测试。</dd>
+        <dt>会被收走的</dt>
+        <dd>读仓库、跑 review 这类通用做法，会被 coding agent 内置。</dd>
+        <dt>留给自己的</dt>
+        <dd>开发规范、历史遗留问题的来龙去脉、issue 之间的依赖和冲突。以前靠问同事，现在要变成 Agent 读得到的形式。</dd>
+      </dl>
+    </div>
+    <div class='hxl-pane' data-layer='3' data-active='false' aria-hidden='true'>
+      <dl>
+        <dt>文中的例子</dt>
+        <dd>我在飞书、Telegram 和 QQ 群里用的 Agent；Thariq 用 Claude Tag 从找人、出 mockup 到改漏斗，做完一个内部工具。</dd>
+        <dt>会被收走的</dt>
+        <dd>运行在 IM 里的 Agent 这种形态，会成为平台出售的产品。</dd>
+        <dt>留给自己的</dt>
+        <dd>「当初为什么这样决定」的历史。它只属于你、你的组织或企业，不在任何人的训练数据里，只能自己积累。</dd>
+      </dl>
+    </div>
+  </div>
 </figure>
 
 <script>
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  if (!reduce && 'IntersectionObserver' in window) {
-    document.querySelectorAll<HTMLElement>('[data-hxl]').forEach((fig) => {
-      // 先收起，进入视口后放开，CSS 里的 transition-delay 负责从里往外的顺序
-      fig.classList.add('hxl-armed')
+  document.querySelectorAll<HTMLElement>('[data-hxl]').forEach((fig) => {
+    // ---- 选层：按钮和图里的层共用一个入口 ----
+    const tabs = fig.querySelectorAll<HTMLElement>('.hxl-tab')
+    const panes = fig.querySelectorAll<HTMLElement>('.hxl-pane')
+    const panel = fig.querySelector<HTMLElement>('.hxl-panel')
 
-      const io = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) {
-            fig.classList.remove('hxl-armed')
-            io.disconnect()
-          }
-        },
-        { threshold: 0.3 }
-      )
-      io.observe(fig)
+    // 面板高度跟随当前可见的那一块
+    const fit = () => {
+      const active = fig.querySelector<HTMLElement>(".hxl-pane[data-active='true']")
+      if (panel && active) panel.style.height = `${Math.ceil(active.getBoundingClientRect().height)}px`
+    }
+
+    const select = (layer: string) => {
+      fig.dataset.focus = layer
+      tabs.forEach((tab) => tab.setAttribute('aria-pressed', String(tab.dataset.layer === layer)))
+      panes.forEach((pane) => {
+        const on = pane.dataset.layer === layer
+        pane.dataset.active = String(on)
+        pane.setAttribute('aria-hidden', String(!on))
+      })
+      fit()
+    }
+
+    tabs.forEach((tab) => tab.addEventListener('click', () => select(tab.dataset.layer ?? '1')))
+    fig.querySelector('.hxl-l3')?.addEventListener('click', (event) => {
+      // 层是嵌套的，取点击位置所在的最内一层
+      const layer = (event.target as HTMLElement).closest<HTMLElement>('.hxl-layer')
+      if (layer?.dataset.layer) select(layer.dataset.layer)
     })
-  }
+
+    fit()
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(fit)
+      panes.forEach((pane) => ro.observe(pane))
+    }
+
+    // ---- 进入视口时从里往外出现 ----
+    if (reduce || !('IntersectionObserver' in window)) return
+
+    // 先收起，进入视口后放开，CSS 里的 transition-delay 负责从里往外的顺序
+    fig.classList.add('hxl-armed')
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          fig.classList.remove('hxl-armed')
+          io.disconnect()
+        }
+      },
+      { threshold: 0.2 }
+    )
+    io.observe(fig)
+  })
 </script>
 
 <style>
-  .hxl {
+  .hxl-fig {
     --hxl-step: 240ms;
     --hxl-cycle: 8s;
+    --hxl-ease: cubic-bezier(0.22, 1, 0.36, 1);
     margin: 2rem 0;
     color: hsl(var(--foreground));
   }
@@ -108,6 +208,7 @@
     isolation: isolate;
     padding: 14px;
     border-radius: 16px;
+    cursor: pointer;
   }
 
   .hxl-layer .hxl-layer {
@@ -130,6 +231,7 @@
     background: hsl(var(--muted) / 0.4);
     transition:
       border-color 0.25s ease,
+      box-shadow 0.25s ease,
       opacity 0.55s ease calc(var(--i) * var(--hxl-step)),
       transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * var(--hxl-step));
   }
@@ -177,6 +279,14 @@
     box-shadow: none;
   }
 
+  /* 当前选中的层 */
+  .hxl-fig[data-focus='1'] .hxl-l1::before,
+  .hxl-fig[data-focus='2'] .hxl-l2::before,
+  .hxl-fig[data-focus='3'] .hxl-l3::before {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.28);
+  }
+
   .hxl-head {
     display: flex;
     flex-wrap: wrap;
@@ -210,15 +320,33 @@
     color: hsl(var(--primary));
   }
 
-  .hxl-desc {
-    margin: 5px 0 0;
-    font-size: 0.82rem;
-    line-height: 1.65;
+  .hxl-who {
+    margin-left: auto;
+    font-size: 0.74rem;
     color: hsl(var(--muted-foreground));
   }
 
+  .hxl-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 9px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hxl-chips li {
+    padding: 2px 9px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    background: hsl(var(--background) / 0.7);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: hsl(var(--foreground) / 0.85);
+  }
+
   .hxl-head,
-  .hxl-desc {
+  .hxl-chips {
     transition:
       opacity 0.5s ease calc(var(--i) * var(--hxl-step) + 140ms),
       transform 0.5s ease calc(var(--i) * var(--hxl-step) + 140ms);
@@ -300,6 +428,102 @@
     color: hsl(var(--muted-foreground));
   }
 
+  /* ---------- 选层按钮 + 面板 ---------- */
+
+  .hxl-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+  }
+
+  .hxl-tabs-label {
+    margin-right: 0.2rem;
+    font-size: 0.78rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hxl-tab {
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition:
+      border-color 0.32s var(--hxl-ease),
+      background-color 0.32s var(--hxl-ease),
+      color 0.32s var(--hxl-ease);
+  }
+
+  .hxl-tab:hover {
+    border-color: hsl(var(--foreground) / 0.3);
+  }
+
+  .hxl-tab:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+
+  .hxl-tab[aria-pressed='true'] {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+
+  .hxl-panel {
+    display: grid;
+    margin-top: 0.7rem;
+    overflow: hidden;
+    border-radius: 8px;
+    background: hsl(var(--muted) / 0.45);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    transition: height 0.32s var(--hxl-ease);
+  }
+
+  .hxl-pane {
+    grid-area: 1 / 1;
+    align-self: start;
+    padding: 0.8rem 0.9rem;
+    opacity: 0;
+    transform: translateY(4px);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.32s var(--hxl-ease),
+      transform 0.32s var(--hxl-ease),
+      visibility 0s linear 0.32s;
+  }
+
+  .hxl-pane[data-active='true'] {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+
+  .hxl-pane dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.4rem 0.9rem;
+    margin: 0;
+  }
+
+  .hxl-pane dt {
+    padding-top: 0.1rem;
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hxl-pane dd {
+    margin: 0;
+  }
+
   /* ---------- 进入视口前的收起状态 ---------- */
 
   .hxl-armed .hxl-layer::before {
@@ -308,7 +532,7 @@
   }
 
   .hxl-armed .hxl-head,
-  .hxl-armed .hxl-desc {
+  .hxl-armed .hxl-chips {
     opacity: 0;
     transform: translateY(6px);
   }
@@ -380,13 +604,27 @@
     .hxl-layer .hxl-layer {
       margin-top: 11px;
     }
+
+    .hxl-who {
+      flex-basis: 100%;
+      margin-left: 0;
+    }
+
+    .hxl-pane dl {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+
+    .hxl-pane dd {
+      margin-bottom: 0.45rem;
+    }
   }
 
   /* 打印时不会触发进入视口，收起状态必须失效 */
   @media print {
     .hxl-armed .hxl-layer::before,
     .hxl-armed .hxl-head,
-    .hxl-armed .hxl-desc,
+    .hxl-armed .hxl-chips,
     .hxl-armed .hxl-core {
       opacity: 1;
       transform: none;
@@ -396,8 +634,11 @@
   @media (prefers-reduced-motion: reduce) {
     .hxl-layer::before,
     .hxl-head,
-    .hxl-desc,
-    .hxl-core {
+    .hxl-chips,
+    .hxl-core,
+    .hxl-tab,
+    .hxl-panel,
+    .hxl-pane {
       transition: none;
     }
 
