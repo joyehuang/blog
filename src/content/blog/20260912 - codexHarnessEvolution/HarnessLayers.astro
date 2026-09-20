@@ -1,0 +1,410 @@
+---
+/**
+ * HarnessLayers.astro
+ *
+ * 博文《下一代模型自己就会了，那我们做的 Harness 还剩什么？》的图 1：
+ * 三层 Harness，从模型开始一层一层往外长。
+ *
+ * 动效：
+ * - 进入视口时从里往外依次出现：模型 → 第一层 → 第二层 → 第三层。
+ * - 之后每隔几秒有一道很淡的脉冲从模型向外扫过各层边框，
+ *   表达「里面那层稳了，外面再长一层」。
+ * - 悬停时只高亮鼠标所在的最内一层。
+ *
+ * 每一层的边框和底色画在 ::before 上，这样外层的出现动画不会连带里面的内容一起隐藏。
+ * 没有 JS、或者 prefers-reduced-motion 时，图直接以最终状态静态展示。
+ * 样式只用站点的语义 token，明暗主题自动跟随。
+ */
+---
+
+<figure class='hxl not-prose' data-hxl>
+  <figcaption class='hxl-cap'>
+    <strong>图 1 · 三层 Harness。</strong>每一层都包着里面那一层；越往外开始得越晚，也越依赖只属于你自己的东西。
+  </figcaption>
+
+  <div class='hxl-layer hxl-l3' style='--i: 3'>
+    <div class='hxl-head'>
+      <span class='hxl-ord'>第三层</span>
+      <span class='hxl-name'>整个组织</span>
+      <span class='hxl-tag hxl-tag-hot'>刚开始</span>
+    </div>
+    <p class='hxl-desc'>开发、运营、增长都在里面。团队的决定记在哪里，Agent 能代表谁发言，用户反馈怎么回到它手里。</p>
+
+    <div class='hxl-layer hxl-l2' style='--i: 2'>
+      <div class='hxl-head'>
+        <span class='hxl-ord'>第二层</span>
+        <span class='hxl-name'>Repo</span>
+        <span class='hxl-tag hxl-tag-hot'>各团队正在探索</span>
+      </div>
+      <p class='hxl-desc'>几个人配几个 coding agent。AGENTS.md、CI/CD、文档、repo index，以及那些以前要问同事才知道的事。</p>
+
+      <div class='hxl-layer hxl-l1' style='--i: 1'>
+        <div class='hxl-head'>
+          <span class='hxl-ord'>第一层</span>
+          <span class='hxl-name'>产品本身</span>
+          <span class='hxl-tag'>coding 已成熟 · 其它垂类刚起步</span>
+        </div>
+        <p class='hxl-desc'>Tool、MCP、上下文、记忆。一个 Agent 产品自己的 Harness。</p>
+
+        <div class='hxl-core'>
+          <span class='hxl-halo' aria-hidden='true'></span>
+          <span class='hxl-pill'>
+            <span class='hxl-dot' aria-hidden='true'></span>
+            模型
+          </span>
+          <span class='hxl-sub'>唯一不用自己做、也做不了的部分</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (!reduce && 'IntersectionObserver' in window) {
+    document.querySelectorAll<HTMLElement>('[data-hxl]').forEach((fig) => {
+      // 先收起，进入视口后放开，CSS 里的 transition-delay 负责从里往外的顺序
+      fig.classList.add('hxl-armed')
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            fig.classList.remove('hxl-armed')
+            io.disconnect()
+          }
+        },
+        { threshold: 0.3 }
+      )
+      io.observe(fig)
+    })
+  }
+</script>
+
+<style>
+  .hxl {
+    --hxl-step: 240ms;
+    --hxl-cycle: 8s;
+    margin: 2rem 0;
+    color: hsl(var(--foreground));
+  }
+
+  .hxl-cap {
+    margin: 0 0 0.85rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hxl-cap strong {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  /* ---------- 层 ---------- */
+
+  .hxl-layer {
+    position: relative;
+    isolation: isolate;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .hxl-layer .hxl-layer {
+    margin-top: 14px;
+    border-radius: 13px;
+  }
+
+  .hxl-layer .hxl-layer .hxl-layer {
+    border-radius: 10px;
+  }
+
+  /* 边框 + 底色 */
+  .hxl-layer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    border: 1px solid hsl(var(--border));
+    border-radius: inherit;
+    background: hsl(var(--muted) / 0.4);
+    transition:
+      border-color 0.25s ease,
+      opacity 0.55s ease calc(var(--i) * var(--hxl-step)),
+      transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * var(--hxl-step));
+  }
+
+  /* 向外扫过的脉冲 */
+  .hxl-layer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: 1.5px solid hsl(var(--primary));
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    animation: hxl-pulse var(--hxl-cycle) ease-out infinite;
+    animation-delay: calc(1.6s + var(--i) * 0.45s);
+  }
+
+  .hxl-l3::before {
+    border-style: dashed;
+    border-color: hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.035);
+  }
+
+  .hxl-l3::after {
+    border-style: dashed;
+  }
+
+  .hxl-l2::before {
+    background: hsl(var(--muted) / 0.55);
+  }
+
+  .hxl-l1::before {
+    background: hsl(var(--card));
+    box-shadow: 0 12px 32px hsl(var(--foreground) / 0.05);
+  }
+
+  /* 深色主题里 --card 接近纯黑，会变成一整块黑；改成越往里越亮 */
+  :global(.dark) .hxl-l2::before {
+    background: hsl(var(--foreground) / 0.035);
+  }
+
+  :global(.dark) .hxl-l1::before {
+    background: hsl(var(--foreground) / 0.06);
+    box-shadow: none;
+  }
+
+  .hxl-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+  }
+
+  .hxl-ord {
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hxl-name {
+    font-size: 0.96rem;
+    font-weight: 600;
+  }
+
+  .hxl-tag {
+    margin-left: 2px;
+    padding: 0 8px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    font-size: 0.72rem;
+    line-height: 1.55;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hxl-tag-hot {
+    border-color: hsl(var(--primary) / 0.6);
+    color: hsl(var(--primary));
+  }
+
+  .hxl-desc {
+    margin: 5px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hxl-head,
+  .hxl-desc {
+    transition:
+      opacity 0.5s ease calc(var(--i) * var(--hxl-step) + 140ms),
+      transform 0.5s ease calc(var(--i) * var(--hxl-step) + 140ms);
+  }
+
+  /* ---------- 模型 ---------- */
+
+  .hxl-core {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 0 6px;
+    transition:
+      opacity 0.45s ease,
+      transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+  }
+
+  .hxl-halo {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: -1;
+    width: min(220px, 80%);
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, hsl(var(--primary) / 0.32), transparent 72%);
+    filter: blur(8px);
+    opacity: 0.6;
+    transform: translateX(-50%);
+    pointer-events: none;
+    animation: hxl-breathe var(--hxl-cycle) ease-in-out infinite;
+    animation-delay: 1.6s;
+  }
+
+  .hxl-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 20px 7px 15px;
+    border: 1px solid hsl(var(--primary) / 0.55);
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.07)),
+      hsl(var(--card));
+    box-shadow:
+      0 0 0 4px hsl(var(--primary) / 0.08),
+      0 8px 22px hsl(var(--primary) / 0.16);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  .hxl-dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+  }
+
+  .hxl-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid hsl(var(--primary));
+    border-radius: 50%;
+    opacity: 0;
+    animation: hxl-ping var(--hxl-cycle) ease-out infinite;
+    animation-delay: 1.6s;
+  }
+
+  .hxl-sub {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ---------- 进入视口前的收起状态 ---------- */
+
+  .hxl-armed .hxl-layer::before {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  .hxl-armed .hxl-head,
+  .hxl-armed .hxl-desc {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .hxl-armed .hxl-core {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+
+  .hxl-armed .hxl-layer::after,
+  .hxl-armed .hxl-halo,
+  .hxl-armed .hxl-dot::after {
+    animation-play-state: paused;
+  }
+
+  /* ---------- 悬停：只高亮最内一层 ---------- */
+
+  @media (hover: hover) {
+    .hxl-layer:hover:not(:has(.hxl-layer:hover))::before {
+      border-color: hsl(var(--primary) / 0.75);
+    }
+  }
+
+  /* ---------- 关键帧 ---------- */
+
+  @keyframes hxl-pulse {
+    0% {
+      opacity: 0;
+    }
+    5% {
+      opacity: 0.65;
+    }
+    17%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes hxl-ping {
+    0% {
+      opacity: 0.85;
+      transform: scale(1);
+    }
+    11%,
+    100% {
+      opacity: 0;
+      transform: scale(3.4);
+    }
+  }
+
+  @keyframes hxl-breathe {
+    0%,
+    28%,
+    100% {
+      opacity: 0.55;
+      transform: translateX(-50%) scale(1);
+    }
+    6% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.1);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hxl-layer {
+      padding: 11px;
+    }
+
+    .hxl-layer .hxl-layer {
+      margin-top: 11px;
+    }
+  }
+
+  /* 打印时不会触发进入视口，收起状态必须失效 */
+  @media print {
+    .hxl-armed .hxl-layer::before,
+    .hxl-armed .hxl-head,
+    .hxl-armed .hxl-desc,
+    .hxl-armed .hxl-core {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hxl-layer::before,
+    .hxl-head,
+    .hxl-desc,
+    .hxl-core {
+      transition: none;
+    }
+
+    .hxl-layer::after,
+    .hxl-halo,
+    .hxl-dot::after {
+      animation: none;
+    }
+  }
+</style>
