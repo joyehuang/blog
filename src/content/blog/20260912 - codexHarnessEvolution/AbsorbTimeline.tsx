@@ -1,12 +1,13 @@
 /**
  * AbsorbTimeline.tsx
  *
- * Harness 那篇博文第二节的交互图：换一代模型，看 Harness 里哪些补丁被学走、哪些一直留着。
+ * Harness 那篇博文第二节的交互图：换一代模型，看 Harness 里哪些旧实现退场、哪些需求一直留着。
  *
  * 两种用法：
- * 1. 选一个阶段（2022 → 下一代）：左栏的补丁在「尚未出现 / 在用 / 已进模型」之间变化，
- *    右栏那些学不走的东西一项不少，分量逐代变重。
- * 2. 点任意一项：下方面板解释它补的是什么、为什么会（或不会）被学走。
+ * 1. 选一个阶段（2022 → 下一代）：左栏的实现在「尚未出现 / 在用 / 已退场」之间变化，
+ *    退场的徽章写明原因（模型已学会 / 平台已承接 / 协作方式改变），只有第一种算进了模型；
+ *    右栏那些长期的协作需求一项不少，分量逐代变重。
+ * 2. 点任意一项：下方面板解释它补的是什么、为什么退场、背后的需求还在不在。
  *
  * 布局稳定性：
  * - 两栏的每一行始终渲染，阶段切换只改透明度、删除线和徽章文字，行高不变。
@@ -19,6 +20,9 @@ import { useState } from 'react'
 
 type PatchState = 'future' | 'active' | 'absorbed'
 
+/** 旧实现退场的原因：只有 model 才算被模型学走 */
+type Exit = 'model' | 'platform' | 'mode'
+
 interface Stage {
   label: string
   note: string
@@ -29,10 +33,13 @@ interface Patch {
   name: string
   /** 从哪个阶段开始有人用 */
   from: number
-  /** 到哪个阶段进了模型 */
+  /** 到哪个阶段退场 */
   until: number
+  exit: Exit
   fixes: string
   gone: string
+  /** 实现退场之后，背后的需求还在不在 */
+  still: string
 }
 
 interface Keep {
@@ -45,8 +52,8 @@ const STAGES: Stage[] = [
   { label: '2022', note: '模型外面主要是提示词技巧：怎么问，用什么格式让它调用工具。' },
   { label: '2024', note: '先思考再回答、工具调用都进了模型，上一批技巧没有人再写。新的补丁开始围绕长任务。' },
   { label: '2025', note: 'coding agent 普及，补丁变成了提醒、待办工具和整套开发流程。' },
-  { label: '今天', note: '上一批补丁基本都进了模型。右边一项没少，而且每一项都更重了。' },
-  { label: '下一代', note: '今天还在用的补丁也会走同一条路，留下来的仍然是右边这一栏。' }
+  { label: '今天', note: '上一批实现基本都退场了，但原因不止一种：有的被模型学会，有的被平台接走，有的是协作方式变了。右边一项没少，而且每一项都更重了。' },
+  { label: '下一代', note: '今天还在用的补丁也会退场，留下来的仍然是右边这一栏。' }
 ]
 
 const PATCHES: Patch[] = [
@@ -56,7 +63,9 @@ const PATCHES: Patch[] = [
     from: 0,
     until: 1,
     fixes: '模型不会先思考再回答。在提示词末尾加上这一句，推理题的正确率就明显提高。',
-    gone: '2024 年推理模型出现，「先思考再回答」被直接训练进了模型。'
+    exit: 'model',
+    gone: '2024 年推理模型出现，「先思考再回答」被直接训练进了模型。',
+    still: '不在了。这一步模型自己会做，外面不需要再管。'
   },
   {
     id: 'parse',
@@ -64,7 +73,9 @@ const PATCHES: Patch[] = [
     from: 0,
     until: 1,
     fixes: '模型不会调用工具。在提示词里约定一种输出格式，由外部程序解析、执行，再把结果交还给它。',
-    gone: '各家把 function calling 做成了原生能力，这一层解析代码不再需要。'
+    exit: 'platform',
+    gone: '各家把 function calling 做成了原生能力：模型直接输出结构化的调用，解析由平台的 API 承接，自己写的那层代码不再需要。',
+    still: '还在。工具依然在模型外面执行，执行的结果依然要由外面的程序取回来核对。'
   },
   {
     id: 'todo',
@@ -72,7 +83,9 @@ const PATCHES: Patch[] = [
     from: 1,
     until: 3,
     fixes: '交给模型五件事，它往往做完三件就停了。加一个待办列表，效果非常明显。',
-    gone: '2026 年 8 月的 Claude Code v2.1.233 起，待办工具在新一代模型上默认不再提供。'
+    exit: 'model',
+    gone: '2026 年 8 月的 Claude Code v2.1.233 起，待办工具在新一代模型上默认不再提供。',
+    still: '「记住这一轮要做的几件事」不用管了。但跨几天、几个人都要看进度的任务，状态存在哪里、断了从哪里继续，仍然要在外面做，见右栏「进度和触发」。'
   },
   {
     id: 'sysprompt',
@@ -80,7 +93,9 @@ const PATCHES: Patch[] = [
     from: 2,
     until: 3,
     fixes: '模型本该做到却做不到的行为，一条一条写进系统提示词里提醒。',
-    gone: 'Opus 5 发布时，Claude Code 删掉了 80% 的系统提示词，去掉之后模型的表现反而略有提升。'
+    exit: 'model',
+    gone: 'Opus 5 发布时，Claude Code 删掉了 80% 的系统提示词，去掉之后模型的表现反而略有提升。',
+    still: '纠正旧问题的那部分不在了。留下的是只有你知道的规则和背景。'
   },
   {
     id: 'test',
@@ -88,7 +103,29 @@ const PATCHES: Patch[] = [
     from: 2,
     until: 3,
     fixes: '早期的 Codex 改完代码不会主动跑测试，只能在提示词里加一句提醒。',
-    gone: '几个月后训练出的新模型自己会跑，这句提醒就删掉了。'
+    exit: 'model',
+    gone: '几个月后训练出的新模型自己会跑，这句提醒就删掉了。',
+    still: '提醒不需要了。但测试是红是绿，仍然要由程序去确认，见右栏「取回真实的结果」。'
+  },
+  {
+    id: 'memory',
+    name: '自己搭的记忆和通用集成',
+    from: 1,
+    until: 3,
+    exit: 'platform',
+    fixes: '前两年做 Agent，记忆要自己搭，接每一个外部系统都要自己写一套连接代码。',
+    gone: '记忆成了各家产品的内置功能，MCP 是公共协议，常用的集成平台已经做好，自己写的那份可以删了。',
+    still: '还在。这件事没有进到模型里，只是换了一个承接的人；记什么、接哪些系统，仍然由你决定。'
+  },
+  {
+    id: 'ask',
+    name: '固定的提问工具（AskUserQuestion）',
+    from: 2,
+    until: 3,
+    exit: 'mode',
+    fixes: 'Agent 需要向人确认的时候，用一个固定格式的工具弹出选项，让人来选。',
+    gone: '作者自己后来也很少用了，而是直接让 Claude 生成一个带图表、可以交互的 HTML 页面来提问。',
+    still: '还在。Agent 需要向人把事情问清楚，这一点没有变，变的只是用什么形式来问。'
   },
   {
     id: 'process',
@@ -96,7 +133,9 @@ const PATCHES: Patch[] = [
     from: 2,
     until: 3,
     fixes: 'Superpowers 这一类：先 brainstorm、再拆计划、强制 TDD、做完 review，补的是模型在规划和执行上的判断。',
-    gone: 'GPT-6 发布之后，很多人不再用它。模型自己具备了这种判断，流程就从帮助变成了负担。'
+    exit: 'model',
+    gone: 'GPT-6 发布之后，很多人不再用它。模型自己具备了这种判断，流程就从帮助变成了负担。',
+    still: '通用的开发方法论不用再装。垂类的 know-how 打包成 Skill 方便传播，这个用法还在。'
   },
   {
     id: 'grill',
@@ -104,7 +143,9 @@ const PATCHES: Patch[] = [
     from: 3,
     until: 4,
     fixes: '在动手之前反过来追问你，把只有你知道的信息问出来。',
-    gone: '下一代模型很可能自己就知道什么时候该停下来提问、该问什么。'
+    exit: 'model',
+    gone: '下一代模型很可能自己就知道什么时候该停下来提问、该问什么。',
+    still: '只有你知道的信息，仍然要从你这里拿到；只是不再需要一个 Skill 来提醒它去问。'
   }
 ]
 
@@ -151,10 +192,19 @@ const KEEPS: Keep[] = [
   }
 ]
 
-const STATE_LABEL: Record<PatchState, string> = {
+const STATE_LABEL: Record<Exclude<PatchState, 'absorbed'>, string> = {
   future: '尚未出现',
-  active: '在用',
-  absorbed: '已进模型'
+  active: '在用'
+}
+
+const EXIT_LABEL: Record<Exit, string> = {
+  model: '模型已学会',
+  platform: '平台已承接',
+  mode: '协作方式改变'
+}
+
+function badgeLabel(p: Patch, state: PatchState): string {
+  return state === 'absorbed' ? EXIT_LABEL[p.exit] : STATE_LABEL[state]
 }
 
 const DEFAULT_STAGE = 3
@@ -307,7 +357,7 @@ const CSS = `
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-width: 4.9em;
+  min-width: 7.2em;
   height: 1.5em;
   padding: 0 0.5em;
   border: 1px solid var(--ab-line);
@@ -329,7 +379,7 @@ const CSS = `
 /* ---------- 面板 ---------- */
 .ab-panel {
   margin-top: 0.9rem;
-  min-height: 8.2rem;
+  min-height: 10.6rem;
   border-radius: 8px;
   background: hsl(var(--muted) / 0.45);
   padding: 0.8rem 0.9rem;
@@ -362,7 +412,7 @@ const CSS = `
   .ab { padding: 0.85rem 0.8rem 0.9rem; }
   .ab-cols { grid-template-columns: 1fr; gap: 1.1rem; }
   .ab-note { min-height: 4.6em; }
-  .ab-panel { min-height: 11rem; }
+  .ab-panel { min-height: 15rem; }
   .ab-pane dl { grid-template-columns: 1fr; gap: 0.15rem; }
   .ab-pane dd { margin-bottom: 0.45rem; }
 }
@@ -379,7 +429,8 @@ export default function AbsorbTimeline() {
 
   const states = PATCHES.map((p) => patchState(p, stage))
   const activeCount = states.filter((s) => s === 'active').length
-  const absorbedCount = states.filter((s) => s === 'absorbed').length
+  const goneCount = states.filter((s) => s === 'absorbed').length
+  const learnedCount = PATCHES.filter((p, i) => states[i] === 'absorbed' && p.exit === 'model').length
 
   const patch = PATCHES.find((p) => p.id === selected)
   const keep = KEEPS.find((k) => k.id === selected)
@@ -389,7 +440,7 @@ export default function AbsorbTimeline() {
       <style>{CSS}</style>
 
       <figcaption className='ab-head'>
-        <span className='ab-title'>图 1 · 模型每强一代，Harness 里少了什么、剩下什么</span>
+        <span className='ab-title'>图 1 · 模型每强一代，哪些实现退场了，哪些需求一直在</span>
         <span className='ab-hint'>选一个阶段；点任意一项看原因。</span>
       </figcaption>
 
@@ -412,12 +463,12 @@ export default function AbsorbTimeline() {
       </p>
 
       <div className='ab-cols'>
-        <section className='ab-col' aria-label='会被学走的补丁'>
+        <section className='ab-col' aria-label='会退场的实现'>
           <div className='ab-col-head'>
-            <span className='ab-col-name'>会被学走</span>
-            <span className='ab-col-sub'>替模型的判断兜底</span>
+            <span className='ab-col-name'>会退场的实现</span>
+            <span className='ab-col-sub'>教模型做某一步，或当时的一种做法</span>
             <span className='ab-col-meta'>
-              在用 {activeCount} · 已进模型 {absorbedCount}
+              在用 {activeCount} · 已退场 {goneCount}（其中模型学会 {learnedCount}）
             </span>
           </div>
           <ul className='ab-list'>
@@ -432,7 +483,7 @@ export default function AbsorbTimeline() {
                 >
                   <span className='ab-row-name'>{p.name}</span>
                   <span className='ab-badge' data-state={states[i]}>
-                    {STATE_LABEL[states[i]]}
+                    {badgeLabel(p, states[i])}
                   </span>
                 </button>
               </li>
@@ -440,9 +491,9 @@ export default function AbsorbTimeline() {
           </ul>
         </section>
 
-        <section className='ab-col' aria-label='学不走的部分'>
+        <section className='ab-col' aria-label='长期的协作需求'>
           <div className='ab-col-head'>
-            <span className='ab-col-name'>学不走</span>
+            <span className='ab-col-name'>长期的协作需求</span>
             <span className='ab-col-sub'>模型再聪明，也得有人在外面做</span>
             <span className='ab-col-meta'>
               分量
@@ -481,7 +532,7 @@ export default function AbsorbTimeline() {
             <h4>
               {patch.name}
               <span className='ab-badge' data-state={patchState(patch, stage)}>
-                {STATE_LABEL[patchState(patch, stage)]}
+                {badgeLabel(patch, patchState(patch, stage))}
               </span>
             </h4>
             <dl>
@@ -489,6 +540,8 @@ export default function AbsorbTimeline() {
               <dd>{patch.fixes}</dd>
               <dt>后来</dt>
               <dd>{patch.gone}</dd>
+              <dt>需求还在吗</dt>
+              <dd>{patch.still}</dd>
             </dl>
           </div>
         )}
