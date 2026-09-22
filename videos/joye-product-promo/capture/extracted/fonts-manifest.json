@@ -1,0 +1,71 @@
+{
+  "files": [
+    {
+      "file": "tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxjPQ.ttf",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono Medium",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Medium",
+      "weight": 500,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true
+    },
+    {
+      "file": "tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono SemiBold",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-SemiBold",
+      "weight": 600,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true
+    },
+    {
+      "file": "tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Regular",
+      "postscript": "JetBrainsMono-Regular",
+      "weight": 400,
+      "style": "normal",
+      "variationAxes": [],
+      "identified": true
+    },
+    {
+      "file": "tDba2o-flEEny0FZhsfKu5WU4xD-IQ-PuZJJXxfpAO-LflOQ.ttf",
+      "family": "JetBrains Mono",
+      "rawFamily": "JetBrains Mono",
+      "subfamily": "Italic",
+      "postscript": "JetBrainsMono-Italic",
+      "weight": 400,
+      "style": "italic",
+      "variationAxes": [],
+      "identified": true
+    }
+  ],
+  "families": [
+    {
+      "family": "JetBrains Mono",
+      "weights": [
+        400,
+        500,
+        600
+      ],
+      "variable": false,
+      "fileCount": 4,
+      "files": [
+        "tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxjPQ.ttf",
+        "tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8FqtjPQ.ttf",
+        "tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf",
+        "tDba2o-flEEny0FZhsfKu5WU4xD-IQ-PuZJJXxfpAO-LflOQ.ttf"
+      ]
+    }
+  ],
+  "unidentified": [],
+  "meta": {
+    "generatedAt": "2026-06-24T10:13:25.231Z",
+    "tool": "fontkit"
+  }
+}
