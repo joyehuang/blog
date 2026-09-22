@@ -160,7 +160,10 @@ const talks = defineCollection({
 // component (a `.tsx` island, ignored by the md/mdx loader) with an `index.mdx`
 // that embeds it and adds the write-up.
 const lab = defineCollection({
-  loader: glob({ base: './src/content/lab', pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}'] }),
+  loader: glob({
+    base: './src/content/lab',
+    pattern: ['**/*.{md,mdx}', '!**/*.en.{md,mdx}', '!**/CLAUDE.md']
+  }),
   schema: ({ image }) =>
     z.object({
       // Required
