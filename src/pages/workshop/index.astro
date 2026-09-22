@@ -1,0 +1,22 @@
+---
+import { getSpaceContent } from '@/lib/workshop/content.server'
+
+import Workshop from '@/components/workshop/Workshop.astro'
+
+export const prerender = true
+const { items, featuredIds } = await getSpaceContent()
+---
+
+<html lang='zh-CN'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1' />
+    <meta name='robots' content='noindex, nofollow' />
+    <meta name='theme-color' content='#171b19' />
+    <meta name='description' content='Joye — 做产品，想明白，一起探索。一个持续生长的个人空间。' />
+    <title>Joye — A work in progress.</title>
+    <link rel='icon' href='/favicon/favicon.ico' />
+    <link rel='preload' href='/fonts/Satoshi-Variable.ttf' as='font' type='font/ttf' crossorigin />
+  </head>
+  <body><Workshop {items} {featuredIds} /></body>
+</html>

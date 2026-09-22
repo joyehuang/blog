@@ -1,0 +1,224 @@
+---
+import avatar from '@/assets/avatar.png'
+
+import AgentNavigator from './AgentNavigator.astro'
+import type { SpaceItem } from './content'
+
+import './workshop.css'
+import './agent-navigator.css'
+
+interface Props {
+  items: SpaceItem[]
+  featuredIds: string[]
+}
+const { items, featuredIds } = Astro.props
+---
+
+<div id='personal-space' class='personal-space' data-view='0'>
+  <a href='#space-index' class='skip-link'>跳到内容索引</a>
+  <header class='space-header'>
+    <button class='wordmark' data-go='0' aria-label='返回 Joye 全景'>joye<span>↗</span></button>
+    <span class='header-note'>AGENT ENGINEER.<br />A WORK IN PROGRESS.</span>
+    <nav aria-label='探索我的空间'>
+      <button data-go='1'>做东西<span>01</span></button>
+      <button data-go='2'>想明白<span>02</span></button>
+      <button data-go='3'>一起探索<span>03</span></button>
+    </nav>
+    <button id='index-toggle' class='index-toggle' aria-label='打开全部内容索引'
+      ><span class='grid-icon'>⊞</span> 索引</button
+    >
+  </header>
+  <main>
+    <div class='scroll-journey' id='scroll-journey'>
+      <div class='space-viewport'>
+        <div class='grain' aria-hidden='true'></div>
+        <div class='edge-note'>PERSONAL SPACE — OPEN TO POSSIBILITY</div>
+        <div id='space-scene' class='space-scene' aria-label='Joye 的作品、想法与交流空间'></div>
+        <svg class='space-connections' id='space-connections' aria-hidden='true'
+          ><path id='orbit-path'></path><g id='connection-paths'></g><path id='journey-path'
+          ></path></svg
+        >
+        <div class='identity' id='identity'>
+          <p class='identity-eyebrow'><span></span> AI AGENT ENGINEER & CURIOUS HUMAN</p>
+          <h1>joye<span class='identity-star'>✳</span></h1>
+          <div class='identity-bottom'>
+            <img src={avatar.src} alt='Joye' width='32' height='32' /><p>
+              做 Agent，也探索人的可能。<br /><span>产品、思考与交流，构成持续生长的我。</span>
+            </p>
+          </div>
+        </div>
+        <AgentNavigator count={items.length} />
+        <div id='agent-cursor' class='agent-cursor' aria-hidden='true'><span></span><i></i></div>
+        <div class='chapter-copy' id='chapter-copy' aria-live='polite'>
+          <span id='chapter-label'>01 / MAKING</span><h2 id='chapter-title'>
+            想法，要能<br /><em>真的跑起来。</em>
+          </h2><p id='chapter-description'>
+            从 AI 创作工具到开源教程，<br />这是我做过、参与过的东西。
+          </p>
+          <a id='chapter-link' href='/projects'>查看全部项目 <span>↗</span></a>
+        </div>
+        <div class='scene-caption' id='scene-caption'>
+          <span class='caption-cross'>+</span><p>不止一个身份。<br />从任意一面，开始认识我。</p>
+        </div>
+        <div class='explore-cue' id='explore-cue'><span>↓</span> SCROLL TO EXPLORE <i></i></div>
+        <div class='scene-utilities'>
+          <button id='motion-toggle' aria-label='暂停环境动效' aria-pressed='false'>Ⅱ</button
+          ><button id='reset-space' aria-label='重置空间视角'>↺</button><span>拖动，换个角度</span>
+        </div>
+        <div class='journey-footer'>
+          <div class='footer-location'>
+            <span class='status-dot'></span> MELBOURNE, AU <time id='melbourne-time'></time>
+          </div>
+          <nav class='journey-nav' aria-label='空间章节'>
+            <button data-go='0' class='active' aria-current='true'><span>00</span> 全景</button
+            ><button data-go='1'><span>01</span> 制作</button><button data-go='2'
+              ><span>02</span> 思考</button
+            ><button data-go='3'><span>03</span> 连接</button>
+          </nav>
+          <button id='guide-focus' class='guide-open'
+            ><span class='jojo-face'>:)</span><span>从一个问题开始</span><kbd>⌘ K</kbd></button
+          >
+        </div>
+      </div>
+    </div>
+    <section id='space-index' class='space-index'>
+      <div class='index-heading'>
+        <span>THE COMPLETE PICTURE</span><h2>每一面，<em>都是我。</em></h2><p>
+          作品、文章、实验与交流。挑一个你感兴趣的入口。
+        </p>
+      </div>
+      <div class='index-columns'>
+        {
+          (['work', 'thought', 'people', 'self'] as const).map((kind, i) => (
+            <div>
+              <h3>
+                <span>0{i + 1}</span>
+                {['做过的东西', '留下的思考', '一起探索', '关于我'][i]}
+              </h3>
+              {items
+                .filter((item) => item.kind === kind && featuredIds.includes(item.id))
+                .map((item) => (
+                  <button data-open={item.id}>
+                    {item.title.replace('\n', '')}
+                    <span>↗</span>
+                  </button>
+                ))}
+            </div>
+          ))
+        }
+      </div>
+      <footer>
+        <a href='/'>原版博客 ↗</a><span>Build fast, learn faster.</span><a href='/contact'
+          >来聊聊 ↗</a
+        >
+      </footer>
+    </section>
+  </main>
+  <div id='artifact-source' class='artifact-source'>
+    {
+      items.map((item) => (
+        <article
+          class:list={['artifact', `tone-${item.tone}`, `kind-${item.kind}`]}
+          data-artifact={item.id}
+          aria-label={item.title.replace('\n', '')}
+        >
+          <button class='artifact-button' data-open={item.id}>
+            <div class='artifact-top'>
+              <>
+                <span>{item.label}</span>
+                <span class='artifact-arrow'>↗</span>
+              </>
+            </div>
+            {item.image ? (
+              <>
+                <div class='artifact-image'>
+                  <img
+                    src={item.image}
+                    alt={`${item.title} 产品公开界面`}
+                    loading='eager'
+                    draggable='false'
+                  />
+                </div>
+                <div class='artifact-caption'>
+                  <h3>{item.title}</h3>
+                  <p>{item.subtitle}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                {item.id === 'harness' && (
+                  <div class='harness-art' aria-hidden='true'>
+                    <span>input</span>
+                    <b>↳</b>
+                    <span class='harness-loop'>↻</span>
+                    <b>↗</b>
+                    <span>action</span>
+                  </div>
+                )}
+                {item.id === 'community' && (
+                  <div class='community-art' aria-hidden='true'>
+                    <span>✳</span>
+                    <span>✳</span>
+                    <span>✳</span>
+                  </div>
+                )}
+                {item.id === 'lab' && (
+                  <div class='lab-art' aria-hidden='true'>
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                )}
+                {item.id === 'about' && (
+                  <img class='about-photo' src={avatar.src} alt='' draggable='false' />
+                )}
+                <h3>
+                  {item.title.split('\n').map((line) => (
+                    <span>{line}</span>
+                  ))}
+                </h3>
+                <p class='artifact-subtitle'>{item.subtitle}</p>
+                <div class='artifact-bottom'>
+                  <span>
+                    {item.kind === 'work'
+                      ? 'EXPLORE THE WORK'
+                      : item.kind === 'people'
+                        ? 'COME SAY HELLO'
+                        : item.kind === 'self'
+                          ? 'MORE ABOUT ME'
+                          : 'FOLLOW THE THOUGHT'}
+                  </span>
+                  <span>↗</span>
+                </div>
+              </>
+            )}
+          </button>
+        </article>
+      ))
+    }
+  </div>
+  <dialog id='detail-dialog' class='detail-dialog' aria-labelledby='detail-title'>
+    <div class='detail-sheet' id='detail-sheet'>
+      <div class='detail-top'>
+        <span id='detail-label'></span><button id='detail-close' aria-label='回到刚才的位置'
+          >关闭 ×</button
+        >
+      </div>
+      <h2 id='detail-title'></h2><p id='detail-subtitle'></p><img id='detail-image' alt='' hidden />
+      <div id='detail-body' class='detail-body'></div>
+      <a id='detail-visit' class='detail-visit' href='/'>继续探索 <span>↗</span></a>
+      <div class='detail-related'><h3>也许你还想看看</h3><div id='detail-related'></div></div>
+    </div>
+  </dialog>
+  <script
+    is:inline
+    type='application/json'
+    id='space-data'
+    set:html={JSON.stringify({ items }).replace(/</g, '\\u003c')}
+  />
+</div>
+<script>
+  import { initWorkshop } from './workshop'
+
+  initWorkshop()
+</script>

@@ -1,0 +1,60 @@
+---
+interface Props {
+  count: number
+}
+const { count } = Astro.props
+---
+
+<section class='route-panel' id='route-panel' aria-label='当前探索路线' hidden>
+  <div class='route-kicker'>
+    <span id='route-mode'>策划路线</span><button id='route-exit'>回到全景 ↗</button>
+  </div>
+  <p class='route-question' id='route-question'></p>
+  <h2 id='route-title'></h2>
+  <div class='route-current'>
+    <span class='route-number' id='route-number'>01</span>
+    <h3 id='route-label'></h3>
+  </div>
+  <p id='route-reason' class='route-reason'></p>
+  <button id='route-read' class='route-read'>展开这份来源 <span>↗</span></button>
+  <div class='route-navigation'>
+    <button id='route-prev' aria-label='上一个来源'>←</button>
+    <div id='route-steps' class='route-steps' aria-label='路线中的来源'></div>
+    <button id='route-next' aria-label='下一个来源'>→</button>
+    <span id='route-count'></span>
+  </div>
+  <div class='route-followups' id='route-followups' hidden></div>
+  <button id='route-back' class='route-back' hidden>↶ 回到上一条探索路线</button>
+</section>
+<section class='agent-console' id='agent-console' aria-label='探索 Joye 的个人世界'>
+  <div class='agent-console-heading'>
+    <span class='agent-signature'><i></i> JOYE / GUIDE</span>
+    <span id='agent-availability'>连接导览</span>
+  </div>
+  <form id='agent-form' class='agent-form'>
+    <label class='sr-only' for='agent-question'>你想了解 Joye 的哪一面？</label>
+    <input
+      id='agent-question'
+      placeholder='你想了解我的哪一面？'
+      maxlength='500'
+      autocomplete='off'
+    />
+    <button id='agent-submit' type='submit' aria-label='根据问题探索'>↗</button>
+    <button id='agent-cancel' type='button' aria-label='停止当前导览' hidden>■</button>
+  </form>
+  <div class='agent-presets'>
+    <span>从这里开始</span>
+    <button data-journey='products'>真实产品 <span>↗</span></button>
+    <button data-journey='thinking'>独立判断 <span>↗</span></button>
+    <button data-journey='together'>一起探索 <span>↗</span></button>
+  </div>
+  <div class='agent-feedback' id='agent-feedback' hidden>
+    <span class='feedback-indicator'></span><p id='agent-status' role='status' aria-live='polite'>
+    </p>
+    <button id='agent-activity-toggle' aria-expanded='false' aria-controls='agent-activity'
+      >来源记录</button
+    >
+  </div>
+  <ol id='agent-activity' class='agent-activity' hidden aria-label='实际读取的公开来源'></ol>
+  <p class='agent-console-note'><span>{count} 份公开内容</span> · 每一条探索，都能回到真实来源。</p>
+</section>
