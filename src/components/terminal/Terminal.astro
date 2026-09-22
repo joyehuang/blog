@@ -1,11 +1,16 @@
 ---
+import { TERMINAL_MEDIA } from './eligibility'
 import TerminalShell from './TerminalShell'
 ---
 
-<div class='wt-intro' aria-hidden='true'>
-  <span class='wt-intro-tag'>// power user?</span>
-  <span class='wt-intro-text'>
-    Skip the scroll — try the interactive CLI. Type <code>help</code>, <code>design</code>, or <code>ls /blog</code>.
-  </span>
+<div class='desktop-terminal'>
+  <div class='wt-intro' aria-hidden='true'>
+    <span class='wt-intro-tag'>// power user?</span>
+    <span class='wt-intro-text'>
+      Skip the scroll — try the interactive CLI. Type <code>help</code>, <code>design</code>, or <code
+        >ls /blog</code
+      >.
+    </span>
+  </div>
+  <TerminalShell client:media={TERMINAL_MEDIA} />
 </div>
-<TerminalShell client:load />

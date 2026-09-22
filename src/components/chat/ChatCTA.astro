@@ -1,0 +1,67 @@
+---
+interface Props {
+  surface: 'home' | 'article'
+  lang?: 'zh' | 'en'
+}
+const { surface, lang = 'zh' } = Astro.props
+---
+
+<aside class='chat-cta'>
+  <div>
+    <p>{lang === 'en' ? 'A question in mind?' : surface === 'home' ? '有问题，直接聊聊' : '读到这里，有个问题？'}</p><span
+      >{
+        lang === 'en'
+          ? 'Ask the blog. Follow the sources. Your first question is free.'
+          : '和博客聊聊，从回答回到原文。第一问免费，无需登录。'
+      }</span
+    >
+  </div>
+  <button data-chat-open={surface}>Chat <span aria-hidden='true'>↗</span></button>
+</aside>
+<style>
+  .chat-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 24px 0;
+    padding: 20px 24px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: hsl(var(--card));
+  }
+  .chat-cta p {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+  .chat-cta span {
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
+  .chat-cta button {
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    padding: 8px 14px;
+    color: hsl(var(--primary));
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .chat-cta button:hover {
+    background: hsl(var(--muted));
+  }
+  .chat-cta button:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  @media (max-width: 640px) {
+    .chat-cta {
+      padding: 16px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chat-cta button {
+      transition: none;
+    }
+  }
+</style>

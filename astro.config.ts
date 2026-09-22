@@ -94,7 +94,7 @@ export default defineConfig({
   // Adapter
   // https://docs.astro.build/en/guides/deploy/
   // 1. Vercel (serverless)
-  adapter: vercel(),
+  adapter: vercel({ maxDuration: 60 }),
   output: 'server',
   // 2. Vercel (static)
   // adapter: vercelStatic(),

@@ -7,9 +7,12 @@ import { Footer } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
 import BaseHead from '@/components/BaseHead.astro'
+import Chat from '@/components/chat/Chat'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
 import Header from '@/components/Header.astro'
 import DevModeHost from '@/components/terminal/DevModeHost'
+import { TERMINAL_MEDIA } from '@/components/terminal/eligibility'
+import TerminalPolicy from '@/components/terminal/TerminalPolicy.astro'
 import ThemeProvider from '@/components/ThemeProvider.astro'
 import config from '@/site-config'
 
@@ -38,7 +41,6 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
   <head>
     <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
     <ThemeProvider />
-    <script is:inline defer src='https://umami.joyehuang.dev/script.js' data-website-id='1d765b53-dc42-4361-8ad4-4e73420abdc7'></script>
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>
@@ -56,7 +58,9 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
       <slot />
       {chrome && <Footer />}
     </div>
-    <DevModeHost client:only='react' />
+    <Chat client:only='react' />
+    <TerminalPolicy />
+    <DevModeHost client:media={TERMINAL_MEDIA} />
     <Analytics />
     <AnalyticsEvents />
     <SpeedInsights />

@@ -1,8 +1,8 @@
+import { trackSiteEvent } from '@/lib/analytics'
 import { useCallback, useEffect, useState } from 'react'
 
-import { trackSiteEvent } from '@/lib/analytics'
-
 import DevMode from './DevMode'
+import { observeTerminalEligibility, terminalEligible } from './eligibility'
 import { fetchSiteFs } from './fs/client'
 import type { FsNode } from './fs/types'
 
@@ -65,6 +65,7 @@ export default function DevModeHost() {
   const [loadFailed, setLoadFailed] = useState(false)
 
   const enter = useCallback((method: string) => {
+    if (!terminalEligible() || document.querySelector('.blog-chat[open]')) return
     trackSiteEvent('terminal_open', {
       method,
       surface: 'dev_mode',
@@ -120,7 +121,11 @@ export default function DevModeHost() {
 
   // custom events from non-React callers (Header button, future callers)
   useEffect(() => {
-    const onToggle = () => setMode((m) => (m === 'dev' ? 'human' : 'dev'))
+    const onToggle = () => {
+      if (!terminalEligible()) return
+      if (mode === 'dev') exit()
+      else enter('window_control')
+    }
     const onEnter = () => enter('window_control')
     const onExit = () => setMode('human')
     window.addEventListener('joye:toggle-dev', onToggle)
@@ -131,7 +136,7 @@ export default function DevModeHost() {
       window.removeEventListener('joye:enter-dev', onEnter)
       window.removeEventListener('joye:exit-dev', onExit)
     }
-  }, [enter])
+  }, [enter, exit, mode])
 
   // keep the Header's button icon in sync so non-React code can read
   // the current mode without importing this component
@@ -140,7 +145,15 @@ export default function DevModeHost() {
     document.documentElement.dataset.mode = mode
   }, [mode])
 
-  if (mode !== 'dev') return null
+  useEffect(
+    () =>
+      observeTerminalEligibility((eligible) => {
+        if (!eligible) setMode('human')
+      }),
+    []
+  )
+
+  if (mode !== 'dev' || !terminalEligible()) return null
   if (!fs) return <DevModeLoading failed={loadFailed} />
   return <DevMode fs={fs} onExit={exit} />
 }

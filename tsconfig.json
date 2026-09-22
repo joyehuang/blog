@@ -34,6 +34,7 @@
     "dist",
     "public/scripts/*",
     "test/*",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }
