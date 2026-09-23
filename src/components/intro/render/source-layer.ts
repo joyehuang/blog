@@ -5,7 +5,7 @@
  * images as ASCII. It reads the live DOM, so any page can be un-rendered.
  */
 
-export type Glyph = { x: number; y: number; ch: string }
+export type Glyph = { x: number; y: number; ch: string; font: string }
 
 export type SourceLayer = {
   canvas: HTMLCanvasElement
@@ -74,15 +74,16 @@ export function rasterize(skip: string): SourceLayer {
     ctx.fillStyle = color
     ctx.textAlign = align
     ctx.fillText(ch, x, y)
-    glyphs.push({ x, y, ch })
+    glyphs.push({ x, y, ch, font })
   }
 
-  // images → ASCII (density from luminance, tinted by the pixel; the photo's own backdrop is dropped)
+  // images → a coloured ASCII portrait: anything that isn't the photo's own backdrop gets a glyph,
+  // density follows luminance for texture, and dark tones are lifted so hair survives a dark page
   for (const img of Array.from(document.images)) {
     if (img.closest(skip) || !img.complete || !img.naturalWidth) continue
     const r = img.getBoundingClientRect()
     if (!inView(r) || !visibleAt(img, r.left + r.width / 2, r.top + r.height / 2)) continue
-    const size = 4.6
+    const size = 4.2
     const cw = size * 0.62
     const cols = Math.floor(r.width / cw)
     const rows = Math.floor(r.height / size)
@@ -95,19 +96,23 @@ export function rasterize(skip: string): SourceLayer {
     const d = o.getImageData(0, 0, cols, rows).data
     const ref = [d[0], d[1], d[2]]
     const round = parseFloat(getComputedStyle(img).borderTopLeftRadius) >= r.width / 2 - 1
-    const font = `500 ${size}px ${MONO}`
+    const font = `600 ${size}px ${MONO}`
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
         const nx = (x + 0.5) / cols - 0.5
         const ny = (y + 0.5) / rows - 0.5
-        if (round && nx * nx + ny * ny > 0.2) continue
+        if (round && nx * nx + ny * ny > 0.21) continue
         const i = (y * cols + x) * 4
-        if (Math.hypot(d[i] - ref[0], d[i + 1] - ref[1], d[i + 2] - ref[2]) < 38) continue
+        const contrast = Math.hypot(d[i] - ref[0], d[i + 1] - ref[1], d[i + 2] - ref[2])
+        if (contrast < 34) continue
         const lum = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255
-        const k = 0.18 + (dark ? lum : 1 - lum) * 0.82
-        const lift = dark ? 0.35 * (1 - lum) : 0
-        const rgb = [d[i], d[i + 1], d[i + 2]].map((c) => Math.round(c + (255 - c) * lift))
-        const ch = RAMP[Math.max(1, Math.round(k * (RAMP.length - 1)))]
+        const k =
+          0.45 + 0.55 * Math.min(1, contrast / 160) * (dark ? 0.55 + lum * 0.45 : 1.1 - lum * 0.5)
+        const lift = dark ? 0.5 * (1 - lum) : -0.1 * lum
+        const rgb = [d[i], d[i + 1], d[i + 2]].map((c) =>
+          Math.max(0, Math.round(lift >= 0 ? c + (255 - c) * lift : c * (1 + lift)))
+        )
+        const ch = RAMP[Math.min(RAMP.length - 1, Math.max(2, Math.round(k * (RAMP.length - 1))))]
         put(r.left + (x + 0.5) * cw, r.top + (y + 0.5) * size, ch, font, `rgb(${rgb.join(',')})`)
       }
     }
@@ -130,10 +135,12 @@ export function rasterize(skip: string): SourceLayer {
     }
   }
 
-  // text → monospace glyphs centred on each real character
+  // text → monospace. Each visual line of a text node becomes one run laid out on an even grid
+  // that spans the run's real extent, so glyphs never pile up where the real font is narrow
   const range = document.createRange()
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
   const headings = new Set<Element>()
+  const wide = (ch: string) => /[\u2e80-\u9fff\uff00-\uffef]/.test(ch)
   while (walker.nextNode()) {
     const node = walker.currentNode as Text
     if (!node.data.trim()) continue
@@ -150,29 +157,57 @@ export function rasterize(skip: string): SourceLayer {
       : link
         ? tone('--primary', 0.9)
         : tone('--muted-foreground', 0.72)
-    const size = Math.max(9, Math.round(parseFloat(cs.fontSize) * 0.8))
-    const font = `${heading ? 600 : 400} ${size}px ${MONO}`
+    const fs = parseFloat(cs.fontSize)
+
+    type Cell = { ch: string; rect: DOMRect }
+    const runs: Cell[][] = []
     for (let i = 0; i < node.data.length; i++) {
-      if (/\s/.test(node.data[i])) continue
       range.setStart(node, i)
       range.setEnd(node, i + 1)
-      const r = range.getBoundingClientRect()
-      if (!inView(r)) continue
-      const y = r.top + r.height / 2
-      if (!visibleAt(el, r.left + r.width / 2, y)) continue
-      if (heading && !headings.has(heading)) {
-        headings.add(heading)
-        const hashes = '#'.repeat(Number(heading.tagName[1]))
-        put(
-          r.left - size * 0.9,
-          y,
-          hashes,
-          `400 ${size}px ${MONO}`,
-          tone('--primary', 0.75),
-          'right'
-        )
+      const rect = range.getBoundingClientRect()
+      if (!rect.width && !/\s/.test(node.data[i])) continue
+      const run = runs[runs.length - 1]
+      const prev = run?.[run.length - 1]
+      if (!prev || Math.abs(rect.top - prev.rect.top) > fs * 0.5)
+        runs.push([{ ch: node.data[i], rect }])
+      else run.push({ ch: node.data[i], rect })
+    }
+
+    for (const run of runs) {
+      const y = run[0].rect.top + run[0].rect.height / 2
+      if (y < 0 || y > H) continue
+      const size = Math.max(8, fs * 0.8)
+      const font = `${heading ? 600 : 400} ${size}px ${MONO}`
+      // segments: unbroken stretches of one script; each is spread evenly over its own real extent
+      const segments: Cell[][] = []
+      for (const c of run) {
+        if (/\s/.test(c.ch)) {
+          segments.push([])
+          continue
+        }
+        const seg = segments[segments.length - 1]
+        if (seg?.length && wide(seg[0].ch) === wide(c.ch)) seg.push(c)
+        else segments.push([c])
       }
-      put(r.left + r.width / 2, y, node.data[i], font, color)
+      for (const seg of segments) {
+        if (!seg.length) continue
+        const left = seg[0].rect.left
+        const right = seg[seg.length - 1].rect.right
+        if (right < 0 || left > W || !visibleAt(el, (left + right) / 2, y)) continue
+        if (heading && !headings.has(heading)) {
+          headings.add(heading)
+          put(
+            left - size * 0.9,
+            y,
+            '#'.repeat(Number(heading.tagName[1])),
+            font,
+            tone('--primary', 0.75),
+            'right'
+          )
+        }
+        const step = (right - left) / seg.length
+        seg.forEach((c, i) => put(left + (i + 0.5) * step, y, c.ch, font, color))
+      }
     }
   }
 

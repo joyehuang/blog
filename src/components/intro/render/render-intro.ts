@@ -15,10 +15,12 @@ const SKIP =
 const MONO = '"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace'
 const SCRAMBLE = '░▒▓/\\|-+*#<>{}=_01'
 const PRINT_MS = 320 // the source prints in, top → bottom
-const HOLD_MS = 130 // JoJo checks each block before moving on
+const HOLD_MS = 230 // JoJo checks each block before moving on
 const LAND_MS = 160
 const RETRACT_MS = 240
-const BAND = 20 // px of source being "decoded" just below the front
+const DUST_MS = 420
+const BAND = 30 // px of source being "decoded" just below the front
+const GLOW = 40 // the render front's light, falling onto the source
 const ROPE_COL = 5 // the rope ties to this column of JoJo's head
 
 export function initRenderIntro() {
@@ -50,9 +52,10 @@ export function initRenderIntro() {
 
     const source = rasterize(SKIP)
 
-    // JoJo's sprite metrics match the real <pre> so the hand-over is seamless
-    const pre = homeEl ? getComputedStyle(homeEl) : null
-    const fontSize = pre ? parseFloat(pre.fontSize) : 14
+    // JoJo's sprite metrics match the real <pre> so the hand-over is seamless;
+    // with no corner JoJo to hand over to (mobile) he's drawn a size smaller
+    const pre = homeEl?.offsetParent ? getComputedStyle(homeEl) : null
+    const fontSize = pre ? parseFloat(pre.fontSize) : W < 768 ? 11 : 14
     const letter = pre ? parseFloat(pre.letterSpacing) || 0 : 0.5
     const lineH = pre ? parseFloat(pre.lineHeight) || fontSize * 1.15 : fontSize * 1.15
     ctx.font = `400 ${fontSize}px ${MONO}`
@@ -85,10 +88,10 @@ export function initRenderIntro() {
 
     // timeline, in ms at 1×
     const segs: Seg[] = []
-    let t = PRINT_MS + 80
+    let t = PRINT_MS - 40 // he's already on his way down while the last lines print
     let y = -10 // feet, starting above the viewport
     for (const target of [...stops, homeFeet]) {
-      const dur = Math.min(440, Math.max(220, 150 + (target - y) * 0.75))
+      const dur = Math.min(380, Math.max(200, 140 + (target - y) * 0.6))
       segs.push({ t0: t, t1: t + dur, y0: y, y1: target, hold: false })
       t += dur
       y = target
@@ -98,7 +101,13 @@ export function initRenderIntro() {
       }
     }
     const landAt = t
-    const end = landAt + Math.max(LAND_MS, RETRACT_MS)
+    // no corner to land in (mobile hides JoJo): he says hi from the bottom edge, then fades out
+    const end = landAt + (homeShown ? Math.max(LAND_MS, RETRACT_MS, DUST_MS) : 760)
+    const dust = Array.from({ length: 7 }, (_, i) => ({
+      dx: (i % 2 ? 1 : -1) * (14 + Math.random() * 34),
+      dy: -(2 + Math.random() * 12),
+      ch: '·˙∙'[i % 3]
+    }))
     return {
       W,
       H,
@@ -113,7 +122,8 @@ export function initRenderIntro() {
       homeShown,
       segs,
       landAt,
-      end
+      end,
+      dust
     }
   }
 
@@ -172,30 +182,49 @@ export function initRenderIntro() {
           printed - front
         )
       }
-      if (front > 0) decodeBand(source, front, Math.min(printed, front + BAND))
+      if (front > 0) {
+        decodeBand(source, front, Math.min(printed, front + BAND))
+        drawFrontLight(front)
+      }
     }
     drawJoJo(t, feet + bounce)
   }
 
-  // the glyphs right under the front are mid-decode: scrambled, in the accent
+  // the glyphs right under the front are mid-decode: scrambled near the line, themselves (lit) further down
   function decodeBand(source: SourceLayer, top: number, bottom: number) {
     if (bottom <= top) return
     const { W } = scene!
     ctx.fillStyle = source.bg
     ctx.fillRect(0, top, W, bottom - top)
-    ctx.font = `400 11px ${MONO}`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    const accent = getComputedStyle(root).getPropertyValue('--primary').trim()
+    const accent = accentTone()
     for (const g of source.glyphs) {
       if (g.y < top) continue
       if (g.y > bottom) break
       const k = 1 - (g.y - top) / BAND
-      ctx.fillStyle = `hsl(${accent} / ${(0.25 + 0.65 * k * Math.random()).toFixed(2)})`
-      ctx.fillText(SCRAMBLE[(Math.random() * SCRAMBLE.length) | 0], g.x, g.y)
+      const scrambled = Math.random() < k * 0.85
+      ctx.font = g.font
+      ctx.fillStyle = `hsl(${accent} / ${(0.35 + 0.6 * k * (scrambled ? Math.random() : 1)).toFixed(2)})`
+      ctx.fillText(scrambled ? SCRAMBLE[(Math.random() * SCRAMBLE.length) | 0] : g.ch, g.x, g.y)
     }
-    ctx.fillStyle = `hsl(${accent} / 0.35)`
-    ctx.fillRect(0, top, W, 1)
+  }
+
+  // a thin scanline with its light falling a little way onto the source below
+  function drawFrontLight(front: number) {
+    const { W } = scene!
+    const accent = accentTone()
+    const glow = ctx.createLinearGradient(0, front, 0, front + GLOW)
+    glow.addColorStop(0, `hsl(${accent} / 0.16)`)
+    glow.addColorStop(1, `hsl(${accent} / 0)`)
+    ctx.fillStyle = glow
+    ctx.fillRect(0, front, W, GLOW)
+    ctx.fillStyle = `hsl(${accent} / 0.55)`
+    ctx.fillRect(0, front, W, 1)
+  }
+
+  function accentTone() {
+    return getComputedStyle(root).getPropertyValue('--primary').trim()
   }
 
   function drawJoJo(t: number, feet: number) {
@@ -211,7 +240,7 @@ export function initRenderIntro() {
       '    │  │  ',
       '    ╵  ╵  '
     ]
-    const accent = `hsl(${getComputedStyle(root).getPropertyValue('--primary').trim()})`
+    const accent = `hsl(${accentTone()})`
     ctx.font = `400 ${s.fontSize}px ${MONO}`
     ctx.textAlign = 'left'
     ctx.textBaseline = 'top'
@@ -221,9 +250,22 @@ export function initRenderIntro() {
     const ropeX = s.home.x + s.cell * ROPE_COL
     const retract = t > s.landAt ? Math.min(1, (t - s.landAt) / RETRACT_MS) : 0
     const ropeEnd = (pose.rope ? top : top * (1 - easeInCubic(retract))) + s.lineH * 0.2
-    ctx.globalAlpha = 0.55
-    for (let y = ropeEnd - s.lineH; y > -s.lineH; y -= s.lineH) ctx.fillText('│', ropeX, y)
+    const step = s.fontSize * 0.9
+    ctx.globalAlpha = 0.5
+    for (let y = ropeEnd - step; y > -step; y -= step) ctx.fillText('│', ropeX, y)
     ctx.globalAlpha = 1
+
+    // a puff of dust where he lands
+    const since = t - s.landAt
+    if (since > 0 && since < DUST_MS) {
+      const u = since / DUST_MS
+      const cx = s.home.x + s.cell * 5
+      ctx.globalAlpha = 0.7 * (1 - u)
+      for (const d of s.dust)
+        ctx.fillText(d.ch, cx + d.dx * easeOutCubic(u), feet - 8 + d.dy * easeOutCubic(u))
+      ctx.globalAlpha = 1
+    }
+    if (!s.homeShown && since > 300) ctx.globalAlpha = Math.max(0, 1 - (since - 300) / 420)
 
     ctx.save()
     ctx.translate(s.home.x + s.cell * 5, feet)
@@ -235,6 +277,7 @@ export function initRenderIntro() {
       }
     })
     ctx.restore()
+    ctx.globalAlpha = 1
   }
 
   function finish() {
@@ -317,7 +360,7 @@ export function initRenderIntro() {
   }
 
   const fonts = document.fonts?.ready ?? Promise.resolve()
-  Promise.race([fonts, new Promise((r) => setTimeout(r, 900))]).then(() => {
+  Promise.race([fonts, new Promise((r) => setTimeout(r, 500))]).then(() => {
     if (params.has('hold')) {
       window.dispatchEvent(new Event('render-intro:ready'))
       return
