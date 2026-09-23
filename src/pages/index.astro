@@ -14,6 +14,7 @@ import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
+import RenderIntro from '@/components/intro/RenderIntro.astro'
 import JoJo from '@/components/mascot/JoJo'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
@@ -92,6 +93,7 @@ const latestTalk = talks[0]
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
+  <RenderIntro />
   <LegacyIntroOverlay />
   <main class='flex w-full flex-col items-center'>
     <section

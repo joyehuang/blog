@@ -1,0 +1,105 @@
+---
+/**
+ * RenderIntro — prototype home entrance (logic in ./render/render-intro.ts):
+ * the page arrives as its own source, and JoJo rappels down from the top to
+ * his corner, rendering everything above his feet on the way.
+ *
+ * Prototype gate: runs only with `?intro=render` (`&speed=0.25` to slow it
+ * down). Any wheel / key / tap skips to the rendered page.
+ */
+---
+
+<div id='render-ctl' class='render-ctl' aria-label='Intro prototype controls'>
+  <button type='button' data-replay>↻ replay</button>
+  <button type='button' data-speed='1'>1×</button>
+  <button type='button' data-speed='0.5'>0.5×</button>
+  <button type='button' data-speed='0.25'>0.25×</button>
+</div>
+
+{
+  /* Synchronous gate: hide the page before first paint; the veil takes over once it has drawn the source. */
+}
+<script is:inline>
+  ;(function () {
+    try {
+      if (new URLSearchParams(location.search).get('intro') !== 'render') return
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      document.documentElement.classList.add(
+        'intro-render',
+        'intro-render-active',
+        'intro-render-cover'
+      )
+    } catch (e) {}
+  })()
+</script>
+
+<style is:global>
+  /* rects are sampled for the source layer, so nothing may still be sliding in */
+  html.intro-render .animate {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  /* an opaque sheet over the page until the veil has drawn — not visibility, so sampled styles stay true */
+  html.intro-render-cover::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9989;
+    background: hsl(var(--background));
+  }
+  html.intro-render-active #home-jojo {
+    visibility: hidden;
+  }
+  html.intro-render .intro-overlay,
+  html.intro-render #intro-replay {
+    display: none !important;
+  }
+
+  .render-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    display: none;
+    pointer-events: none;
+    visibility: visible;
+  }
+
+  /* prototype-only review controls */
+  .render-ctl {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 72px;
+    transform: translateX(-50%);
+    z-index: 9991;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    background: hsl(var(--card) / 0.75);
+    backdrop-filter: blur(8px);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    visibility: visible;
+  }
+  html.intro-render .render-ctl {
+    display: flex;
+  }
+  .render-ctl button {
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+  }
+  .render-ctl button:hover,
+  .render-ctl button[aria-pressed='true'] {
+    background: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+  }
+</style>
+
+<script>
+  import { initRenderIntro } from './render/render-intro'
+
+  initRenderIntro()
+</script>

@@ -133,6 +133,11 @@ export default function JoJo({
 
     const say = () => {
       if (!alive) return
+      // hold quips while the home intro is still bringing JoJo in; it hands over with its own line
+      if (document.documentElement.classList.contains('intro-render-active')) {
+        nextTimer = setTimeout(say, 4000)
+        return
+      }
       const currentPool = QUIPS[poolRef.current] ?? QUIPS.idle
       setBubble(currentPool[i % currentPool.length])
       setMouth('o')
@@ -154,6 +159,28 @@ export default function JoJo({
       if (nextTimer) clearTimeout(nextTimer)
     }
   }, [autoQuips, speak])
+
+  // External lines, e.g. the home intro handing over: `joye:jojo-say` with `{ text }`.
+  useEffect(() => {
+    let mouthTimer: ReturnType<typeof setTimeout> | undefined
+    let dismissTimer: ReturnType<typeof setTimeout> | undefined
+    const onSay = (e: Event) => {
+      const text = (e as CustomEvent<{ text?: string }>).detail?.text
+      if (!text) return
+      clearTimeout(mouthTimer)
+      clearTimeout(dismissTimer)
+      setBubble(text)
+      setMouth('o')
+      mouthTimer = setTimeout(() => setMouth('ᴗ'), 400)
+      dismissTimer = setTimeout(() => setBubble(null), 2800)
+    }
+    window.addEventListener('joye:jojo-say', onSay)
+    return () => {
+      window.removeEventListener('joye:jojo-say', onSay)
+      clearTimeout(mouthTimer)
+      clearTimeout(dismissTimer)
+    }
+  }, [])
 
   // Sync `speak` prop into bubble.
   useEffect(() => {
