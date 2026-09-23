@@ -47,6 +47,7 @@ import avatar from 'src/assets/avatar.png'
 {/* Synchronous gate: hide the overlay before first paint for repeat visits / reduced motion (kept in DOM so 重播 can re-run it). */}
 <script is:inline>
   ;(function () {
+    if (document.documentElement.classList.contains('intro-stream')) return
     try {
       // 冷却期：看过后 24 小时内不再自动播（避免每个会话都弹）。重播按钮不受限。
       var seenAt = parseInt(localStorage.getItem('intro-seen-at') || '0', 10)
@@ -262,6 +263,8 @@ import avatar from 'src/assets/avatar.png'
     var canvas = document.getElementById('intro-canvas')
     var hud = document.getElementById('intro-hud')
     if (!overlay || !canvas) return
+    // ?intro=stream prototype owns the entrance; it marks the overlay idle when it settles
+    if (document.documentElement.classList.contains('intro-stream')) return
 
     var ctx = canvas.getContext('2d')
     var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches

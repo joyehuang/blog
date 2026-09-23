@@ -1,0 +1,196 @@
+---
+/**
+ * StreamIntro — prototype home entrance: the hero is generated in place, the
+ * way a model streams an answer (logic in ./stream.ts). No overlay, nothing to
+ * click through; the final frame is the real page.
+ *
+ * Prototype gate: runs only with `?intro=stream` (`&speed=0.25` to slow it
+ * down). Hero elements opt in with `data-stream` (name | label | cta).
+ */
+---
+
+<div id='stream-ctl' class='stream-ctl' aria-label='Intro prototype controls'>
+  <button type='button' data-replay>↻ replay</button>
+  <button type='button' data-speed='1'>1×</button>
+  <button type='button' data-speed='0.5'>0.5×</button>
+  <button type='button' data-speed='0.25'>0.25×</button>
+</div>
+
+{/* Synchronous gate: set the pre-stream state before the hero first paints. */}
+<script is:inline>
+  ;(function () {
+    try {
+      if (new URLSearchParams(location.search).get('intro') !== 'stream') return
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      document.documentElement.classList.add('intro-stream')
+    } catch (e) {}
+  })()
+</script>
+
+<style is:global>
+  html.intro-stream .intro-overlay,
+  html.intro-stream #intro-replay {
+    display: none !important;
+  }
+  html.intro-stream #content-header {
+    animation: none;
+    opacity: 1;
+  }
+  html.intro-stream #content {
+    animation: none;
+    opacity: 0;
+  }
+  html.intro-stream.stream-content #content {
+    animation: 480ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards fade-in-up;
+  }
+
+  /* pre-stream state: ring only, no face; text slots keep their layout but are empty */
+  html.intro-stream:not(.stream-avatar-done) [data-intro-target='avatar'] {
+    object-fit: none;
+    object-position: -9999px -9999px;
+  }
+  html.intro-stream [data-stream]:not(.stream-live) {
+    opacity: 0;
+  }
+
+  .stream-tok {
+    display: inline-block;
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(0.18em);
+    transition-property: opacity, filter, transform;
+    transition-duration: calc(300ms * var(--stream-k, 1));
+    transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .stream-icon {
+    transform: scale(0.5);
+  }
+  .stream-tok.on {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  html.intro-stream [data-stream='cta'] {
+    transition:
+      opacity calc(260ms * var(--stream-k, 1)) ease,
+      transform calc(420ms * var(--stream-k, 1)) cubic-bezier(0.2, 0.7, 0.2, 1),
+      box-shadow 150ms ease;
+  }
+  html.intro-stream [data-stream='cta']:not(.stream-live) {
+    transform: translateY(6px) scale(0.96);
+  }
+  .stream-dot {
+    opacity: 0;
+    transition: opacity calc(300ms * var(--stream-k, 1)) ease;
+  }
+  .stream-dot.on {
+    opacity: 1;
+  }
+
+  .stream-canvas {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    transition: opacity calc(240ms * var(--stream-k, 1)) ease;
+  }
+  .stream-canvas.out {
+    opacity: 0;
+  }
+
+  /* the generation head */
+  .stream-caret {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    width: 2px;
+    border-radius: 1px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform calc(120ms * var(--stream-k, 1)) cubic-bezier(0.2, 0.7, 0.2, 1),
+      height calc(120ms * var(--stream-k, 1)) ease,
+      opacity 220ms ease;
+  }
+  .stream-caret.show {
+    opacity: 1;
+  }
+  .stream-caret.show.idle {
+    animation: stream-blink 1s steps(1) infinite;
+  }
+  @keyframes stream-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .stream-meta {
+    position: absolute;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    color: hsl(var(--muted-foreground) / 0.75);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+  }
+  .stream-meta b {
+    font-weight: 400;
+    color: hsl(var(--term-ok));
+  }
+  .stream-meta.show {
+    opacity: 1;
+  }
+
+  /* prototype-only review controls */
+  .stream-ctl {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 72px;
+    transform: translateX(-50%);
+    z-index: 60;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    background: hsl(var(--card) / 0.75);
+    backdrop-filter: blur(8px);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+  }
+  html.intro-stream .stream-ctl {
+    display: flex;
+  }
+  .stream-ctl button {
+    padding: 4px 10px;
+    border-radius: 999px;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+  }
+  .stream-ctl button:hover,
+  .stream-ctl button[aria-pressed='true'] {
+    background: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stream-tok,
+    .stream-caret,
+    .stream-canvas {
+      transition: none;
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initStreamIntro } from './stream'
+
+  initStreamIntro()
+</script>

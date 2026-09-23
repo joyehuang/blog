@@ -14,6 +14,7 @@ import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
+import StreamIntro from '@/components/intro/StreamIntro.astro'
 import JoJo from '@/components/mascot/JoJo'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
@@ -92,6 +93,7 @@ const latestTalk = talks[0]
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
+  <StreamIntro />
   <LegacyIntroOverlay />
   <main class='flex w-full flex-col items-center'>
     <section
@@ -107,13 +109,14 @@ const latestTalk = talks[0]
       />
 
       <div class='flex flex-col items-center gap-y-4'>
-        <h1 class='text-3xl font-bold'>{config.author}</h1>
+        <h1 class='text-3xl font-bold' data-stream='name'>{config.author}</h1>
         <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
-          <Label title='Melbourne, Australia'>
+          <Label title='Melbourne, Australia' data-stream='label'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
           <Label
             title='GitHub'
+            data-stream='label'
             as='a'
             href='https://github.com/joyehuang'
             target='_blank'
@@ -130,6 +133,7 @@ const latestTalk = talks[0]
       <div class='flex flex-row gap-3'>
         <a
           href='/contact'
+          data-stream='cta'
           class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
         >
           <span class='relative flex items-center justify-center'>
