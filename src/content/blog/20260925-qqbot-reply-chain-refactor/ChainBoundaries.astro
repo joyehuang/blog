@@ -1,0 +1,229 @@
+---
+/**
+ * ChainBoundaries.astro
+ *
+ * 副校长回复链路重构那篇博文第二节的图：一条群消息从进来到被记住要经过的五段，
+ * 以及这次重构收敛出的四条边界（A 输入规范化、B 轮次权限、C 执行与结果、D 呈现 / 投递 / 提交）。
+ * 左侧标出重构前「同一条规则有几份副本」落在哪一段。
+ *
+ * 静态 SVG，没有 JS，没有动效。样式只用站点语义 token，明暗主题自动跟随。
+ * 字号写在样式里：手机上整张图被缩小，需要把字放大回来。
+ */
+---
+
+<figure class='cb-fig not-prose'>
+  <figcaption class='cb-cap'>
+    <strong>图 1 · 一条群消息要经过的五段，和这次收敛出的四条边界。</strong>左边是重构前同一条规则被写了几份、各落在哪一段；右边是重构后每条规则唯一的家。
+  </figcaption>
+
+  <svg
+    class='cb-svg'
+    viewBox='0 0 640 400'
+    role='img'
+    aria-label='示意图：从上到下五段——接收、受理、处理、投递、提交。左侧标注重构前的多副本：留存规则三份分布在处理与提交、消息段分类三份分布在接收与处理、队列两套分布在受理。右侧用四个括号标出边界 A 输入规范化覆盖接收与受理、B 轮次权限覆盖受理、C 执行与结果覆盖处理、D 呈现投递提交覆盖投递与提交。'
+  >
+    <!-- 中间五段 -->
+    <g class='cb-stage'>
+      <rect x='230' y='18' width='180' height='52' rx='8'></rect>
+      <text x='320' y='39' text-anchor='middle' class='cb-fs-md cb-bold'>接收</text>
+      <text x='320' y='58' text-anchor='middle' class='cb-fs-sm cb-muted'>QQ 平台事件 · 形状校验</text>
+    </g>
+    <g class='cb-stage'>
+      <rect x='230' y='92' width='180' height='52' rx='8'></rect>
+      <text x='320' y='113' text-anchor='middle' class='cb-fs-md cb-bold'>受理</text>
+      <text x='320' y='132' text-anchor='middle' class='cb-fs-sm cb-muted'>占用消息 ID · 租约 · 排队</text>
+    </g>
+    <g class='cb-stage'>
+      <rect x='230' y='166' width='180' height='52' rx='8'></rect>
+      <text x='320' y='187' text-anchor='middle' class='cb-fs-md cb-bold'>处理</text>
+      <text x='320' y='206' text-anchor='middle' class='cb-fs-sm cb-muted'>引用 · 上下文 · 主模型 / 备用</text>
+    </g>
+    <g class='cb-stage'>
+      <rect x='230' y='240' width='180' height='52' rx='8'></rect>
+      <text x='320' y='261' text-anchor='middle' class='cb-fs-md cb-bold'>投递</text>
+      <text x='320' y='280' text-anchor='middle' class='cb-fs-sm cb-muted'>分段发送 · 每段一个 ACK</text>
+    </g>
+    <g class='cb-stage'>
+      <rect x='230' y='314' width='180' height='52' rx='8'></rect>
+      <text x='320' y='335' text-anchor='middle' class='cb-fs-md cb-bold'>提交</text>
+      <text x='320' y='354' text-anchor='middle' class='cb-fs-sm cb-muted'>会话日志 · 问答记忆 · 缓存</text>
+    </g>
+
+    <!-- 段与段之间的箭头 -->
+    <g class='cb-arrow'>
+      <path d='M320,70 L320,86'></path>
+      <path d='M320,144 L320,160'></path>
+      <path d='M320,218 L320,234'></path>
+      <path d='M320,292 L320,308'></path>
+      <path d='M316,82 L320,88 L324,82'></path>
+      <path d='M316,156 L320,162 L324,156'></path>
+      <path d='M316,230 L320,236 L324,230'></path>
+      <path d='M316,304 L320,310 L324,304'></path>
+    </g>
+
+    <!-- 左侧：重构前的副本，每一行对准它主要落在的那一段 -->
+    <text x='16' y='12' class='cb-fs-sm cb-muted'>重构前：同一条规则的副本</text>
+    <g class='cb-copy'>
+      <path d='M170,44 L226,44'></path>
+      <text x='16' y='40' class='cb-fs-sm'>
+        <tspan x='16' dy='0' class='cb-bold'>消息段分类 × 3</tspan>
+        <tspan x='16' dy='1.35em' class='cb-muted'>引用展开 / 直接消息 / 备用判定</tspan>
+      </text>
+    </g>
+    <g class='cb-copy'>
+      <path d='M170,118 L226,118'></path>
+      <text x='16' y='114' class='cb-fs-sm'>
+        <tspan x='16' dy='0' class='cb-bold'>队列 × 2</tspan>
+        <tspan x='16' dy='1.35em' class='cb-muted'>写死的两个群 / 其余走旧链</tspan>
+      </text>
+    </g>
+    <g class='cb-copy'>
+      <path d='M170,192 L226,192'></path>
+      <text x='16' y='188' class='cb-fs-sm'>
+        <tspan x='16' dy='0' class='cb-bold'>上下文拼装 × 2</tspan>
+        <tspan x='16' dy='1.35em' class='cb-muted'>主群按位置 / 保护队列按 ID</tspan>
+      </text>
+    </g>
+    <g class='cb-copy'>
+      <path d='M170,340 L226,340'></path>
+      <text x='16' y='336' class='cb-fs-sm'>
+        <tspan x='16' dy='0' class='cb-bold'>留存规则 × 3</tspan>
+        <tspan x='16' dy='1.35em' class='cb-muted'>实时写入 / 启动迁移 / 缓存恢复</tspan>
+      </text>
+    </g>
+
+    <!-- 右侧：四条边界 -->
+    <text x='624' y='12' text-anchor='end' class='cb-fs-sm cb-muted'>重构后：每条规则唯一的家</text>
+    <g class='cb-bound'>
+      <path d='M428,22 L444,22 L444,86 L428,86'></path>
+      <text x='456' y='44' class='cb-fs-sm'>
+        <tspan x='456' dy='0' class='cb-bold cb-accent'>A · 输入规范化</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>一次分类，主备同一视图</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>控制命令一张表</tspan>
+      </text>
+    </g>
+    <g class='cb-bound'>
+      <path d='M428,96 L444,96 L444,214 L428,214'></path>
+      <text x='456' y='150' class='cb-fs-sm'>
+        <tspan x='456' dy='0' class='cb-bold cb-accent'>B · 轮次权限</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>队列策略读配置</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>四个命名检查代替九处手拼</tspan>
+        <tspan x='456' dy='1.6em' class='cb-bold cb-accent'>C · 执行与结果</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>respond 返回明确的「本轮结果」</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>工具副作用按对象身份声明</tspan>
+      </text>
+    </g>
+    <g class='cb-bound'>
+      <path d='M428,244 L444,244 L444,362 L428,362'></path>
+      <text x='456' y='290' class='cb-fs-sm'>
+        <tspan x='456' dy='0' class='cb-bold cb-accent'>D · 投递与提交</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>commitTurn 唯一写入者</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>retainPolicy 唯一规则</tspan>
+        <tspan x='456' dy='1.35em' class='cb-muted'>恢复只写记录，从不发送</tspan>
+      </text>
+    </g>
+  </svg>
+
+  <p class='cb-note'>示意图。段的划分按源码里的实际模块，边界 A–D 的命名沿用评审报告。</p>
+</figure>
+
+<style>
+  .cb-fig {
+    margin: 2rem 0;
+    color: hsl(var(--foreground));
+  }
+
+  .cb-cap {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cb-cap strong {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .cb-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cb-svg {
+    display: block;
+    width: 100%;
+    max-width: 680px;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .cb-svg text {
+    font-family: inherit;
+    fill: hsl(var(--foreground));
+  }
+
+  .cb-svg .cb-muted {
+    fill: hsl(var(--muted-foreground));
+  }
+
+  .cb-svg .cb-accent {
+    fill: hsl(var(--primary));
+  }
+
+  .cb-svg .cb-bold {
+    font-weight: 600;
+  }
+
+  .cb-fs-sm {
+    font-size: 12px;
+  }
+
+  .cb-fs-md {
+    font-size: 14px;
+  }
+
+  .cb-stage rect {
+    fill: hsl(var(--card));
+    stroke: hsl(var(--border));
+    stroke-width: 1.5;
+  }
+
+  .cb-arrow path {
+    fill: none;
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cb-copy path {
+    fill: none;
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+  }
+
+  .cb-copy .cb-copy-thin {
+    stroke-dasharray: 2 4;
+  }
+
+  .cb-bound path {
+    fill: none;
+    stroke: hsl(var(--primary));
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  @media (max-width: 640px) {
+    .cb-fs-sm {
+      font-size: 17px;
+    }
+
+    .cb-fs-md {
+      font-size: 19px;
+    }
+  }
+</style>
