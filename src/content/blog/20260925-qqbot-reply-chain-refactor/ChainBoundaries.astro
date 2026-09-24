@@ -16,76 +16,77 @@
     <strong>图 1 · 一条群消息要经过的五段，和这次收敛出的四条边界。</strong>左边是重构前同一条规则被写了几份、各落在哪一段；右边是重构后每条规则唯一的家。
   </figcaption>
 
+  <div class='cb-scroll'>
   <svg
     class='cb-svg'
-    viewBox='0 0 640 400'
+    viewBox='0 0 720 400'
     role='img'
     aria-label='示意图：从上到下五段——接收、受理、处理、投递、提交。左侧标注重构前的多副本：留存规则三份分布在处理与提交、消息段分类三份分布在接收与处理、队列两套分布在受理。右侧用四个括号标出边界 A 输入规范化覆盖接收与受理、B 轮次权限覆盖受理、C 执行与结果覆盖处理、D 呈现投递提交覆盖投递与提交。'
   >
     <!-- 中间五段 -->
     <g class='cb-stage'>
-      <rect x='230' y='18' width='180' height='52' rx='8'></rect>
-      <text x='320' y='39' text-anchor='middle' class='cb-fs-md cb-bold'>接收</text>
-      <text x='320' y='58' text-anchor='middle' class='cb-fs-sm cb-muted'>QQ 平台事件 · 形状校验</text>
+      <rect x='270' y='18' width='180' height='52' rx='8'></rect>
+      <text x='360' y='39' text-anchor='middle' class='cb-fs-md cb-bold'>接收</text>
+      <text x='360' y='58' text-anchor='middle' class='cb-fs-sm cb-muted'>QQ 平台事件 · 形状校验</text>
     </g>
     <g class='cb-stage'>
-      <rect x='230' y='92' width='180' height='52' rx='8'></rect>
-      <text x='320' y='113' text-anchor='middle' class='cb-fs-md cb-bold'>受理</text>
-      <text x='320' y='132' text-anchor='middle' class='cb-fs-sm cb-muted'>占用消息 ID · 租约 · 排队</text>
+      <rect x='270' y='92' width='180' height='52' rx='8'></rect>
+      <text x='360' y='113' text-anchor='middle' class='cb-fs-md cb-bold'>受理</text>
+      <text x='360' y='132' text-anchor='middle' class='cb-fs-sm cb-muted'>占用消息 ID · 租约 · 排队</text>
     </g>
     <g class='cb-stage'>
-      <rect x='230' y='166' width='180' height='52' rx='8'></rect>
-      <text x='320' y='187' text-anchor='middle' class='cb-fs-md cb-bold'>处理</text>
-      <text x='320' y='206' text-anchor='middle' class='cb-fs-sm cb-muted'>引用 · 上下文 · 主模型 / 备用</text>
+      <rect x='270' y='166' width='180' height='52' rx='8'></rect>
+      <text x='360' y='187' text-anchor='middle' class='cb-fs-md cb-bold'>处理</text>
+      <text x='360' y='206' text-anchor='middle' class='cb-fs-sm cb-muted'>引用 · 上下文 · 主模型 / 备用</text>
     </g>
     <g class='cb-stage'>
-      <rect x='230' y='240' width='180' height='52' rx='8'></rect>
-      <text x='320' y='261' text-anchor='middle' class='cb-fs-md cb-bold'>投递</text>
-      <text x='320' y='280' text-anchor='middle' class='cb-fs-sm cb-muted'>分段发送 · 每段一个 ACK</text>
+      <rect x='270' y='240' width='180' height='52' rx='8'></rect>
+      <text x='360' y='261' text-anchor='middle' class='cb-fs-md cb-bold'>投递</text>
+      <text x='360' y='280' text-anchor='middle' class='cb-fs-sm cb-muted'>分段发送 · 每段一个 ACK</text>
     </g>
     <g class='cb-stage'>
-      <rect x='230' y='314' width='180' height='52' rx='8'></rect>
-      <text x='320' y='335' text-anchor='middle' class='cb-fs-md cb-bold'>提交</text>
-      <text x='320' y='354' text-anchor='middle' class='cb-fs-sm cb-muted'>会话日志 · 问答记忆 · 缓存</text>
+      <rect x='270' y='314' width='180' height='52' rx='8'></rect>
+      <text x='360' y='335' text-anchor='middle' class='cb-fs-md cb-bold'>提交</text>
+      <text x='360' y='354' text-anchor='middle' class='cb-fs-sm cb-muted'>会话日志 · 问答记忆 · 缓存</text>
     </g>
 
     <!-- 段与段之间的箭头 -->
     <g class='cb-arrow'>
-      <path d='M320,70 L320,86'></path>
-      <path d='M320,144 L320,160'></path>
-      <path d='M320,218 L320,234'></path>
-      <path d='M320,292 L320,308'></path>
-      <path d='M316,82 L320,88 L324,82'></path>
-      <path d='M316,156 L320,162 L324,156'></path>
-      <path d='M316,230 L320,236 L324,230'></path>
-      <path d='M316,304 L320,310 L324,304'></path>
+      <path d='M360,70 L360,86'></path>
+      <path d='M360,144 L360,160'></path>
+      <path d='M360,218 L360,234'></path>
+      <path d='M360,292 L360,308'></path>
+      <path d='M356,82 L360,88 L364,82'></path>
+      <path d='M356,156 L360,162 L364,156'></path>
+      <path d='M356,230 L360,236 L364,230'></path>
+      <path d='M356,304 L360,310 L364,304'></path>
     </g>
 
     <!-- 左侧：重构前的副本，每一行对准它主要落在的那一段 -->
     <text x='16' y='12' class='cb-fs-sm cb-muted'>重构前：同一条规则的副本</text>
     <g class='cb-copy'>
-      <path d='M170,44 L226,44'></path>
+      <path d='M250,44 L266,44'></path>
       <text x='16' y='40' class='cb-fs-sm'>
         <tspan x='16' dy='0' class='cb-bold'>消息段分类 × 3</tspan>
         <tspan x='16' dy='1.35em' class='cb-muted'>引用展开 / 直接消息 / 备用判定</tspan>
       </text>
     </g>
     <g class='cb-copy'>
-      <path d='M170,118 L226,118'></path>
+      <path d='M250,118 L266,118'></path>
       <text x='16' y='114' class='cb-fs-sm'>
         <tspan x='16' dy='0' class='cb-bold'>队列 × 2</tspan>
         <tspan x='16' dy='1.35em' class='cb-muted'>写死的两个群 / 其余走旧链</tspan>
       </text>
     </g>
     <g class='cb-copy'>
-      <path d='M170,192 L226,192'></path>
+      <path d='M250,192 L266,192'></path>
       <text x='16' y='188' class='cb-fs-sm'>
         <tspan x='16' dy='0' class='cb-bold'>上下文拼装 × 2</tspan>
         <tspan x='16' dy='1.35em' class='cb-muted'>主群按位置 / 保护队列按 ID</tspan>
       </text>
     </g>
     <g class='cb-copy'>
-      <path d='M170,340 L226,340'></path>
+      <path d='M250,340 L266,340'></path>
       <text x='16' y='336' class='cb-fs-sm'>
         <tspan x='16' dy='0' class='cb-bold'>留存规则 × 3</tspan>
         <tspan x='16' dy='1.35em' class='cb-muted'>实时写入 / 启动迁移 / 缓存恢复</tspan>
@@ -93,36 +94,37 @@
     </g>
 
     <!-- 右侧：四条边界 -->
-    <text x='624' y='12' text-anchor='end' class='cb-fs-sm cb-muted'>重构后：每条规则唯一的家</text>
+    <text x='704' y='12' text-anchor='end' class='cb-fs-sm cb-muted'>重构后：每条规则唯一的家</text>
     <g class='cb-bound'>
-      <path d='M428,22 L444,22 L444,86 L428,86'></path>
-      <text x='456' y='44' class='cb-fs-sm'>
-        <tspan x='456' dy='0' class='cb-bold cb-accent'>A · 输入规范化</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>一次分类，主备同一视图</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>控制命令一张表</tspan>
+      <path d='M468,22 L484,22 L484,86 L468,86'></path>
+      <text x='496' y='44' class='cb-fs-sm'>
+        <tspan x='496' dy='0' class='cb-bold cb-accent'>A · 输入规范化</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>一次分类，主备同一视图</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>控制命令一张表</tspan>
       </text>
     </g>
     <g class='cb-bound'>
-      <path d='M428,96 L444,96 L444,214 L428,214'></path>
-      <text x='456' y='150' class='cb-fs-sm'>
-        <tspan x='456' dy='0' class='cb-bold cb-accent'>B · 轮次权限</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>队列策略读配置</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>四个命名检查代替九处手拼</tspan>
-        <tspan x='456' dy='1.6em' class='cb-bold cb-accent'>C · 执行与结果</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>respond 返回明确的「本轮结果」</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>工具副作用按对象身份声明</tspan>
+      <path d='M468,96 L484,96 L484,214 L468,214'></path>
+      <text x='496' y='150' class='cb-fs-sm'>
+        <tspan x='496' dy='0' class='cb-bold cb-accent'>B · 轮次权限</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>队列策略读配置</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>四个命名检查代替九处手拼</tspan>
+        <tspan x='496' dy='1.6em' class='cb-bold cb-accent'>C · 执行与结果</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>respond 返回明确的「本轮结果」</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>工具副作用按对象身份声明</tspan>
       </text>
     </g>
     <g class='cb-bound'>
-      <path d='M428,244 L444,244 L444,362 L428,362'></path>
-      <text x='456' y='290' class='cb-fs-sm'>
-        <tspan x='456' dy='0' class='cb-bold cb-accent'>D · 投递与提交</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>commitTurn 唯一写入者</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>retainPolicy 唯一规则</tspan>
-        <tspan x='456' dy='1.35em' class='cb-muted'>恢复只写记录，从不发送</tspan>
+      <path d='M468,244 L484,244 L484,362 L468,362'></path>
+      <text x='496' y='290' class='cb-fs-sm'>
+        <tspan x='496' dy='0' class='cb-bold cb-accent'>D · 投递与提交</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>commitTurn 唯一写入者</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>retainPolicy 唯一规则</tspan>
+        <tspan x='496' dy='1.35em' class='cb-muted'>恢复只写记录，从不发送</tspan>
       </text>
     </g>
   </svg>
+  </div>
 
   <p class='cb-note'>示意图。段的划分按源码里的实际模块，边界 A–D 的命名沿用评审报告。</p>
 </figure>
@@ -217,13 +219,15 @@
     stroke-linecap: round;
   }
 
-  @media (max-width: 640px) {
-    .cb-fs-sm {
-      font-size: 17px;
-    }
+  /* 手机上不放大字号（会互相重叠），改为让图在自己的容器里横向滚动，页面本身不出现横向滚动 */
+  .cb-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
-    .cb-fs-md {
-      font-size: 19px;
+  @media (max-width: 640px) {
+    .cb-svg {
+      min-width: 620px;
     }
   }
 </style>

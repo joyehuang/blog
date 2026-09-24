@@ -15,6 +15,7 @@
     <strong>图 2 · 一轮回答的提交顺序，和崩溃可能落在的六个间隙。</strong>权威记录先在 SQLite 里与投递状态同一事务写入，之后每个投影按 turnId 幂等补齐。第一版崩溃矩阵没有测到的两个间隙用强调色标出。
   </figcaption>
 
+  <div class='cg-scroll'>
   <svg
     class='cg-svg'
     viewBox='0 0 656 150'
@@ -76,10 +77,12 @@
       <text x='536' y='40' text-anchor='middle' class='cg-fs-sm cg-bold'>已写入、未记进度</text>
     </g>
     <g class='cg-crash'>
-      <path d='M636,48 L636,62'></path>
+      <path d='M634,48 L634,62'></path>
+      <text x='652' y='40' text-anchor='end' class='cg-fs-sm cg-muted'>记进度后</text>
     </g>
 
   </svg>
+  </div>
 
   <p class='cg-note'>
     崩溃后重启：读 SQLite 里的权威记录，按 turnId 检查每个投影是否已存在，缺什么补什么。恢复只写记录，从不重新发送；没有真实 ACK 的轮次不伪造消息 ID。<span class='cg-note-hot'>强调色</span>标出的两个间隙，是第一版崩溃矩阵 12/12 全绿时没有注入故障的位置：关掉「防重复追加」的变异当时没有被抓到，补上这两个注入点之后才被抓到。
@@ -157,7 +160,7 @@
   }
 
   .cg-step-mark rect {
-    fill: hsl(var(--muted) / 0.6);
+    fill: hsl(var(--muted));
   }
 
   .cg-arrow path {
@@ -184,13 +187,14 @@
     fill: hsl(var(--primary));
   }
 
-  @media (max-width: 640px) {
-    .cg-fs-sm {
-      font-size: 15px;
-    }
+  .cg-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
-    .cg-fs-md {
-      font-size: 17px;
+  @media (max-width: 640px) {
+    .cg-svg {
+      min-width: 600px;
     }
   }
 </style>
