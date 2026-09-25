@@ -21,6 +21,12 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+/* The button is the only hit target: the static frame is swapped for the live
+   engine on hover/tap, and if the element under the pointer is replaced between
+   pointerdown and pointerup the browser fires no click (first poke lost). */
+.jojo-poke-target > * {
+  pointer-events: none;
+}
 .jojo-poke-target:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
