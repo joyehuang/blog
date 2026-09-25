@@ -1,0 +1,439 @@
+---
+import { buildSiteRoutes } from '@/lib/site-routes'
+
+/**
+ * The 404 easter egg: a missing page is a filesystem miss, so it gets reported
+ * like one. The requested path is only knowable in the browser (this page is
+ * prerendered), so the route index is inlined as JSON and the "did you mean"
+ * scoring runs client-side against `location.pathname`.
+ *
+ * Follows the terminal sub-theme (DESIGN.md → Sub-themes): its own `--nf-*`
+ * tokens and mono type rather than the global card/radius scale.
+ *
+ * Degrades without JS: the command line keeps its `$REQUEST_PATH` placeholder
+ * and the `ls /` listing stays visible, so a visitor still lands somewhere.
+ */
+
+interface Props {
+  lang: 'zh' | 'en'
+}
+
+const { lang } = Astro.props
+
+const copy = {
+  zh: {
+    heading: '404 · 页面不存在',
+    suggest: '# 你是不是想找：',
+    fallback: '# 没有接近的匹配。这是根目录：',
+    hintBefore: '提示：站内任意位置按',
+    hintAfter: '打开 dev mode，自己 ls 一圈。',
+    home: '回首页',
+    roots: [
+      { url: '/blog', label: 'blog/', desc: '长文' },
+      { url: '/notes', label: 'notes/', desc: '短笔记' },
+      { url: '/curated', label: 'curated/', desc: '外部好文' },
+      { url: '/lab', label: 'lab/', desc: '前端小实验' },
+      { url: '/talks', label: 'talks/', desc: '每周分享会' },
+      { url: '/projects', label: 'projects/', desc: '项目' },
+      { url: '/about', label: 'about', desc: '关于我' }
+    ]
+  },
+  en: {
+    heading: '404 · page not found',
+    suggest: '# did you mean:',
+    fallback: '# no close match. here is the root:',
+    hintBefore: 'hint: press',
+    hintAfter: 'anywhere to open dev mode and ls around.',
+    home: 'Back to home',
+    roots: [
+      { url: '/en/blog', label: 'blog/', desc: 'long-form posts' },
+      { url: '/en/notes', label: 'notes/', desc: 'short notes' },
+      { url: '/en/curated', label: 'curated/', desc: 'external readings' },
+      { url: '/lab', label: 'lab/', desc: 'frontend experiments' },
+      { url: '/en/projects', label: 'projects/', desc: 'projects' },
+      { url: '/en/about', label: 'about', desc: 'about me' }
+    ]
+  }
+} as const
+
+const t = copy[lang]
+const routes = await buildSiteRoutes()
+const homeHref = lang === 'en' ? '/en' : '/'
+// `set:html` does not escape — neutralise `<` so a title can never break out.
+const routesJson = JSON.stringify(routes).replace(/</g, '\\u003c')
+---
+
+<div class='nf-wrap'>
+  <h1 class='nf-heading'>{t.heading}</h1>
+
+  <section class='nf-shell' data-nf-root aria-label={t.heading}>
+    <header class='nf-chrome'>
+      <span class='nf-dots' aria-hidden='true'><i></i><i></i><i></i></span>
+      <span class='nf-chrome-title'>joye@joyehuang.me — /bin/sh</span>
+      <span class='nf-chrome-status'>exit 1</span>
+    </header>
+
+    <div class='nf-body'>
+      <p class='nf-line'>
+        <span class='nf-prompt' aria-hidden='true'>$</span>
+        <span data-nf-cmd>cat $REQUEST_PATH</span>
+      </p>
+
+      <p class='nf-line nf-stage nf-err' data-nf-error>
+        cat: $REQUEST_PATH: No such file or directory
+      </p>
+
+      <div class='nf-stage' data-nf-suggestions hidden>
+        <p class='nf-comment'>{t.suggest}</p>
+        <ul class='nf-list' data-nf-list></ul>
+        {
+          /* Cloned per suggestion — authored here so Astro's scoped-style
+            class lands on the markup, which it cannot do for nodes built
+            with `document.createElement`. */
+        }
+        <template data-nf-item>
+          <li>
+            <a href=''>
+              <span class='nf-item-name'></span>
+              <span class='nf-item-desc'></span>
+            </a>
+          </li>
+        </template>
+      </div>
+
+      <div class='nf-stage' data-nf-fallback>
+        <p class='nf-comment'>{t.fallback}</p>
+        <ul class='nf-list'>
+          {
+            t.roots.map((root) => (
+              <li>
+                <a href={root.url}>
+                  <span class='nf-item-name'>{root.label}</span>
+                  <span class='nf-item-desc'>{root.desc}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <p class='nf-line nf-stage'>
+        <span class='nf-prompt' aria-hidden='true'>$</span>
+        <span class='nf-cursor' aria-hidden='true'></span>
+      </p>
+    </div>
+
+    <footer class='nf-foot nf-stage'>
+      <span>{t.hintBefore} <kbd class='nf-kbd'>`</kbd> {t.hintAfter}</span>
+      <a class='nf-home' href={homeHref}>{t.home} →</a>
+    </footer>
+  </section>
+
+  <script type='application/json' data-nf-routes is:inline set:html={routesJson} />
+</div>
+
+<script>
+  import { normalizePath, suggestRoutes, type SiteRoute } from '@/lib/not-found'
+
+  const root = document.querySelector<HTMLElement>('[data-nf-root]')
+  const payload = document.querySelector<HTMLScriptElement>('[data-nf-routes]')
+
+  if (root && payload) {
+    // Hold the output back until the command has "run" — without JS this
+    // attribute never lands and everything stays visible from the start.
+    root.dataset.nfState = 'typing'
+
+    const routes = JSON.parse(payload.textContent || '[]') as SiteRoute[]
+    const asked = normalizePath(window.location.pathname)
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const errorEl = root.querySelector<HTMLElement>('[data-nf-error]')
+    if (errorEl) errorEl.textContent = `cat: ${asked}: No such file or directory`
+
+    const matches = suggestRoutes(asked, routes)
+    const list = root.querySelector<HTMLElement>('[data-nf-list]')
+    const template = root.querySelector<HTMLTemplateElement>('[data-nf-item]')
+    const suggestions = root.querySelector<HTMLElement>('[data-nf-suggestions]')
+    const fallback = root.querySelector<HTMLElement>('[data-nf-fallback]')
+
+    if (matches.length > 0 && list && template && suggestions && fallback) {
+      for (const match of matches) {
+        const item = template.content.cloneNode(true) as DocumentFragment
+        const link = item.querySelector('a')
+        const name = item.querySelector('.nf-item-name')
+        const desc = item.querySelector('.nf-item-desc')
+        if (!link || !name || !desc) continue
+        link.setAttribute('href', match.url)
+        name.textContent = match.url
+        desc.textContent = match.title
+        list.append(item)
+      }
+      suggestions.hidden = false
+      fallback.remove()
+    }
+
+    const cmdEl = root.querySelector<HTMLElement>('[data-nf-cmd]')
+    const full = `cat ${asked}`
+    const finish = () => {
+      root.dataset.nfState = 'done'
+    }
+
+    if (!cmdEl || reduced) {
+      if (cmdEl) cmdEl.textContent = full
+      finish()
+    } else {
+      cmdEl.textContent = ''
+      // Cap the whole type-out at ~0.7s so a long slug never drags.
+      const step = Math.min(18, 700 / full.length)
+      let typed = 0
+      const tick = () => {
+        typed += 1
+        cmdEl.textContent = full.slice(0, typed)
+        if (typed < full.length) window.setTimeout(tick, step)
+        else window.setTimeout(finish, 120)
+      }
+      window.setTimeout(tick, 260)
+    }
+  }
+</script>
+
+<style>
+  .nf-wrap {
+    --nf-radius: 0.85rem;
+    --nf-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --nf-ring: 210 20% 22%;
+    --nf-ring-alpha: 0.28;
+    --nf-err: var(--destructive);
+
+    margin: 2rem auto 3rem;
+    max-width: 44rem;
+    width: 100%;
+  }
+  :global(.dark) .nf-wrap {
+    --nf-ring: 0 0% 100%;
+    --nf-ring-alpha: 0.1;
+    /* `--destructive` goes dark in dark mode because it is a fill, not a text
+       color — this is stderr, so it needs its own readable red. */
+    --nf-err: 0 75% 70%;
+  }
+
+  .nf-heading {
+    margin: 0 0 1rem;
+    font-family: var(--nf-mono);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .nf-shell {
+    border-radius: var(--nf-radius);
+    border: 1px solid hsl(var(--nf-ring) / var(--nf-ring-alpha));
+    background: linear-gradient(180deg, hsl(var(--card) / 0.95) 0%, hsl(var(--card) / 0.86) 100%);
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.06);
+    overflow: hidden;
+    font-family: var(--nf-mono);
+  }
+
+  .nf-chrome {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid hsl(var(--nf-ring) / var(--nf-ring-alpha));
+    background: hsl(var(--muted) / 0.5);
+    font-size: 11.5px;
+    color: hsl(var(--muted-foreground));
+  }
+  .nf-dots {
+    display: flex;
+    gap: 6px;
+  }
+  /* macOS traffic lights are chrome skeuomorphism, not theme content — pinned
+     across light/dark, same as terminal.css. */
+  .nf-dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #ff6058;
+  }
+  .nf-dots i:nth-child(2) {
+    background: #ffbd2e;
+  }
+  .nf-dots i:nth-child(3) {
+    background: #28c93f;
+  }
+  .nf-chrome-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nf-chrome-status {
+    color: hsl(var(--nf-err) / 0.9);
+  }
+
+  .nf-body {
+    padding: 16px 14px 12px;
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  .nf-line {
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    word-break: break-all;
+  }
+  .nf-prompt {
+    color: hsl(var(--primary));
+    flex-shrink: 0;
+  }
+  .nf-err {
+    color: hsl(var(--nf-err));
+    padding-left: 18px;
+  }
+  .nf-comment {
+    margin: 14px 0 4px;
+    padding-left: 18px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .nf-list {
+    margin: 0 0 6px;
+    padding: 0 0 0 18px;
+    list-style: none;
+  }
+  .nf-list a {
+    display: flex;
+    gap: 12px;
+    padding: 3px 8px 3px 0;
+    border-radius: 6px;
+    text-decoration: none;
+    color: inherit;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .nf-list a:hover,
+  .nf-list a:focus-visible {
+    background: hsl(var(--muted) / 0.7);
+  }
+  .nf-list a::before {
+    content: '→';
+    color: hsl(var(--primary));
+    flex-shrink: 0;
+  }
+  .nf-item-name {
+    color: hsl(var(--primary));
+    word-break: break-all;
+  }
+  .nf-list a:hover .nf-item-name {
+    text-decoration: underline;
+  }
+  .nf-item-desc {
+    color: hsl(var(--muted-foreground));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nf-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 15px;
+    transform: translateY(3px);
+    background: hsl(var(--primary) / 0.8);
+    animation: nf-blink 1.1s steps(1) infinite;
+  }
+  @keyframes nf-blink {
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .nf-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid hsl(var(--nf-ring) / var(--nf-ring-alpha));
+    background: hsl(var(--muted) / 0.35);
+    font-size: 11.5px;
+    color: hsl(var(--muted-foreground));
+  }
+  .nf-kbd {
+    padding: 1px 6px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 4px;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  .nf-home {
+    color: hsl(var(--primary));
+    text-decoration: none;
+  }
+  .nf-home:hover {
+    text-decoration: underline;
+  }
+
+  /* Staged reveal. `typing` hides the command's output; `done` fades it in.
+     Neither lands without JS, so the content is simply always visible. */
+  [data-nf-state='typing'] .nf-stage {
+    opacity: 0;
+  }
+  [data-nf-state='done'] .nf-stage {
+    animation: nf-stage-in 0.28s ease both;
+  }
+  [data-nf-state='done'] [data-nf-suggestions],
+  [data-nf-state='done'] [data-nf-fallback] {
+    animation-delay: 0.07s;
+  }
+  [data-nf-state='done'] .nf-foot {
+    animation-delay: 0.14s;
+  }
+  @keyframes nf-stage-in {
+    from {
+      opacity: 0;
+      transform: translateY(3px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-cursor {
+      animation: none;
+    }
+    [data-nf-state='done'] .nf-stage {
+      animation: none;
+    }
+    .nf-list a {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .nf-body {
+      font-size: 12px;
+    }
+    .nf-list a {
+      flex-direction: column;
+      gap: 0;
+    }
+    .nf-item-desc {
+      padding-left: 20px;
+    }
+  }
+</style>

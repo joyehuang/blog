@@ -344,7 +344,19 @@ not a bug to normalize away:
 - `jojo.css`'s speech bubble uses theme tokens (`--card`/`--foreground`/
   `--border`) for color but its own literal `10px` radius / `6px 10px`
   padding — color follows the system, geometry doesn't.
+- [`NotFoundTerminal.astro`](src/components/NotFoundTerminal.astro) is the
+  same sub-theme applied to the 404 page: its own `--nf-*` set (matching
+  `0.85rem` radius, mono type, the pinned traffic-light hexes). It also adds
+  `--nf-err`, because `--destructive` is a *fill* color and goes too dark in
+  dark mode to use as stderr text — if a new surface needs an error tone on a
+  dark background, give it a local token rather than reusing `--destructive`.
 
 When extending one of these surfaces, stay inside its local token set
-(`--wt-*`, `--term-*`) rather than pulling in the global `--radius`/spacing
-scale.
+(`--wt-*`, `--term-*`, `--nf-*`) rather than pulling in the global
+`--radius`/spacing scale.
+
+One caveat when a sub-theme surface builds nodes at runtime: Astro's scoped
+styles compile to `:where(.astro-<hash>)`, which `document.createElement` can
+never satisfy. Author the markup in a `<template>` and `cloneNode` it (see
+`NotFoundTerminal.astro`'s suggestion list) instead of constructing elements
+and hand-setting `className`.
