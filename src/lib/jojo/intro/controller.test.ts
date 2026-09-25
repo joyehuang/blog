@@ -122,9 +122,9 @@ function harness(
     setScroll(v: number) {
       scroll = v
     },
-    setStill(v: string | null) {
+    setStill(v: string | null, notify = true) {
       still = v
-      for (const cb of [...stillWatchers]) cb()
+      if (notify) for (const cb of [...stillWatchers]) cb()
     }
   }
 }
@@ -306,5 +306,19 @@ describe('intro controller', () => {
     expect(h.rafs.size).toBe(0)
     expect(h.timers.size).toBe(0)
     expect(h.tracked.map(([e]) => e)).toEqual(['intro_start'])
+  })
+
+  it('Save-Data switched on without a change event ends the run on the next frame', () => {
+    const h = harness()
+    const c = createIntroController(plan, h.deps, 'replay')
+    c.start()
+    h.frame(16)
+    h.setStill('save-data', false)
+    expect(c.state).toBe('running')
+    h.frame(16)
+    expect(c.outcome).toBe('abort')
+    expect(h.unmounted).toBe(1)
+    expect(h.listenerCount()).toBe(0)
+    expect(h.rafs.size).toBe(0)
   })
 })

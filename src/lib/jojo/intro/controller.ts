@@ -10,7 +10,8 @@ import { sampleIntro, type IntroFrame, type IntroPlan } from './timeline'
  *  - Otherwise start() remembers the intro as seen *first* (an abandoned intro
  *    still counts, so a returning visitor is never shown it again), then mounts
  *    the visual layer; a failed mount ends the run and restores the page.
- *  - Reduced motion or Save-Data switched on mid-run ends it at once.
+ *  - Reduced motion or Save-Data switched on mid-run ends it: at once on a
+ *    change event, else on the next frame.
  *  - Any sign that the visitor wants the page — a key, a pointer press, a
  *    wheel, touch or any other scroll — skips. Nothing is prevented: the key, click or
  *    scroll still happens, on the restored page.
@@ -119,6 +120,11 @@ export function createIntroController(
   function tick() {
     frame = 0
     if (state !== 'running') return
+    // not every browser fires a change event (Save-Data has none in Chrome)
+    if (deps.still()) {
+      end('abort', null)
+      return
+    }
     const t = deps.now() - t0
     if (t >= plan.duration) {
       try {
