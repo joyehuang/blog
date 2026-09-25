@@ -1,0 +1,233 @@
+---
+// Scheme A — About: the one place for Jojo's story and family. Static marks
+// (zero JS), a short film that loads only when clicked (nothing is fetched
+// before that — no poster, no preload), and three friends as static art.
+import { FRIENDS } from '@jojo-web/static'
+
+import JojoMark from './JojoMark.astro'
+
+interface Props {
+  lang: 'zh' | 'en'
+}
+const { lang } = Astro.props
+const zh = lang === 'zh'
+// The published 29 s film (same file shown on the 2026-09-24 review page).
+// r2.dev is Cloudflare's dev hostname: fine for review, swap for a production
+// host before this ships (see docs/jojo.md).
+const FILM =
+  'https://pub-5d453927f5eb462dad58b9ac1b2fbacd.r2.dev/design/jojo-builds-home-2026-09-24/jojo-builds-home.mp4'
+const SHOWCASE = 'https://jojo-friends.vercel.app'
+---
+
+{
+  __JOJO__ && (
+    <div class='jojo-about not-prose' data-jojo-anchor data-jojo-a='about'>
+      <div class='jojo-about-intro'>
+        <JojoMark
+          id='about-jojo'
+          emotion='happy'
+          size={88}
+          title={zh ? 'Jojo，Joye 的小伙伴' : "Jojo, Joye's companion"}
+        />
+        <div class='min-w-0'>
+          <p class='jojo-about-lead'>
+            {zh
+              ? 'Jojo 是我做的工作台小伙伴，也是这个站的吉祥物。'
+              : 'Jojo is the little workbench companion I made, and the mascot of this site.'}
+          </p>
+          <p class='jojo-about-sub'>
+            {zh
+              ? '首页开场里搭网站的、角落里陪你逛的，都是它。'
+              : 'It builds the home page in the intro, and keeps you company from the corner.'}
+          </p>
+        </div>
+      </div>
+
+      <div class='jojo-film' data-jojo-film data-src={FILM}>
+        <button type='button' class='jojo-film-play' data-jojo-film-play>
+          <JojoMark id='about-film' emotion='curious' size={40} />
+          <span>
+            <span class='jojo-film-title'>
+              {zh ? '看短片：Jojo 搭了个家' : 'Watch: Jojo builds a home'}
+            </span>
+            <span class='jojo-film-meta'>
+              {zh
+                ? '29 秒 · 点击后才加载（约 11 MB）'
+                : '29 s · loads only when you click (about 11 MB)'}
+            </span>
+          </span>
+          <span class='jojo-film-icon' aria-hidden='true'>
+            ▶
+          </span>
+        </button>
+      </div>
+
+      <div class='jojo-friends'>
+        <p class='jojo-friends-title'>{zh ? 'Jojo 的朋友们' : "Jojo's friends"}</p>
+        <ul>
+          {FRIENDS.map((f) => (
+            <li>
+              <JojoMark id={`about-${f.id}`} friend={f.id} size={48} />
+              <span>{zh ? f.name.zh : f.name.en}</span>
+            </li>
+          ))}
+        </ul>
+        <a href={SHOWCASE} target='_blank' rel='noopener noreferrer' class='jojo-friends-more'>
+          {zh ? '去看全家 →' : 'Meet the whole family →'}
+        </a>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  import { trackOnce } from '@/lib/jojo/analytics'
+
+  for (const box of document.querySelectorAll<HTMLElement>('[data-jojo-film]')) {
+    const btn = box.querySelector<HTMLButtonElement>('[data-jojo-film-play]')
+    btn?.addEventListener('click', () => {
+      const src = box.dataset.src
+      if (!src) return
+      const video = document.createElement('video')
+      video.controls = true
+      video.playsInline = true
+      video.preload = 'auto'
+      video.src = src
+      video.setAttribute('aria-label', btn.querySelector('.jojo-film-title')?.textContent ?? 'Jojo')
+      const started = performance.now()
+      video.addEventListener(
+        'ended',
+        () =>
+          trackOnce('jojo_story_play', {
+            surface: 'about_story',
+            action: 'complete',
+            resource: 'builds_home',
+            duration_ms: Math.round(performance.now() - started)
+          }),
+        { once: true }
+      )
+      box.replaceChildren(video)
+      video.focus()
+      video.play().catch(() => {})
+      trackOnce('jojo_story_play', {
+        surface: 'about_story',
+        action: 'play',
+        resource: 'builds_home',
+        duration_ms: null
+      })
+    })
+  }
+</script>
+
+<style>
+  .jojo-about {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-block: 1rem 0.5rem;
+  }
+  .jojo-about-intro {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .jojo-about-lead {
+    color: hsl(var(--foreground));
+  }
+  .jojo-about-sub {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .jojo-film-play {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    padding: 0.75rem 1rem;
+    text-align: start;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .jojo-film-play:hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--foreground) / 0.25);
+    box-shadow: 0 8px 24px hsl(var(--foreground) / 0.06);
+  }
+  .jojo-film-play:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  .jojo-film-play > span:nth-child(2) {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+  }
+  .jojo-film-title {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+  .jojo-film-meta {
+    font-size: 0.8125rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .jojo-film-icon {
+    flex: none;
+    font-size: 0.75rem;
+    color: hsl(var(--primary));
+  }
+  .jojo-film :global(video) {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted));
+    aspect-ratio: 16 / 9;
+  }
+  .jojo-friends-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+  .jojo-friends ul {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+  }
+  .jojo-friends li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .jojo-friends-more {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--border));
+    text-underline-offset: 4px;
+  }
+  .jojo-friends-more:hover {
+    color: hsl(var(--primary));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jojo-film-play {
+      transition: none;
+    }
+    .jojo-film-play:hover {
+      transform: none;
+    }
+  }
+</style>

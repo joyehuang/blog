@@ -1,0 +1,48 @@
+---
+// A static Jojo (or allow-listed friend) rendered at build time: inline SVG,
+// zero JavaScript. `id` must be unique on the page — it prefixes the SVG's
+// clipPath/gradient ids so two marks never borrow each other's clips.
+import { renderFriendSvg, renderJojoSvg, type EmotionId, type FriendId } from '@jojo-web/static'
+
+interface Props {
+  id: string
+  emotion?: EmotionId
+  size?: number
+  /** decorative (default) hides it from assistive tech; pass `title` for role="img" */
+  title?: string
+  friend?: FriendId
+  class?: string
+  /** extra attributes on the wrapper, e.g. data-jojo-face */
+  [key: `data-${string}`]: string | boolean | undefined
+}
+
+const { id, emotion = 'calm', size = 48, title, friend, class: className, ...rest } = Astro.props
+const svg = friend
+  ? renderFriendSvg(friend, { idPrefix: `mk-${id}`, title, decorative: !title })
+  : renderJojoSvg({ idPrefix: `mk-${id}`, emotion, size, title, decorative: !title })
+---
+
+{
+  __JOJO__ && svg && (
+    <span
+      class:list={['jojo-mark', className]}
+      style={`--jojo-mark-size:${size}px`}
+      set:html={svg}
+      {...rest}
+    />
+  )
+}
+
+<style is:global>
+  .jojo-mark {
+    display: inline-block;
+    width: var(--jojo-mark-size);
+    height: var(--jojo-mark-size);
+    flex: none;
+    line-height: 0;
+  }
+  .jojo-mark > svg {
+    width: 100%;
+    height: 100%;
+  }
+</style>

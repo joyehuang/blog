@@ -1,0 +1,154 @@
+---
+// Host for the build-the-site intro on / and /en. Nothing here renders until
+// the head gate armed the intro (first visit) or someone asks for a replay;
+// the heavy part (React actor + timeline) is a separate chunk loaded only then.
+---
+
+{
+  __JOJO__ && (
+    <script>
+      import { JOJO_EVENTS, modeHas, currentMode } from '@/lib/jojo/keys'
+
+      const html = document.documentElement
+      const LATEST_START_MS = 3200
+
+      const settle = () => {
+        html.setAttribute('data-jojo-intro', 'done')
+        html.removeAttribute('data-jojo-intro-trigger')
+        document.dispatchEvent(
+          new CustomEvent(JOJO_EVENTS.intro, { detail: { phase: 'end', outcome: 'abort', trigger: 'first_visit' } })
+        )
+      }
+
+      async function play(trigger: 'first_visit' | 'url' | 'replay') {
+        try {
+          const { runIntro } = await import('@/lib/jojo/intro/run')
+          const r = runIntro(trigger)
+          if (!r.started && trigger !== 'replay') settle()
+        } catch {
+          // chunk failed to load: the page was never touched
+          if (trigger !== 'replay') settle()
+        }
+      }
+
+      /** wait for fonts and the avatar so the stand-ins match the page, but not forever */
+      async function ready() {
+        const avatar = document.querySelector<HTMLImageElement>('[data-jojo-piece="avatar"]')
+        const waits: Promise<unknown>[] = []
+        if (document.fonts?.ready) waits.push(document.fonts.ready)
+        if (avatar && !avatar.complete) waits.push(avatar.decode().catch(() => {}))
+        await Promise.race([Promise.all(waits), new Promise((r) => setTimeout(r, 1200))])
+      }
+
+      if (html.getAttribute('data-jojo-intro') === 'armed') {
+        const trigger = (html.getAttribute('data-jojo-intro-trigger') ?? 'first_visit') as 'first_visit' | 'url'
+        ready().then(() => {
+          // too late to be an intro: the visitor is already reading
+          const late = trigger === 'first_visit' && performance.now() > LATEST_START_MS
+          if (late || window.scrollY > 40) settle()
+          else play(trigger)
+        })
+      }
+
+      document.addEventListener(JOJO_EVENTS.introReplay, () => {
+        if (!modeHas(currentMode(), 'c')) return
+        if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+        requestAnimationFrame(() => play('replay'))
+      })
+    </script>
+  )
+}
+
+<style is:global>
+  .jojo-intro-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 75;
+    pointer-events: none;
+    overflow: hidden;
+    contain: layout paint;
+  }
+  .jojo-intro-piece {
+    position: absolute;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity;
+  }
+  .jojo-intro-actor {
+    position: absolute;
+    will-change: transform, left, top;
+  }
+  .jojo-intro-actor > svg {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  /* while the dot is out on the tether (or popping), the body has none */
+  .jojo-intro-actor.is-dot-out [data-layer='signal-dot'] {
+    opacity: 0;
+  }
+  .jojo-intro-tether {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    transition: opacity 80ms linear;
+  }
+  .jojo-intro-tether path {
+    fill: none;
+    stroke: #fe6a4a;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 1 7;
+  }
+  .jojo-intro-tether circle {
+    fill: #fe6a4a;
+  }
+  .jojo-intro-spawn {
+    position: absolute;
+    border-radius: 9999px;
+    background: #fe6a4a;
+  }
+  .jojo-intro-ripple {
+    position: absolute;
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--primary) / 0.6);
+  }
+  .jojo-intro-skip {
+    position: fixed;
+    z-index: 76;
+    left: 50%;
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    border-radius: 9999px;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background) / 0.86);
+    backdrop-filter: blur(8px);
+    padding: 0.4rem 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: hsl(var(--muted-foreground));
+    box-shadow: 0 8px 24px hsl(var(--foreground) / 0.08);
+    transition:
+      color 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .jojo-intro-skip:hover {
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--foreground) / 0.25);
+  }
+  .jojo-intro-skip:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  .jojo-intro-skip::after {
+    content: ' ›';
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* the gate never arms the intro under reduced motion; belt and braces */
+    .jojo-intro-stage,
+    .jojo-intro-skip {
+      display: none;
+    }
+    html .jojo-intro-stand-in {
+      visibility: visible;
+    }
+  }
+</style>

@@ -616,3 +616,15 @@ html.dark .dev-viewer-article .astro-code span {
   .dev-viewer-article,
   .dev-viewer-toc { animation: none; }
 }
+
+/* Jojo mode: the live Jojo in the neofetch slot (sized like the ASCII one) */
+.dev-neo-jojo-live {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin-inline: auto;
+}
+.dev-neo-jojo-live > svg {
+  width: 100% !important;
+  height: 100% !important;
+}

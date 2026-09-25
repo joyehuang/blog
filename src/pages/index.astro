@@ -14,6 +14,8 @@ import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
+import JojoHero from '@/components/jojo/JojoHero'
+import JojoIntro from '@/components/jojo/JojoIntro.astro'
 import JoJo from '@/components/mascot/JoJo'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
@@ -92,23 +94,29 @@ const latestTalk = talks[0]
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  <LegacyIntroOverlay />
+  {/* Jojo on → the build-the-site intro replaces the particle intro and the ASCII mascot */}
+  {!__JOJO__ && <LegacyIntroOverlay />}
+  <JojoIntro />
   <main class='flex w-full flex-col items-center'>
     <section
       class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'
       id='content-header'
     >
-      <Image
-        src={avatar}
-        alt='profile'
-        data-intro-target='avatar'
-        class='h-28 w-auto rounded-full border p-1'
-        loading='eager'
-      />
+      <div class='relative'>
+        <Image
+          src={avatar}
+          alt='profile'
+          data-intro-target='avatar'
+          data-jojo-piece='avatar'
+          class='h-28 w-auto rounded-full border p-1'
+          loading='eager'
+        />
+        {__JOJO__ && <JojoHero client:idle lang='zh' />}
+      </div>
 
       <div class='flex flex-col items-center gap-y-4'>
-        <h1 class='text-3xl font-bold'>{config.author}</h1>
-        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+        <h1 class='text-3xl font-bold' data-jojo-piece='name'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3' data-jojo-piece='labels'>
           <Label title='Melbourne, Australia'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
@@ -127,7 +135,7 @@ const latestTalk = talks[0]
       </div>
 
       {/* Connect Me! */}
-      <div class='flex flex-row gap-3'>
+      <div class='flex flex-row gap-3' data-jojo-piece='connect'>
         <a
           href='/contact'
           class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
@@ -147,7 +155,7 @@ const latestTalk = talks[0]
       id='content'
       class='animate relative z-0 flex w-full min-w-0 max-w-full flex-col gap-y-10 md:w-4/5 lg:w-5/6'
     >
-      <div class='-mt-2'>
+      <div class='-mt-2' data-jojo-piece='card'>
         <Terminal />
       </div>
       <Section title='About'>
@@ -395,95 +403,113 @@ const latestTalk = talks[0]
     <Quote class='mt-12' />
   </main>
 
-  {/* JoJo mascot — floating companion bottom-right (hidden on mobile) */}
-  <div id='home-jojo' class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
-    <div class='pointer-events-auto'>
-      <JoJo client:load size='md' quipPool='idle' />
-    </div>
-  </div>
-
-  {/* 首访弹窗：面试手记推广，localStorage 记住，每位访客只弹一次 */}
-  <div
-    id='interview-promo'
-    class='interview-promo fixed inset-0 z-60 items-center justify-center p-4'
-    hidden
-  >
-    <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss></div>
-    <div
-      class='hd hd-sheet interview-promo-card relative w-full max-w-md p-6'
-      role='dialog'
-      aria-modal='true'
-      aria-labelledby='interview-promo-title'
-    >
-      <button
-        type='button'
-        data-promo-dismiss
-        class='hd-close absolute end-3 top-3 flex size-8 items-center justify-center'
-        aria-label='关闭弹窗'
-      >
-        <svg
-          xmlns='http://www.w3.org/2000/svg'
-          width='16'
-          height='16'
-          viewBox='0 0 24 24'
-          fill='none'
-          stroke='currentColor'
-          stroke-width='2.5'
-          stroke-linecap='round'
-          stroke-linejoin='round'
-          aria-hidden='true'
-        >
-          <path d='M18 6 6 18'></path>
-          <path d='m6 6 12 12'></path>
-        </svg>
-      </button>
-
-      <span class='hd-badge'>新企划 · 即将上线</span>
-      <h2 id='interview-promo-title' class='hd-heading mt-3 text-3xl font-bold'>
-        <span class='hd-marker'>
-          面试手记
-          <svg
-            class='hd-marker-svg'
-            viewBox='0 0 200 18'
-            preserveAspectRatio='none'
-            aria-hidden='true'
-            focusable='false'
-          >
-            <path
-              class='hd-marker-path'
-              pathLength='1'
-              d='M3 12 C 48 5, 116 16, 197 7'
-              vector-effect='non-scaling-stroke'></path>
-          </svg>
-        </span>
-      </h2>
-      <p class='hd-body mt-3 text-sm leading-relaxed'>
-        158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
-      </p>
-      <p class='hd-body mt-1 text-sm leading-relaxed'>
-        逐字稿回放，看一场面试真实的样子，而不是事后美化过的复盘。
-      </p>
-
-      <div class='mt-5 flex flex-wrap items-center gap-3'>
-        <a
-          href='https://joyehuang.dev'
-          target='_blank'
-          rel='noopener noreferrer'
-          class='hd-cta text-sm no-underline'
-          data-promo-dismiss
-          data-analytics-event='project_link_click'
-          data-analytics-surface='home_popup'
-          data-analytics-section='interview'
-          data-analytics-project='interview-notes'
-          data-analytics-link-type='site'
-        >
-          去看看
-          <span class='hd-arrow' aria-hidden='true'>→</span>
-        </a>
-        <button type='button' data-promo-dismiss class='hd-quiet text-sm'>先不看</button>
+  {
+    /* JoJo ASCII mascot — floating companion bottom-right (hidden on mobile); replaced by the Jojo dock */
+  }
+  {
+    !__JOJO__ && (
+      <div id='home-jojo' class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
+        <div class='pointer-events-auto'>
+          <JoJo client:load size='md' quipPool='idle' />
+        </div>
       </div>
-    </div>
-  </div>
+    )
+  }
+
+  {
+    /* 首访弹窗：面试手记推广，localStorage 记住，每位访客只弹一次。
+      Jojo 模式（审阅决定）：不弹大窗，免得和搭站开场连着叠遮罩；静态推广卡与左下 popout 保留。 */
+  }
+  {
+    !__JOJO__ && (
+      <div
+        id='interview-promo'
+        class='interview-promo fixed inset-0 z-60 items-center justify-center p-4'
+        hidden
+      >
+        <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss />
+        <div
+          class='hd hd-sheet interview-promo-card relative w-full max-w-md p-6'
+          role='dialog'
+          aria-modal='true'
+          aria-labelledby='interview-promo-title'
+        >
+          <button
+            type='button'
+            data-promo-dismiss
+            class='hd-close absolute end-3 top-3 flex size-8 items-center justify-center'
+            aria-label='关闭弹窗'
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='16'
+              height='16'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2.5'
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              aria-hidden='true'
+            >
+              <path d='M18 6 6 18' />
+              <path d='m6 6 12 12' />
+            </svg>
+          </button>
+
+          <span class='hd-badge'>新企划 · 即将上线</span>
+          <h2 id='interview-promo-title' class='hd-heading mt-3 text-3xl font-bold'>
+            <span class='hd-marker'>
+              面试手记
+              <svg
+                class='hd-marker-svg'
+                viewBox='0 0 200 18'
+                preserveAspectRatio='none'
+                aria-hidden='true'
+                focusable='false'
+              >
+                <path
+                  class='hd-marker-path'
+                  pathLength='1'
+                  d='M3 12 C 48 5, 116 16, 197 7'
+                  vector-effect='non-scaling-stroke'
+                />
+              </svg>
+            </span>
+          </h2>
+          <p class='hd-body mt-3 text-sm leading-relaxed'>
+            158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
+          </p>
+          <p class='hd-body mt-1 text-sm leading-relaxed'>
+            逐字稿回放，看一场面试真实的样子，而不是事后美化过的复盘。
+          </p>
+
+          <div class='mt-5 flex flex-wrap items-center gap-3'>
+            <a
+              href='https://joyehuang.dev'
+              target='_blank'
+              rel='noopener noreferrer'
+              class='hd-cta text-sm no-underline'
+              data-promo-dismiss
+              data-analytics-event='project_link_click'
+              data-analytics-surface='home_popup'
+              data-analytics-section='interview'
+              data-analytics-project='interview-notes'
+              data-analytics-link-type='site'
+            >
+              去看看
+              <span class='hd-arrow' aria-hidden='true'>
+                →
+              </span>
+            </a>
+            <button type='button' data-promo-dismiss class='hd-quiet text-sm'>
+              先不看
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   {/* 左下角 popout：跟随原 SOA 的位置（右下角是 JoJo），关闭后 localStorage 记住 */}
   <aside
@@ -542,9 +568,10 @@ const latestTalk = talks[0]
 
   <script is:inline>
     ;(() => {
+      // Jojo mode renders no promo modal (only the popout), so promo may be null.
       const promo = document.getElementById('interview-promo')
       const popout = document.getElementById('interview-popout')
-      if (!promo || !popout) return
+      if (!popout) return
 
       const panel = popout.querySelector('[data-popout-panel]')
       const promoKey = 'joye-interview-promo-seen'
@@ -599,7 +626,7 @@ const latestTalk = talks[0]
       }
 
       const closePromo = () => {
-        if (promo.hidden) return
+        if (!promo || promo.hidden) return
         promo.hidden = true
         document.documentElement.style.overflow = ''
         write(promoKey, String(Date.now()))
@@ -607,12 +634,13 @@ const latestTalk = talks[0]
       }
 
       const openPromo = () => {
+        if (!promo) return openPopout()
         promo.hidden = false
         document.documentElement.style.overflow = 'hidden'
         promo.querySelector('[data-promo-dismiss]')?.focus()
       }
 
-      promo.querySelectorAll('[data-promo-dismiss]').forEach((el) => {
+      promo?.querySelectorAll('[data-promo-dismiss]').forEach((el) => {
         el.addEventListener('click', closePromo)
       })
       popout.querySelector('[data-popout-close]')?.addEventListener('click', closePopout)
@@ -622,6 +650,19 @@ const latestTalk = talks[0]
 
       // 入场动画还在放的时候不要抢镜：等 intro overlay 落到静止态再开始。
       const afterIntro = (run) => {
+        // Jojo intro armed or running: wait until it has finished
+        const root = document.documentElement
+        const jojoBusy = () =>
+          ['armed', 'running'].includes(root.getAttribute('data-jojo-intro') || '')
+        if (jojoBusy()) {
+          const jojoObserver = new MutationObserver(() => {
+            if (jojoBusy()) return
+            jojoObserver.disconnect()
+            run()
+          })
+          jojoObserver.observe(root, { attributes: true, attributeFilter: ['data-jojo-intro'] })
+          return
+        }
         const overlay = document.getElementById('intro-overlay')
         if (!overlay) return run()
         const settled = () =>

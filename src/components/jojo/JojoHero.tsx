@@ -1,0 +1,163 @@
+import { trackOnce } from '@/lib/jojo/analytics'
+import {
+  currentMode,
+  JOJO_EVENTS,
+  JOJO_KEYS,
+  modeHas,
+  prefersReducedMotion,
+  readStored,
+  saveData,
+  writeStored,
+  type IntroEventDetail
+} from '@/lib/jojo/keys'
+import { initialPoke, poke, type PokeStep } from '@/lib/jojo/poke'
+import { Jojo, type EmotionId, type GazeInput, type MotionPref } from '@jojo-web/runtime'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import './jojo.css'
+
+interface Props {
+  lang: 'zh' | 'en'
+}
+
+/**
+ * Scheme A — the identity slot: Jojo seated at the avatar's bottom-right, in
+ * the document flow with the avatar (never fixed, so it cannot cover text,
+ * comments or the keyboard). Still by default; it moves only when
+ *  - the intro lands here (happy, then calm),
+ *  - a first visit had no intro (a one-time greeting, ≤ 1.2 s),
+ *  - the visitor pokes it (click / Enter / Space), or hovers the hero with a
+ *    fine pointer (eyes follow while the pointer is over the hero).
+ * No speech bubble and no live-region announcements: poking is a quiet
+ * visual easter egg. Reduced motion freezes it (the engine goes static).
+ */
+export default function JojoHero({ lang }: Props) {
+  const zh = lang === 'zh'
+  const [emotion, setEmotion] = useState<EmotionId>('calm')
+  const [motion, setMotion] = useState<MotionPref>('transitions')
+  const [gaze, setGaze] = useState<GazeInput>('auto')
+  const pokeState = useRef(initialPoke())
+  const timers = useRef<number[]>([])
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const clearTimers = () => {
+    for (const t of timers.current) window.clearTimeout(t)
+    timers.current = []
+  }
+  const playSteps = useCallback((steps: PokeStep[]) => {
+    clearTimers()
+    let at = 0
+    for (const s of steps) {
+      timers.current.push(window.setTimeout(() => setEmotion(s.emotion), at))
+      at += s.ms
+    }
+    timers.current.push(window.setTimeout(() => setEmotion('calm'), at))
+  }, [])
+
+  // greeting / intro landing
+  useEffect(() => {
+    const html = document.documentElement
+    const onIntro = (e: Event) => {
+      const d = (e as CustomEvent<IntroEventDetail>).detail
+      if (d.phase === 'land') setEmotion('happy')
+      if (d.phase === 'end') {
+        writeStored(JOJO_KEYS.hello, '1')
+        playSteps([{ emotion: 'happy', ms: d.outcome === 'complete' ? 900 : 500 }])
+      }
+    }
+    document.addEventListener(JOJO_EVENTS.intro, onIntro)
+    if (
+      html.hasAttribute('data-jojo-intro-landed') &&
+      html.getAttribute('data-jojo-intro') === 'running'
+    ) {
+      setEmotion('happy')
+    }
+    const introWillRun = ['armed', 'running'].includes(html.getAttribute('data-jojo-intro') ?? '')
+    const canGreet =
+      modeHas(currentMode(), 'a') &&
+      !introWillRun &&
+      !prefersReducedMotion() &&
+      !saveData() &&
+      readStored(JOJO_KEYS.hello) === null
+    let idle = 0
+    if (canGreet) {
+      const greet = () => {
+        if (!writeStored(JOJO_KEYS.hello, '1')) return
+        // blink and look toward the name, a small happy hop, back to calm (≈1.1 s)
+        setGaze({ x: 0.2, y: 0.9 })
+        setEmotion('curious')
+        timers.current.push(
+          window.setTimeout(() => {
+            setGaze('auto')
+            setEmotion('happy')
+          }, 420),
+          window.setTimeout(() => setEmotion('calm'), 1100)
+        )
+      }
+      const ric = (
+        window as Window & {
+          requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number
+        }
+      ).requestIdleCallback
+      idle = ric ? ric(greet, { timeout: 1200 }) : window.setTimeout(greet, 300)
+    }
+    return () => {
+      document.removeEventListener(JOJO_EVENTS.intro, onIntro)
+      const cic = (window as Window & { cancelIdleCallback?: (id: number) => void })
+        .cancelIdleCallback
+      if (idle) (cic ?? window.clearTimeout)(idle)
+      clearTimers()
+    }
+  }, [playSteps])
+
+  // eyes follow a fine pointer while it is over the hero (desktop only)
+  useEffect(() => {
+    const hero = document.getElementById('content-header')
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)')
+    if (!hero || !fine.matches) return
+    const enter = () => {
+      setMotion('full')
+      setGaze('pointer')
+    }
+    const leave = () => {
+      setGaze('auto')
+      setMotion('transitions')
+    }
+    hero.addEventListener('pointerenter', enter)
+    hero.addEventListener('pointerleave', leave)
+    return () => {
+      hero.removeEventListener('pointerenter', enter)
+      hero.removeEventListener('pointerleave', leave)
+    }
+  }, [])
+
+  const onPoke = () => {
+    const r = poke(pokeState.current, performance.now())
+    pokeState.current = r.state
+    if (r.ignored) return
+    playSteps(r.steps)
+    trackOnce('jojo_poke', { surface: 'home_hero' })
+  }
+
+  return (
+    <span className='jojo-seat' data-jojo-seat='' data-jojo-anchor=''>
+      <button
+        ref={buttonRef}
+        type='button'
+        className='jojo-seat-btn jojo-poke-target'
+        aria-label={zh ? '戳一下 Jojo' : 'Poke Jojo'}
+        onClick={onPoke}
+      >
+        <Jojo
+          emotion={emotion}
+          motion={motion}
+          gaze={gaze}
+          size={48}
+          framing='tight'
+          decorative
+          idPrefix='hero-'
+        />
+      </button>
+    </span>
+  )
+}
