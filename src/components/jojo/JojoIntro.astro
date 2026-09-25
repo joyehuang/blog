@@ -18,6 +18,10 @@
       const waits: Promise<unknown>[] = []
       if (document.fonts?.ready) waits.push(document.fonts.ready)
       if (avatar && !avatar.complete) waits.push(avatar.decode().catch(() => {}))
+      // the page's own entrance (`.animate` fade-in-up) must be done, or the
+      // stand-ins would be measured mid-slide and land off their originals
+      for (const el of document.querySelectorAll('main .animate'))
+        for (const a of el.getAnimations()) waits.push(a.finished.catch(() => {}))
       await Promise.race([Promise.all(waits), new Promise((r) => setTimeout(r, 1200))])
     }
 

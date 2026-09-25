@@ -49,9 +49,41 @@ function piece(id: PieceId): HTMLElement | null {
   return document.querySelector(`[data-jojo-piece="${id}"]`)
 }
 
+/**
+ * Styles that only reach an element through its id (`#toggleDarkMode
+ * .theme-icon`, `#headerExpandContent`) or its custom-element tag
+ * (`header-component`) would be lost on the copy, which drops ids and swaps
+ * custom elements for divs. The r2 recording showed exactly that: the theme
+ * toggle's three stacked icons fell out of their absolute layering and stood
+ * in a column. So those elements (and everything inside an id'd element) get
+ * their computed style inlined first, while the copy still mirrors the
+ * original node for node.
+ */
+function freezeScopedStyles(orig: Element, copy: Element) {
+  const pairs: Array<[Element, Element, boolean]> = [[orig, copy, false]]
+  while (pairs.length) {
+    const [o, c, inScope] = pairs.pop()!
+    const scoped = inScope || o.hasAttribute('id')
+    if ((scoped || o.tagName.includes('-')) && 'style' in c) {
+      const cs = getComputedStyle(o)
+      const style = (c as HTMLElement | SVGElement).style
+      for (let i = 0; i < cs.length; i++) {
+        const p = cs[i]
+        if (p.startsWith('transition')) continue
+        style.setProperty(p, cs.getPropertyValue(p))
+      }
+      style.setProperty('transition', 'none')
+    }
+    const oc = o.children
+    const cc = c.children
+    for (let i = 0; i < oc.length && i < cc.length; i++) pairs.push([oc[i], cc[i], scoped])
+  }
+}
+
 /** a visual copy that cannot run, hydrate, submit, be focused or be read */
 function cloneForStage(el: HTMLElement): HTMLElement {
   const copy = el.cloneNode(true) as HTMLElement
+  freezeScopedStyles(el, copy)
   const swap = (node: Element) => {
     // custom elements (header-component, astro-island, …) would upgrade and
     // run their own code; plain divs with the same classes look the same
@@ -84,6 +116,30 @@ function cloneForStage(el: HTMLElement): HTMLElement {
   return root as HTMLElement
 }
 
+/**
+ * Measure only a settled page: an entrance animation still moving a piece's
+ * ancestor (the `.animate` fade-in-up on #content-header / #content) would put
+ * every stand-in off its original. The entry waits for them (bounded); any
+ * still running here are finished so the rects are final.
+ */
+function settleEntrance(els: Array<HTMLElement | undefined>) {
+  const seen = new Set<Element>()
+  for (const el of els) {
+    for (let n: Element | null = el?.parentElement ?? null; n; n = n.parentElement) {
+      if (seen.has(n)) break
+      seen.add(n)
+      if (!n.classList.contains('animate')) continue
+      for (const a of n.getAnimations()) {
+        try {
+          a.finish()
+        } catch {
+          /* infinite or already gone */
+        }
+      }
+    }
+  }
+}
+
 function layoutNow(): {
   layout: IntroLayout
   els: Partial<Record<PieceId, HTMLElement>>
@@ -93,6 +149,7 @@ function layoutNow(): {
   const vh = window.innerHeight
   const els: Partial<Record<PieceId, HTMLElement>> = {}
   const pieces: Partial<Record<PieceId, Rect>> = {}
+  settleEntrance(PIECE_IDS.map((id) => piece(id) ?? undefined))
   for (const id of PIECE_IDS) {
     const el = piece(id)
     if (!el) continue
