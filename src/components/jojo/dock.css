@@ -48,22 +48,19 @@ html[data-jojo-dock='shown'] #action-buttons.show {
   position: relative;
   display: grid;
   place-items: center;
+  /* no base: Jojo itself sits on the page. The transparent box stays the
+     ≥ 44 px hit area; the radius only shapes the focus-visible ring. */
   width: var(--jd-size);
   height: var(--jd-size);
+  padding: 0;
+  border: 0;
   border-radius: 9999px;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--background) / 0.9);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 8px 24px hsl(var(--foreground) / 0.08);
+  background: transparent;
   cursor: pointer;
   transition:
     opacity 0.22s ease,
     transform 0.22s ease,
-    border-color 0.2s ease,
     visibility 0s linear 0s;
-}
-.jojo-dock-toggle:hover {
-  border-color: hsl(var(--foreground) / 0.25);
 }
 .jojo-dock-toggle > svg {
   width: 78% !important;

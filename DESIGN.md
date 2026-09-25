@@ -355,9 +355,11 @@ Jojo is Joye's character (private package `@joyehuang/jojo-web`, see
 [`docs/jojo.md`](docs/jojo.md)). Like the terminal, it is its own "device":
 it keeps the approved palette (indigo shell, mint face, coral signal dot) and
 is never recoloured into site tokens. Everything _around_ Jojo — the dock
-pocket, panel, end-of-post card, skip pill — uses the ordinary semantic tokens
-and the usual radius/elevation idioms (`rounded-2xl` panel, `0 14px 38px
-hsl(var(--foreground) / …)` shadow).
+panel, end-of-post card, skip pill — uses the ordinary semantic tokens and the
+usual radius/elevation idioms (`rounded-2xl` panel, `0 14px 38px
+hsl(var(--foreground) / …)` shadow). The dock Jojo itself has no base: no
+circle, border or shadow behind it (user decision, 2026-09-25); its button is
+a transparent ≥ 44 px hit area with a `--ring` focus-visible outline.
 
 - **One Jojo per viewport.** In-flow Jojo (identity seat beside the home
   avatar, end-of-post card, 404, About) wins over the dock; the intro wins
