@@ -321,6 +321,27 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
         <span className='jojo-dock-tab-dot' aria-hidden='true' />
       </button>
 
+      <button
+        ref={toggleRef}
+        type='button'
+        className='jojo-dock-toggle jojo-poke-target'
+        aria-expanded={open}
+        aria-controls={panelId}
+        aria-label={open ? t.close : t.open}
+        onClick={toggle}
+        tabIndex={presence === 'tucked' ? -1 : 0}
+      >
+        <Jojo
+          emotion={emotion}
+          status={status}
+          motion='transitions'
+          size={44}
+          framing='tight'
+          decorative
+          idPrefix='dock-'
+        />
+      </button>
+
       <section
         id={panelId}
         className='jojo-dock-panel'
@@ -397,26 +418,6 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
         </footer>
       </section>
 
-      <button
-        ref={toggleRef}
-        type='button'
-        className='jojo-dock-toggle jojo-poke-target'
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-label={open ? t.close : t.open}
-        onClick={toggle}
-        tabIndex={presence === 'tucked' ? -1 : 0}
-      >
-        <Jojo
-          emotion={emotion}
-          status={status}
-          motion='transitions'
-          size={44}
-          framing='tight'
-          decorative
-          idPrefix='dock-'
-        />
-      </button>
     </div>
   )
 }

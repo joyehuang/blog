@@ -10,7 +10,9 @@
   right: var(--jd-right);
   bottom: var(--jd-bottom);
   display: flex;
-  flex-direction: column;
+  /* DOM order is toggle → panel (so Tab walks into the open panel);
+     visually the panel sits above the toggle */
+  flex-direction: column-reverse;
   align-items: flex-end;
   gap: 0.5rem;
   pointer-events: none;
@@ -29,6 +31,10 @@
 html[data-jojo-dock='shown'] #action-buttons {
   bottom: calc(var(--jd-stack, 4.5rem) + env(safe-area-inset-bottom, 0px));
   --jd-stack: calc(1rem + 44px + 0.75rem);
+}
+/* while stacked, the shown column sits exactly on its new baseline */
+html[data-jojo-dock='shown'] #action-buttons.show {
+  transform: none;
 }
 @media (min-width: 641px) {
   html[data-jojo-dock='shown'] #action-buttons {

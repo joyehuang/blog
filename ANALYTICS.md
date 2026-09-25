@@ -198,7 +198,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `animation`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 
 Use this to measure how many visitors actually see the intro animation,
@@ -215,7 +215,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `content`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to completion
 
@@ -233,7 +233,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `skip`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to skip click
 
@@ -249,9 +249,9 @@ Required properties:
 - `locale`: `zh` | `en`
 - `page`: `/` | `/en`
 - `surface`: `intro_overlay`
-- `target`: `focus` | `line` | `jojo`
+- `target`: `focus` | `line` | `jojo` | `jojo_build`
 - `source`: `replay`
-- `variant`: `focus` | `line` | `jojo`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build`
 - `trigger`: `picker` | `event` | `replay`
 
 Use this to measure voluntary replay interest separately from first-visit
@@ -268,11 +268,65 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `pagehide`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to page hide
 
 Use this to estimate watch time for visitors who do not click enter or skip.
+
+### Jojo intro (`variant: jojo_build`)
+
+Added 2026-09-25 with the Jojo character layer (`docs/jojo.md`). The
+`intro_*` events above keep their meaning; the build-the-site intro reports
+`variant: jojo_build` and `surface: intro_overlay`. `intro_start` fires when it
+actually starts (first visit or `?jojo-intro=play`), `intro_skip` on any skip
+(key, click, wheel, scroll), `intro_abandon` only on pagehide mid-run,
+`intro_replay` when a visitor asks for it from the dock menu (`trigger:
+replay`). The old `variant: focus | line | jojo` values belong to the `/v2`
+experiment and the particle intro (`LegacyIntroOverlay`), which no longer runs
+when Jojo is on — expect a break in those series from the Jojo launch date.
+
+### `jojo_poke`
+
+Visitor pokes Jojo (click, Enter or Space).
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: current pathname
+- `surface`: `home_hero` | `jojo_dock`
+
+At most once per page view per surface (the first poke). No poke counts, no
+timings, nothing re-sent on pagehide.
+
+### `jojo_dock_action`
+
+Visitor uses the resident dock (in-page; navigation from its links is left to
+Pages).
+
+Required properties:
+
+- `locale`, `page`
+- `surface`: `jojo_dock`
+- `action`: `open` | `tuck` | `restore`
+
+At most once per page view per action.
+
+### `jojo_story_play`
+
+Visitor plays the Jojo short film on About (click-to-load).
+
+Required properties:
+
+- `locale`, `page`
+- `surface`: `about_story`
+- `action`: `play` | `complete`
+- `resource`: `builds_home`
+- `duration_ms`: time from play to `ended` for `complete`, otherwise `null`
+
+Not tracked on purpose: Jojo impressions, greetings, the end-of-post card
+coming into view (it does not prove reading), and anything typed — the dock
+has no text input until a real chat backend exists.
 
 ### `contact_method_reveal`
 
@@ -466,6 +520,7 @@ Implemented in current code:
 - `talk_resource_click`
 - `talk_join_intent`
 - `language_switch_click`
+- `jojo_poke`, `jojo_dock_action`, `jojo_story_play` (Jojo builds only)
 
 Legacy events retained only for historical data interpretation:
 
