@@ -16,6 +16,7 @@ import { createIntroController, type IntroController } from './controller'
 import {
   PIECE_IDS,
   planIntro,
+  type Inset,
   type IntroFrame,
   type IntroLayout,
   type PieceId,
@@ -169,7 +170,8 @@ function layoutNow(): {
       vh,
       pieces,
       seat,
-      actor: vw <= 640 ? 60 : 76,
+      // big enough to be the one thing to watch (the avatar is 112 px)
+      actor: vw <= 640 ? 80 : 100,
       geometry: {
         viewBox: JOJO_GEOMETRY.viewBox.tight,
         pivot: JOJO_GEOMETRY.pivot,
@@ -217,9 +219,9 @@ export function runIntro(trigger: IntroTrigger): RunResult {
   let tetherPath: SVGPathElement | null = null
   let tetherDot: SVGCircleElement | null = null
   let tetherSvg: SVGSVGElement | null = null
-  let ripple: HTMLDivElement | null = null
   let spawnDot: HTMLDivElement | null = null
   const boxes: Partial<Record<PieceId, HTMLDivElement>> = {}
+  const ghosts: Partial<Record<PieceId, HTMLDivElement>> = {}
   const hidden: HTMLElement[] = []
   let shownEmotion: EmotionId | null = null
   let shownGaze = ''
@@ -253,26 +255,38 @@ export function runIntro(trigger: IntroTrigger): RunResult {
     stage.className = 'jojo-intro-stage'
     stage.setAttribute('aria-hidden', 'true')
     stage.inert = true
-    for (const id of plan.cast) {
-      const el = els[id]
-      const r = layout.pieces[id]
-      if (!el || !r) continue
+    // blueprints under everything, then the solids; later pieces sit on top
+    // (the avatar drops out from under the header)
+    const solidOrder: PieceId[] = [...plan.cast].reverse()
+    const made: Partial<Record<PieceId, HTMLElement>> = {}
+    const frame = (id: PieceId, copy: HTMLElement, kind: 'ghost' | 'solid') => {
+      const r = layout.pieces[id]!
       const box = document.createElement('div')
-      box.className = `jojo-intro-piece jojo-intro-piece--${id}`
+      box.className = `jojo-intro-piece jojo-intro-${kind} jojo-intro-piece--${id}`
       box.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`
-      const copy = cloneForStage(el)
       copy.style.margin = '0'
       copy.style.position = 'static'
       copy.style.width = '100%'
       copy.style.height = '100%'
       copy.style.boxSizing = 'border-box'
       box.appendChild(copy)
+      return box
+    }
+    for (const id of plan.cast) {
+      const el = els[id]
+      if (!el || !layout.pieces[id]) continue
+      made[id] = cloneForStage(el)
+      const ghost = frame(id, made[id]!.cloneNode(true) as HTMLElement, 'ghost')
+      stage.appendChild(ghost)
+      ghosts[id] = ghost
+    }
+    for (const id of solidOrder) {
+      const copy = made[id]
+      if (!copy) continue
+      const box = frame(id, copy, 'solid')
       stage.appendChild(box)
       boxes[id] = box
     }
-    ripple = document.createElement('div')
-    ripple.className = 'jojo-intro-ripple'
-    stage.appendChild(ripple)
     const svgNS = 'http://www.w3.org/2000/svg'
     tetherSvg = document.createElementNS(svgNS, 'svg')
     tetherSvg.setAttribute('class', 'jojo-intro-tether')
@@ -330,12 +344,20 @@ export function runIntro(trigger: IntroTrigger): RunResult {
   }
 
   const render = (f: IntroFrame) => {
+    const inset = (c: Inset | null) =>
+      c
+        ? `inset(${c.t.toFixed(1)}px ${c.r.toFixed(1)}px ${c.b.toFixed(1)}px ${c.l.toFixed(1)}px)`
+        : 'none'
     for (const id of plan.cast) {
       const p = f.pieces[id]
       const box = boxes[id]
-      if (!p || !box) continue
-      box.style.transform = `translate3d(${p.tx.toFixed(2)}px,${p.ty.toFixed(2)}px,0) rotate(${p.rot.toFixed(2)}deg) scale(${p.scale.toFixed(4)},${(p.scale * p.sy).toFixed(4)})`
+      const ghost = ghosts[id]
+      if (!p || !box || !ghost) continue
+      box.style.transform = `translate3d(${p.tx.toFixed(2)}px,${p.ty.toFixed(2)}px,0) rotate(${p.rot.toFixed(2)}deg) scale(${p.scale.toFixed(4)})`
       box.style.opacity = p.opacity.toFixed(3)
+      box.style.clipPath = inset(p.clip)
+      ghost.style.opacity = p.ghost.toFixed(3)
+      ghost.style.clipPath = inset(p.ghostClip)
     }
     const a = f.actor
     if (actorBox) {
@@ -370,14 +392,8 @@ export function runIntro(trigger: IntroTrigger): RunResult {
         spawnDot.style.cssText = `left:${x - r}px;top:${y - r}px;width:${2 * r}px;height:${2 * r}px;opacity:1`
       } else spawnDot.style.opacity = '0'
     }
-    if (ripple) {
-      if (f.ripple) {
-        const { x, y, r, opacity } = f.ripple
-        ripple.style.cssText = `left:${x - r}px;top:${y - r}px;width:${2 * r}px;height:${2 * r}px;opacity:${opacity.toFixed(3)}`
-      } else ripple.style.opacity = '0'
-    }
     // tell the seat Jojo to be happy before it is revealed, so the handoff matches
-    if (!landed && f.t >= plan.beats.land + 420) {
+    if (!landed && f.t >= plan.beats.land) {
       landed = true
       html.setAttribute('data-jojo-intro-landed', '')
       emit({ phase: 'land', trigger })
@@ -421,9 +437,7 @@ export function runIntro(trigger: IntroTrigger): RunResult {
       duration: plan.duration,
       beats: plan.beats,
       cast: plan.cast,
-      knock: plan.knock,
-      spring: plan.spring,
-      jobs: plan.jobs,
+      pop: plan.pop,
       seek: (t: number) => controller.seek(t),
       skip: () => controller.skip()
     }

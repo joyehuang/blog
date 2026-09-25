@@ -376,14 +376,17 @@ a transparent ≥ 44 px hit area with a `--ring` focus-visible outline.
   a post (one short hop, using the Blurred Icon Transition for the face swap).
   No speech bubbles, no auto quips, no `aria-live` for reactions.
 - **Intro.** The build-the-site intro plays once per browser on `/` and
-  `/en`, runs ≈ 3.2–4 s depending on how much of the home is on screen, is
+  `/en`, runs ≈ 3.2–4.4 s depending on how much of the home is on screen, is
   skippable by any key, click, wheel or scroll, never locks scroll or sets
   `inert` on the page, and works on clones in an inert layer (originals hidden
-  by `visibility` only, with a CSS failsafe). Every piece comes back by
-  something Jojo does (tether pull, push, stomp ring, tap) — never a plain
-  fade — and only pieces really on screen take part. Never change the
-  visitor's settings in a performance (no theme toggling). Reduced motion or
-  Save-Data: no intro from any entry.
+  by `visibility` only, with a CSS failsafe). The first screen dims in place to
+  a faint blueprint and Jojo builds it back along one route (tether pull,
+  catch, stomp, shove, slide, rise) — every piece arrives by something Jojo
+  does. Pieces stay whole and readable: rigid moves or clip reveals only, never
+  flattened, stretched or thrown across the screen; Jojo (~avatar size) is the
+  one focal point, and the tether is only a short pull. Only pieces really on
+  screen take part. Never change the visitor's settings in a performance (no
+  theme toggling). Reduced motion or Save-Data: no intro from any entry.
 - **Status ≠ emotion.** Emotions are performance. The status shapes (working
   ring, needs-input bubble, success check, error, offline) are reserved for a
   real chat lifecycle reported by a `ChatAdapter`; until chat exists the dock

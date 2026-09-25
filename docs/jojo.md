@@ -26,16 +26,25 @@ family). This site shows it in three ways that are designed to work together.
 ### C · intro
 
 - **What:** "Jojo builds the site", a first-visit intro compressed from the
-  29 s film (≈ 3.96 s at 1440×900, 3.6 s at 390×844 or 1280×720, 3.2 s at
-  375×667). Jojo pops out and the pop's wave knocks the first screen apart,
-  nearest first. It pulls the header back on its signal-dot tether and rolls
-  the avatar home. A stomp's ring springs the name and each label chip back
-  up. Then one tether run taps Connect on, yanks the terminal card back,
-  drags the About blind open and pulls the Product card in. Last, Jojo hops
-  into its seat.
+  29 s film (≈ 4.4 s at 1440×900, 3.9–4.0 s at 1280×720 or 390×844, 3.2 s
+  at 375×667). As Jojo pops out under the avatar, the
+  first screen dims in place to a faint blueprint (nothing flies away). Then
+  Jojo builds it back along one route down the page: a short tether pulls the
+  header down; the thump knocks the avatar loose onto Jojo's head, and Jojo
+  tosses it onto its spot; a stomp pops Connect, the label chips and the name
+  up; a shove lays the terminal card out to the right; Jojo slides down
+  About's left edge and reveals it like a blind; a last stomp makes the
+  Product card rise from below the fold to its feet. Then Jojo leaps home into
+  its seat. Pieces only move rigidly or are revealed by a clip, never
+  flattened or stretched.
 - **Who takes part:** only pieces at least 35 % on screen. Desktop 1440×900
   gets all nine; 1280×720 and 390×844 skip Product (below the fold); 375×667
-  also skips About. Nothing off screen is dragged in.
+  also skips About; `/en` has no Product. Nothing off screen is dragged in.
+- **Measuring:** stand-ins are measured only after the page's own `.animate`
+  entrance has finished (the entry waits for it, `runIntro` finishes any
+  leftover), and ids / custom-element tags are replaced by their computed
+  style on the copies, so the copies match the page exactly (the r2 build lost
+  `#toggleDarkMode` styles and stacked the theme icons).
 - **Where:** `JojoHead.astro` (gate), `JojoIntro.astro` → `intro/entry.ts`
   (every entry), `src/lib/jojo/intro/*`.
 - **JS:** loaded only when it plays.
@@ -146,8 +155,9 @@ freezes the intro at a frame for inspection.
 
 ## Tests
 
-- `bun test src/lib/jojo` — gate, timeline (fits 2–4 s, starts and ends exactly
-  on the real page, actually scatters/rebuilds), controller (complete, skip by
+- `bun test src/lib/jojo` — gate, timeline (fits 2.5–4.5 s, starts and ends
+  exactly on the real page, nothing flattened/stretched, dims to a blueprint in
+  place, every piece arrives by a Jojo action, short tether only), controller (complete, skip by
   key/pointer/wheel/touch/scroll, hidden tab, pagehide, watchdog, render error,
   mount failure, seek, refuse while still, still switched on mid-run), entry
   (every trigger refuses before the chunk loads, never left `armed`), step

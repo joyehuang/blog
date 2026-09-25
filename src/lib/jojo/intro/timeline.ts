@@ -2,32 +2,37 @@ import type { EmotionId } from '@jojo-web/runtime'
 
 /**
  * "Jojo builds the site" — the 29 s film (jojo-builds-home, 2026-09-24)
- * compressed into a ~3 s web intro that plays over the real, already rendered
- * page. Frame-pure like the film: every state is a function of `t` (ms), so
- * skipping, timeouts and tests all reason about the same data.
+ * compressed into a ~3–4 s web intro that plays over the real, already
+ * rendered page. Frame-pure like the film: every state is a function of `t`
+ * (ms), so skipping, timeouts and tests all reason about the same data.
  *
- * Story (film beat → here). Every piece that comes back is brought back by
- * something Jojo does — nothing just fades in:
- *  02 pops out           → Jojo pops out of the page where the avatar sits; the
- *                           pop sends a wave through the first screen (nearest
- *                           first): header up, avatar rolls off, name and label
- *                           chips knocked flat, Connect tucked away, terminal
- *                           slides aside, About rolls up like a blind, the
- *                           Product card slides off the left edge.
- *     looks around       → a puzzled look left/right.
- *  01 pulls the header   → throws its signal dot on a tether and pulls the
- *                           header back down.
- *  03 pushes the avatar  → hops out left, rolls the avatar back into place,
- *                           then a stomp: its ring springs the name and each
- *                           label chip back up as it reaches them.
- *  04 deals the cards    → one tether run, the dot hopping target to target:
- *                           taps Connect on, yanks the terminal card back,
- *                           drags the About blind open, pulls the Product card
- *                           in (each only when it is on screen).
- *  06 finds its corner   → hops over the avatar into its seat beside it (the
- *                           identity slot), shrinking to seat size, and sits.
- * The theme-toggle beat (05) is left out on purpose: the intro must never
- * change a visitor's settings.
+ * Redesign (2026-09-26, after the user watched the r2 recording). Nothing is
+ * blown apart, flattened or dragged across the screen any more. As Jojo pops
+ * out, the first screen dims in place to a faint blueprint; then Jojo walks
+ * one route down the page and builds it back, group by group. Every act has a
+ * contact, a force, a completion and a short pause, and pieces stay whole and
+ * readable the whole time (they move rigidly or are revealed by a clip, never
+ * scaled out of shape):
+ *
+ *  roof      → looks up; the signal dot throws a short tether to the top edge
+ *              and pulls the header down; it lands with a thump.
+ *  identity  → the thump knocks the avatar loose: it drops from under the
+ *              header onto Jojo's head, Jojo squashes and tosses it up, and it
+ *              settles on its spot.
+ *  labels    → Jojo hops aside and stomps: Connect, the label chips and the
+ *              name pop up, nearest first.
+ *  body      → lands on the terminal card's left end and shoves: the card is
+ *              laid out to the right from Jojo's feet. Steps down onto About
+ *              and slides down its left edge: About is revealed with Jojo's
+ *              weight, like pulling a blind.
+ *  ground    → stomps at the bottom: the Product card rises from below the
+ *              fold and stops right under Jojo's feet.
+ *  home      → looks up at the avatar, leaps back into its seat beside it
+ *              (shrinking to seat size) and sits.
+ *
+ * Only pieces that are really on screen take part; a missing group is simply
+ * skipped, so phones get a shorter run of the same story. The theme toggle
+ * beat of the film is left out on purpose: the intro never changes settings.
  */
 
 export interface Rect {
@@ -57,10 +62,8 @@ export const PIECE_IDS: readonly PieceId[] = [
   'about',
   'product'
 ]
-/** pieces the stomp springs back up, in reading order */
-const SPRUNG: readonly PieceId[] = ['name', 'chip0', 'chip1']
-/** pieces the tether run brings back, in order */
-const TETHERED: readonly PieceId[] = ['connect', 'card', 'about', 'product']
+/** pieces the stomp pops up */
+const POPPED: readonly PieceId[] = ['name', 'chip0', 'chip1', 'connect']
 
 export interface ActorGeometry {
   /** SVG viewBox the actor is drawn with (tight framing) */
@@ -83,14 +86,25 @@ export interface IntroLayout {
   geometry: ActorGeometry
 }
 
+/** a clip inside a piece's own box, px from each edge (negative = let shadows out) */
+export interface Inset {
+  t: number
+  r: number
+  b: number
+  l: number
+}
+
 export interface PieceState {
+  /** the solid copy: rigid moves only (uniform scale, small rotation) */
   tx: number
   ty: number
   rot: number
   scale: number
-  /** extra vertical scale (flattened / rolled up); 1 at rest */
-  sy: number
   opacity: number
+  clip: Inset | null
+  /** the faint blueprint copy that marks the piece's home while it is built */
+  ghost: number
+  ghostClip: Inset | null
 }
 
 export interface ActorState {
@@ -123,7 +137,6 @@ export interface IntroFrame {
   actor: ActorState
   pieces: Partial<Record<PieceId, PieceState>>
   tether: TetherState | null
-  ripple: { x: number; y: number; r: number; opacity: number } | null
   /** the tiny dot that pops out first, before the body unfolds */
   spawnDot: { x: number; y: number; r: number } | null
 }
@@ -136,7 +149,7 @@ type Ease = (t: number) => number
 export const E = {
   linear: (t: number) => t,
   out: (t: number) => 1 - (1 - t) ** 3,
-  in: (t: number) => t ** 3,
+  in2: (t: number) => t * t,
   inOut: (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2),
   inOutSine: (t: number) => -(Math.cos(Math.PI * t) - 1) / 2,
   outBack:
@@ -160,7 +173,23 @@ export const hopLift = (t: number, t0: number, t1: number, h: number) => {
 export const wobble = (t: number, t0: number, amp: number, period: number, decay: number) =>
   t < t0 ? 0 : amp * Math.sin(((t - t0) / period) * Math.PI * 2) * Math.exp(-(t - t0) / decay)
 
-const REST: PieceState = { tx: 0, ty: 0, rot: 0, scale: 1, sy: 1, opacity: 1 }
+export const REST: Readonly<PieceState> = {
+  tx: 0,
+  ty: 0,
+  rot: 0,
+  scale: 1,
+  opacity: 1,
+  clip: null,
+  ghost: 0,
+  ghostClip: null
+}
+/** blueprint opacity while a piece waits to be built */
+export const GHOST = 0.16
+/** the first screen dims to the blueprint over this window */
+export const DIM: [number, number] = [0, 260]
+/** how far a clip may spill past a revealed edge (card shadows) */
+const SPILL = 32
+
 const center = (r: Rect) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })
 
 /** fraction of a rect inside the viewport */
@@ -172,22 +201,20 @@ export function visibleFraction(r: Rect, vw: number, vh: number) {
 
 /* ---------------------------------------------------------------- plan */
 
-/** one leg of the tether run: fly to a piece, then work on it */
-export interface TetherJob {
-  id: PieceId
-  /** dot leaves the previous point (the actor, or the last piece) */
-  fly: [number, number]
-  /** dot holds the piece while it comes back */
-  act: [number, number]
-}
-
-interface Hop {
-  t0: number
-  t1: number
+interface Point {
   x: number
   y: number
+}
+
+/** one move of the actor between two ground points */
+export interface Move {
+  t0: number
+  t1: number
+  from: Point
+  to: Point
+  /** arc height (0 = slide) */
   h: number
-  ease?: Ease
+  ease: Ease
 }
 
 export interface IntroPlan {
@@ -196,315 +223,378 @@ export interface IntroPlan {
   /** pieces that take part (on screen enough to be worth animating) */
   cast: PieceId[]
   beats: {
+    /** looks up after popping out */
     look: number
-    header: number | null
-    avatarOut: number
-    avatarIn: number
-    /** the stomp lands: its ring springs the name and chips */
-    stomp: number
-    card: number | null
+    /** tether: out, hooked (pull starts), header landed, dot home */
+    header: { out: number; pull: number; land: number; home: number } | null
+    /** avatar: starts falling, hits Jojo's head, tossed, settled */
+    avatar: { fall: number; contact: number; toss: number; settle: number }
+    /** the stomp that pops the name, chips and Connect (null: none on screen) */
+    stomp: number | null
+    /** terminal card: Jojo lands, shoves (reveal starts), revealed */
+    card: { land: number; shove: number; done: number } | null
+    /** About: Jojo slides down its left edge over [slide0, slide1] */
+    about: { land: number; slide0: number; slide1: number } | null
+    /** Product: Jojo stomps, the card rises over [rise0, rise1] */
+    product: { stomp: number; rise0: number; rise1: number } | null
+    /** the leap home: takes off, lands in the seat */
+    leap: number
     land: number
     end: number
   }
-  /** when each piece starts moving away (the pop's wave, nearest first) */
-  knock: Partial<Record<PieceId, number>>
-  /** when the stomp ring reaches each sprung piece */
-  spring: Partial<Record<PieceId, number>>
-  /** the tether run, in order; empty when nothing tethered is on screen */
-  jobs: TetherJob[]
-  /** dot retracts after the last job */
-  retract: [number, number] | null
-  spawn: { x: number; y: number }
-  ground: number
-  radius: number
-  pushX: number
-  hops: Hop[]
-  scatter: Partial<Record<PieceId, PieceState>>
+  /** when each popped piece pops up (the stomp's wave, nearest first) */
+  pop: Partial<Record<PieceId, number>>
+  moves: Move[]
+  spawn: Point
+  /** actor size and head height (feet → top of shell) in px */
+  S: number
+  headH: number
+  seatGround: Point
 }
 
 /** a piece is cast when at least this much of it is on screen */
 const CAST_MIN = 0.35
-/** px per ms the stomp ring travels */
-const STOMP_RING_SPEED = 1.1
-/** how long the dot works on each tethered piece */
-const JOB_MS: Record<string, number> = { connect: 110, card: 260, about: 280, product: 250 }
+/** px per ms the stomp's wave travels */
+const POP_SPEED = 1.4
 
 export function planIntro(layout: IntroLayout): IntroPlan {
-  const { vw, vh, pieces, actor: S } = layout
+  const { vw, vh, pieces, actor: S, seat, geometry: g } = layout
   const cast = PIECE_IDS.filter((id) => {
     const r = pieces[id]
     return !!r && visibleFraction(r, vw, vh) >= CAST_MIN
   })
+  const has = (id: PieceId) => cast.includes(id)
   const A = pieces.avatar
-  if (!A || !cast.includes('avatar')) throw new Error('intro needs the avatar on screen')
-  const radius = Math.min(A.w, A.h) / 2
+  if (!A || !has('avatar')) throw new Error('intro needs the avatar on screen')
+  const k = S / g.viewBox.w
+  const headH = (g.pivot.y - g.viewBox.y) * k
+  const half = S * 0.5
+  const clampX = (x: number) => Math.max(half + 6, Math.min(vw - half - 6, x))
   const ac = center(A)
-  // Jojo works on the avatar's baseline, so the rolled avatar ends exactly home
-  const ground = A.y + A.h
-  const spawn = { x: ac.x, y: ground }
-  const pushX = ac.x - radius - S * 0.46
+
+  // pops out right under the avatar's spot, head touching its bottom edge
+  const spawn = { x: ac.x, y: A.y + A.h + headH }
+  const moves: Move[] = []
+  let at = spawn
+  const move = (t0: number, t1: number, to: Point, h: number, ease: Ease = E.inOutSine) => {
+    moves.push({ t0, t1, from: at, to, h, ease })
+    at = to
+  }
 
   const look = 330
-  const header = cast.includes('header') ? 600 : null
-  const avatarOut = header !== null ? 1120 : 660
-  const avatarIn = avatarOut + 180
-  // push (400) → a stomp hop that lands on `stomp`
-  const stomp = avatarIn + 590
+  let t = look + 40
 
-  const hops: Hop[] = [
-    { t0: avatarOut, t1: avatarOut + 170, x: -S * 0.9, y: ground, h: 34 },
-    // (pushing: x is tied to the avatar, see actorAt)
-    { t0: stomp - 150, t1: stomp, x: pushX, y: ground, h: 30 }
-  ]
-
-  // the pop's wave: pieces nearer the pop start moving first
-  const knock: Partial<Record<PieceId, number>> = {}
-  for (const id of cast) {
-    const c = center(pieces[id]!)
-    knock[id] = Math.min(240, Math.hypot(c.x - spawn.x, c.y - spawn.y) * 0.35)
-  }
-  // the stomp's ring springs the name and chips as it reaches them
-  const spring: Partial<Record<PieceId, number>> = {}
-  for (const id of SPRUNG) {
-    if (!cast.includes(id)) continue
-    const c = center(pieces[id]!)
-    spring[id] = stomp + Math.min(260, Math.hypot(c.x - pushX, c.y - ground) / STOMP_RING_SPEED)
+  // roof: a short tether pulls the header down
+  let header: IntroPlan['beats']['header'] = null
+  if (has('header')) {
+    const out = t
+    const pull = out + 130
+    const land = pull + 300
+    header = { out, pull, land, home: land + 110 }
+    t = land
   }
 
-  // one tether run: the dot hops from piece to piece without going home
-  const jobs: TetherJob[] = []
-  let t = stomp + 40
-  for (const id of TETHERED) {
-    if (!cast.includes(id)) continue
-    const fly = jobs.length ? 100 : 110
-    jobs.push({ id, fly: [t, t + fly], act: [t + fly, t + fly + JOB_MS[id]] })
-    t += fly + JOB_MS[id]
-  }
-  const retract: [number, number] | null = jobs.length ? [t, t + 100] : null
-  const card = jobs.find((j) => j.id === 'card')?.fly[0] ?? null
-  // Jojo takes off for its seat as the dot comes home
-  const land = retract ? retract[0] + 60 : stomp + 180
-  const end = land + 660
+  // identity: the thump knocks the avatar loose onto Jojo's head
+  const fall = header ? header.land + 30 : t
+  const contact = fall + (header ? 230 : 280)
+  const toss = contact + 100
+  const settle = toss + 300
+  t = settle + 70
 
-  const H = pieces.header
-  const P = pieces.product
-  const scatter: Partial<Record<PieceId, PieceState>> = {
-    header: H ? { ...REST, ty: -(H.y + H.h + 18) } : REST,
-    avatar: {
-      ...REST,
-      tx: -(ac.x + radius + 24),
-      rot: (-(ac.x + radius + 24) / radius) * (180 / Math.PI)
-    },
-    // knocked flat onto their baseline
-    name: { ...REST, sy: 0.06, rot: -3 },
-    chip0: { ...REST, sy: 0.08, rot: 4 },
-    chip1: { ...REST, sy: 0.08, rot: -4 },
-    // tucked away until the dot taps it on
-    connect: { ...REST, scale: 0.3, opacity: 0 },
-    card: pieces.card ? { ...REST, tx: Math.min(vw * 0.42, 380), ty: 22, rot: 6 } : REST,
-    // rolled up to its top edge
-    about: { ...REST, sy: 0.04 },
-    // slid off the left edge
-    product: P ? { ...REST, tx: -(P.x + P.w + 24), ty: 16, rot: -8 } : REST
+  // labels: hop aside, stomp, they pop up nearest first
+  const popped = POPPED.filter(has)
+  let stomp: number | null = null
+  const pop: Partial<Record<PieceId, number>> = {}
+  if (popped.length) {
+    // stand just left of all of them, on the lowest baseline (Connect's)
+    const rects = popped.map((id) => pieces[id]!)
+    const left = Math.min(...rects.map((r) => r.x))
+    const floor = Math.max(...rects.map((r) => r.y + r.h))
+    const spot = { x: clampX(left - S * 0.6), y: floor }
+    move(t, t + 200, spot, 34)
+    stomp = t + 200
+    for (const id of popped) {
+      const c = center(pieces[id]!)
+      pop[id] = stomp + 30 + Math.min(220, Math.hypot(c.x - spot.x, c.y - spot.y) / POP_SPEED)
+    }
+    t = stomp + 200
   }
+
+  // body: shove the terminal card out to the right from its left end
+  let card: IntroPlan['beats']['card'] = null
+  const K = pieces.card
+  if (K && has('card')) {
+    const spot = { x: clampX(K.x + S * 0.5), y: K.y }
+    const land = t + 230
+    move(t, land, spot, 40)
+    const shove = land + 90
+    card = { land, shove, done: shove + 380 }
+    t = shove + 200
+  }
+
+  // body: step down onto About and slide down its left edge
+  let about: IntroPlan['beats']['about'] = null
+  const B = pieces.about
+  const P = has('product') ? pieces.product : undefined
+  if (B && has('about')) {
+    const x = clampX(B.x + S * 0.5)
+    const land = t + 200
+    move(t, land, { x, y: B.y }, 18)
+    const slide0 = land + 60
+    // down to Product's top edge when it is coming, else to About's bottom
+    // (never below the fold)
+    const bottom = Math.min(P ? P.y : B.y + B.h, vh - 10)
+    const slide1 = slide0 + Math.max(240, Math.min(420, (bottom - B.y) * 1.5))
+    move(slide0, slide1, { x, y: bottom }, 0, E.inOut)
+    about = { land, slide0, slide1 }
+    t = slide1
+  }
+
+  // ground: stomp, Product rises from below the fold to Jojo's feet
+  let product: IntroPlan['beats']['product'] = null
+  if (P) {
+    if (!about) {
+      // no About on screen: hop straight to Product's top edge
+      const land = t + 220
+      move(t, land, { x: clampX(P.x + S * 0.5), y: P.y }, 30)
+      t = land
+    }
+    product = { stomp: t, rise0: t + 40, rise1: t + 420 }
+    t = t + 420
+  }
+
+  // home: look up, leap into the seat beside the avatar
+  const seatK = seat.w / g.viewBox.w
+  const seatGround = {
+    x: seat.x + (g.pivot.x - g.viewBox.x) * seatK,
+    y: seat.y + (g.pivot.y - g.viewBox.y) * seatK
+  }
+  const leap = t + 110
+  const dist = Math.hypot(seatGround.x - at.x, seatGround.y - at.y)
+  const land = leap + Math.max(380, Math.min(560, 300 + dist * 0.45))
+  move(leap, land, seatGround, 80)
+  const end = land + 240
 
   return {
     layout,
     duration: end,
     cast,
-    beats: { look, header, avatarOut, avatarIn, stomp, card, land, end },
-    knock,
-    spring,
-    jobs,
-    retract,
+    beats: {
+      look,
+      header,
+      avatar: { fall, contact, toss, settle },
+      stomp,
+      card,
+      about,
+      product,
+      leap,
+      land,
+      end
+    },
+    pop,
+    moves,
     spawn,
-    ground,
-    radius,
-    pushX,
-    hops,
-    scatter
+    S,
+    headH,
+    seatGround
   }
 }
 
 /* ---------------------------------------------------------------- pieces */
 
-function mixPiece(a: PieceState, b: PieceState, u: number): PieceState {
-  return {
-    tx: lerp(a.tx, b.tx, u),
-    ty: lerp(a.ty, b.ty, u),
-    rot: lerp(a.rot, b.rot, u),
-    scale: lerp(a.scale, b.scale, u),
-    sy: lerp(a.sy, b.sy, u),
-    opacity: lerp(a.opacity, b.opacity, u)
-  }
+/** 0 → 1 while the first screen dims to the blueprint */
+const dimAt = (t: number) => seg(t, DIM[0], DIM[1], E.out)
+
+/** the solid copy fades to nothing while the blueprint fades in */
+function dimming(t: number): PieceState {
+  const d = dimAt(t)
+  return { ...REST, opacity: 1 - d, ghost: GHOST * d }
 }
 
-const SCATTER = { t0: 40, t1: 420 }
+/** waiting to be built: only the blueprint shows */
+const waiting = (): PieceState => ({ ...REST, opacity: 0, ghost: GHOST })
 
-/** avatar centre x offset (tx) while being pushed back in */
-function avatarTx(plan: IntroPlan, t: number) {
-  const s = plan.scatter.avatar!
-  const { avatarIn } = plan.beats
-  return lerp(s.tx, 0, seg(t, avatarIn, avatarIn + 400, E.inOut))
+function headerTy(plan: IntroPlan, t: number) {
+  const b = plan.beats.header!
+  const H = plan.layout.pieces.header!
+  const off = -(H.y + H.h + 12)
+  // pulled in by the rope (speeds up, then brakes on landing), then a thump
+  return lerp(off, 0, seg(t, b.pull, b.land, E.inOut)) + 5 * pulse(t, b.land, 150)
 }
 
-/** keep a vertically scaled piece pinned at its bottom (1) or top (-1) edge */
-function pin(p: PieceState, h: number, edge: 1 | -1): PieceState {
-  p.ty += (edge * (1 - p.sy) * h) / 2
-  return p
+/** avatar drop: falls from under the header, lands on Jojo's head, tossed, settles */
+function avatarTy(plan: IntroPlan, t: number) {
+  const { fall, contact, toss, settle } = plan.beats.avatar
+  const A = plan.layout.pieces.avatar!
+  const H = plan.beats.header ? plan.layout.pieces.header : undefined
+  // start with its bottom hidden behind the header (or just above the viewport)
+  const start = H ? H.y + H.h - (A.y + A.h) : -(A.y + A.h + 8)
+  if (t < contact) return lerp(start, 0, seg(t, fall, contact, E.in2))
+  // pressed down with Jojo's head, then tossed back up in an arc
+  const press = plan.headH * (1 - headSquash(plan, t))
+  if (t < toss) return press
+  const pressMax = plan.headH * (1 - headSquash(plan, toss))
+  return lerp(pressMax, 0, seg(t, toss, settle, E.inOutSine)) - hopLift(t, toss, settle, 30)
 }
 
-const jobOf = (plan: IntroPlan, id: PieceId) => plan.jobs.find((j) => j.id === id)
+/** Jojo's vertical squash from the avatar landing on its head: deepest at the toss */
+function headSquash(plan: IntroPlan, t: number) {
+  const { contact, toss } = plan.beats.avatar
+  return 1 - 0.16 * pulse(t, contact, (toss - contact) * 2)
+}
+
+/** a clip that shows the left `w` px of a box of width `bw` */
+const showLeft = (w: number, bw: number): Inset => ({ t: -SPILL, r: bw - w, b: -SPILL, l: -SPILL })
+/** a clip that shows the top `h` px of a box of height `bh` */
+const showTop = (h: number, bh: number): Inset => ({ t: -SPILL, r: -SPILL, b: bh - h, l: -SPILL })
 
 export function pieceAt(plan: IntroPlan, id: PieceId, t: number): PieceState {
-  const s = plan.scatter[id] ?? REST
-  const k = plan.knock[id] ?? 0
-  const out = seg(t, SCATTER.t0 + k, SCATTER.t1 + k, E.out)
+  if (t < DIM[1]) return dimming(t)
   const b = plan.beats
-  const r = plan.layout.pieces[id]
-  const h = r?.h ?? 0
+  const r = plan.layout.pieces[id]!
   switch (id) {
     case 'header': {
-      if (b.header === null) return REST
-      const back = seg(t, b.header + 130, b.header + 410, E.outBack(1.35))
-      if (t < b.header + 130) return mixPiece(REST, s, out)
-      return mixPiece(s, REST, back)
+      const h = b.header
+      if (!h || t < h.pull) return waiting()
+      const landed = t >= h.land
+      return { ...REST, ty: headerTy(plan, t), ghost: landed ? 0 : GHOST }
     }
     case 'avatar': {
-      if (t < b.avatarIn) return mixPiece(REST, s, out)
-      const tx = avatarTx(plan, t)
-      const settle = b.avatarIn + 400
+      const a = b.avatar
+      if (t < a.fall) return waiting()
+      const ty = avatarTy(plan, t)
+      // while it falls, hide what is still behind the header
+      const H = b.header ? plan.layout.pieces.header! : null
+      const hidden = H ? Math.max(0, H.y + H.h + headerTy(plan, t) - (r.y + ty)) : 0
+      const spin = t < a.contact ? -16 * (1 - seg(t, a.fall, a.contact)) : 0
       return {
-        tx,
-        ty: 0,
-        // rolling: arc length / radius
-        rot: (tx / plan.radius) * (180 / Math.PI),
-        scale: 1 + wobble(t, settle, 0.06, 150, 160),
-        sy: 1,
-        opacity: 1
+        ...REST,
+        ty,
+        rot: spin + wobble(t, a.settle, 3, 150, 130),
+        clip: hidden > 0 ? { t: hidden, r: -SPILL, b: -SPILL, l: -SPILL } : null,
+        ghost: t < a.settle ? GHOST : 0
       }
     }
     case 'name':
     case 'chip0':
-    case 'chip1': {
-      const t0 = plan.spring[id] ?? b.stomp
-      if (t < t0) return pin(mixPiece(REST, s, out), h, 1)
-      // springs up past full height, then settles; a small hop off the ground
-      const p = mixPiece(s, REST, seg(t, t0, t0 + 340, E.outBack(2.6)))
-      p.ty -= (id === 'name' ? 6 : 10) * pulse(t, t0, 300)
-      return pin(p, h, 1)
-    }
+    case 'chip1':
     case 'connect': {
-      const j = jobOf(plan, id)
-      if (!j || t < j.act[0]) return mixPiece(REST, s, out)
-      // tapped on: pops with a press-bounce
-      const p = mixPiece(s, REST, seg(t, j.act[0], j.act[0] + 320, E.outBack(2.2)))
-      p.opacity = seg(t, j.act[0], j.act[0] + 90)
-      return p
+      const t0 = plan.pop[id]
+      if (t0 === undefined || t < t0) return waiting()
+      const u = seg(t, t0, t0 + 320, E.outBack(2.4))
+      const opacity = seg(t, t0, t0 + 90)
+      return {
+        ...REST,
+        ty: 12 * (1 - u),
+        scale: lerp(0.9, 1, u),
+        opacity,
+        ghost: GHOST * (1 - opacity)
+      }
     }
     case 'card': {
-      const j = jobOf(plan, id)
-      if (!j) return REST
-      const c0 = j.act[0]
-      if (t < c0) return mixPiece(REST, s, out)
-      const u = seg(t, c0, c0 + 260, E.outBack(1.25))
-      const p = mixPiece(s, REST, u)
-      p.rot += -4 * Math.sin(Math.PI * clamp01((t - c0) / 260)) + wobble(t, c0 + 260, 1.4, 120, 140)
-      return p
+      const c = b.card
+      if (!c || t < c.shove) return waiting()
+      if (t >= c.done) return { ...REST }
+      // laid out to the right, starting under Jojo's feet
+      const x0 = plan.S
+      const w = lerp(Math.min(x0, r.w), r.w, seg(t, c.shove, c.done, E.out))
+      return {
+        ...REST,
+        clip: showLeft(w, r.w),
+        ghost: GHOST,
+        ghostClip: { t: -SPILL, r: -SPILL, b: -SPILL, l: w }
+      }
     }
     case 'about': {
-      const j = jobOf(plan, id)
-      if (!j || t < j.act[0]) return pin(mixPiece(REST, s, out), h, -1)
-      // the dot drags the blind open by its bottom edge; a little bounce at the end
-      const p = mixPiece(s, REST, seg(t, j.act[0], j.act[1], E.inOut))
-      p.sy += wobble(t, j.act[1], 0.035, 130, 120)
-      return pin(p, h, -1)
+      const a = b.about
+      if (!a || t < a.slide0) return waiting()
+      if (t >= a.slide1) return { ...REST }
+      // the revealed edge follows Jojo's feet
+      const feet = actorBase(plan, t).y
+      const h = Math.max(0, Math.min(r.h, feet - r.y))
+      return {
+        ...REST,
+        clip: showTop(h, r.h),
+        ghost: GHOST,
+        ghostClip: { t: h, r: -SPILL, b: -SPILL, l: -SPILL }
+      }
     }
     case 'product': {
-      const j = jobOf(plan, id)
-      if (!j || t < j.act[0]) return mixPiece(REST, s, out)
-      const p = mixPiece(s, REST, seg(t, j.act[0], j.act[1], E.outBack(1.2)))
-      p.rot += wobble(t, j.act[1], 1.2, 120, 140)
-      return p
+      const p = b.product
+      if (!p || t < p.rise0) return waiting()
+      const off = plan.layout.vh - r.y + 16
+      const u = seg(t, p.rise0, p.rise1, E.outBack(1.5))
+      return { ...REST, ty: lerp(off, 0, u), ghost: t < p.rise1 ? GHOST : 0 }
     }
   }
 }
 
 /* ---------------------------------------------------------------- actor */
 
+/** where the actor's feet are (before pose): walks the planned moves */
+function actorBase(plan: IntroPlan, t: number): Point & { lift: number; facing: 1 | -1 } {
+  let p: Point = plan.spawn
+  let lift = 0
+  let facing: 1 | -1 = 1
+  for (const m of plan.moves) {
+    if (t < m.t0) break
+    const dx = m.to.x - m.from.x
+    if (Math.abs(dx) > 8) facing = dx < 0 ? -1 : 1
+    if (t >= m.t1) {
+      p = m.to
+      continue
+    }
+    const u = seg(t, m.t0, m.t1, m.ease)
+    p = { x: lerp(m.from.x, m.to.x, u), y: lerp(m.from.y, m.to.y, u) }
+    lift = hopLift(t, m.t0, m.t1, m.h)
+    break
+  }
+  return { ...p, lift, facing }
+}
+
+/** the move under way at t, if any */
+const moveAt = (plan: IntroPlan, t: number) => plan.moves.find((m) => t >= m.t0 && t < m.t1) ?? null
+
 function emotionAt(plan: IntroPlan, t: number): EmotionId {
   const b = plan.beats
-  if (t < b.look + 140) return 'surprised'
-  if (t < (b.header ?? b.avatarOut)) return 'puzzled'
-  if (b.header !== null && t < b.avatarOut) return 'focus'
-  if (t < b.avatarIn + 420) return 'focus'
-  if (t < b.stomp + 120) return 'happy'
-  const last = plan.jobs.at(-1)
-  if (last && t < b.land) return t < last.act[1] ? 'focus' : 'laugh'
-  return 'happy'
+  if (t < b.look) return 'surprised'
+  if (b.header && t < b.header.land) return t < b.header.out ? 'curious' : 'focus'
+  const a = b.avatar
+  if (t < a.contact + 60) return t < a.fall ? 'curious' : 'surprised'
+  if (t < a.settle + 160) return 'happy'
+  if (t >= b.leap) return 'happy'
+  if (b.product && t >= b.product.rise1 - 120) return 'laugh'
+  return 'focus'
 }
 
-/** the job whose fly or act window holds t */
-function jobAt(plan: IntroPlan, t: number) {
-  return plan.jobs.find((j) => t >= j.fly[0] && t < j.act[1]) ?? null
-}
-
-function gazeAt(plan: IntroPlan, t: number): { x: number; y: number } | null {
+function gazeAt(plan: IntroPlan, t: number, x: number, y: number): { x: number; y: number } | null {
   const b = plan.beats
-  if (t >= b.look && t < b.look + 110) return { x: -1, y: 0 }
-  if (t >= b.look + 110 && t < b.look + 230) return { x: 1, y: 0 }
-  if (b.header !== null && t >= b.header && t < b.header + 420) return { x: 0, y: -1 }
-  // eyes on the piece the dot is working on (quantised: fewer re-renders)
-  const j = jobAt(plan, t)
-  if (j) {
-    const p = jobTarget(plan, j, t)
-    const eye = plan.ground - plan.layout.actor * 0.5
-    const q = (v: number) => Math.round(Math.max(-1, Math.min(1, v / 240)) * 5) / 5
-    return { x: q(p.x - plan.pushX), y: q(p.y - eye) }
+  const q = (v: number) => Math.round(Math.max(-1, Math.min(1, v)) * 5) / 5
+  const eyes = (px: number, py: number) => ({
+    x: q((px - x) / 200),
+    y: q((py - (y - plan.headH * 0.55)) / 200)
+  })
+  if (t >= b.look && t < b.avatar.contact) return { x: 0, y: -1 }
+  if (b.stomp !== null && t >= b.stomp - 60 && t < b.stomp + 260) {
+    const c = plan.layout.pieces.connect ?? plan.layout.pieces.name
+    if (c) return eyes(c.x + c.w / 2, c.y + c.h / 2)
+  }
+  const K = plan.layout.pieces.card
+  if (b.card && K && t >= b.card.land && t < b.card.done) return eyes(K.x + K.w * 0.7, K.y + 20)
+  if (b.about && t >= b.about.slide0 && t < b.about.slide1) return { x: 1, y: 0.4 }
+  if (b.product && t >= b.product.stomp && t < b.product.rise1) return { x: 0.4, y: 1 }
+  if (t >= b.leap - 110 && t < b.land) {
+    const A = plan.layout.pieces.avatar!
+    return eyes(A.x + A.w / 2, A.y + A.h / 2)
   }
   return null
 }
 
-/** where the actor stands; hops are arcs between ground points */
-function basePos(plan: IntroPlan, t: number) {
-  const b = plan.beats
-  const S = plan.layout.actor
-  let x = plan.spawn.x
-  const y = plan.ground
-  let lift = 0
-  let facing: 1 | -1 = 1
-  // out to the left
-  const out = plan.hops[0]
-  if (t >= out.t0) {
-    facing = -1
-    x = lerp(plan.spawn.x, out.x, seg(t, out.t0, out.t1, E.linear))
-    lift = hopLift(t, out.t0, out.t1, out.h)
-  }
-  // pushing the avatar back in: stays glued behind it
-  if (t >= b.avatarIn) {
-    facing = 1
-    const ax = plan.spawn.x + avatarTx(plan, t)
-    x = ax - plan.radius - S * 0.46
-    lift =
-      3 *
-      Math.abs(Math.sin(((t - b.avatarIn) / 70) * Math.PI * 0.5)) *
-      (1 - seg(t, b.avatarIn + 360, b.avatarIn + 400))
-  }
-  const happy = plan.hops[1]
-  if (t >= happy.t0) {
-    x = plan.pushX
-    lift = hopLift(t, happy.t0, happy.t1, happy.h)
-  }
-  return { x, y, lift, facing }
-}
-
 export function actorAt(plan: IntroPlan, t: number): ActorState {
-  const { layout, beats: b } = plan
-  const S = layout.actor
-  const { seat, geometry: g } = layout
-  const base = basePos(plan, t)
+  const { layout, beats: b, S } = plan
+  const base = actorBase(plan, t)
   let { x, y, lift } = base
-  const facing = base.facing
+  let facing = base.facing
   let size = S
   let sx = 1
   let sy = 1
@@ -515,77 +605,83 @@ export function actorAt(plan: IntroPlan, t: number): ActorState {
   sy += 0.26 * pulse(t, 90, 150) - 0.18 * pulse(t, 300, 140)
   sx += -0.14 * pulse(t, 90, 150) + 0.16 * pulse(t, 300, 140)
 
-  // header pull: lean back, squash on the tug
-  if (b.header !== null) {
-    rot +=
-      -10 * seg(t, b.header + 40, b.header + 130) * (1 - seg(t, b.header + 380, b.header + 460))
-    sy += -0.1 * pulse(t, b.header + 130, 120)
-    sx += 0.08 * pulse(t, b.header + 130, 120)
+  // header pull: lean back on the rope, squash on the tug, relax on landing
+  if (b.header) {
+    const h = b.header
+    rot += -11 * seg(t, h.pull - 20, h.pull + 60, E.out) * (1 - seg(t, h.land - 40, h.land + 80))
+    sy += -0.1 * pulse(t, h.pull, 120)
+    sx += 0.07 * pulse(t, h.pull, 120)
   }
-  // turning around squashes
-  sx -= 0.3 * pulse(t, b.avatarOut - 30, 80) + 0.3 * pulse(t, b.avatarIn - 30, 80)
-  // pushing: lean in
-  if (t >= b.avatarIn && t < b.avatarIn + 420) {
-    rot +=
-      8 * seg(t, b.avatarIn, b.avatarIn + 60) * (1 - seg(t, b.avatarIn + 360, b.avatarIn + 420))
-  }
-  // bump when the avatar lands
-  sy += -0.16 * pulse(t, b.avatarIn + 400, 120)
-  sx += 0.12 * pulse(t, b.avatarIn + 400, 120)
-  // the stomp: a hard landing squash
-  sy += -0.2 * pulse(t, b.stomp, 140)
-  sx += 0.16 * pulse(t, b.stomp, 140)
-  // the tether run: a forward jab to tap, a big lean back on every pull
-  for (const j of plan.jobs) {
-    const [a0, a1] = j.act
-    if (j.id === 'connect') {
-      rot += 7 * pulse(t, a0 - 50, 170)
-      sy += -0.08 * pulse(t, a0, 110)
+  // the avatar lands on its head: squash, then a push up
+  const a = b.avatar
+  const hs = headSquash(plan, t)
+  sy *= hs
+  sx *= 1 + (1 - hs) * 0.7
+  sy += 0.12 * pulse(t, a.toss, 180)
+  sx -= 0.06 * pulse(t, a.toss, 180)
+
+  // every move: crouch before take-off (unless still landing from the last
+  // one), stretch in the air, squash on landing
+  let prevEnd = -Infinity
+  for (const m of plan.moves) {
+    if (m.h === 0) {
+      prevEnd = m.t1
       continue
     }
-    rot += -13 * seg(t, a0 - 20, a0 + 20, E.out) * (1 - seg(t, a1 - 60, a1 + 60))
-    sy += -0.1 * pulse(t, a0, 140)
-    sx += 0.06 * pulse(t, a0, 140)
+    if (m.t0 - prevEnd >= 160) {
+      sy += -0.1 * pulse(t, m.t0 - 70, 90)
+      sx += 0.08 * pulse(t, m.t0 - 70, 90)
+    }
+    sy += 0.1 * pulse(t, m.t0, (m.t1 - m.t0) * 0.6)
+    sx -= 0.06 * pulse(t, m.t0, (m.t1 - m.t0) * 0.6)
+    sy += -0.16 * pulse(t, m.t1, 140)
+    sx += 0.12 * pulse(t, m.t1, 140)
+    prevEnd = m.t1
   }
-  // then a proud stretch while the dot comes home
-  const last = plan.jobs.at(-1)
-  if (last) {
-    const proud =
-      seg(t, last.act[1], last.act[1] + 60, E.out) * (1 - seg(t, b.land - 20, b.land + 40))
-    sy += 0.1 * proud
-    sx -= 0.05 * proud
+  // card: wind up (lean back), then shove (lean in), hold, recover
+  if (b.card) {
+    const c = b.card
+    rot += -7 * pulse(t, c.land + 10, 110)
+    rot +=
+      13 * seg(t, c.shove - 20, c.shove + 50, E.out) * (1 - seg(t, c.shove + 150, c.shove + 260))
+    sx += 0.1 * pulse(t, c.shove - 20, 120)
   }
-  // the last hop: over the avatar into the seat, shrinking to seat size
-  const seatK = seat.w / g.viewBox.w // px per SVG unit at seat size
-  const seatGround = {
-    x: seat.x + (g.pivot.x - g.viewBox.x) * seatK,
-    y: seat.y + (g.pivot.y - g.viewBox.y) * seatK
+  // About: hangs on the blind as it slides down
+  if (b.about) {
+    const s =
+      seg(t, b.about.slide0, b.about.slide0 + 80) *
+      (1 - seg(t, b.about.slide1 - 60, b.about.slide1))
+    sy += 0.08 * s
+    sx -= 0.05 * s
+    rot += 4 * s
   }
-  const hop0 = b.land
-  const hop1 = b.land + 420
-  let landFacing = facing
-  if (t >= hop0) {
-    const u = seg(t, hop0, hop1, E.inOutSine)
-    x = lerp(plan.pushX, seatGround.x, u)
-    y = lerp(plan.ground, seatGround.y, u)
-    // arc high enough that Jojo's feet clear the top of the avatar
-    const clear = Math.max(40, plan.ground - layout.pieces.avatar!.y + 10)
-    lift = hopLift(t, hop0, hop1, clear)
-    size = lerp(S, seat.w, seg(t, hop0, hop1, E.inOut))
-    rot += 8 * Math.sin(Math.PI * clamp01((t - hop0) / (hop1 - hop0)))
-    landFacing = 1
-    // sit
-    sy += -0.16 * pulse(t, hop1, 150)
-    sx += 0.12 * pulse(t, hop1, 150)
+  // Product: stomp, then bumped up a little when the card arrives under its feet
+  if (b.product) {
+    const p = b.product
+    sy += -0.14 * pulse(t, p.stomp, 150)
+    sx += 0.1 * pulse(t, p.stomp, 150)
+    const bump = p.rise0 + (p.rise1 - p.rise0) * 0.45
+    lift += 10 * pulse(t, bump, 180)
   }
-  if (t >= hop1) {
-    x = seatGround.x
-    y = seatGround.y
+  // home: crouch, leap (turning towards the seat), shrink to seat size, sit
+  sy += -0.14 * pulse(t, b.leap - 110, 130)
+  sx += 0.1 * pulse(t, b.leap - 110, 130)
+  const m = moveAt(plan, t)
+  if (t >= b.leap) {
+    size = lerp(S, layout.seat.w, seg(t, b.leap, b.land, E.inOut))
+    if (m) rot += 10 * Math.sin(Math.PI * clamp01((t - m.t0) / (m.t1 - m.t0)))
+    sy += -0.16 * pulse(t, b.land, 160)
+    sx += 0.12 * pulse(t, b.land, 160)
+    facing = 1
+  }
+  if (t >= b.land) {
+    x = plan.seatGround.x
+    y = plan.seatGround.y
     lift = 0
-    size = seat.w
+    size = layout.seat.w
   }
-  sx = Math.max(0.7, Math.min(1.3, sx))
-  sy = Math.max(0.74, Math.min(1.3, sy))
+  sx = Math.max(0.8, Math.min(1.24, sx))
+  sy = Math.max(0.8, Math.min(1.24, sy))
   return {
     x,
     y,
@@ -594,10 +690,10 @@ export function actorAt(plan: IntroPlan, t: number): ActorState {
     sx,
     sy,
     rot,
-    facing: landFacing,
+    facing,
     grow,
     emotion: emotionAt(plan, t),
-    gaze: gazeAt(plan, t),
+    gaze: gazeAt(plan, t, x, y),
     dotOut: false
   }
 }
@@ -618,94 +714,33 @@ export function actorPoint(plan: IntroPlan, a: ActorState, px: number, py: numbe
 
 /* ---------------------------------------------------------------- tether */
 
-interface Point {
-  x: number
-  y: number
-}
-
-const clampTo = (plan: IntroPlan, p: Point): Point => ({
-  x: Math.max(8, Math.min(plan.layout.vw - 8, p.x)),
-  y: Math.max(8, Math.min(plan.layout.vh - 8, p.y))
-})
-
-/** where the dot holds a tethered piece at time t (it moves with the piece) */
-export function jobTarget(plan: IntroPlan, j: TetherJob, t: number): Point {
-  const r = plan.layout.pieces[j.id]!
-  const p = pieceAt(plan, j.id, t)
-  switch (j.id) {
-    case 'connect':
-      // a tap: the dot presses in and lets go
-      return clampTo(plan, { x: r.x + r.w / 2, y: r.y + r.h / 2 + 4 * pulse(t, j.act[0], 110) })
-    case 'card':
-      return clampTo(plan, { x: r.x + 28 + p.tx, y: r.y + Math.min(r.h / 2, 60) + p.ty })
-    case 'about':
-      // the bottom edge of the blind
-      return clampTo(plan, { x: r.x + 20, y: r.y + r.h * p.sy - 6 })
-    default:
-      return clampTo(plan, { x: r.x + r.w - 28 + p.tx, y: r.y + r.h / 2 + p.ty })
-  }
-}
-
+/** the one tether: a short throw to the top edge that pulls the header down */
 function headerTether(plan: IntroPlan, t: number, home: Point, r: number): TetherState | null {
-  const b = plan.beats
+  const h = plan.beats.header
   const H = plan.layout.pieces.header
-  if (b.header === null || !H) return null
-  const out: [number, number] = [b.header, b.header + 130]
-  const back: [number, number] = [b.header + 410, b.header + 530]
-  if (t < out[0] || t >= back[1]) return null
-  const target = (tt: number) => ({
-    x: plan.spawn.x,
-    y: H.y + H.h + pieceAt(plan, 'header', tt).ty - 4
+  if (!h || !H || t < h.out || t >= h.home) return null
+  // the dot holds the header's bottom edge, straight above the dot's home
+  const hook = (tt: number) => ({
+    x: home.x,
+    y: Math.max(4, H.y + H.h + headerTy(plan, tt) - 3)
   })
-  if (t < out[1]) {
-    const u = seg(t, out[0], out[1], E.out)
-    const tg = target(t)
+  if (t < h.pull) {
+    const u = seg(t, h.out, h.pull, E.out)
+    const tg = hook(h.pull)
     return {
       from: home,
-      to: { x: lerp(home.x, tg.x, u), y: lerp(home.y, tg.y, u) - Math.sin(Math.PI * u) * 36 },
-      slack: 0.5 * (1 - u),
+      to: { x: lerp(home.x, tg.x, u), y: lerp(home.y, tg.y, u) },
+      slack: 0.4 * (1 - u),
       r
     }
   }
-  if (t < back[0]) return { from: home, to: target(t), slack: 0, r }
-  const u = seg(t, back[0], back[1], E.in)
-  const tg = target(back[0])
+  if (t < h.land) return { from: home, to: hook(t), slack: 0, r }
+  const u = seg(t, h.land, h.home, E.in2)
+  const tg = hook(h.land)
   return {
     from: home,
     to: { x: lerp(tg.x, home.x, u), y: lerp(tg.y, home.y, u) },
     slack: 0.35 * (1 - u),
-    r
-  }
-}
-
-/** the tether run: fly (from the actor, or from the last piece) → hold → … → home */
-function runTether(plan: IntroPlan, t: number, home: Point, r: number): TetherState | null {
-  const { jobs, retract } = plan
-  if (!jobs.length || !retract || t < jobs[0].fly[0] || t >= retract[1]) return null
-  if (t >= retract[0]) {
-    const last = jobs[jobs.length - 1]
-    const u = seg(t, retract[0], retract[1], E.in)
-    const tg = jobTarget(plan, last, retract[0])
-    return {
-      from: home,
-      to: { x: lerp(tg.x, home.x, u), y: lerp(tg.y, home.y, u) },
-      slack: 0.35 * (1 - u),
-      r
-    }
-  }
-  const i = jobs.findIndex((j) => t < j.act[1])
-  const j = jobs[i]
-  if (t >= j.act[0]) return { from: home, to: jobTarget(plan, j, t), slack: 0, r }
-  const u = seg(t, j.fly[0], j.fly[1], E.out)
-  const start = i === 0 ? home : jobTarget(plan, jobs[i - 1], j.fly[0])
-  const tg = jobTarget(plan, j, t)
-  return {
-    from: home,
-    to: {
-      x: lerp(start.x, tg.x, u),
-      y: lerp(start.y, tg.y, u) - Math.sin(Math.PI * u) * 30
-    },
-    slack: 0.5 * (1 - u),
     r
   }
 }
@@ -720,7 +755,7 @@ export function sampleIntro(plan: IntroPlan, t: number): IntroFrame {
   const g = plan.layout.geometry
   const home = actorPoint(plan, actor, g.dot.cx, g.dot.cy)
   const dotR = g.dot.r * (actor.size / g.viewBox.w) * actor.grow
-  const tether = headerTether(plan, t, home, dotR) ?? runTether(plan, t, home, dotR)
+  const tether = headerTether(plan, t, home, dotR)
   if (tether) actor.dotOut = true
 
   // the dot pops first, then the body unfolds under it
@@ -735,25 +770,5 @@ export function sampleIntro(plan: IntroPlan, t: number): IntroFrame {
     }
   }
 
-  // the pop's ripple, then the stomp's ring (it reaches each sprung piece
-  // exactly when that piece springs up)
-  const reach = Math.max(0, ...Object.values(plan.spring).map((s) => s! - plan.beats.stomp)) + 80
-  const ripple =
-    t >= 60 && t < 480
-      ? {
-          x: plan.spawn.x,
-          y: plan.ground - plan.layout.actor * 0.45,
-          r: lerp(8, Math.max(plan.layout.vw, plan.layout.vh) * 0.35, seg(t, 60, 480, E.out)),
-          opacity: 0.35 * (1 - seg(t, 60, 480, E.linear))
-        }
-      : t >= plan.beats.stomp && t < plan.beats.stomp + reach
-        ? {
-            x: plan.pushX,
-            y: plan.ground,
-            r: 8 + (t - plan.beats.stomp) * STOMP_RING_SPEED,
-            opacity: 0.45 * (1 - (t - plan.beats.stomp) / reach)
-          }
-        : null
-
-  return { t, actor, pieces, tether, ripple, spawnDot }
+  return { t, actor, pieces, tether, spawnDot }
 }

@@ -3,12 +3,15 @@ import { describe, expect, it } from 'bun:test'
 import {
   actorAt,
   actorPoint,
-  jobTarget,
+  DIM,
+  GHOST,
   pieceAt,
   planIntro,
   sampleIntro,
   visibleFraction,
-  type IntroLayout
+  type IntroLayout,
+  type IntroPlan,
+  type PieceId
 } from './timeline'
 
 const geometry = {
@@ -21,7 +24,7 @@ function desktop(): IntroLayout {
   return {
     vw: 1440,
     vh: 900,
-    actor: 76,
+    actor: 100,
     geometry,
     seat: { x: 764, y: 196, w: 48, h: 48 },
     pieces: {
@@ -41,7 +44,7 @@ function desktopFull(): IntroLayout {
   return {
     vw: 1440,
     vh: 900,
-    actor: 76,
+    actor: 100,
     geometry,
     seat: { x: 745, y: 180, w: 48, h: 48 },
     pieces: {
@@ -64,7 +67,7 @@ function phoneReal(vh: 844 | 667): IntroLayout {
   return {
     vw: vh === 844 ? 390 : 375,
     vh,
-    actor: 60,
+    actor: 80,
     geometry,
     seat: { x: 223, y: 178 + dy, w: 44, h: 44 },
     pieces: {
@@ -85,7 +88,7 @@ function phone(): IntroLayout {
   return {
     vw: 390,
     vh: 844,
-    actor: 60,
+    actor: 80,
     geometry,
     seat: { x: 216, y: 186, w: 44, h: 44 },
     pieces: {
@@ -101,17 +104,24 @@ function phone(): IntroLayout {
   }
 }
 
+const ALL = () => [desktop(), phone(), desktopFull(), phoneReal(844), phoneReal(667)]
+const every = (plan: IntroPlan, step = 5) => {
+  const out: number[] = []
+  for (let t = 0; t <= plan.duration; t += step) out.push(t)
+  return out
+}
+
 describe('planIntro', () => {
-  it('fits the 2–4 s budget with and without the card beat', () => {
-    const d = planIntro(desktop())
-    const p = planIntro(phone())
-    expect(d.cast).toContain('card')
-    expect(p.cast).not.toContain('card')
-    for (const plan of [d, p]) {
-      expect(plan.duration).toBeGreaterThanOrEqual(2000)
-      expect(plan.duration).toBeLessThanOrEqual(4000)
+  it('fits a 2.5–4.5 s budget: time comes from actions, fewer pieces → shorter', () => {
+    const d = planIntro(desktopFull())
+    const p = planIntro(phoneReal(844))
+    const s = planIntro(phoneReal(667))
+    for (const plan of [d, p, s, planIntro(desktop()), planIntro(phone())]) {
+      expect(plan.duration).toBeGreaterThanOrEqual(2500)
+      expect(plan.duration).toBeLessThanOrEqual(4500)
     }
     expect(d.duration).toBeGreaterThan(p.duration)
+    expect(p.duration).toBeGreaterThan(s.duration)
   })
 
   it('requires the avatar to be on screen', () => {
@@ -123,103 +133,6 @@ describe('planIntro', () => {
   it('casts only pieces that are mostly visible', () => {
     expect(visibleFraction({ x: 0, y: 800, w: 100, h: 200 }, 390, 844)).toBeCloseTo(0.22, 2)
     expect(visibleFraction({ x: -50, y: 0, w: 100, h: 100 }, 390, 844)).toBe(0.5)
-  })
-})
-
-describe('sampleIntro', () => {
-  it('starts on the real page: every piece at rest and Jojo not yet grown', () => {
-    const plan = planIntro(desktop())
-    const f = sampleIntro(plan, 0)
-    for (const p of Object.values(f.pieces))
-      expect(p).toEqual({ tx: 0, ty: 0, rot: 0, scale: 1, sy: 1, opacity: 1 })
-    expect(f.actor.grow).toBe(0)
-    expect(f.spawnDot).not.toBeNull()
-  })
-
-  it('ends exactly on the real page, with Jojo seated at seat size, happy', () => {
-    for (const layout of [desktop(), phone(), desktopFull(), phoneReal(844), phoneReal(667)]) {
-      const plan = planIntro(layout)
-      const f = sampleIntro(plan, plan.duration)
-      for (const p of Object.values(f.pieces)) {
-        expect(Math.abs(p.tx)).toBeLessThan(0.5)
-        expect(Math.abs(p.ty)).toBeLessThan(0.5)
-        expect(Math.abs(p.rot % 360)).toBeLessThan(1)
-        expect(p.opacity).toBeCloseTo(1, 3)
-        expect(p.scale).toBeCloseTo(1, 2)
-        expect(p.sy).toBeCloseTo(1, 2)
-      }
-      expect(f.actor.size).toBe(layout.seat.w)
-      expect(f.actor.lift).toBe(0)
-      expect(f.actor.emotion).toBe('happy')
-      expect(f.tether).toBeNull()
-      // the actor's SVG box lands on the seat's SVG box
-      const g = layout.geometry
-      const k = layout.seat.w / g.viewBox.w
-      const left = f.actor.x - (g.pivot.x - g.viewBox.x) * k
-      const top = f.actor.y - (g.pivot.y - g.viewBox.y) * k
-      expect(left).toBeCloseTo(layout.seat.x, 5)
-      expect(top).toBeCloseTo(layout.seat.y, 5)
-    }
-  })
-
-  it('actually scatters and rebuilds (not a fade): pieces leave and come back', () => {
-    const plan = planIntro(desktop())
-    const mid = sampleIntro(plan, 500)
-    expect(mid.pieces.header!.ty).toBeLessThan(-50)
-    expect(mid.pieces.avatar!.tx).toBeLessThan(-200)
-    expect(mid.pieces.card!.tx).toBeGreaterThan(100)
-    // knocked flat, not faded
-    expect(mid.pieces.name!.sy).toBeLessThan(0.2)
-    expect(mid.pieces.name!.opacity).toBe(1)
-    // the header comes back while the tether holds it
-    const b = plan.beats
-    const pulling = sampleIntro(plan, b.header! + 250)
-    expect(pulling.tether).not.toBeNull()
-    expect(pulling.actor.dotOut).toBe(true)
-    expect(pulling.pieces.header!.ty).toBeGreaterThan(mid.pieces.header!.ty)
-    // the avatar rolls: rotation follows distance
-    const rolling = pieceAt(plan, 'avatar', b.avatarIn + 200)
-    expect(rolling.rot).toBeCloseTo((rolling.tx / plan.radius) * (180 / Math.PI), 6)
-    // Jojo is behind the avatar while pushing it
-    const a = actorAt(plan, b.avatarIn + 200)
-    expect(a.x).toBeLessThan(plan.spawn.x + rolling.tx)
-    // the card is yanked back on the tether
-    expect(sampleIntro(plan, b.card! + 200).tether).not.toBeNull()
-  })
-
-  it('never produces NaN and keeps squash in range across the whole run', () => {
-    for (const layout of [desktop(), phone(), desktopFull(), phoneReal(844), phoneReal(667)]) {
-      const plan = planIntro(layout)
-      for (let t = 0; t <= plan.duration; t += 8) {
-        const f = sampleIntro(plan, t)
-        const nums = [
-          f.actor.x,
-          f.actor.y,
-          f.actor.lift,
-          f.actor.sx,
-          f.actor.sy,
-          f.actor.rot,
-          f.actor.size
-        ]
-        for (const n of nums) expect(Number.isFinite(n)).toBe(true)
-        expect(f.actor.sx).toBeGreaterThanOrEqual(0.7)
-        expect(f.actor.sy).toBeLessThanOrEqual(1.3)
-      }
-    }
-  })
-
-  it('the tether starts at the signal dot', () => {
-    const plan = planIntro(desktop())
-    const t = plan.beats.header! + 60
-    const f = sampleIntro(plan, t)
-    const home = actorPoint(plan, f.actor, geometry.dot.cx, geometry.dot.cy)
-    expect(f.tether!.from.x).toBeCloseTo(home.x, 6)
-    expect(f.tether!.from.y).toBeCloseTo(home.y, 6)
-  })
-})
-
-describe('the whole first screen is built, by cause (user feedback r2)', () => {
-  it('casts what is really on screen: more on desktop, only visible blocks on phones', () => {
     expect(planIntro(desktopFull()).cast).toEqual([
       'header',
       'avatar',
@@ -238,92 +151,241 @@ describe('the whole first screen is built, by cause (user feedback r2)', () => {
     // 375×667: About is ~20 % visible → left alone
     const p667 = planIntro(phoneReal(667)).cast
     expect(p667).not.toContain('about')
-    expect(p667).not.toContain('product')
     expect(p667).toContain('connect')
+    expect(planIntro(phone()).cast).not.toContain('card')
   })
+})
 
-  it('stays in the 2–4 s budget with the full cast (more actions, not more waiting)', () => {
-    for (const layout of [desktopFull(), phoneReal(844), phoneReal(667)]) {
+describe('hand-over: starts and ends exactly on the real page', () => {
+  it('frame 0 is the real page, untouched; Jojo not yet grown', () => {
+    for (const layout of ALL()) {
       const plan = planIntro(layout)
-      expect(plan.duration).toBeGreaterThanOrEqual(2000)
-      expect(plan.duration).toBeLessThanOrEqual(4000)
-    }
-  })
-
-  it('the pop knocks the screen apart as a wave: nearer pieces go first', () => {
-    const plan = planIntro(desktopFull())
-    expect(plan.knock.product!).toBeGreaterThan(plan.knock.card!)
-    expect(plan.knock.card!).toBeGreaterThan(plan.knock.name!)
-  })
-
-  it('the stomp ring springs the name and each chip up as it reaches them', () => {
-    const plan = planIntro(desktopFull())
-    for (const id of ['name', 'chip0', 'chip1'] as const) {
-      const at = plan.spring[id]!
-      expect(at).toBeGreaterThanOrEqual(plan.beats.stomp)
-      // flat until the ring gets there, standing (overshooting) right after
-      expect(pieceAt(plan, id, at - 1).sy).toBeLessThan(0.15)
-      expect(pieceAt(plan, id, at + 200).sy).toBeGreaterThan(0.9)
-      // the ring is at the piece when it springs
-      const r = sampleIntro(plan, at).ripple!
-      const box = plan.layout.pieces[id]!
-      const d = Math.hypot(box.x + box.w / 2 - plan.pushX, box.y + box.h / 2 - plan.ground)
-      expect(Math.abs(r.r - d)).toBeLessThan(12)
-    }
-    // flattened pieces stay on their baseline (pinned at the bottom edge)
-    const flat = pieceAt(plan, 'name', plan.spring.name! - 1)
-    const h = plan.layout.pieces.name!.h
-    expect(flat.ty).toBeCloseTo(((1 - flat.sy) * h) / 2, 6)
-  })
-
-  it('one tether run brings Connect, card, About and Product back, each while held', () => {
-    const plan = planIntro(desktopFull())
-    expect(plan.jobs.map((j) => j.id)).toEqual(['connect', 'card', 'about', 'product'])
-    for (const j of plan.jobs) {
-      const before = pieceAt(plan, j.id, j.act[0] - 1)
-      const after = pieceAt(plan, j.id, plan.duration)
-      // really away before the dot gets there, home at the end
-      const away =
-        before.opacity < 0.1 ||
-        before.sy < 0.2 ||
-        Math.abs(before.tx) > 100 ||
-        Math.abs(before.ty) > 10
-      expect(away).toBe(true)
-      expect(after.tx).toBeCloseTo(0, 1)
-      // while it comes back the dot is out and attached to it
-      const mid = (j.act[0] + j.act[1]) / 2
-      const f = sampleIntro(plan, mid)
-      expect(f.actor.dotOut).toBe(true)
-      const tg = jobTarget(plan, j, mid)
-      expect(f.tether!.to.x).toBeCloseTo(tg.x, 6)
-      expect(f.tether!.to.y).toBeCloseTo(tg.y, 6)
-    }
-    // About opens by its bottom edge: the top edge never moves
-    const about = plan.jobs.find((j) => j.id === 'about')!
-    for (const t of [about.act[0], about.act[0] + 100, about.act[1]]) {
-      const p = pieceAt(plan, 'about', t)
-      expect(p.ty - ((1 - p.sy) * -1 * plan.layout.pieces.about!.h) / 2).toBeCloseTo(0, 6)
-    }
-  })
-
-  it('the tether run never teleports between pieces and stays in the viewport', () => {
-    for (const layout of [desktopFull(), phoneReal(844), phoneReal(667)]) {
-      const plan = planIntro(layout)
-      // (the header throw before it reaches above the top edge on purpose)
-      for (let t = plan.jobs[0].fly[0]; t < plan.retract![1]; t += 2) {
-        const to = sampleIntro(plan, t).tether!.to
-        expect(to.x).toBeGreaterThanOrEqual(0)
-        expect(to.x).toBeLessThanOrEqual(layout.vw)
-        expect(to.y).toBeGreaterThanOrEqual(0)
-        expect(to.y).toBeLessThanOrEqual(layout.vh)
+      const f = sampleIntro(plan, 0)
+      for (const p of Object.values(f.pieces)) {
+        expect(p.tx).toBe(0)
+        expect(p.ty).toBe(0)
+        expect(p.opacity).toBe(1)
+        expect(p.clip).toBeNull()
+        expect(p.ghost).toBe(0)
       }
-      // continuous across every hand-off: fly → hold → next fly → … → home
-      const cuts = [...plan.jobs.flatMap((j) => [j.act[0], j.act[1]]), plan.retract![0]]
-      for (const c of cuts) {
-        const a = sampleIntro(plan, c - 0.01).tether!.to
-        const b = sampleIntro(plan, c + 0.01).tether!.to
-        expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(2)
+      expect(f.actor.grow).toBe(0)
+      expect(f.spawnDot).not.toBeNull()
+    }
+  })
+
+  it('ends with every piece home, whole, unclipped, no blueprint; Jojo seated, happy', () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      const f = sampleIntro(plan, plan.duration)
+      for (const p of Object.values(f.pieces)) {
+        expect(Math.abs(p.tx)).toBeLessThan(0.5)
+        expect(Math.abs(p.ty)).toBeLessThan(0.5)
+        expect(Math.abs(p.rot)).toBeLessThan(0.5)
+        expect(p.scale).toBeCloseTo(1, 3)
+        expect(p.opacity).toBe(1)
+        expect(p.clip).toBeNull()
+        expect(p.ghost).toBe(0)
+      }
+      expect(f.actor.size).toBe(layout.seat.w)
+      expect(f.actor.lift).toBe(0)
+      expect(f.actor.emotion).toBe('happy')
+      expect(f.tether).toBeNull()
+      // the actor's SVG box lands on the seat's SVG box
+      const g = layout.geometry
+      const k = layout.seat.w / g.viewBox.w
+      expect(f.actor.x - (g.pivot.x - g.viewBox.x) * k).toBeCloseTo(layout.seat.x, 5)
+      expect(f.actor.y - (g.pivot.y - g.viewBox.y) * k).toBeCloseTo(layout.seat.y, 5)
+    }
+  })
+})
+
+describe('user feedback r3: readable, never broken apart, one focus', () => {
+  it('nothing is squashed, stretched or spun: only uniform scale ≥ 0.9 and small tilts', () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      for (const t of every(plan)) {
+        for (const p of Object.values(sampleIntro(plan, t).pieces)) {
+          expect(p).not.toHaveProperty('sy')
+          expect(p.scale).toBeGreaterThanOrEqual(0.9)
+          expect(p.scale).toBeLessThanOrEqual(1.08)
+          expect(Math.abs(p.rot)).toBeLessThanOrEqual(16)
+        }
       }
     }
+  })
+
+  it('the page dims to a blueprint in place instead of flying apart', () => {
+    const plan = planIntro(desktopFull())
+    const f = sampleIntro(plan, DIM[1] + 1)
+    for (const id of plan.cast) {
+      const p = f.pieces[id]!
+      expect(p.opacity).toBe(0)
+      expect(p.ghost).toBe(GHOST)
+      expect(p.tx).toBe(0)
+      expect(p.ty).toBe(0)
+    }
+    // halfway through the dim both copies are in place, nothing moved
+    const mid = sampleIntro(plan, DIM[1] / 2).pieces.about!
+    expect(mid.opacity).toBeGreaterThan(0)
+    expect(mid.ghost).toBeGreaterThan(0)
+  })
+
+  it('every piece always shows at home (solid or blueprint) unless it is travelling in', () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      for (const t of every(plan, 10)) {
+        const f = sampleIntro(plan, t)
+        for (const id of plan.cast) {
+          const p = f.pieces[id]!
+          const travelling = Math.abs(p.ty) > 0.5 || !!p.clip
+          if (!travelling) expect(p.opacity + p.ghost).toBeGreaterThan(0.14)
+        }
+      }
+    }
+  })
+
+  it('Jojo is the one big thing to watch: drawn near the avatar size until it heads home', () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      for (const t of every(plan, 20)) {
+        if (t < 330 || t >= plan.beats.leap) continue
+        expect(actorAt(plan, t).size).toBe(layout.actor)
+      }
+      expect(layout.actor).toBeGreaterThanOrEqual(layout.pieces.avatar!.w * 0.7)
+    }
+  })
+
+  it('the only tether is a short pull on the header, never a line across the screen', () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      for (const t of every(plan, 4)) {
+        const tt = sampleIntro(plan, t).tether
+        if (!tt) continue
+        expect(t).toBeGreaterThanOrEqual(plan.beats.header!.out)
+        expect(t).toBeLessThan(plan.beats.header!.home)
+        expect(Math.hypot(tt.to.x - tt.from.x, tt.to.y - tt.from.y)).toBeLessThan(layout.vh * 0.4)
+        // straight up
+        expect(Math.abs(tt.to.x - tt.from.x)).toBeLessThan(1)
+      }
+    }
+  })
+
+  it("never produces NaN and keeps Jojo's squash in a gentle range", () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      for (const t of every(plan, 4)) {
+        const a = sampleIntro(plan, t).actor
+        for (const n of [a.x, a.y, a.lift, a.sx, a.sy, a.rot, a.size])
+          expect(Number.isFinite(n)).toBe(true)
+        expect(a.sx).toBeGreaterThanOrEqual(0.8)
+        expect(a.sy).toBeGreaterThanOrEqual(0.8)
+        expect(a.sx).toBeLessThanOrEqual(1.24)
+        expect(a.sy).toBeLessThanOrEqual(1.24)
+      }
+    }
+  })
+
+  it('Jojo never leaves the viewport', () => {
+    for (const layout of ALL()) {
+      const plan = planIntro(layout)
+      for (const t of every(plan, 10)) {
+        const a = actorAt(plan, t)
+        expect(a.x).toBeGreaterThanOrEqual(0)
+        expect(a.x).toBeLessThanOrEqual(layout.vw)
+        expect(a.y).toBeLessThanOrEqual(layout.vh)
+        expect(a.y - a.lift - a.size).toBeGreaterThan(-a.size * 0.5)
+      }
+    }
+  })
+})
+
+describe('every piece arrives by something Jojo does', () => {
+  const plan = planIntro(desktopFull())
+  const b = plan.beats
+  const L = plan.layout
+
+  it('header: waits as a blueprint, is pulled down while the tether holds it, lands', () => {
+    const h = b.header!
+    expect(pieceAt(plan, 'header', h.pull - 1)).toMatchObject({ opacity: 0, ghost: GHOST })
+    const f = sampleIntro(plan, (h.pull + h.land) / 2)
+    expect(f.tether).not.toBeNull()
+    expect(f.actor.dotOut).toBe(true)
+    const p = f.pieces.header!
+    expect(p.ty).toBeLessThan(-5)
+    expect(p.opacity).toBe(1)
+    // the dot holds the header's bottom edge
+    expect(f.tether!.to.y).toBeCloseTo(L.pieces.header!.y + L.pieces.header!.h + p.ty - 3, 5)
+    // starts at the signal dot
+    const home = actorPoint(plan, f.actor, geometry.dot.cx, geometry.dot.cy)
+    expect(f.tether!.from.x).toBeCloseTo(home.x, 6)
+    expect(pieceAt(plan, 'header', h.land + 200).ty).toBeCloseTo(0, 6)
+  })
+
+  it("avatar: knocked loose by the header landing, drops onto Jojo's head, tossed, settles", () => {
+    const a = b.avatar
+    expect(a.fall).toBeGreaterThanOrEqual(b.header!.land)
+    // hidden behind the header as it starts to fall
+    const start = pieceAt(plan, 'avatar', a.fall + 1)
+    expect(start.clip!.t).toBeGreaterThan(L.pieces.avatar!.h * 0.9)
+    // on contact its bottom touches the top of Jojo's head
+    const at = pieceAt(plan, 'avatar', a.contact + 50)
+    const actor = actorAt(plan, a.contact + 50)
+    const head = actor.y - plan.headH * actor.sy
+    const bottom = L.pieces.avatar!.y + L.pieces.avatar!.h + at.ty
+    expect(Math.abs(head - bottom)).toBeLessThan(1)
+    expect(actor.sy).toBeLessThan(0.95)
+    // tossed up, then home
+    expect(pieceAt(plan, 'avatar', (a.toss + a.settle) / 2).ty).toBeLessThan(-10)
+    expect(pieceAt(plan, 'avatar', a.settle + 400).ty).toBeCloseTo(0, 6)
+  })
+
+  it('name, chips, Connect: pop up after the stomp, nearest first', () => {
+    const order = (['name', 'chip0', 'chip1', 'connect'] as PieceId[]).map((id) => plan.pop[id]!)
+    for (const t0 of order) expect(t0).toBeGreaterThan(b.stomp!)
+    expect(plan.pop.connect!).toBeLessThan(plan.pop.name!)
+    for (const id of ['name', 'connect'] as PieceId[]) {
+      expect(pieceAt(plan, id, plan.pop[id]! - 1).opacity).toBe(0)
+      expect(pieceAt(plan, id, plan.pop[id]! + 200).opacity).toBe(1)
+    }
+    // Jojo stands clear of them when it stomps
+    const a = actorAt(plan, b.stomp! + 1)
+    for (const id of ['name', 'chip0', 'chip1', 'connect'] as PieceId[])
+      expect(a.x + plan.S * 0.45).toBeLessThanOrEqual(L.pieces[id]!.x + 1)
+  })
+
+  it("card: laid out to the right from under Jojo's feet after the shove", () => {
+    const c = b.card!
+    const K = L.pieces.card!
+    const a = actorAt(plan, c.shove)
+    expect(Math.abs(a.y - K.y)).toBeLessThan(1)
+    expect(a.x).toBeLessThan(K.x + plan.S)
+    expect(pieceAt(plan, 'card', c.shove - 1).opacity).toBe(0)
+    const early = pieceAt(plan, 'card', c.shove + 30).clip!
+    const late = pieceAt(plan, 'card', c.shove + 200).clip!
+    expect(late.r).toBeLessThan(early.r)
+    expect(early.l).toBeLessThan(0)
+    // the blueprint shows only where the card is not laid yet
+    expect(pieceAt(plan, 'card', c.shove + 200).ghostClip!.l).toBeCloseTo(K.w - late.r, 6)
+    expect(pieceAt(plan, 'card', c.done).clip).toBeNull()
+  })
+
+  it("About: revealed down to Jojo's feet as it slides down the left edge", () => {
+    const ab = b.about!
+    const B = L.pieces.about!
+    for (const t of [ab.slide0 + 50, (ab.slide0 + ab.slide1) / 2, ab.slide1 - 30]) {
+      const feet = actorAt(plan, t).y
+      const clip = pieceAt(plan, 'about', t).clip!
+      expect(B.h - clip.b).toBeCloseTo(Math.min(B.h, Math.max(0, feet - B.y)), 5)
+    }
+  })
+
+  it("Product: rises from below the fold after the stomp and stops under Jojo's feet", () => {
+    const p = b.product!
+    const P = L.pieces.product!
+    expect(p.stomp).toBeGreaterThanOrEqual(b.about!.slide1)
+    const start = pieceAt(plan, 'product', p.rise0 + 1)
+    expect(P.y + start.ty).toBeGreaterThan(L.vh)
+    expect(Math.abs(actorAt(plan, p.stomp).y - P.y)).toBeLessThan(1)
+    expect(pieceAt(plan, 'product', p.rise1).ty).toBeCloseTo(0, 6)
   })
 })

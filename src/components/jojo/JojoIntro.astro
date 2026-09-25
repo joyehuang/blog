@@ -58,6 +58,11 @@
     transform-origin: 50% 50%;
     will-change: transform, opacity;
   }
+  /* the blueprint: a faint, colourless copy that marks where a piece goes */
+  .jojo-intro-ghost {
+    filter: grayscale(1);
+    will-change: opacity;
+  }
   .jojo-intro-actor {
     position: absolute;
     will-change: transform, left, top;
@@ -90,11 +95,6 @@
     position: absolute;
     border-radius: 9999px;
     background: #fe6a4a;
-  }
-  .jojo-intro-ripple {
-    position: absolute;
-    border-radius: 9999px;
-    border: 2px solid hsl(var(--primary) / 0.6);
   }
   .jojo-intro-skip {
     position: fixed;
