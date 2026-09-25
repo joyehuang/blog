@@ -24,7 +24,9 @@
       "@/pages/*": ["src/pages/*"],
       "@/types": ["src/types/index.ts"],
       "@/site-config": ["src/site.config.ts"],
-      "@/data/*": ["src/data/*"]
+      "@/data/*": ["src/data/*"],
+      "@jojo-web/runtime": ["src/lib/jojo/fallback/runtime.tsx"],
+      "@jojo-web/static": ["src/lib/jojo/fallback/static.ts"]
     }
   },
   "exclude": [
