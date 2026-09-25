@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets'
 import { getCollection } from 'astro:content'
 import { formatTalkDateCN, sortTalks } from '@/lib/talks'
+import { renderJojoSvg } from '@jojo-web/static'
 import avatar from 'src/assets/avatar.png'
 
 import { Quote } from 'astro-pure/advanced'
@@ -21,6 +22,17 @@ import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
 
 export const prerender = true
+
+// Jojo seat: the calm frame as build-time SVG; the engine loads only when it moves
+const jojoSeatSvg = __JOJO__
+  ? renderJojoSvg({
+      idPrefix: 'seat-s',
+      emotion: 'calm',
+      size: 48,
+      framing: 'tight',
+      decorative: true
+    })
+  : ''
 
 const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
 const frontend = ['React', 'Next.js', 'Tailwind CSS', 'Remotion', 'Vite']
@@ -111,7 +123,7 @@ const latestTalk = talks[0]
           class='h-28 w-auto rounded-full border p-1'
           loading='eager'
         />
-        {__JOJO__ && <JojoHero client:idle lang='zh' />}
+        {__JOJO__ && <JojoHero client:idle lang='zh' staticSvg={jojoSeatSvg} />}
       </div>
 
       <div class='flex flex-col items-center gap-y-4'>

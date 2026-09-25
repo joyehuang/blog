@@ -16,9 +16,7 @@ import type { HistoryEntry, OutputLine, Tone } from './types'
 
 // Jojo mode: the neofetch shows the real Jojo (same runtime chunk as the dock,
 // loaded only when dev mode opens) instead of the ASCII mascot.
-const JojoLive = __JOJO__
-  ? lazy(() => import('@jojo-web/runtime').then((m) => ({ default: m.Jojo })))
-  : null
+const JojoLive = lazy(() => import('@jojo-web/runtime').then((m) => ({ default: m.Jojo })))
 
 type Props = {
   fs: FsNode
@@ -411,7 +409,7 @@ export default function DevMode({ fs, user = 'joye', host = ROOT_LABEL, onExit }
         {bootDone && (
           <div className='dev-neofetch'>
             <div className='dev-neo-mascot'>
-              {JojoLive ? (
+              {__JOJO__ ? (
                 <Suspense fallback={<span className='dev-neo-jojo-live' />}>
                   <span className='dev-neo-jojo-live'>
                     <JojoLive

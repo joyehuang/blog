@@ -12,8 +12,10 @@ import {
 } from '@/lib/jojo/keys'
 import { initialPoke, poke, type PokeStep } from '@/lib/jojo/poke'
 import { dockPresence, isEditable, keyboardLikelyOpen, type Presence } from '@/lib/jojo/presence'
-import { Jojo, type EmotionId, type StatusId } from '@jojo-web/runtime'
+import type { EmotionId, StatusId } from '@jojo-web/runtime'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+
+import LazyJojo, { loadJojoRuntime } from './LazyJojo'
 
 import './jojo.css'
 import './dock.css'
@@ -32,6 +34,8 @@ interface Props {
   home: boolean
   /** review builds only: reviewers can preview chat states */
   review?: boolean
+  /** build-time SVG of the calm dock Jojo (shown until the engine is needed) */
+  staticSvg: string
 }
 
 const COPY = {
@@ -81,7 +85,7 @@ const COPY = {
  * runs or an in-flow Jojo is on screen, while typing or with the soft keyboard
  * up, and over the comment box on phones; the visitor can tuck it away.
  */
-export default function JojoDock({ lang, links, home, review = false }: Props) {
+export default function JojoDock({ lang, links, home, review = false, staticSvg }: Props) {
   const t = COPY[lang]
   const panelId = useId()
   const [enabled, setEnabled] = useState(false)
@@ -95,6 +99,11 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
   const [compact, setCompact] = useState(false)
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [previewStatus, setPreviewStatus] = useState<StatusId | null>(null)
+  const [live, setLive] = useState(false)
+  const wake = useCallback(() => {
+    setLive(true)
+    void loadJojoRuntime().catch(() => {})
+  }, [])
   const adapter = useMemo<ChatAdapter>(() => createUnavailableChat(), [])
   const [chat, setChat] = useState(() => adapter.getState())
   const rootRef = useRef<HTMLDivElement>(null)
@@ -184,7 +193,7 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
       setPreviewStatus((e as CustomEvent<{ status: StatusId | null }>).detail.status)
     document.addEventListener(JOJO_EVENTS.reviewStatus, on)
     return () => document.removeEventListener(JOJO_EVENTS.reviewStatus, on)
-  }, [review])
+  }, [review, wake])
 
   const presence: Presence = dockPresence({
     enabled,
@@ -239,7 +248,9 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
     []
   )
 
-  const playSteps = (steps: PokeStep[]) => {
+  const playSteps = async (steps: PokeStep[]) => {
+    wake()
+    await loadJojoRuntime().catch(() => {})
     for (const id of timers.current) window.clearTimeout(id)
     timers.current = []
     let at = 0
@@ -329,9 +340,13 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
         aria-controls={panelId}
         aria-label={open ? t.close : t.open}
         onClick={toggle}
+        onPointerEnter={wake}
+        onFocus={wake}
         tabIndex={presence === 'tucked' ? -1 : 0}
       >
-        <Jojo
+        <LazyJojo
+          staticSvg={staticSvg}
+          live={live || realStatus !== 'idle'}
           emotion={emotion}
           status={status}
           motion='transitions'
@@ -417,7 +432,6 @@ export default function JojoDock({ lang, links, home, review = false }: Props) {
           </button>
         </footer>
       </section>
-
     </div>
   )
 }

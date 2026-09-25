@@ -206,6 +206,11 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: [
+        // Jojo's vendor runtime and intro import these; pre-bundle them so a late
+        // discovery never re-optimizes into a second React copy in dev
+        'react',
+        'react/jsx-runtime',
+        'react-dom/client',
         'satori',
         'linebreak',
         'base64-js',

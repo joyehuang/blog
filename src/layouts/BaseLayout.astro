@@ -1,6 +1,7 @@
 ---
 import { getLangFromUrl } from '@/i18n/ui'
 import { dockLinks } from '@/lib/jojo/dock-links'
+import { renderJojoSvg } from '@jojo-web/static'
 import Analytics from '@vercel/analytics/astro'
 import SpeedInsights from '@vercel/speed-insights/astro'
 
@@ -38,6 +39,15 @@ const lang = getLangFromUrl(Astro.url)
 const htmlLang = lang === 'en' ? 'en' : config.locale.lang
 const jojoHome = Astro.url.pathname === '/' || Astro.url.pathname.replace(/\/$/, '') === '/en'
 const jojoLinks = __JOJO__ && chrome ? await dockLinks(lang) : null
+const jojoDockSvg = jojoLinks
+  ? renderJojoSvg({
+      idPrefix: 'dock-s',
+      emotion: 'calm',
+      size: 44,
+      framing: 'tight',
+      decorative: true
+    })
+  : ''
 ---
 
 <html lang={htmlLang}>
@@ -76,6 +86,7 @@ const jojoLinks = __JOJO__ && chrome ? await dockLinks(lang) : null
           links={jojoLinks}
           home={jojoHome}
           review={__JOJO_REVIEW__}
+          staticSvg={jojoDockSvg}
         />
       )
     }
