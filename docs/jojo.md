@@ -26,7 +26,7 @@ family). This site shows it in three ways that are designed to work together.
 ### C · intro
 
 - **What:** "Jojo builds the site", a first-visit intro compressed from the
-  29 s film (≈ 4.4 s at 1440×900, 3.9–4.0 s at 1280×720 or 390×844, 3.2 s
+  29 s film (≈ 4.4 s at 1440×900, 3.9 s at 1280×720 or 390×844, 3.2 s
   at 375×667). As Jojo pops out under the avatar, the
   first screen dims in place to a faint blueprint (nothing flies away). Then
   Jojo builds it back along one route down the page: a short tether pulls the
@@ -37,6 +37,15 @@ family). This site shows it in three ways that are designed to work together.
   Product card rise from below the fold to its feet. Then Jojo leaps home into
   its seat. Pieces only move rigidly or are revealed by a clip, never
   flattened or stretched.
+- **Keep-out (phones, r3):** where Jojo stands is chosen against what is
+  already built. The labels stomp happens in the free space beside them (on
+  phones: below the chips, left of Connect — never on "Melbourne"); with no
+  margin beside About (phones) Jojo hangs under the blind's edge, so the text
+  it reveals is above it, and the rest drops as it leaps off. Skip sits in the
+  bottom-right corner on phones (44 px tall; the dock is hidden during the
+  intro), its measured rect is a keep-out for the whole route, and the tests
+  sample every frame for it. Only flights (hops, the leap home) may pass over
+  finished text, ≤ 150 ms per label.
 - **Who takes part:** only pieces at least 35 % on screen. Desktop 1440×900
   gets all nine; 1280×720 and 390×844 skip Product (below the fold); 375×667
   also skips About; `/en` has no Product. Nothing off screen is dragged in.

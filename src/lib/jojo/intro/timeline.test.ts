@@ -5,13 +5,15 @@ import {
   actorPoint,
   DIM,
   GHOST,
+  overlapArea,
   pieceAt,
   planIntro,
   sampleIntro,
   visibleFraction,
   type IntroLayout,
   type IntroPlan,
-  type PieceId
+  type PieceId,
+  type Rect
 } from './timeline'
 
 const geometry = {
@@ -387,5 +389,165 @@ describe('every piece arrives by something Jojo does', () => {
     expect(P.y + start.ty).toBeGreaterThan(L.vh)
     expect(Math.abs(actorAt(plan, p.stomp).y - P.y)).toBeLessThan(1)
     expect(pieceAt(plan, 'product', p.rise1).ty).toBeCloseTo(0, 6)
+  })
+})
+
+/* ------------------------------------------------ r3: phone keep-out */
+
+/**
+ * The Skip button where JojoIntro.astro puts it, measured on the Preview:
+ * bottom-right corner on phones, bottom centre on desktop.
+ */
+const SKIP = {
+  390: { x: 301.5, y: 784, w: 72.5, h: 44 },
+  375: { x: 286.5, y: 607, w: 72.5, h: 44 },
+  1440: { x: 682.8, y: 845.2, w: 68.5, h: 34.8 }
+}
+const withSkip = (l: IntroLayout, r: Rect): IntroLayout => ({ ...l, keepOut: [r] })
+const PHONES = () => [withSkip(phoneReal(844), SKIP[390]), withSkip(phoneReal(667), SKIP[375])]
+const SKIPPED = () => [...PHONES(), withSkip(desktopFull(), SKIP[1440])]
+
+/** the actor's drawn SVG box at t, with every pose (scale, squash, tilt, size) applied */
+function drawnBox(plan: IntroPlan, t: number): Rect {
+  const a = actorAt(plan, t)
+  const vb = plan.layout.geometry.viewBox
+  const ps = [
+    [vb.x, vb.y],
+    [vb.x + vb.w, vb.y],
+    [vb.x, vb.y + vb.h],
+    [vb.x + vb.w, vb.y + vb.h]
+  ].map(([x, y]) => actorPoint(plan, a, x, y))
+  const xs = ps.map((p) => p.x)
+  const ys = ps.map((p) => p.y)
+  const x = Math.min(...xs)
+  const y = Math.min(...ys)
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y }
+}
+
+/** when a piece is finished (built and meant to be read) */
+function builtAt(plan: IntroPlan, id: PieceId): number | undefined {
+  const b = plan.beats
+  if (id === 'header') return b.header?.land
+  if (id === 'avatar') return b.avatar.settle
+  if (id === 'card') return b.card?.done
+  if (id === 'about') return b.about?.done
+  if (id === 'product') return b.product?.rise1
+  const p = plan.pop[id]
+  return p === undefined ? undefined : p + 320
+}
+
+/** is Jojo in the air (a hop or the leap), rather than standing or sliding? */
+const flying = (plan: IntroPlan, t: number) =>
+  plan.moves.some((m) => m.h > 0 && t >= m.t0 && t < m.t1 + 140)
+
+/** longest unbroken stretch (ms) in which `hit(t)` holds, sampled every `step` ms */
+function longestRun(
+  plan: IntroPlan,
+  from: number,
+  to: number,
+  hit: (t: number) => boolean,
+  step = 5
+) {
+  let run = 0
+  let best = 0
+  for (let t = from; t <= to; t += step) {
+    run = hit(t) ? run + step : 0
+    best = Math.max(best, run)
+  }
+  return best
+}
+
+describe('r3 review: phones — Skip keep-out and readable finished labels', () => {
+  it('Jojo never enters the Skip button, at any moment of the run', () => {
+    for (const layout of SKIPPED()) {
+      const plan = planIntro(layout)
+      const skip = layout.keepOut![0]
+      for (let t = 0; t <= plan.duration; t += 2)
+        expect(overlapArea(drawnBox(plan, t), skip, 4)).toBe(0)
+    }
+  })
+
+  it("the keep-out is real: a Skip on Jojo's own lane is routed round, not just missed", () => {
+    // bottom-left on 390×844: exactly where the About slide would end
+    const inLane = { x: 16, y: 788, w: 76, h: 44 }
+    const free = planIntro(phoneReal(844))
+    expect(every(free, 2).some((t) => overlapArea(drawnBox(free, t), inLane, 4) > 0)).toBe(true)
+    const kept = planIntro(withSkip(phoneReal(844), inLane))
+    for (let t = 0; t <= kept.duration; t += 2)
+      expect(overlapArea(drawnBox(kept, t), inLane, 4)).toBe(0)
+  })
+
+  it('a finished label is never under Jojo while it stands, stomps or slides; flights pass by fast', () => {
+    for (const layout of PHONES()) {
+      const plan = planIntro(layout)
+      for (const id of ['name', 'chip0', 'chip1', 'connect'] as const) {
+        const done = builtAt(plan, id)
+        if (done === undefined) continue
+        const r = layout.pieces[id]!
+        const covered = (t: number) => overlapArea(drawnBox(plan, t), r) > 0
+        for (let t = done; t < plan.beats.land; t += 2)
+          if (!flying(plan, t)) expect(covered(t)).toBe(false)
+        // passing over in a hop / the leap home: brief contact only
+        expect(longestRun(plan, done, plan.beats.land, covered)).toBeLessThanOrEqual(150)
+      }
+    }
+  })
+
+  it('labels stomp: phones stand below the chips, left of Connect — not on "Melbourne"', () => {
+    for (const layout of PHONES()) {
+      const plan = planIntro(layout)
+      const at = actorAt(plan, plan.beats.stomp!)
+      const box = drawnBox(plan, plan.beats.stomp!)
+      const { chip0, connect, card } = layout.pieces
+      expect(overlapArea(box, chip0!)).toBe(0)
+      expect(overlapArea(box, connect!)).toBe(0)
+      expect(box.y).toBeGreaterThanOrEqual(chip0!.y + chip0!.h)
+      expect(box.x + box.w).toBeLessThanOrEqual(connect!.x)
+      // on the page, in the gap above the terminal card, still full size
+      expect(at.y).toBeLessThanOrEqual(card!.y)
+      expect(at.size).toBe(80)
+    }
+  })
+
+  it('About on a phone: Jojo hangs under the reveal edge — revealed text is above it, not under it', () => {
+    const layout = PHONES()[0]
+    const plan = planIntro(layout)
+    const ab = plan.beats.about!
+    expect(ab.hang).toBe(true)
+    const B = layout.pieces.about!
+    for (let t = ab.slide0; t < ab.done; t += 2) {
+      const clip = pieceAt(plan, 'about', t).clip!
+      const revealed = { x: B.x, y: B.y, w: B.w, h: B.h - clip.b }
+      const box = drawnBox(plan, t)
+      // head touching the edge it pulls down (contact), never the text above it
+      const into = Math.max(0, revealed.y + revealed.h - box.y)
+      if (overlapArea(box, revealed) > 0) expect(into).toBeLessThanOrEqual(10)
+    }
+    // the rest of the blind drops as Jojo lets go and leaps off
+    expect(ab.done).toBe(plan.beats.leap)
+    const covered = (t: number) => overlapArea(drawnBox(plan, t), { ...B, h: layout.vh - B.y }) > 0
+    expect(longestRun(plan, ab.done, plan.beats.land, covered)).toBeLessThanOrEqual(250)
+  })
+
+  it('no finished piece is covered for long: any contact is a pass, not a press', () => {
+    for (const layout of PHONES()) {
+      const plan = planIntro(layout)
+      for (const id of plan.cast) {
+        const done = builtAt(plan, id)
+        if (done === undefined || id === 'avatar' || id === 'header') continue
+        const r = layout.pieces[id]!
+        const vis = { ...r, h: Math.min(r.h, layout.vh - r.y) }
+        const covered = (t: number) => overlapArea(drawnBox(plan, t), vis) > 0
+        expect(longestRun(plan, done, plan.beats.land, covered)).toBeLessThanOrEqual(250)
+      }
+    }
+  })
+
+  it('desktop keeps its approved route: a Skip that is out of the way changes nothing', () => {
+    const a = planIntro(desktopFull())
+    const b = planIntro(withSkip(desktopFull(), SKIP[1440]))
+    expect(b.duration).toBe(a.duration)
+    expect(b.moves.map((m) => [m.t0, m.t1, m.to])).toEqual(a.moves.map((m) => [m.t0, m.t1, m.to]))
+    expect(b.beats.about!.hang).toBe(false)
   })
 })

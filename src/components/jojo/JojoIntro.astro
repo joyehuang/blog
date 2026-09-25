@@ -126,6 +126,20 @@
   .jojo-intro-skip::after {
     content: ' ›';
   }
+  /* phones: bottom centre is where Jojo works (About, the last labels), so
+     Skip gets the bottom-right corner (the dock is hidden while the intro
+     runs) with a full-size touch target; the route planner keeps Jojo out of
+     whatever rect this ends up at */
+  @media (max-width: 640px) {
+    .jojo-intro-skip {
+      left: auto;
+      right: calc(1rem + env(safe-area-inset-right, 0px));
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+      transform: none;
+      min-height: 2.75rem;
+      padding: 0.625rem 1.125rem;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     /* every entry refuses under reduced motion and a run ends if it turns on;
        this only covers the frame before that script runs */

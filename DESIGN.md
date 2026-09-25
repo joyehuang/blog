@@ -385,7 +385,10 @@ a transparent ≥ 44 px hit area with a `--ring` focus-visible outline.
   does. Pieces stay whole and readable: rigid moves or clip reveals only, never
   flattened, stretched or thrown across the screen; Jojo (~avatar size) is the
   one focal point, and the tether is only a short pull. Only pieces really on
-  screen take part. Never change the visitor's settings in a performance (no
+  screen take part. Finished text is never left under Jojo (it stands in free
+  space, hangs below a reveal edge on phones; only hops may pass over), and
+  the Skip pill is a keep-out the route never enters (bottom-right on phones).
+  Never change the visitor's settings in a performance (no
   theme toggling). Reduced motion or Save-Data: no intro from any entry.
 - **Status ≠ emotion.** Emotions are performance. The status shapes (working
   ring, needs-input bubble, success check, error, offline) are reserved for a

@@ -200,6 +200,19 @@ export function runIntro(trigger: IntroTrigger): RunResult {
   if (window.scrollY > 40) return { started: false, reason: 'scrolled' }
   const measured = layoutNow()
   if (!measured) return { started: false, reason: 'layout' }
+  // the Skip button is placed by CSS (a corner on phones); measure it so
+  // Jojo's route keeps out of it the whole run
+  const skipEl = document.createElement('button')
+  skipEl.type = 'button'
+  skipEl.className = 'jojo-intro-skip'
+  skipEl.textContent = zh ? '跳过' : 'Skip'
+  skipEl.setAttribute('aria-label', zh ? '跳过开场动画' : 'Skip the intro animation')
+  skipEl.style.visibility = 'hidden'
+  document.body.appendChild(skipEl)
+  const skipRect = rectOf(skipEl)
+  skipEl.remove()
+  skipEl.style.removeProperty('visibility')
+  if (skipRect.w > 0) measured.layout.keepOut = [skipRect]
   let plan
   try {
     plan = planIntro(measured.layout)
@@ -304,11 +317,7 @@ export function runIntro(trigger: IntroTrigger): RunResult {
     actorBox.style.cssText = `width:${S}px;height:${S}px;transform-origin:${pivotPx.x}px ${pivotPx.y}px`
     stage.appendChild(actorBox)
 
-    skipBtn = document.createElement('button')
-    skipBtn.type = 'button'
-    skipBtn.className = 'jojo-intro-skip'
-    skipBtn.textContent = zh ? '跳过' : 'Skip'
-    skipBtn.setAttribute('aria-label', zh ? '跳过开场动画' : 'Skip the intro animation')
+    skipBtn = skipEl
     skipBtn.addEventListener('click', () => controller.skip())
 
     document.body.append(stage, skipBtn)
@@ -438,6 +447,8 @@ export function runIntro(trigger: IntroTrigger): RunResult {
       beats: plan.beats,
       cast: plan.cast,
       pop: plan.pop,
+      keepOut: layout.keepOut ?? [],
+      moves: plan.moves.map(({ t0, t1, from, to, h }) => ({ t0, t1, from, to, h })),
       seek: (t: number) => controller.seek(t),
       skip: () => controller.skip()
     }

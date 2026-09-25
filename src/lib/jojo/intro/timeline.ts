@@ -24,14 +24,19 @@ import type { EmotionId } from '@jojo-web/runtime'
  *  body      → lands on the terminal card's left end and shoves: the card is
  *              laid out to the right from Jojo's feet. Steps down onto About
  *              and slides down its left edge: About is revealed with Jojo's
- *              weight, like pulling a blind.
+ *              weight, like pulling a blind. With no margin beside About
+ *              (phones) Jojo hangs under the blind's edge instead, so the
+ *              text it has just revealed is never under its body.
  *  ground    → stomps at the bottom: the Product card rises from below the
  *              fold and stops right under Jojo's feet.
  *  home      → looks up at the avatar, leaps back into its seat beside it
  *              (shrinking to seat size) and sits.
  *
  * Only pieces that are really on screen take part; a missing group is simply
- * skipped, so phones get a shorter run of the same story. The theme toggle
+ * skipped, so phones get a shorter run of the same story. Where Jojo stands is
+ * chosen against what is already built: finished labels stay readable (it
+ * stands in the free space beside them) and the Skip button's keep-out is
+ * never entered. The theme toggle
  * beat of the film is left out on purpose: the intro never changes settings.
  */
 
@@ -84,6 +89,8 @@ export interface IntroLayout {
   /** actor render size in px */
   actor: number
   geometry: ActorGeometry
+  /** viewport rects Jojo must never enter (the Skip button) */
+  keepOut?: Rect[]
 }
 
 /** a clip inside a piece's own box, px from each edge (negative = let shadows out) */
@@ -192,6 +199,13 @@ const SPILL = 32
 
 const center = (r: Rect) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })
 
+/** area two rects share, after growing `b` by `pad` on every side */
+export function overlapArea(a: Rect, b: Rect, pad = 0) {
+  const w = Math.min(a.x + a.w, b.x + b.w + pad) - Math.max(a.x, b.x - pad)
+  const h = Math.min(a.y + a.h, b.y + b.h + pad) - Math.max(a.y, b.y - pad)
+  return w > 0 && h > 0 ? w * h : 0
+}
+
 /** fraction of a rect inside the viewport */
 export function visibleFraction(r: Rect, vw: number, vh: number) {
   const w = Math.max(0, Math.min(r.x + r.w, vw) - Math.max(r.x, 0))
@@ -233,8 +247,12 @@ export interface IntroPlan {
     stomp: number | null
     /** terminal card: Jojo lands, shoves (reveal starts), revealed */
     card: { land: number; shove: number; done: number } | null
-    /** About: Jojo slides down its left edge over [slide0, slide1] */
-    about: { land: number; slide0: number; slide1: number } | null
+    /**
+     * About: Jojo slides down its left edge over [slide0, slide1]. `hang`:
+     * Jojo hangs under the reveal edge (head on it) rather than standing on
+     * it; the rest of the blind drops when it lets go at `done`.
+     */
+    about: { land: number; slide0: number; slide1: number; done: number; hang: boolean } | null
     /** Product: Jojo stomps, the card rises over [rise0, rise1] */
     product: { stomp: number; rise0: number; rise1: number } | null
     /** the leap home: takes off, lands in the seat */
@@ -254,6 +272,24 @@ export interface IntroPlan {
 
 /** a piece is cast when at least this much of it is on screen */
 const CAST_MIN = 0.35
+/** clearance kept between Jojo and finished text / the Skip button, px */
+export const CLEAR = 6
+
+/** the actor's drawn box (its SVG) when standing unposed at `p` */
+export function standBox(
+  layout: IntroLayout,
+  p: { x: number; y: number },
+  size = layout.actor
+): Rect {
+  const { viewBox: vb, pivot } = layout.geometry
+  const k = size / vb.w
+  return {
+    x: p.x + (vb.x - pivot.x) * k,
+    y: p.y + (vb.y - pivot.y) * k,
+    w: vb.w * k,
+    h: vb.h * k
+  }
+}
 /** px per ms the stomp's wave travels */
 const POP_SPEED = 1.4
 
@@ -305,12 +341,22 @@ export function planIntro(layout: IntroLayout): IntroPlan {
   const popped = POPPED.filter(has)
   let stomp: number | null = null
   const pop: Partial<Record<PieceId, number>> = {}
+  const keepOut = layout.keepOut ?? []
   if (popped.length) {
-    // stand just left of all of them, on the lowest baseline (Connect's)
+    // stand just left of all of them, on the lowest baseline (Connect's) —
+    // or, where that would cover a label once it is up (phones: the chips
+    // run to the edge), in the nearest free space below / beside them
     const rects = popped.map((id) => pieces[id]!)
     const left = Math.min(...rects.map((r) => r.x))
     const floor = Math.max(...rects.map((r) => r.y + r.h))
-    const spot = { x: clampX(left - S * 0.6), y: floor }
+    const spot = freeSpot(
+      layout,
+      { x: clampX(left - S * 0.6), y: floor },
+      [...rects, A],
+      keepOut,
+      // no lower than the next piece's top edge (it gets built next) or the fold
+      Math.min(has('card') && pieces.card ? pieces.card.y : floor + headH, vh - 10)
+    )
     move(t, t + 200, spot, 34)
     stomp = t + 200
     for (const id of popped) {
@@ -338,15 +384,21 @@ export function planIntro(layout: IntroLayout): IntroPlan {
   const P = has('product') ? pieces.product : undefined
   if (B && has('about')) {
     const x = clampX(B.x + S * 0.5)
+    // no room to walk beside the text (phones): hang under the blind's edge
+    // so the text it reveals is always above Jojo, never under it
+    const hang = B.x < half
+    const top = hang ? B.y + headH : B.y
     const land = t + 200
-    move(t, land, { x, y: B.y }, 18)
+    move(t, land, { x, y: top }, 18)
     const slide0 = land + 60
-    // down to Product's top edge when it is coming, else to About's bottom
-    // (never below the fold)
-    const bottom = Math.min(P ? P.y : B.y + B.h, vh - 10)
-    const slide1 = slide0 + Math.max(240, Math.min(420, (bottom - B.y) * 1.5))
+    // standing: down to Product's top edge when it is coming, else to About's
+    // bottom; hanging: until the edge reaches About's bottom. Never below the
+    // fold, never into the Skip button.
+    const want = hang ? B.y + B.h + headH : P ? P.y : B.y + B.h
+    const bottom = clearAbove(layout, x, Math.min(want, vh - 10), keepOut)
+    const slide1 = slide0 + Math.max(240, Math.min(420, (bottom - top) * 1.5))
     move(slide0, slide1, { x, y: bottom }, 0, E.inOut)
-    about = { land, slide0, slide1 }
+    about = { land, slide0, slide1, done: slide1, hang }
     t = slide1
   }
 
@@ -370,6 +422,8 @@ export function planIntro(layout: IntroLayout): IntroPlan {
     y: seat.y + (g.pivot.y - g.viewBox.y) * seatK
   }
   const leap = t + 110
+  // hanging on the blind: it drops the rest of the way as Jojo lets go
+  if (about?.hang && !product) about.done = leap
   const dist = Math.hypot(seatGround.x - at.x, seatGround.y - at.y)
   const land = leap + Math.max(380, Math.min(560, 300 + dist * 0.45))
   move(leap, land, seatGround, 80)
@@ -398,6 +452,49 @@ export function planIntro(layout: IntroLayout): IntroPlan {
     headH,
     seatGround
   }
+}
+
+/**
+ * The ground point nearest `want` where Jojo covers none of `built` and stays
+ * out of `keepOut`; `want` itself when that is already clear. Searched on a
+ * small grid between `want.y` and `maxY`, across the viewport.
+ */
+function freeSpot(layout: IntroLayout, want: Point, built: Rect[], keepOut: Rect[], maxY: number) {
+  const { vw } = layout
+  const half = layout.actor / 2
+  const cost = (p: Point) => {
+    const box = standBox(layout, p)
+    let c = 0
+    for (const r of built) c += overlapArea(box, r, CLEAR)
+    for (const r of keepOut) c += 10 * overlapArea(box, r, CLEAR)
+    return c
+  }
+  if (cost(want) === 0) return want
+  let best = want
+  let bestScore = Infinity
+  for (let y = want.y; y <= Math.max(want.y, maxY); y += 2) {
+    for (let x = half + 6; x <= vw - half - 6; x += 2) {
+      const p = { x, y }
+      const score = cost(p) * 50 + Math.hypot(x - want.x, y - want.y)
+      if (score < bestScore) {
+        bestScore = score
+        best = p
+      }
+    }
+  }
+  return best
+}
+
+/** the lowest ground y ≤ `y` at `x` where Jojo stays out of every keep-out */
+function clearAbove(layout: IntroLayout, x: number, y: number, keepOut: Rect[]) {
+  let out = y
+  for (const r of keepOut) {
+    const box = standBox(layout, { x, y: out })
+    if (box.x + box.w <= r.x - CLEAR || box.x >= r.x + r.w + CLEAR) continue
+    const below = box.y + box.h - out
+    if (box.y + box.h > r.y - CLEAR) out = r.y - CLEAR - below
+  }
+  return out
 }
 
 /* ---------------------------------------------------------------- pieces */
@@ -508,10 +605,11 @@ export function pieceAt(plan: IntroPlan, id: PieceId, t: number): PieceState {
     case 'about': {
       const a = b.about
       if (!a || t < a.slide0) return waiting()
-      if (t >= a.slide1) return { ...REST }
-      // the revealed edge follows Jojo's feet
+      if (t >= a.done) return { ...REST }
+      // the revealed edge follows Jojo's feet (hanging: the top of its head)
       const feet = actorBase(plan, t).y
-      const h = Math.max(0, Math.min(r.h, feet - r.y))
+      const edge = a.hang ? feet - plan.headH : feet
+      const h = Math.max(0, Math.min(r.h, edge - r.y))
       return {
         ...REST,
         clip: showTop(h, r.h),
@@ -581,7 +679,8 @@ function gazeAt(plan: IntroPlan, t: number, x: number, y: number): { x: number; 
   }
   const K = plan.layout.pieces.card
   if (b.card && K && t >= b.card.land && t < b.card.done) return eyes(K.x + K.w * 0.7, K.y + 20)
-  if (b.about && t >= b.about.slide0 && t < b.about.slide1) return { x: 1, y: 0.4 }
+  if (b.about && t >= b.about.slide0 && t < b.about.slide1)
+    return b.about.hang ? { x: 0.4, y: -1 } : { x: 1, y: 0.4 }
   if (b.product && t >= b.product.stomp && t < b.product.rise1) return { x: 0.4, y: 1 }
   if (t >= b.leap - 110 && t < b.land) {
     const A = plan.layout.pieces.avatar!
@@ -653,7 +752,7 @@ export function actorAt(plan: IntroPlan, t: number): ActorState {
       (1 - seg(t, b.about.slide1 - 60, b.about.slide1))
     sy += 0.08 * s
     sx -= 0.05 * s
-    rot += 4 * s
+    rot += (b.about.hang ? 0 : 4) * s
   }
   // Product: stomp, then bumped up a little when the card arrives under its feet
   if (b.product) {
