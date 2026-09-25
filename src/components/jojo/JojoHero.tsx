@@ -4,17 +4,17 @@ import {
   JOJO_EVENTS,
   JOJO_KEYS,
   modeHas,
-  prefersReducedMotion,
   readStored,
-  saveData,
+  stillReason,
   writeStored,
   type IntroEventDetail
 } from '@/lib/jojo/keys'
-import { initialPoke, poke, type PokeStep } from '@/lib/jojo/poke'
+import { initialPoke, poke } from '@/lib/jojo/poke'
+import { createStepPlayer, type Step } from '@/lib/jojo/steps'
 import type { EmotionId, GazeInput, MotionPref } from '@jojo-web/runtime'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import LazyJojo, { loadJojoRuntime } from './LazyJojo'
+import LazyJojo, { loadJojoRuntime, useStill } from './LazyJojo'
 
 import './jojo.css'
 
@@ -33,36 +33,52 @@ interface Props {
  *  - the visitor pokes it (click / Enter / Space), or hovers the hero with a
  *    fine pointer (eyes follow while the pointer is over the hero).
  * No speech bubble and no live-region announcements: poking is a quiet
- * visual easter egg. Reduced motion freezes it (the engine goes static).
+ * visual easter egg. Reduced motion or Save-Data: no greeting, no gaze
+ * follow, no prefetch; a poke still swaps to a static face (no animation).
+ * Face runs go through a step player, so a reaction whose engine download
+ * lands after unmount, after a newer reaction, or not at all never plays.
  */
 export default function JojoHero({ lang, staticSvg }: Props) {
   const zh = lang === 'zh'
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [motion, setMotion] = useState<MotionPref>('transitions')
   const [gaze, setGaze] = useState<GazeInput>('auto')
-  // the engine loads only when something is about to move
-  const [live, setLive] = useState(false)
+  const still = useStill()
+  // the engine loads only when something is about to move; each intent counts,
+  // so a failed download is retried by the next one
+  const [live, setLive] = useState(0)
   const wake = useCallback(() => {
-    setLive(true)
+    setLive((n) => n + 1)
     void loadJojoRuntime().catch(() => {})
   }, [])
   const pokeState = useRef(initialPoke())
-  const timers = useRef<number[]>([])
+  const player = useRef<ReturnType<typeof createStepPlayer> | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  const clearTimers = () => {
-    for (const t of timers.current) window.clearTimeout(t)
-    timers.current = []
-  }
-  const playSteps = useCallback((steps: PokeStep[]) => {
-    clearTimers()
-    let at = 0
-    for (const s of steps) {
-      timers.current.push(window.setTimeout(() => setEmotion(s.emotion), at))
-      at += s.ms
+  useEffect(() => {
+    const p = createStepPlayer({
+      load: loadJojoRuntime,
+      apply: (s) => {
+        setEmotion(s.emotion)
+        if (s.gaze !== undefined) setGaze(s.gaze)
+      },
+      setTimeout: (cb, ms) => window.setTimeout(cb, ms),
+      clearTimeout: (id) => window.clearTimeout(id)
+    })
+    player.current = p
+    return () => {
+      p.dispose()
+      player.current = null
     }
-    timers.current.push(window.setTimeout(() => setEmotion('calm'), at))
   }, [])
+  const playSteps = useCallback((steps: Step[]) => void player.current?.play(steps), [])
+
+  // going still mid-way: stop following the pointer
+  useEffect(() => {
+    if (!still) return
+    setGaze('auto')
+    setMotion('transitions')
+  }, [still])
 
   // greeting / intro landing
   useEffect(() => {
@@ -70,7 +86,7 @@ export default function JojoHero({ lang, staticSvg }: Props) {
     const onIntro = (e: Event) => {
       const d = (e as CustomEvent<IntroEventDetail>).detail
       if (d.phase === 'start') wake()
-      if (d.phase === 'land') setEmotion('happy')
+      if (d.phase === 'land') player.current?.set('happy')
       if (d.phase === 'end') {
         writeStored(JOJO_KEYS.hello, '1')
         playSteps([{ emotion: 'happy', ms: d.outcome === 'complete' ? 900 : 500 }])
@@ -87,25 +103,18 @@ export default function JojoHero({ lang, staticSvg }: Props) {
     const canGreet =
       modeHas(currentMode(), 'a') &&
       !introWillRun &&
-      !prefersReducedMotion() &&
-      !saveData() &&
+      !stillReason() &&
       readStored(JOJO_KEYS.hello) === null
     let idle = 0
     if (canGreet) {
-      const greet = async () => {
-        if (!writeStored(JOJO_KEYS.hello, '1')) return
+      const greet = () => {
+        if (stillReason() || !writeStored(JOJO_KEYS.hello, '1')) return
         wake()
-        await loadJojoRuntime().catch(() => {})
-        // blink and look toward the name, a small happy hop, back to calm (≈1.1 s)
-        setGaze({ x: 0.2, y: 0.9 })
-        setEmotion('curious')
-        timers.current.push(
-          window.setTimeout(() => {
-            setGaze('auto')
-            setEmotion('happy')
-          }, 420),
-          window.setTimeout(() => setEmotion('calm'), 1100)
-        )
+        // look toward the name, a small happy hop, back to calm (≈1.1 s)
+        playSteps([
+          { emotion: 'curious', gaze: { x: 0.2, y: 0.9 }, ms: 420 },
+          { emotion: 'happy', gaze: 'auto', ms: 680 }
+        ])
       }
       const ric = (
         window as Window & {
@@ -119,7 +128,6 @@ export default function JojoHero({ lang, staticSvg }: Props) {
       const cic = (window as Window & { cancelIdleCallback?: (id: number) => void })
         .cancelIdleCallback
       if (idle) (cic ?? window.clearTimeout)(idle)
-      clearTimers()
     }
   }, [playSteps, wake])
 
@@ -129,6 +137,7 @@ export default function JojoHero({ lang, staticSvg }: Props) {
     const fine = window.matchMedia('(hover: hover) and (pointer: fine)')
     if (!hero || !fine.matches) return
     const enter = () => {
+      if (stillReason()) return
       wake()
       setMotion('full')
       setGaze('pointer')
@@ -145,14 +154,17 @@ export default function JojoHero({ lang, staticSvg }: Props) {
     }
   }, [wake])
 
-  const onPoke = async () => {
+  const onPoke = () => {
     const r = poke(pokeState.current, performance.now())
     pokeState.current = r.state
     if (r.ignored) return
     trackOnce('jojo_poke', { surface: 'home_hero' })
     wake()
-    await loadJojoRuntime().catch(() => {})
     playSteps(r.steps)
+  }
+  // no prefetch while still: the engine loads only on an explicit poke
+  const prefetch = () => {
+    if (!stillReason()) wake()
   }
 
   return (
@@ -163,14 +175,14 @@ export default function JojoHero({ lang, staticSvg }: Props) {
         className='jojo-seat-btn jojo-poke-target'
         aria-label={zh ? '戳一下 Jojo' : 'Poke Jojo'}
         onClick={onPoke}
-        onPointerEnter={wake}
-        onFocus={wake}
+        onPointerEnter={prefetch}
+        onFocus={prefetch}
       >
         <LazyJojo
           staticSvg={staticSvg}
           live={live}
           emotion={emotion}
-          motion={motion}
+          motion={still ? 'static' : motion}
           gaze={gaze}
           size={48}
           framing='tight'

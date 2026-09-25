@@ -7,15 +7,17 @@ import {
   JOJO_KEYS,
   modeHas,
   readStored,
+  stillReason,
   writeStored,
   type IntroEventDetail
 } from '@/lib/jojo/keys'
-import { initialPoke, poke, type PokeStep } from '@/lib/jojo/poke'
+import { initialPoke, poke } from '@/lib/jojo/poke'
 import { dockPresence, isEditable, keyboardLikelyOpen, type Presence } from '@/lib/jojo/presence'
+import { createStepPlayer, type Step } from '@/lib/jojo/steps'
 import type { EmotionId, StatusId } from '@jojo-web/runtime'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
-import LazyJojo, { loadJojoRuntime } from './LazyJojo'
+import LazyJojo, { loadJojoRuntime, useStill } from './LazyJojo'
 
 import './jojo.css'
 import './dock.css'
@@ -84,6 +86,9 @@ const COPY = {
  * connected yet". Presence rules (lib/jojo/presence.ts): hidden while the intro
  * runs or an in-flow Jojo is on screen, while typing or with the soft keyboard
  * up, and over the comment box on phones; the visitor can tuck it away.
+ * Reduced motion or Save-Data: no prefetch, no replay entry; a tap still swaps
+ * to a static face. Face runs go through a step player (late downloads, newer
+ * taps and unmount never leave a stray timer or a pretend reaction).
  */
 export default function JojoDock({ lang, links, home, review = false, staticSvg }: Props) {
   const t = COPY[lang]
@@ -99,9 +104,11 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
   const [compact, setCompact] = useState(false)
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [previewStatus, setPreviewStatus] = useState<StatusId | null>(null)
-  const [live, setLive] = useState(false)
+  const still = useStill()
+  // each intent counts, so a failed engine download is retried by the next one
+  const [live, setLive] = useState(0)
   const wake = useCallback(() => {
-    setLive(true)
+    setLive((n) => n + 1)
     void loadJojoRuntime().catch(() => {})
   }, [])
   const adapter = useMemo<ChatAdapter>(() => createUnavailableChat(), [])
@@ -109,7 +116,7 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
   const rootRef = useRef<HTMLDivElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const pokeState = useRef(initialPoke())
-  const timers = useRef<number[]>([])
+  const player = useRef<ReturnType<typeof createStepPlayer> | null>(null)
 
   useEffect(() => adapter.subscribe(setChat), [adapter])
   useEffect(() => () => adapter.dispose(), [adapter])
@@ -241,24 +248,27 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     }
   }, [open, closePanel])
 
-  useEffect(
-    () => () => {
-      for (const id of timers.current) window.clearTimeout(id)
-    },
-    []
-  )
-
-  const playSteps = async (steps: PokeStep[]) => {
-    wake()
-    await loadJojoRuntime().catch(() => {})
-    for (const id of timers.current) window.clearTimeout(id)
-    timers.current = []
-    let at = 0
-    for (const s of steps) {
-      timers.current.push(window.setTimeout(() => setEmotion(s.emotion), at))
-      at += s.ms
+  useEffect(() => {
+    const p = createStepPlayer({
+      load: loadJojoRuntime,
+      apply: (s) => setEmotion(s.emotion),
+      setTimeout: (cb, ms) => window.setTimeout(cb, ms),
+      clearTimeout: (id) => window.clearTimeout(id)
+    })
+    player.current = p
+    return () => {
+      p.dispose()
+      player.current = null
     }
-    timers.current.push(window.setTimeout(() => setEmotion('calm'), at))
+  }, [])
+
+  const playSteps = (steps: Step[]) => {
+    wake()
+    void player.current?.play(steps)
+  }
+  // no prefetch while still: the engine loads only on an explicit tap
+  const prefetch = () => {
+    if (!stillReason()) wake()
   }
 
   const toggle = () => {
@@ -311,7 +321,8 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
 
   const realStatus = statusForPhase(chat.phase)
   const status = previewStatus ?? realStatus
-  const canReplay = home && modeHas(currentMode(), 'c')
+  // reduced motion / Save-Data: the intro would be refused, so do not offer it
+  const canReplay = home && modeHas(currentMode(), 'c') && !still
 
   return (
     <div
@@ -340,8 +351,8 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
         aria-controls={panelId}
         aria-label={open ? t.close : t.open}
         onClick={toggle}
-        onPointerEnter={wake}
-        onFocus={wake}
+        onPointerEnter={prefetch}
+        onFocus={prefetch}
         tabIndex={presence === 'tucked' ? -1 : 0}
       >
         <LazyJojo
@@ -349,7 +360,7 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
           live={live || realStatus !== 'idle'}
           emotion={emotion}
           status={status}
-          motion='transitions'
+          motion={still ? 'static' : 'transitions'}
           size={44}
           framing='tight'
           decorative

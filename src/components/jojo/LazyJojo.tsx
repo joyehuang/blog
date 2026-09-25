@@ -1,3 +1,5 @@
+import { stillReason, watchStill, type StillReason } from '@/lib/jojo/keys'
+import { createLoader } from '@/lib/jojo/steps'
 import type { JojoProps } from '@jojo-web/runtime'
 import { useEffect, useState, type ComponentType } from 'react'
 
@@ -7,16 +9,16 @@ import { useEffect, useState, type ComponentType } from 'react'
  * costs no engine JavaScript at all. `live` (or any interaction the parent
  * turns into `live`) fetches the engine chunk once per page and swaps in the
  * animated component — visually seamless, since both start on the same frame.
+ * A failed fetch is forgotten, so a later intent retries it.
  */
-let loading: Promise<ComponentType<JojoProps>> | null = null
-export function loadJojoRuntime() {
-  loading ??= import('@jojo-web/runtime').then((m) => m.Jojo)
-  return loading
-}
+export const loadJojoRuntime: () => Promise<ComponentType<JojoProps>> = createLoader(() =>
+  import('@jojo-web/runtime').then((m) => m.Jojo)
+)
 
 interface Props extends JojoProps {
   staticSvg: string
-  live: boolean
+  /** truthy: go live. A new value (the parent counts intents) retries a failed fetch. */
+  live: boolean | number
   className?: string
 }
 
@@ -38,4 +40,15 @@ export default function LazyJojo({ staticSvg, live, className, ...props }: Props
   return (
     <span className={className ?? 'jojo-static'} dangerouslySetInnerHTML={{ __html: staticSvg }} />
   )
+}
+
+/** reduced motion / Save-Data, kept current (null on the server and before hydration) */
+export function useStill(): StillReason | null {
+  const [still, setStill] = useState<StillReason | null>(null)
+  useEffect(() => {
+    const sync = () => setStill(stillReason())
+    sync()
+    return watchStill(sync)
+  }, [])
+  return still
 }

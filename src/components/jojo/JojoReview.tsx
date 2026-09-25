@@ -2,6 +2,8 @@ import { currentMode, JOJO_EVENTS, JOJO_KEYS, writeStored, type JojoMode } from 
 import type { StatusId } from '@jojo-web/runtime'
 import { useEffect, useState } from 'react'
 
+import { useStill } from './LazyJojo'
+
 import './dock.css'
 
 /**
@@ -25,6 +27,7 @@ export default function JojoReview({ lang }: { lang: 'zh' | 'en' }) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<JojoMode>('abc')
   const [status, setStatus] = useState<StatusId | null>(null)
+  const still = useStill()
   useEffect(() => setMode(currentMode()), [])
 
   const home = zh ? '/' : '/en'
@@ -84,6 +87,17 @@ export default function JojoReview({ lang }: { lang: 'zh' | 'en' }) {
               {zh ? '模拟首访（清 Jojo 记录）' : 'Simulate first visit'}
             </button>
           </div>
+          {still && (
+            <p className='jojo-review-note'>
+              {still === 'reduced-motion'
+                ? zh
+                  ? '当前是减少动态效果：开场在所有入口都会被拒绝（按设计）。'
+                  : 'Reduced motion is on: every intro entry refuses (by design).'
+                : zh
+                  ? '当前是省流量模式：开场在所有入口都会被拒绝（按设计）。'
+                  : 'Save-Data is on: every intro entry refuses (by design).'}
+            </p>
+          )}
           <p className='jojo-review-h'>
             {zh ? 'Chat 状态预览 · 仅演示' : 'Chat state preview · demo only'}
           </p>
