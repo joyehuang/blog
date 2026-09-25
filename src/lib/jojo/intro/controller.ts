@@ -5,9 +5,12 @@ import { sampleIntro, type IntroFrame, type IntroPlan } from './timeline'
  * Lifecycle of one intro run. Everything with side effects is injected, so the
  * rules below are unit-tested without a browser:
  *
- *  - start() remembers the intro as seen *first* (an abandoned intro still
- *    counts, so a returning visitor is never shown it again), then mounts the
- *    visual layer; a failed mount ends the run and restores the page.
+ *  - start() refuses outright while Jojo must stay still (reduced motion or
+ *    Save-Data): nothing is mounted and nothing is remembered as seen.
+ *  - Otherwise start() remembers the intro as seen *first* (an abandoned intro
+ *    still counts, so a returning visitor is never shown it again), then mounts
+ *    the visual layer; a failed mount ends the run and restores the page.
+ *  - Reduced motion or Save-Data switched on mid-run ends it at once.
  *  - Any sign that the visitor wants the page — a key, a pointer press, a
  *    wheel, touch or any other scroll — skips. Nothing is prevented: the key, click or
  *    scroll still happens, on the restored page.
@@ -33,6 +36,10 @@ export interface IntroDeps {
   ): void
   markSeen(): void
   isHidden(): boolean
+  /** non-null while Jojo must stay still (reduced motion / Save-Data) */
+  still(): string | null
+  /** notify when `still()` may have changed; returns an unsubscribe */
+  onStillChange(cb: () => void): () => void
   /** current vertical scroll offset */
   scrollY(): number
   /** subscribe; returns an unsubscribe */
@@ -142,6 +149,11 @@ export function createIntroController(
     },
     start() {
       if (state !== 'idle') return
+      if (deps.still()) {
+        state = 'done'
+        outcome = 'abort'
+        return
+      }
       deps.markSeen()
       if (deps.isHidden()) {
         state = 'done'
@@ -183,7 +195,10 @@ export function createIntroController(
         deps.on('document', 'visibilitychange', () => {
           if (deps.isHidden()) end('abort', null)
         }),
-        deps.on('window', 'pagehide', () => end('abort', 'abandon'))
+        deps.on('window', 'pagehide', () => end('abort', 'abandon')),
+        deps.onStillChange(() => {
+          if (deps.still()) end('abort', null)
+        })
       )
       watchdog = deps.setTimeout(() => end('error', null), plan.duration + WATCHDOG_EXTRA_MS)
       frame = deps.raf(tick)

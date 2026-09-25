@@ -22,9 +22,11 @@ export const JOJO_EVENTS = {
 
 export type IntroOutcome = 'complete' | 'skip' | 'abort' | 'error'
 export interface IntroEventDetail {
-  phase: 'start' | 'land' | 'end'
+  /** `refused`: asked to play but not allowed (reduced motion / Save-Data); nothing ran */
+  phase: 'start' | 'land' | 'end' | 'refused'
   outcome?: IntroOutcome
   trigger: IntroTrigger
+  reason?: string
 }
 export type IntroTrigger = 'first_visit' | 'url' | 'replay'
 
@@ -75,4 +77,47 @@ export function prefersReducedMotion(
 export function saveData(nav: Navigator | undefined = globalThis.navigator): boolean {
   const c = (nav as (Navigator & { connection?: { saveData?: boolean } }) | undefined)?.connection
   return !!c?.saveData
+}
+
+/**
+ * Why Jojo must stay still right now, or null. Reduced motion and Save-Data
+ * both mean: no intro (first visit, URL, replay, review — every entry), no
+ * greeting, no pointer-follow; a tap may still swap to a static face.
+ */
+export type StillReason = 'reduced-motion' | 'save-data'
+export function stillReason(
+  w: Pick<Window, 'matchMedia'> | undefined = globalThis.window,
+  nav: Navigator | undefined = globalThis.navigator
+): StillReason | null {
+  if (prefersReducedMotion(w)) return 'reduced-motion'
+  if (saveData(nav)) return 'save-data'
+  return null
+}
+
+type Changeable = { addEventListener?: EventTarget['addEventListener'] } & EventTarget
+
+/** calls `cb` whenever the still reason may have changed; returns an unsubscribe */
+export function watchStill(
+  cb: () => void,
+  w: Pick<Window, 'matchMedia'> | undefined = globalThis.window,
+  nav: Navigator | undefined = globalThis.navigator
+): () => void {
+  const offs: Array<() => void> = []
+  try {
+    const mq = w?.matchMedia?.('(prefers-reduced-motion: reduce)')
+    if (mq?.addEventListener) {
+      mq.addEventListener('change', cb)
+      offs.push(() => mq.removeEventListener('change', cb))
+    }
+  } catch {
+    // no matchMedia: nothing to watch
+  }
+  const conn = (nav as (Navigator & { connection?: Changeable }) | undefined)?.connection
+  if (conn?.addEventListener) {
+    conn.addEventListener('change', cb)
+    offs.push(() => conn.removeEventListener('change', cb))
+  }
+  return () => {
+    for (const off of offs.splice(0)) off()
+  }
 }

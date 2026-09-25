@@ -5,33 +5,12 @@
 ---
 
 <script>
-  import { currentMode, JOJO_EVENTS, modeHas } from '@/lib/jojo/keys'
+  import { createIntroEntry } from '@/lib/jojo/intro/entry'
+  import { currentMode, JOJO_EVENTS, modeHas, stillReason } from '@/lib/jojo/keys'
 
   // Jojo off (no package / PUBLIC_JOJO=0): nothing here runs
   if (__JOJO__) {
     const html = document.documentElement
-    const LATEST_START_MS = 3200
-
-    const settle = () => {
-      html.setAttribute('data-jojo-intro', 'done')
-      html.removeAttribute('data-jojo-intro-trigger')
-      document.dispatchEvent(
-        new CustomEvent(JOJO_EVENTS.intro, {
-          detail: { phase: 'end', outcome: 'abort', trigger: 'first_visit' }
-        })
-      )
-    }
-
-    async function play(trigger: 'first_visit' | 'url' | 'replay') {
-      try {
-        const { runIntro } = await import('@/lib/jojo/intro/run')
-        const r = runIntro(trigger)
-        if (!r.started && trigger !== 'replay') settle()
-      } catch {
-        // chunk failed to load: the page was never touched
-        if (trigger !== 'replay') settle()
-      }
-    }
 
     /** wait for fonts and the avatar so the stand-ins match the page, but not forever */
     async function ready() {
@@ -42,23 +21,22 @@
       await Promise.race([Promise.all(waits), new Promise((r) => setTimeout(r, 1200))])
     }
 
-    if (html.getAttribute('data-jojo-intro') === 'armed') {
-      const trigger = (html.getAttribute('data-jojo-intro-trigger') ?? 'first_visit') as
-        | 'first_visit'
-        | 'url'
-      ready().then(() => {
-        // too late to be an intro: the visitor is already reading
-        const late = trigger === 'first_visit' && performance.now() > LATEST_START_MS
-        if (late || window.scrollY > 40) settle()
-        else play(trigger)
-      })
-    }
-
-    document.addEventListener(JOJO_EVENTS.introReplay, () => {
-      if (!modeHas(currentMode(), 'c')) return
-      if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
-      requestAnimationFrame(() => play('replay'))
+    const entry = createIntroEntry({
+      root: html,
+      still: () => stillReason(),
+      hasIntro: () => modeHas(currentMode(), 'c'),
+      // the heavy chunk: fetched only after the still check passed
+      load: () => import('@/lib/jojo/intro/run'),
+      emit: (detail) => document.dispatchEvent(new CustomEvent(JOJO_EVENTS.intro, { detail })),
+      ready,
+      now: () => performance.now(),
+      scrollY: () => window.scrollY,
+      scrollToTop: () => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }),
+      raf: (cb) => void requestAnimationFrame(cb)
     })
+
+    void entry.boot()
+    document.addEventListener(JOJO_EVENTS.introReplay, () => entry.replay())
   }
 </script>
 
@@ -145,7 +123,8 @@
     content: ' ›';
   }
   @media (prefers-reduced-motion: reduce) {
-    /* the gate never arms the intro under reduced motion; belt and braces */
+    /* every entry refuses under reduced motion and a run ends if it turns on;
+       this only covers the frame before that script runs */
     .jojo-intro-stage,
     .jojo-intro-skip {
       display: none;

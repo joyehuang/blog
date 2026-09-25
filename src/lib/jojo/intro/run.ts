@@ -6,6 +6,8 @@ import { createRoot, type Root } from 'react-dom/client'
 import {
   JOJO_EVENTS,
   JOJO_KEYS,
+  stillReason,
+  watchStill,
   writeStored,
   type IntroEventDetail,
   type IntroTrigger
@@ -123,6 +125,10 @@ export type RunResult = { started: boolean; reason?: string; controller?: IntroC
 
 export function runIntro(trigger: IntroTrigger): RunResult {
   const html = document.documentElement
+  // the entry (JojoIntro.astro) already refused before loading this chunk;
+  // checked again here so no caller can start a run while Jojo must stay still
+  const still = stillReason()
+  if (still) return { started: false, reason: still }
   if (active?.state === 'running') return { started: false, reason: 'running' }
   const zh = html.lang !== 'en'
   if (window.scrollY > 40) return { started: false, reason: 'scrolled' }
@@ -154,6 +160,7 @@ export function runIntro(trigger: IntroTrigger): RunResult {
   let shownEmotion: EmotionId | null = null
   let shownGaze = ''
   let landed = false
+  let touched = false
 
   const renderActor = (emotion: EmotionId, gaze: { x: number; y: number } | null) => {
     const key = gaze ? `${gaze.x},${gaze.y}` : 'auto'
@@ -176,6 +183,7 @@ export function runIntro(trigger: IntroTrigger): RunResult {
   }
 
   const mount = () => {
+    touched = true
     html.removeAttribute('data-jojo-intro-landed')
     stage = document.createElement('div')
     stage.className = 'jojo-intro-stage'
@@ -331,6 +339,8 @@ export function runIntro(trigger: IntroTrigger): RunResult {
         writeStored(JOJO_KEYS.intro, String(Date.now()))
       },
       isHidden: () => document.visibilityState === 'hidden',
+      still: () => stillReason(),
+      onStillChange: (cb) => watchStill(cb),
       scrollY: () => window.scrollY,
       on: (target, type, handler, options) => {
         const t = target === 'window' ? window : document
@@ -351,7 +361,11 @@ export function runIntro(trigger: IntroTrigger): RunResult {
       skip: () => controller.skip()
     }
   }
-  return { started: controller.state !== 'idle', controller }
+  // refused (still) or hidden before mounting: the page was never touched and
+  // the caller must settle it; once mounted, unmount() settles it
+  return touched
+    ? { started: true, controller }
+    : { started: false, reason: stillReason() ?? 'hidden', controller }
 }
 
 /** the running intro, if any (review tools / tests) */
