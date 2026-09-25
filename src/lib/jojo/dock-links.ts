@@ -3,7 +3,7 @@ import { published } from '@/lib/seo/drafts'
 
 import type { DockLinks } from '@/components/jojo/JojoDock'
 
-const POOL = 24
+const POOL = 16
 let cache: Partial<Record<'zh' | 'en', DockLinks>> = {}
 
 /** Real destinations for the dock menu, computed once per build/process. */

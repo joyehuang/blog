@@ -4,13 +4,18 @@
 // that must exist before any script: the failsafe that un-hides stand-ins.
 import gateSource from '@/lib/jojo/head-gate.js?raw'
 import { JOJO_KEYS } from '@/lib/jojo/keys'
+import { transformSync } from 'esbuild'
 
 const cfg = {
   review: __JOJO_REVIEW__,
   homePaths: ['/', '/en'],
   keys: { intro: JOJO_KEYS.intro, reviewMode: JOJO_KEYS.reviewMode }
 }
-const inline = `${gateSource.replace(/^export .*$/m, '')};jojoHeadGate(window,${JSON.stringify(cfg)});`
+// the tested source, minified at build time (it ships inline on every page)
+const inline = transformSync(
+  `${gateSource.replace(/^export .*$/m, '')};jojoHeadGate(window,${JSON.stringify(cfg)});`,
+  { minify: true, target: 'es2019', legalComments: 'none' }
+).code.trim()
 // A piece played by its stand-in is hidden without changing layout. Not
 // !important: the failsafe animation must be able to override it, so that if
 // cleanup never runs (script error, blocked chunk) the piece reappears after 6 s.
