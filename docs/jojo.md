@@ -51,14 +51,18 @@ still unless poked.
 - **A refusal touches nothing:** no stage, no hidden originals, not marked as
   seen. `data-jojo-intro` ends on `done` (never stuck on `armed`) and a
   `jojo:intro` event with `phase: 'refused'` is sent.
-- **Switched on mid-run:** the run ends at once and the page is restored.
+- **Switched on mid-run:** the run ends and the page is restored — at once on
+  a change event, otherwise on the next frame (Chrome fires no event when
+  Save-Data changes).
 - **Hero and dock:** no greeting, no pointer-follow, no hover/focus prefetch,
   and no replay entry in the dock. A tap may still load the engine and swap to
   a static face (`motion: 'static'`); nothing animates continuously.
 - **Late work never lands:** face runs go through `lib/jojo/steps.ts`. A
   reaction whose engine download finishes after unmount, after a newer
   reaction, or not at all creates no timer and changes nothing. A failed
-  download is forgotten, so the next tap retries it.
+  download leaves the static frame; the loader forgets it so a later tap asks
+  again, but Chrome keeps a failed module fetch failed for the page's lifetime,
+  so in practice Jojo stays static until the next page load.
 
 ## The private package boundary
 

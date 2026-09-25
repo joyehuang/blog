@@ -45,7 +45,7 @@ export default function JojoHero({ lang, staticSvg }: Props) {
   const [gaze, setGaze] = useState<GazeInput>('auto')
   const still = useStill()
   // the engine loads only when something is about to move; each intent counts,
-  // so a failed download is retried by the next one
+  // so a later intent asks again after a failed download
   const [live, setLive] = useState(0)
   const wake = useCallback(() => {
     setLive((n) => n + 1)

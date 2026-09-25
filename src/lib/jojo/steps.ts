@@ -78,8 +78,11 @@ export function createStepPlayer(deps: StepPlayerDeps) {
 }
 
 /**
- * A once-per-page loader that forgets a failed attempt, so the next intent can
- * retry instead of inheriting a cached rejection forever.
+ * A once-per-page loader that forgets a failed attempt, so the next intent asks
+ * again instead of inheriting a cached rejection. Whether the browser really
+ * refetches is up to its module map: Chrome keeps a failed module fetch failed
+ * for the page's lifetime, so there Jojo simply stays static until the next
+ * page load (the step player then plays nothing).
  */
 export function createLoader<T>(importer: () => Promise<T>) {
   let loading: Promise<T> | null = null

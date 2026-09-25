@@ -105,7 +105,7 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [previewStatus, setPreviewStatus] = useState<StatusId | null>(null)
   const still = useStill()
-  // each intent counts, so a failed engine download is retried by the next one
+  // each intent counts, so a later intent asks again after a failed download
   const [live, setLive] = useState(0)
   const wake = useCallback(() => {
     setLive((n) => n + 1)

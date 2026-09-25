@@ -9,7 +9,7 @@ import { useEffect, useState, type ComponentType } from 'react'
  * costs no engine JavaScript at all. `live` (or any interaction the parent
  * turns into `live`) fetches the engine chunk once per page and swaps in the
  * animated component — visually seamless, since both start on the same frame.
- * A failed fetch is forgotten, so a later intent retries it.
+ * A failed fetch is forgotten, so a later intent asks again (see createLoader).
  */
 export const loadJojoRuntime: () => Promise<ComponentType<JojoProps>> = createLoader(() =>
   import('@jojo-web/runtime').then((m) => m.Jojo)
@@ -17,7 +17,7 @@ export const loadJojoRuntime: () => Promise<ComponentType<JojoProps>> = createLo
 
 interface Props extends JojoProps {
   staticSvg: string
-  /** truthy: go live. A new value (the parent counts intents) retries a failed fetch. */
+  /** truthy: go live. A new value (the parent counts intents) asks again after a failed fetch. */
   live: boolean | number
   className?: string
 }
