@@ -41,6 +41,11 @@ const rectOf = (el: Element): Rect => {
 
 function piece(id: PieceId): HTMLElement | null {
   if (id === 'header') return document.querySelector('header-component')
+  // the two label chips (location, GitHub) move on their own
+  if (id === 'chip0' || id === 'chip1')
+    return document.querySelector(
+      `[data-jojo-piece="labels"] > :nth-child(${id === 'chip0' ? 1 : 2})`
+    )
   return document.querySelector(`[data-jojo-piece="${id}"]`)
 }
 
@@ -72,6 +77,8 @@ function cloneForStage(el: HTMLElement): HTMLElement {
     n.removeAttribute('for')
     n.removeAttribute('data-jojo-piece')
     n.removeAttribute('data-jojo-seat')
+    // page scripts find the real card by this; the copy must not be found
+    n.removeAttribute('data-hd-frame')
     if (n.hasAttribute('tabindex')) n.setAttribute('tabindex', '-1')
   }
   return root as HTMLElement
@@ -270,7 +277,7 @@ export function runIntro(trigger: IntroTrigger): RunResult {
       const p = f.pieces[id]
       const box = boxes[id]
       if (!p || !box) continue
-      box.style.transform = `translate3d(${p.tx.toFixed(2)}px,${p.ty.toFixed(2)}px,0) rotate(${p.rot.toFixed(2)}deg) scale(${p.scale.toFixed(4)})`
+      box.style.transform = `translate3d(${p.tx.toFixed(2)}px,${p.ty.toFixed(2)}px,0) rotate(${p.rot.toFixed(2)}deg) scale(${p.scale.toFixed(4)},${(p.scale * p.sy).toFixed(4)})`
       box.style.opacity = p.opacity.toFixed(3)
     }
     const a = f.actor
@@ -357,6 +364,9 @@ export function runIntro(trigger: IntroTrigger): RunResult {
       duration: plan.duration,
       beats: plan.beats,
       cast: plan.cast,
+      knock: plan.knock,
+      spring: plan.spring,
+      jobs: plan.jobs,
       seek: (t: number) => controller.seek(t),
       skip: () => controller.skip()
     }

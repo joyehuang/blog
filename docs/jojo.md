@@ -25,10 +25,17 @@ family). This site shows it in three ways that are designed to work together.
 
 ### C · intro
 
-- **What:** "Jojo builds the site", a ≈ 3.4 s first-visit intro compressed from
-  the 29 s film. Jojo pops out, knocks the hero apart, pulls the header back on
-  its signal-dot tether, rolls the avatar home, yanks the terminal card back,
-  and hops into its seat.
+- **What:** "Jojo builds the site", a first-visit intro compressed from the
+  29 s film (≈ 3.96 s at 1440×900, 3.6 s at 390×844 or 1280×720, 3.2 s at
+  375×667). Jojo pops out and the pop's wave knocks the first screen apart,
+  nearest first. It pulls the header back on its signal-dot tether and rolls
+  the avatar home. A stomp's ring springs the name and each label chip back
+  up. Then one tether run taps Connect on, yanks the terminal card back,
+  drags the About blind open and pulls the Product card in. Last, Jojo hops
+  into its seat.
+- **Who takes part:** only pieces at least 35 % on screen. Desktop 1440×900
+  gets all nine; 1280×720 and 390×844 skip Product (below the fold); 375×667
+  also skips About. Nothing off screen is dragged in.
 - **Where:** `JojoHead.astro` (gate), `JojoIntro.astro` → `intro/entry.ts`
   (every entry), `src/lib/jojo/intro/*`.
 - **JS:** loaded only when it plays.
