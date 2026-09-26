@@ -1,5 +1,7 @@
 ---
 import { getLangFromUrl } from '@/i18n/ui'
+import { dockLinks } from '@/lib/jojo/dock-links'
+import { renderJojoSvg } from '@jojo-web/static'
 import Analytics from '@vercel/analytics/astro'
 import SpeedInsights from '@vercel/speed-insights/astro'
 
@@ -9,6 +11,9 @@ import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
 import BaseHead from '@/components/BaseHead.astro'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
 import Header from '@/components/Header.astro'
+import JojoDock from '@/components/jojo/JojoDock'
+import JojoHead from '@/components/jojo/JojoHead.astro'
+import JojoReview from '@/components/jojo/JojoReview'
 import DevModeHost from '@/components/terminal/DevModeHost'
 import ThemeProvider from '@/components/ThemeProvider.astro'
 import config from '@/site-config'
@@ -32,13 +37,29 @@ const {
 
 const lang = getLangFromUrl(Astro.url)
 const htmlLang = lang === 'en' ? 'en' : config.locale.lang
+const jojoHome = Astro.url.pathname === '/' || Astro.url.pathname.replace(/\/$/, '') === '/en'
+const jojoLinks = __JOJO__ && chrome ? await dockLinks(lang) : null
+const jojoDockSvg = jojoLinks
+  ? renderJojoSvg({
+      idPrefix: 'dock-s',
+      emotion: 'calm',
+      size: 44,
+      framing: 'tight',
+      decorative: true
+    })
+  : ''
 ---
 
 <html lang={htmlLang}>
   <head>
     <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
     <ThemeProvider />
-    <script is:inline defer src='https://umami.joyehuang.dev/script.js' data-website-id='1d765b53-dc42-4361-8ad4-4e73420abdc7'></script>
+    <JojoHead />
+    <script
+      is:inline
+      defer
+      src='https://umami.joyehuang.dev/script.js'
+      data-website-id='1d765b53-dc42-4361-8ad4-4e73420abdc7'></script>
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>
@@ -57,6 +78,19 @@ const htmlLang = lang === 'en' ? 'en' : config.locale.lang
       {chrome && <Footer />}
     </div>
     <DevModeHost client:only='react' />
+    {
+      jojoLinks && (
+        <JojoDock
+          client:idle
+          lang={lang}
+          links={jojoLinks}
+          home={jojoHome}
+          review={__JOJO_REVIEW__}
+          staticSvg={jojoDockSvg}
+        />
+      )
+    }
+    {__JOJO_REVIEW__ && <JojoReview client:idle lang={lang} />}
     <Analytics />
     <AnalyticsEvents />
     <SpeedInsights />

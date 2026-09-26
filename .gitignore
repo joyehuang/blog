@@ -92,3 +92,6 @@ bunfig.toml
 .claude/
 .env*.local
 .env*
+
+# private Jojo package (scripts/jojo/jojo-web.mjs) — never commit
+/vendor/

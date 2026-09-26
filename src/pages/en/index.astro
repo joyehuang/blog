@@ -1,22 +1,36 @@
 ---
 import { Image } from 'astro:assets'
 import { getCollection } from 'astro:content'
+import { renderJojoSvg } from '@jojo-web/static'
 import avatar from 'src/assets/avatar.png'
 
 import { Quote } from 'astro-pure/advanced'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import PostPreviewEn from '@/components/blog/PostPreviewEn.astro'
 import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
+import JojoHero from '@/components/jojo/JojoHero'
+import JojoIntro from '@/components/jojo/JojoIntro.astro'
 import JoJo from '@/components/mascot/JoJo'
-import PostPreviewEn from '@/components/blog/PostPreviewEn.astro'
 import Terminal from '@/components/terminal/Terminal.astro'
 import config from '@/site-config'
 
 export const prerender = true
+
+// Jojo seat: the calm frame as build-time SVG; the engine loads only when it moves
+const jojoSeatSvg = __JOJO__
+  ? renderJojoSvg({
+      idPrefix: 'seat-s',
+      emotion: 'calm',
+      size: 48,
+      framing: 'tight',
+      decorative: true
+    })
+  : ''
 
 const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
 const frontend = ['React', 'Next.js', 'Tailwind CSS', 'Remotion', 'Vite']
@@ -93,23 +107,29 @@ const latestNotes = (await getCollection('notesEn'))
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  <LegacyIntroOverlay />
+  {/* Jojo on → the build-the-site intro replaces the particle intro and the ASCII mascot */}
+  {!__JOJO__ && <LegacyIntroOverlay />}
+  <JojoIntro />
   <main class='flex w-full flex-col items-center'>
     <section
       class='animate mb-10 flex flex-col items-center gap-y-7 relative z-50'
       id='content-header'
     >
-      <Image
-        src={avatar}
-        alt='profile'
-        data-intro-target='avatar'
-        class='h-28 w-auto rounded-full border p-1'
-        loading='eager'
-      />
+      <div class='relative'>
+        <Image
+          src={avatar}
+          alt='profile'
+          data-intro-target='avatar'
+          data-jojo-piece='avatar'
+          class='h-28 w-auto rounded-full border p-1'
+          loading='eager'
+        />
+        {__JOJO__ && <JojoHero client:idle lang='en' staticSvg={jojoSeatSvg} />}
+      </div>
 
       <div class='flex flex-col items-center gap-y-4'>
-        <h1 class='text-3xl font-bold'>{config.author}</h1>
-        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+        <h1 class='text-3xl font-bold' data-jojo-piece='name'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3' data-jojo-piece='labels'>
           <Label title='Melbourne, Australia'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
@@ -127,7 +147,7 @@ const latestNotes = (await getCollection('notesEn'))
         </div>
       </div>
 
-      <div class='flex flex-row gap-3'>
+      <div class='flex flex-row gap-3' data-jojo-piece='connect'>
         <a
           href='/en/contact'
           class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
@@ -147,10 +167,10 @@ const latestNotes = (await getCollection('notesEn'))
       id='content'
       class='animate relative z-0 flex w-full min-w-0 max-w-full flex-col gap-y-10 md:w-4/5 lg:w-5/6'
     >
-      <div class='-mt-2'>
+      <div class='-mt-2' data-jojo-piece='card'>
         <Terminal />
       </div>
-      <Section title='About'>
+      <Section title='About' data-jojo-piece='about'>
         <p class='text-muted-foreground'>AI Agent & Full-Stack Developer</p>
         <p class='text-muted-foreground'>
           Undergraduate at the University of Melbourne. Currently working on Playyy.ai at Adastra
@@ -326,10 +346,16 @@ const latestNotes = (await getCollection('notesEn'))
     <Quote class='mt-12' />
   </main>
 
-  {/* JoJo mascot — floating companion bottom-right (hidden on mobile) */}
-  <div id='home-jojo' class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
-    <div class='pointer-events-auto'>
-      <JoJo client:load size='md' quipPool='idle' />
-    </div>
-  </div>
+  {
+    /* JoJo ASCII mascot — floating companion bottom-right (hidden on mobile); replaced by the Jojo dock */
+  }
+  {
+    !__JOJO__ && (
+      <div id='home-jojo' class='pointer-events-none fixed bottom-6 end-6 z-40 hidden md:block'>
+        <div class='pointer-events-auto'>
+          <JoJo client:load size='md' quipPool='idle' />
+        </div>
+      </div>
+    )
+  }
 </PageLayout>

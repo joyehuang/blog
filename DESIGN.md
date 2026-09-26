@@ -3,59 +3,59 @@ version: alpha
 name: Joye Personal Blog
 description: A solo engineer's blog and portfolio (Astro). Calm, editorial, technical on the main reading surfaces — chrome stays quiet so writing and project work are the subject. A separate, deliberately playful terminal/dev-mode/mascot layer exists as an easter egg and does not follow these tokens (see Sub-themes).
 colors:
-  background: "hsl(210 33% 99%)"
-  foreground: "hsl(240 10% 3.9%)"
-  card: "hsl(0 0% 100%)"
-  card-foreground: "hsl(240 10% 3.9%)"
-  popover: "hsl(0 0% 100%)"
-  popover-foreground: "hsl(240 10% 3.9%)"
-  primary: "hsl(200 29% 45%)"
-  primary-foreground: "hsl(0 0% 92.5%)"
-  secondary: "hsl(240 4.8% 95.9%)"
-  secondary-foreground: "hsl(240 5.9% 10%)"
-  muted: "hsl(240 4.8% 95%)"
-  muted-foreground: "hsl(240 3.8% 28.1%)"
-  accent: "hsl(240 4.8% 95.9%)"
-  accent-foreground: "hsl(240 5.9% 10%)"
-  destructive: "hsl(0 72.22% 50.59%)"
-  destructive-foreground: "hsl(0 0% 98%)"
-  border: "hsl(240 5.9% 88%)"
-  input: "hsl(240 5.9% 90%)"
-  ring: "hsl(240 5.9% 10%)"
-  term-surface: "hsl(210 20% 97%)"
-  term-chrome: "hsl(210 20% 95%)"
-  term-ok: "hsl(142 50% 40%)"
-  code-bg: "hsl(220 14% 93%)"
-  code-fg: "hsl(220 13% 18%)"
+  background: 'hsl(210 33% 99%)'
+  foreground: 'hsl(240 10% 3.9%)'
+  card: 'hsl(0 0% 100%)'
+  card-foreground: 'hsl(240 10% 3.9%)'
+  popover: 'hsl(0 0% 100%)'
+  popover-foreground: 'hsl(240 10% 3.9%)'
+  primary: 'hsl(200 29% 45%)'
+  primary-foreground: 'hsl(0 0% 92.5%)'
+  secondary: 'hsl(240 4.8% 95.9%)'
+  secondary-foreground: 'hsl(240 5.9% 10%)'
+  muted: 'hsl(240 4.8% 95%)'
+  muted-foreground: 'hsl(240 3.8% 28.1%)'
+  accent: 'hsl(240 4.8% 95.9%)'
+  accent-foreground: 'hsl(240 5.9% 10%)'
+  destructive: 'hsl(0 72.22% 50.59%)'
+  destructive-foreground: 'hsl(0 0% 98%)'
+  border: 'hsl(240 5.9% 88%)'
+  input: 'hsl(240 5.9% 90%)'
+  ring: 'hsl(240 5.9% 10%)'
+  term-surface: 'hsl(210 20% 97%)'
+  term-chrome: 'hsl(210 20% 95%)'
+  term-ok: 'hsl(142 50% 40%)'
+  code-bg: 'hsl(220 14% 93%)'
+  code-fg: 'hsl(220 13% 18%)'
 # colorsDark is a non-normative extension (not part of the base design.md
 # spec): the site is dual-theme, and we keep both themes in one file rather
 # than splitting into a second design.dark.md. Same keys as `colors` above,
 # values applied when `.dark` is set on <html>.
 colorsDark:
-  background: "hsl(240 20.54% 5.2%)"
-  foreground: "hsl(0 0% 98%)"
-  card: "hsl(240 10% 3.9%)"
-  card-foreground: "hsl(0 0% 98%)"
-  popover: "hsl(240 10% 3.9%)"
-  popover-foreground: "hsl(0 0% 98%)"
-  primary: "hsl(195 95% 85%)"
-  primary-foreground: "hsl(240 3.7% 15.9%)"
-  secondary: "hsl(240 3.7% 15.9%)"
-  secondary-foreground: "hsl(0 0% 98%)"
-  muted: "hsl(240 5.9% 12%)"
-  muted-foreground: "hsl(240 5% 74.9%)"
-  accent: "hsl(240 3.7% 15.9%)"
-  accent-foreground: "hsl(0 0% 98%)"
-  destructive: "hsl(0 62.8% 30.6%)"
-  destructive-foreground: "hsl(0 0% 98%)"
-  border: "hsl(240 3.7% 19.9%)"
-  input: "hsl(240 3.7% 15.9%)"
-  ring: "hsl(240 4.9% 83.9%)"
-  term-surface: "hsl(240 18% 7%)"
-  term-chrome: "hsl(240 18% 4%)"
-  term-ok: "hsl(142 60% 65%)"
-  code-bg: "hsl(240 5.9% 12%)"
-  code-fg: "hsl(0 0% 92%)"
+  background: 'hsl(240 20.54% 5.2%)'
+  foreground: 'hsl(0 0% 98%)'
+  card: 'hsl(240 10% 3.9%)'
+  card-foreground: 'hsl(0 0% 98%)'
+  popover: 'hsl(240 10% 3.9%)'
+  popover-foreground: 'hsl(0 0% 98%)'
+  primary: 'hsl(195 95% 85%)'
+  primary-foreground: 'hsl(240 3.7% 15.9%)'
+  secondary: 'hsl(240 3.7% 15.9%)'
+  secondary-foreground: 'hsl(0 0% 98%)'
+  muted: 'hsl(240 5.9% 12%)'
+  muted-foreground: 'hsl(240 5% 74.9%)'
+  accent: 'hsl(240 3.7% 15.9%)'
+  accent-foreground: 'hsl(0 0% 98%)'
+  destructive: 'hsl(0 62.8% 30.6%)'
+  destructive-foreground: 'hsl(0 0% 98%)'
+  border: 'hsl(240 3.7% 19.9%)'
+  input: 'hsl(240 3.7% 15.9%)'
+  ring: 'hsl(240 4.9% 83.9%)'
+  term-surface: 'hsl(240 18% 7%)'
+  term-chrome: 'hsl(240 18% 4%)'
+  term-ok: 'hsl(142 60% 65%)'
+  code-bg: 'hsl(240 5.9% 12%)'
+  code-fg: 'hsl(0 0% 92%)'
 typography:
   body:
     fontFamily: Satoshi
@@ -70,7 +70,7 @@ typography:
     fontFamily: Satoshi
     fontWeight: 500
   ui-label:
-    fontFamily: "JetBrains Mono"
+    fontFamily: 'JetBrains Mono'
     fontSize: 12px
     fontWeight: 400
     lineHeight: 20px
@@ -112,17 +112,17 @@ All color is driven by HSL-triplet CSS variables in
 store a raw `H S% L%` triplet (no `hsl()` wrapper) so they can be consumed
 with an alpha channel: `hsl(var(--primary) / 0.25)`.
 
-| Token | Light | Dark | Used for |
-| --- | --- | --- | --- |
-| `background` / `foreground` | `210 33% 99%` / `240 10% 3.9%` | `240 20.54% 5.2%` / `0 0% 98%` | Page base |
-| `card` / `card-foreground` | `0 0% 100%` / `240 10% 3.9%` | `240 10% 3.9%` / `0 0% 98%` | Cards, popovers |
-| `primary` / `primary-foreground` | `200 29% 45%` (muted teal-blue) | `195 95% 85%` (bright cyan) | Links, accents, active state |
-| `secondary` / `muted` / `accent` | `240 4.8% 95.9%` / `95%` / `95.9%` | `240 3.7% 15.9%` / `5.9% 12%` / `3.7% 15.9%` | Low-emphasis fills |
-| `muted-foreground` | `240 3.8% 28.1%` | `240 5% 74.9%` | Secondary text |
-| `destructive` / `destructive-foreground` | `0 72.22% 50.59%` / `0 0% 98%` | `0 62.8% 30.6%` / `0 0% 98%` | Errors |
-| `border` / `input` / `ring` | `240 5.9% 88%` / `90%` / `10%` | `240 3.7% 19.9%` / `15.9%` / `4.9% 83.9%` | Structural lines, focus |
-| `term-surface` / `term-chrome` / `term-ok` | terminal sub-theme (see below) | | Terminal widget |
-| `code-bg` / `code-fg` | `220 14% 93%` / `220 13% 18%` | `240 5.9% 12%` / `0 0% 92%` | Code blocks |
+| Token                                      | Light                              | Dark                                         | Used for                     |
+| ------------------------------------------ | ---------------------------------- | -------------------------------------------- | ---------------------------- |
+| `background` / `foreground`                | `210 33% 99%` / `240 10% 3.9%`     | `240 20.54% 5.2%` / `0 0% 98%`               | Page base                    |
+| `card` / `card-foreground`                 | `0 0% 100%` / `240 10% 3.9%`       | `240 10% 3.9%` / `0 0% 98%`                  | Cards, popovers              |
+| `primary` / `primary-foreground`           | `200 29% 45%` (muted teal-blue)    | `195 95% 85%` (bright cyan)                  | Links, accents, active state |
+| `secondary` / `muted` / `accent`           | `240 4.8% 95.9%` / `95%` / `95.9%` | `240 3.7% 15.9%` / `5.9% 12%` / `3.7% 15.9%` | Low-emphasis fills           |
+| `muted-foreground`                         | `240 3.8% 28.1%`                   | `240 5% 74.9%`                               | Secondary text               |
+| `destructive` / `destructive-foreground`   | `0 72.22% 50.59%` / `0 0% 98%`     | `0 62.8% 30.6%` / `0 0% 98%`                 | Errors                       |
+| `border` / `input` / `ring`                | `240 5.9% 88%` / `90%` / `10%`     | `240 3.7% 19.9%` / `15.9%` / `4.9% 83.9%`    | Structural lines, focus      |
+| `term-surface` / `term-chrome` / `term-ok` | terminal sub-theme (see below)     |                                              | Terminal widget              |
+| `code-bg` / `code-fg`                      | `220 14% 93%` / `220 13% 18%`      | `240 5.9% 12%` / `0 0% 92%`                  | Code blocks                  |
 
 `--primary` is not held constant across themes — it flips from a muted
 mid-tone in light mode to a bright near-foreground tone in dark mode, rather
@@ -340,7 +340,7 @@ not a bug to normalize away:
 - `devmode.css` explicitly switches `mix-blend-mode` between `multiply`
   (light) and `screen` (dark) for its scanline effect
   ([`devmode.css:41-46`](src/components/terminal/devmode.css)) — a rare case
-  where light/dark need different *blend modes*, not just different colors.
+  where light/dark need different _blend modes_, not just different colors.
 - `jojo.css`'s speech bubble uses theme tokens (`--card`/`--foreground`/
   `--border`) for color but its own literal `10px` radius / `6px 10px`
   padding — color follows the system, geometry doesn't.
@@ -348,3 +348,57 @@ not a bug to normalize away:
 When extending one of these surfaces, stay inside its local token set
 (`--wt-*`, `--term-*`) rather than pulling in the global `--radius`/spacing
 scale.
+
+### Jojo (character layer)
+
+Jojo is Joye's character (private package `@joyehuang/jojo-web`, see
+[`docs/jojo.md`](docs/jojo.md)). Like the terminal, it is its own "device":
+it keeps the approved palette (indigo shell, mint face, coral signal dot) and
+is never recoloured into site tokens. Everything _around_ Jojo — the dock
+panel, end-of-post card, skip pill — uses the ordinary semantic tokens and the
+usual radius/elevation idioms (`rounded-2xl` panel, `0 14px 38px
+hsl(var(--foreground) / …)` shadow). The dock Jojo itself has no base: no
+circle, border or shadow behind it (user decision, 2026-09-25); its button is
+a transparent ≥ 44 px hit area with a `--ring` focus-visible outline.
+
+- **One Jojo per viewport.** In-flow Jojo (identity seat beside the home
+  avatar, end-of-post card, 404, About) wins over the dock; the intro wins
+  over both. Surfaces that host an in-flow Jojo carry `data-jojo-anchor` so the
+  dock can step aside.
+- **Sizes.** 44 (phone) / 48 px seat and dock, 52 px end card, 88 px 404 and
+  About. At ≤ 64 px use `framing="tight"`. Hit areas stay ≥ 44 px.
+- **Dark mode.** Add the hairline halo (`--jojo-halo` in
+  `src/components/jojo/jojo.css`) rather than a card or recolour: the indigo
+  shell otherwise sinks into the dark background at small sizes.
+- **Still by default.** Idle Jojo is static (`motion="transitions"`: it only
+  animates a change, then stops — no rAF at rest). It moves for real moments
+  only: the intro landing or a one-time greeting (≤ 1.2 s), a poke, the end of
+  a post (one short hop, using the Blurred Icon Transition for the face swap).
+  No speech bubbles, no auto quips, no `aria-live` for reactions.
+- **Intro.** The build-the-site intro plays once per browser on `/` and
+  `/en`, runs ≈ 3.2–4.4 s depending on how much of the home is on screen, is
+  skippable by any key, click, wheel or scroll, never locks scroll or sets
+  `inert` on the page, and works on clones in an inert layer (originals hidden
+  by `visibility` only, with a CSS failsafe). The first screen dims in place to
+  a faint blueprint and Jojo builds it back along one route (tether pull,
+  catch, stomp, shove, slide, rise) — every piece arrives by something Jojo
+  does. Pieces stay whole and readable: rigid moves or clip reveals only, never
+  flattened, stretched or thrown across the screen; Jojo (~avatar size) is the
+  one focal point, and the tether is only a short pull. Only pieces really on
+  screen take part. Finished text is never left under Jojo (it stands in free
+  space, hangs below a reveal edge on phones; only hops may pass over), and
+  the Skip pill is a keep-out the route never enters (bottom-right on phones).
+  Never change the visitor's settings in a performance (no
+  theme toggling). Reduced motion or Save-Data: no intro from any entry.
+- **Status ≠ emotion.** Emotions are performance. The status shapes (working
+  ring, needs-input bubble, success check, error, offline) are reserved for a
+  real chat lifecycle reported by a `ChatAdapter`; until chat exists the dock
+  shows plain idle and says so in words.
+- **Placement.** The dock owns the bottom-right corner column; back-to-top
+  stacks above it while the dock is shown. Nothing Jojo is fixed on the left
+  (the promo popout lives there).
+- Reduced motion: every Jojo surface has a `prefers-reduced-motion: reduce`
+  override; the engine itself goes static.
+
+The older ASCII `JoJo` mascot (`mascot/JoJo.tsx`) and the particle intro remain
+only for builds without the Jojo package; they never run alongside Jojo.

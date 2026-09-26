@@ -1,0 +1,80 @@
+/* Jojo sub-theme (see DESIGN.md → Sub-themes → Jojo). Jojo keeps its own
+   palette (the approved indigo / mint / coral); the chrome around it uses the
+   site tokens. At small sizes the indigo shell sinks into the dark background,
+   so dark mode adds a hairline halo instead of recolouring the character. */
+:root {
+  --jojo-coral: #fe6a4a;
+  --jojo-indigo: #2d3272;
+  --jojo-halo: none;
+}
+.dark {
+  --jojo-halo: drop-shadow(0 0 0.6px hsl(0 0% 100% / 0.75))
+    drop-shadow(0 0 5px hsl(195 95% 85% / 0.14));
+}
+.jojo-mark > svg,
+.jojo-seat svg,
+.jojo-dock-toggle svg,
+.jojo-dock-head svg {
+  filter: var(--jojo-halo);
+}
+.jojo-poke-target {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+/* The button is the only hit target: the static frame is swapped for the live
+   engine on hover/tap, and if the element under the pointer is replaced between
+   pointerdown and pointerup the browser fires no click (first poke lost). */
+.jojo-poke-target > * {
+  pointer-events: none;
+}
+.jojo-poke-target:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ---- identity slot (scheme A) ---- */
+.jojo-seat {
+  position: absolute;
+  right: -20px;
+  bottom: -6px;
+  width: 48px;
+  height: 48px;
+}
+.jojo-seat-btn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+}
+.jojo-seat-btn > svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+@media (max-width: 640px) {
+  .jojo-seat {
+    right: -16px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* static frame before the engine loads (LazyJojo) */
+.jojo-static {
+  display: block;
+  width: 100%;
+  height: 100%;
+  line-height: 0;
+}
+.jojo-static > svg {
+  width: 100%;
+  height: 100%;
+}
+.jojo-static > svg,
+.jojo-seat .jojo-static > svg,
+.jojo-dock-toggle .jojo-static > svg {
+  filter: var(--jojo-halo);
+}

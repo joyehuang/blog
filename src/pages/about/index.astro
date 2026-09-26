@@ -4,10 +4,12 @@ import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
 import Comment from '@/components/comment/Comment.astro'
+import JojoAbout from '@/components/jojo/JojoAbout.astro'
 import hermesIcon from '@/assets/tools/hermes.png'
 import pencilIcon from '@/assets/tools/pencil.png'
 
 const headings = [
+  ...(__JOJO__ ? [{ depth: 2, slug: 'jojo', text: 'Jojo' }] : []),
   { depth: 2, slug: 'summer-of-agents', text: 'Summer of Agents' },
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
@@ -27,6 +29,15 @@ const headings = [
     My motto: Build fast, learn faster. <Spoiler />
   </p>
   <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' style='ahead' />
+
+  {
+    __JOJO__ && (
+      <>
+        <h2 id='jojo'>Jojo</h2>
+        <JojoAbout lang='zh' />
+      </>
+    )
+  }
 
   {/* summer-of-agents */}
   <h2 id='summer-of-agents'>Summer of Agents</h2>

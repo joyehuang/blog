@@ -1,0 +1,151 @@
+---
+// Scheme A — the end of an article. Static Jojo (two build-time frames, zero
+// framework JS) with three real ways on. When the card first comes into view
+// Jojo gives one short happy hop; that is all. It says the *post* ended — it
+// cannot know whether the visitor read it, so it never claims they did.
+import JojoMark from './JojoMark.astro'
+
+interface Props {
+  lang: 'zh' | 'en'
+  comments: boolean
+}
+const { lang, comments } = Astro.props
+const zh = lang === 'zh'
+const rss = zh ? '/rss.xml' : '/en/rss.xml'
+const all = zh ? '/blog' : '/en/blog'
+---
+
+{
+  __JOJO__ && (
+    <aside
+      class='jojo-end not-prose'
+      data-jojo-anchor
+      data-jojo-a='end'
+      aria-label={zh ? '文章结尾' : 'End of post'}
+    >
+      <span class='jojo-end-face'>
+        <JojoMark id='end-calm' emotion='calm' size={52} class='jojo-end-calm' />
+        <JojoMark id='end-happy' emotion='happy' size={52} class='jojo-end-happy' />
+      </span>
+      <div class='min-w-0'>
+        <p class='jojo-end-title'>{zh ? '这篇就到这里啦。' : "That's the end of this one."}</p>
+        <p class='jojo-end-links'>
+          {comments && <a href='#waline'>{zh ? '留个言' : 'Leave a comment'}</a>}
+          <a href={rss}>RSS</a>
+          <a href={all}>{zh ? '更多文章' : 'More posts'}</a>
+        </p>
+      </div>
+    </aside>
+  )
+}
+
+<script>
+  const card = document.querySelector<HTMLElement>('[data-jojo-a="end"]')
+  if (card && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return
+        card.classList.add('is-seen')
+        io.disconnect()
+      },
+      { threshold: 0.6 }
+    )
+    io.observe(card)
+  } else card?.classList.add('is-seen')
+</script>
+
+<style>
+  .jojo-end {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    padding: 1rem 1.25rem;
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.04);
+  }
+  .jojo-end-face {
+    position: relative;
+    flex: none;
+    width: 52px;
+    height: 52px;
+  }
+  /* calm → happy uses the site's Blurred Icon Transition */
+  .jojo-end-face :global(.jojo-mark) {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transition:
+      opacity 0.25s ease,
+      filter 0.25s ease,
+      transform 0.25s ease;
+  }
+  .jojo-end-face :global(.jojo-end-happy) {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+  .jojo-end:global(.is-seen) .jojo-end-face :global(.jojo-end-calm) {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.6);
+  }
+  .jojo-end:global(.is-seen) .jojo-end-face :global(.jojo-end-happy) {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  /* one short hop, once */
+  .jojo-end:global(.is-seen) .jojo-end-face {
+    animation: jojo-end-hop 0.52s cubic-bezier(0.3, 0.7, 0.4, 1) 0.1s 1 both;
+  }
+  @keyframes jojo-end-hop {
+    0% {
+      transform: translateY(0) scale(1, 1);
+    }
+    18% {
+      transform: translateY(0) scale(1.06, 0.92);
+    }
+    48% {
+      transform: translateY(-9px) scale(0.97, 1.04);
+    }
+    78% {
+      transform: translateY(0) scale(1.05, 0.95);
+    }
+    100% {
+      transform: translateY(0) scale(1, 1);
+    }
+  }
+  .jojo-end-title {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+  .jojo-end-links {
+    margin-top: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 1rem;
+    row-gap: 0.25rem;
+    font-size: 0.875rem;
+  }
+  .jojo-end-links a {
+    color: hsl(var(--muted-foreground));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--border));
+    text-underline-offset: 4px;
+    transition: color 0.15s ease;
+  }
+  .jojo-end-links a:hover {
+    color: hsl(var(--primary));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .jojo-end-face :global(.jojo-mark) {
+      transition: none;
+    }
+    .jojo-end:global(.is-seen) .jojo-end-face {
+      animation: none;
+    }
+  }
+</style>
