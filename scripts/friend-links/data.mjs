@@ -83,8 +83,8 @@ export function eligible(c) {
   return (
     c &&
     c.url === '/links' &&
-    !c.pid &&
-    !c.rid &&
+    [undefined, null, ''].includes(c.pid) &&
+    [undefined, null, ''].includes(c.rid) &&
     c.type !== 'administrator' &&
     c.status === 'approved' &&
     /^[A-Za-z0-9_-]{1,100}$/.test(String(c.objectId || ''))

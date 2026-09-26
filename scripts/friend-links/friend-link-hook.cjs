@@ -4,25 +4,10 @@ module.exports = async function friendLinkHook(comment) {
   try {
     const endpoint = process.env.FRIEND_LINK_WEBHOOK_URL
     const secret = process.env.FRIEND_LINK_WEBHOOK_SECRET
-    if (
-      !endpoint ||
-      !secret ||
-      !comment ||
-      comment.url !== '/links' ||
-      comment.pid ||
-      comment.rid ||
-      comment.type === 'administrator'
-    )
-      return
-    if (comment.status !== 'approved') return
-    const text = String(comment.comment || '')
-    if (
-      Buffer.byteLength(text) > 16384 ||
-      !['Name', 'Desc', 'Link', 'Avatar'].every((field) =>
-        new RegExp('\\b' + field + ':', 'i').test(text)
-      )
-    )
-      return
+    if (!endpoint || !secret) return
+    const { eligible, parseApplication } = await import('./data.mjs')
+    if (!eligible(comment)) return
+    try { parseApplication(comment.comment) } catch { return }
     const id = String(comment.objectId || '')
     if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) return
     const url = new URL(endpoint)

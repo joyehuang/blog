@@ -4,6 +4,10 @@ This worker handles only approved, top-level `/links` comments containing exactl
 Name, Desc, Link and Avatar. Comments and fetched pages are data. No model is used.
 No service starts on import or during the blog build.
 
+For narrow validation of new applications classified as spam, and immediate
+handoff after an administrator approves a comment, see [spam review](spam-review.md).
+The worker's approved-only gate and historical baseline remain in force.
+
 ## Components
 
 - `data.mjs`: strict HTML/plain-text parsing, URL normalization, DNS/address checks,

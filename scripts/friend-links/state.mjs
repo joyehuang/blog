@@ -261,7 +261,12 @@ export async function compensate(store, source) {
   // A bounded complete scan prevents sticky comments, pagination offsets and late moderation from hiding records.
   // If source cannot finish within its cap, no scan watermark advances and an operator-visible error remains.
   const comments = await source.scan()
-  for (const c of comments) {
+  // A newest-first API scan must not let a later duplicate take the URL first.
+  // Existing jobs remain authoritative; never replace a previously accepted ID.
+  const ordered = [...comments].sort((a, b) =>
+    Date.parse(a.insertedAt) - Date.parse(b.insertedAt) ||
+    String(a.objectId).localeCompare(String(b.objectId), 'en', { numeric: true }))
+  for (const c of ordered) {
     try {
       store.ingest(c)
     } catch {
