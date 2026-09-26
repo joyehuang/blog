@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bun run build",
+  "buildCommand": "rm -f node_modules/.astro/data-store.json && bun run build",
   "ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" = \"indexnow-state\" ]"
 }
