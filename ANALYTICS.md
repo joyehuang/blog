@@ -439,6 +439,23 @@ Required properties:
 Use this alongside Pages to understand whether English traffic is natural or
 driven by users switching from Chinese pages.
 
+### `page_not_found`
+
+A visitor lands on a 404 page.
+
+Required properties:
+
+- `locale`: `zh` | `en`
+- `page`: the missing pathname the visitor requested
+- `source`: `direct` | `internal` | `external`
+- `referrer_host`: referrer hostname, or `null`
+- `referrer_page`: pathname of our page that holds the broken link (internal
+  referrers only), or `null`
+
+The static 404 is recorded in Pages as `/404`, which hides the requested URL;
+this event is the only way to see which links are broken and where they come
+from.
+
 ## Legacy Events
 
 These events exist in older analytics data and may appear in historical Vercel
@@ -520,6 +537,7 @@ Implemented in current code:
 - `talk_resource_click`
 - `talk_join_intent`
 - `language_switch_click`
+- `page_not_found`
 - `jojo_poke`, `jojo_dock_action`, `jojo_story_play` (Jojo builds only)
 
 Legacy events retained only for historical data interpretation:

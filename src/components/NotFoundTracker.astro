@@ -1,0 +1,37 @@
+---
+// The static /404.html pageview is recorded as "/404", which hides the URL the
+// visitor actually asked for. This event keeps that path so broken links can be
+// traced (see ANALYTICS.md → page_not_found).
+---
+
+<script>
+  const analyticsWindow = window as typeof window & {
+    __siteAnalyticsQueue?: Array<{ eventName: string; properties: Record<string, string | null> }>
+    __trackSiteAnalytics?: (detail: {
+      eventName: string
+      properties: Record<string, string | null>
+    }) => void
+  }
+
+  let referrer: URL | null = null
+  try {
+    referrer = document.referrer ? new URL(document.referrer) : null
+  } catch {}
+  const internal = referrer?.hostname === location.hostname
+
+  const detail = {
+    eventName: 'page_not_found',
+    properties: {
+      source: !referrer ? 'direct' : internal ? 'internal' : 'external',
+      referrer_host: referrer?.hostname ?? null,
+      // Only our own pages: the page that holds the broken link.
+      referrer_page: internal ? referrer!.pathname : null
+    }
+  }
+
+  if (analyticsWindow.__trackSiteAnalytics) {
+    analyticsWindow.__trackSiteAnalytics(detail)
+  } else {
+    ;(analyticsWindow.__siteAnalyticsQueue ??= []).push(detail)
+  }
+</script>
