@@ -110,6 +110,16 @@ export default defineConfig({
   // base: '/docs',
   trailingSlash: 'never',
 
+  // /archive/* was renamed to /notes/* in July 2026 (#60); old URLs are still
+  // indexed and linked, so send them (and their link equity) to the new home.
+  redirects: {
+    '/archive': '/notes',
+    '/archive/0426-openharness-phase1-architecture-notes': '/blog/20260410---openharnessphase1/post',
+    '/archive/[...id]': '/notes/[...id]',
+    '/en/archive': '/en/notes',
+    '/en/archive/[...id]': '/en/notes/[...id]'
+  },
+
   // Adapter
   // https://docs.astro.build/en/guides/deploy/
   // 1. Vercel (serverless)
