@@ -3,15 +3,16 @@ import type { EmotionId } from '@jojo-web/runtime'
 /**
  * "带我逛逛" — an opt-in walk down the home page, offered from the Jojo dock.
  * Each stop is a home section marked `data-jojo-stop="<id>"`; Jojo flies to
- * it, lands on its top edge and says one line taken from what the section
- * already says, in the mood that section deserves. Only stops that exist on
- * the page are visited (the English home has no Product or Talks).
+ * it, lands on its top edge and talks about it in one or more short bubbles,
+ * in the mood that section deserves. The lines say what a visitor would not
+ * get from skimming the section (Joye's views, what a repo is really for),
+ * taken from Joye's own posts and repos. Only stops that exist on the page
+ * are visited (the English home has no Product or Talks).
  */
 
 export type StopId =
   | 'product'
   | 'blog'
-  | 'notes'
   | 'talks'
   | 'experience'
   | 'opensource'
@@ -21,16 +22,18 @@ export type StopId =
 export interface Stop {
   id: StopId
   title: string
-  line: string
+  /** bubbles, one after another */
+  lines: string[]
   /** Jojo's face while it talks about this stop */
   mood: EmotionId
+  /** an outbound link offered in the bubble */
+  link?: { href: string; label: string }
 }
 
 /** how Jojo feels about each stop */
 export const MOODS: Record<StopId, EmotionId> = {
   product: 'smug',
   blog: 'think',
-  notes: 'curious',
   talks: 'laugh',
   experience: 'focus',
   opensource: 'happy',
@@ -41,7 +44,6 @@ export const MOODS: Record<StopId, EmotionId> = {
 export const STOP_ORDER: readonly StopId[] = [
   'product',
   'blog',
-  'notes',
   'talks',
   'experience',
   'opensource',
@@ -49,59 +51,102 @@ export const STOP_ORDER: readonly StopId[] = [
   'skills'
 ]
 
-const LINES: Record<'zh' | 'en', Record<StopId, { title: string; line: string }>> = {
+export const BILIBILI = 'https://space.bilibili.com/3546914882587480'
+
+type Copy = Omit<Stop, 'id' | 'mood'>
+const LINES: Record<'zh' | 'en', Record<StopId, Copy>> = {
   zh: {
     product: {
       title: '面试手记',
-      line: 'Joye 的新企划：158 道真题一字不删，连答砸的都有，逐字稿回放一场面试真实的样子。'
+      lines: ['Joye 的新企划：158 道面试真题一字不删，答砸的也留着。']
     },
-    blog: { title: 'Blog', line: '最新的几篇博客在这儿，更多的都在 Blog 页。' },
-    notes: { title: 'Notes', line: '比博客更短的东西：笔记、片段、草稿和想法。' },
+    blog: {
+      title: 'Blog',
+      lines: [
+        'Joye 的 Agent 观：模型负责智能，Harness 负责其余一切。',
+        '安全靠代码，不靠提示词：权限跟着请求走，不跟着机器走。',
+        '最近在想：让 Agent 从工具变成能长期一起做事的伙伴。'
+      ]
+    },
     talks: {
-      title: 'Talks',
-      line: '群里每周一次的线上交流会，每期的内容和幻灯片都沉淀在这里。'
+      title: '直播',
+      lines: [
+        '每周分享改成了 B 站直播：像线上自习室，Joye 写代码、读文档，你可以一起学、随时提问。'
+      ],
+      link: { href: BILIBILI, label: '去 B 站' }
     },
     experience: {
       title: 'Experience',
-      line: '做过的地方：Adastra Labs、特赞、AIXCut 和 fAIshion.ai，每张卡片都能点开看产品。'
+      lines: ['做过 Playyy.ai、atypica、AIXCut 和 fAIshion.ai，卡片都能点开看产品。']
     },
-    opensource: { title: 'Open Source', line: 'Joye 在 GitHub 上的开源项目，旁边是星数。' },
-    education: { title: 'Education', line: '墨尔本大学，计算与软件工程，2024 – 2027。' },
-    skills: { title: 'Skills', line: '最后是技能栈：语言、前端、后端、AI 与 Agent，还有常用工具。' }
+    opensource: {
+      title: 'Open Source',
+      lines: [
+        'Learn-Open-Harness：OpenHarness 开源次日做的教程，把 Agent 外壳拆成循环、工具、权限和多 Agent。',
+        'minimind-notes 往里再拆一层：从零训一个小模型，用对照实验看每个训练设计为什么这么选。'
+      ]
+    },
+    education: {
+      title: 'Education',
+      lines: ['墨尔本大学，计算与软件工程，2024 – 2027。']
+    },
+    skills: {
+      title: 'Skills',
+      lines: ['技能栈：语言、前后端、AI 与 Agent、常用工具。']
+    }
   },
   en: {
     product: {
       title: 'Interview Notes',
-      line: "Joye's new project: 158 real interview questions, unedited, bad answers included."
+      lines: ["Joye's new project: 158 real interview questions, unedited, flops included."]
     },
-    blog: { title: 'Blog', line: 'The latest posts. The rest live on the Blog page.' },
-    notes: { title: 'Notes', line: 'The shorter stuff: notes, snippets, drafts and ideas.' },
+    blog: {
+      title: 'Blog',
+      lines: [
+        "Joye's take on agents: the model brings the intelligence; the harness does everything else.",
+        'Safety lives in code, not prompts: permissions follow the request, not the machine.',
+        'Lately: turning an agent from a tool into a partner for the long run.'
+      ]
+    },
     talks: {
-      title: 'Talks',
-      line: 'A weekly online meetup; every session and its slides are here.'
+      title: 'Live',
+      lines: [
+        'The weekly talks became Bilibili live streams: a study room where Joye codes and you can ask anything.'
+      ],
+      link: { href: BILIBILI, label: 'Bilibili' }
     },
     experience: {
       title: 'Experience',
-      line: 'Where Joye has worked: Adastra Labs, Tezign, AIXCut and fAIshion.ai. Each card links to the product.'
+      lines: ['Playyy.ai, atypica, AIXCut, fAIshion.ai. Each card opens the product.']
     },
     opensource: {
       title: 'Open Source',
-      line: "Joye's open-source projects on GitHub, with their stars."
+      lines: [
+        'Learn-Open-Harness, built the day after OpenHarness launched, takes the agent harness apart: loop, tools, permissions, multi-agent.',
+        'minimind-notes goes one layer down: train a small LLM from scratch, with controlled experiments for each design choice.'
+      ]
     },
     education: {
       title: 'Education',
-      line: 'University of Melbourne, Computing & Software Systems, 2024 – 2027.'
+      lines: ['University of Melbourne, Computing & Software Systems, 2024 – 2027.']
     },
     skills: {
       title: 'Skills',
-      line: 'Last, the toolbox: languages, frontend, backend, AI & agents, and tools.'
+      lines: ['The toolbox: languages, frontend, backend, AI & agents, tools.']
     }
   }
 }
 
+/** the closing bubble, with the way to swap friend links */
 export const GUIDE_END = {
-  zh: '逛完啦～想聊聊的话，顶部有 Connect Me；有事随时戳我。',
-  en: "That's the tour! Want to talk? Connect Me is up top, and I'm here if you need me."
+  zh: {
+    line: '逛完啦。想交换友链，去 Links 页留言；想聊聊，点顶部的 Connect Me。',
+    links: { href: '/links#apply-links', label: '去加友链' }
+  },
+  en: {
+    line: "That's the tour. Swap links on the Links page, or say hi via Connect Me up top.",
+    links: { href: '/en/links#apply-links', label: 'Add a link' }
+  }
 } as const
 
 const isStop = (id: string): id is StopId => (STOP_ORDER as readonly string[]).includes(id)

@@ -253,7 +253,7 @@ const latestTalk = talks[0]
 
       {
         latestNotes.length > 0 && (
-          <Section title='Notes' data-jojo-stop='notes'>
+          <Section title='Notes'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {latestNotes.map((note) => (
                 <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
@@ -306,8 +306,16 @@ const latestTalk = talks[0]
         latestTalk && (
           <Section title='Talks' data-jojo-stop='talks'>
             <p class='text-muted-foreground'>
-              群里每周一次的线上交流会，轮流分享技术、求职和 AI 行业 ——
-              每期的内容与幻灯片都公开沉淀在这里。
+              每周分享已改成
+              <a
+                href='https://space.bilibili.com/3546914882587480'
+                target='_blank'
+                rel='noopener noreferrer'
+                class='underline underline-offset-4 hover:text-foreground'
+              >
+                B 站直播
+              </a>
+              ：更像线上自习室，一起写代码、读文档，随时提问。往期内容与幻灯片仍在这里。
             </p>
             <LinkCard
               heading={latestTalk.data.title}

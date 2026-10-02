@@ -391,6 +391,37 @@ html[data-jojo-dock='shown'] #action-buttons.show {
   font-size: 0.9375rem;
   line-height: 1.375rem;
 }
+.jojo-guide-pages {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.jojo-guide-pages i {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgb(45 50 114 / 0.2);
+}
+.jojo-guide-pages i[data-on] {
+  background: var(--jojo-coral);
+}
+.jojo-guide-link {
+  margin-right: auto;
+  align-self: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--jojo-indigo);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgb(45 50 114 / 0.35);
+}
+.jojo-guide-link::after {
+  content: ' →';
+}
+.jojo-guide-link:hover {
+  text-decoration-color: var(--jojo-coral);
+}
 .jojo-guide-line {
   margin-top: 0.125rem;
   font-size: 0.875rem;

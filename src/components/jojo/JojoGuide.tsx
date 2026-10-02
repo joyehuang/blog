@@ -53,7 +53,14 @@ const COPY = {
   }
 } as const
 
-type Phase = { kind: 'stop'; at: number } | { kind: 'end' } | { kind: 'home'; to: 'seat' | 'dock' }
+type Phase =
+  | { kind: 'stop'; at: number; page: number }
+  | { kind: 'end' }
+  | { kind: 'home'; to: 'seat' | 'dock' }
+
+/** where Jojo is headed (a new bubble at the same stop is not a trip) */
+const placeKey = (p: Phase) =>
+  p.kind === 'stop' ? `stop:${p.at}` : p.kind === 'home' ? `home:${p.to}` : 'end'
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 const pulse = (t: number, t0: number, len: number) =>
@@ -82,7 +89,7 @@ export default function JojoGuide({
 }: Props) {
   const t = COPY[lang]
   const zh = lang === 'zh'
-  const [phase, setPhase] = useState<Phase>({ kind: 'stop', at: 0 })
+  const [phase, setPhase] = useState<Phase>({ kind: 'stop', at: 0, page: 0 })
   const [arrived, setArrived] = useState(false)
   const [typed, setTyped] = useState(0)
   const [override, setOverride] = useState<EmotionId | null>(null)
@@ -135,11 +142,14 @@ export default function JojoGuide({
     }
   }, [stops.length])
 
-  // each new phase: scroll the stop into view, outline it, take off
+  // keep the loop's view of the phase current (every bubble)
   useEffect(() => {
     phaseRef.current = phase
+  }, [phase])
+  // each new place: scroll the stop into view, outline it, take off
+  const place = placeKey(phase)
+  useEffect(() => {
     setArrived(false)
-    setTyped(0)
     if (phase.kind === 'home') {
       if (phase.to === 'seat') window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' })
       return
@@ -153,11 +163,22 @@ export default function JojoGuide({
     el.setAttribute('data-jojo-stop-active', '')
     el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' })
     return () => el.removeAttribute('data-jojo-stop-active')
-  }, [phase, still, stops])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [place, still, stops])
 
   // the bubble types its line once Jojo has landed
-  const line = phase.kind === 'end' ? GUIDE_END[lang] : (stop?.line ?? '')
+  const line =
+    phase.kind === 'end'
+      ? GUIDE_END[lang].line
+      : phase.kind === 'stop'
+        ? (stop?.lines[phase.page] ?? '')
+        : ''
   const chars = Array.from(line)
+  useEffect(() => {
+    setTyped(0)
+    // a new bubble at the same stop: a little hop of emphasis
+    if (sim.current.arrived) sim.current.landedAt = performance.now()
+  }, [line])
   useEffect(() => {
     if (!arrived || phase.kind === 'home') return
     if (still) {
@@ -220,7 +241,7 @@ export default function JojoGuide({
       const ph = phaseRef.current
       const size = window.innerWidth <= 640 ? 64 : 80
       const tg = target(ph, size)
-      const key = JSON.stringify(ph)
+      const key = placeKey(ph)
       if (key !== s.key) {
         // take off: a hop as high as the trip is long
         const dist = Math.hypot(tg.x - s.x, tg.y - s.y)
@@ -311,11 +332,13 @@ export default function JojoGuide({
   const go = (d: 1 | -1) =>
     setPhase((p) => {
       if (p.kind === 'stop') {
+        const page = p.page + d
+        if (page >= 0 && page < stops[p.at].lines.length) return { ...p, page }
         const n = p.at + d
         if (n < 0) return p
-        return n >= stops.length ? { kind: 'end' } : { kind: 'stop', at: n }
+        return n >= stops.length ? { kind: 'end' } : { kind: 'stop', at: n, page: 0 }
       }
-      if (p.kind === 'end' && d === -1) return { kind: 'stop', at: stops.length - 1 }
+      if (p.kind === 'end' && d === -1) return { kind: 'stop', at: stops.length - 1, page: 0 }
       return p
     })
   const leave = (want: 'seat' | 'dock') =>
@@ -377,7 +400,10 @@ export default function JojoGuide({
           ? 'pointer'
           : 'auto'
   const showBubble = arrived && phase.kind !== 'home'
-  const last = phase.kind === 'stop' && phase.at === stops.length - 1
+  const last =
+    phase.kind === 'stop' &&
+    phase.at === stops.length - 1 &&
+    phase.page === stops[phase.at].lines.length - 1
 
   return createPortal(
     <div className='jojo-guide-layer' aria-live='polite'>
@@ -432,7 +458,18 @@ export default function JojoGuide({
             </svg>
           </button>
         </div>
-        {stop && <p className='jojo-guide-title'>{stop.title}</p>}
+        {stop && (
+          <p className='jojo-guide-title'>
+            {stop.title}
+            {phase.kind === 'stop' && stop.lines.length > 1 && (
+              <span className='jojo-guide-pages' aria-hidden='true'>
+                {stop.lines.map((_, i) => (
+                  <i key={i} data-on={i === phase.page ? '' : undefined} />
+                ))}
+              </span>
+            )}
+          </p>
+        )}
         <p className='jojo-guide-line'>
           <span>{chars.slice(0, typed).join('')}</span>
           <span className='is-off' aria-hidden='true'>
@@ -442,6 +479,9 @@ export default function JojoGuide({
         <div className='jojo-guide-actions'>
           {phase.kind === 'end' ? (
             <>
+              <a className='jojo-guide-link' href={GUIDE_END[lang].links.href}>
+                {GUIDE_END[lang].links.label}
+              </a>
               <button type='button' onClick={() => leave('seat')}>
                 {t.top}
               </button>
@@ -456,10 +496,20 @@ export default function JojoGuide({
             </>
           ) : (
             <>
+              {stop?.link && (
+                <a
+                  className='jojo-guide-link'
+                  href={stop.link.href}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                >
+                  {stop.link.label}
+                </a>
+              )}
               <button
                 type='button'
                 onClick={() => go(-1)}
-                disabled={phase.kind === 'stop' && phase.at === 0}
+                disabled={phase.kind === 'stop' && phase.at === 0 && phase.page === 0}
               >
                 {t.prev}
               </button>
