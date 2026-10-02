@@ -400,5 +400,6 @@ a transparent ≥ 44 px hit area with a `--ring` focus-visible outline.
 - Reduced motion: every Jojo surface has a `prefers-reduced-motion: reduce`
   override; the engine itself goes static.
 
-The older ASCII `JoJo` mascot (`mascot/JoJo.tsx`) and the particle intro remain
-only for builds without the Jojo package; they never run alongside Jojo.
+The older ASCII `JoJo` mascot (`mascot/JoJo.tsx`) remains only for builds
+without the Jojo package; it never runs alongside Jojo. The particle intro was
+removed (2026-10-03): builds without the package have no intro.
