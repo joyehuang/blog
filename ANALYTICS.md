@@ -181,7 +181,7 @@ are personal data. Use this to see which topics attract real signup intent.
 
 ### `soa_registration_intent`
 
-Implemented on `/agent-teams`: QQ registration guidance interactions, not confirmed registrations.
+Implemented on `/agent-teams`: QQ fan group guidance interactions, not confirmed registrations.
 Required properties: `locale`, `page`, `surface: soa_registration`,
 `action: join_group | copy`, `target: qq_group | registration_example`.
 Join opens the existing group QR guidance; copy records a click on a fixed public

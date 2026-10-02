@@ -105,12 +105,12 @@ function getConn(): string | null {
   return c ? String(c) : null
 }
 
-// 统一的默认口令：粉丝群的名字（群成员都知道）。页面挂在首页后会有路人点进来，
-// 所以报名 / 组队 / 建赛道都要口令——只有群里的人才填得对。这只是「挡住路人」的
-// 轻门槛，不是强安全。想让口令不出现在公开仓库里，可在 Vercel 配对应环境变量覆盖。
+// 统一的默认口令：粉丝群的名字（群成员都知道）。报名和建赛道已不再要口令（重新开放
+// 后对所有人开放，只靠蜜罐 + IP 限流挡刷），口令只留给退出 / 编辑 / 队长管理这类
+// 会动别人数据的操作。这只是轻门槛，不是强安全；可在 Vercel 配对应环境变量覆盖。
 const DEFAULT_GROUP_PASSCODE = '一群开心快乐的小奶龙'
 
-// 报名 / 退出口令：默认就用群名，所有人（含组员）都要填。可用 AGENT_TEAMS_PASSCODE 覆盖。
+// 退出口令：默认就用群名。可用 AGENT_TEAMS_PASSCODE 覆盖。
 function getPasscode(): string | null {
   const p = import.meta.env.AGENT_TEAMS_PASSCODE ?? process.env.AGENT_TEAMS_PASSCODE
   return p && String(p).length > 0 ? String(p) : DEFAULT_GROUP_PASSCODE
@@ -121,9 +121,9 @@ export function isConfigured(): boolean {
   return getConn() !== null
 }
 
-/** 是否需要报名口令——默认恒为 true（有群名兜底），所有人都要填 */
+/** 是否需要报名口令——报名已对所有人开放，恒为 false（前端据此隐藏口令输入） */
 export function passcodeRequired(): boolean {
-  return getPasscode() !== null
+  return false
 }
 
 // 编辑 / 建赛道口令：默认同样是粉丝群的名字。可用 AGENT_TEAMS_EDIT_PASSCODE 覆盖。
@@ -408,12 +408,6 @@ export async function addSignup(
     return { ok: false, code: 'invalid', message: '提交无效' }
   }
 
-  // 口令门槛（设了环境变量才启用）。
-  const passcode = getPasscode()
-  if (passcode && input.passcode !== passcode) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
-  }
-
   const name = cleanText(input.name ?? '')
   if (name.length === 0 || name.length > NAME_MAX) {
     return { ok: false, code: 'invalid', message: `昵称需为 1–${NAME_MAX} 个字符` }
@@ -682,7 +676,7 @@ export async function getCustomTeams(): Promise<TeamMeta[]> {
   }))
 }
 
-/** 创建一个自定义赛道。口令匹配编辑口令才放行。 */
+/** 创建一个自定义赛道。无需口令，靠蜜罐 + IP 限流挡刷。 */
 export async function createTeam(input: CreateTeamInput): Promise<CreateResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
@@ -690,9 +684,6 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateResult> 
   // 蜜罐。
   if (input.hp && input.hp.trim().length > 0) {
     return { ok: false, code: 'invalid', message: '提交无效' }
-  }
-  if ((input.passcode ?? '') !== getEditPasscode()) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
   }
 
   const title = cleanText(input.title ?? '')

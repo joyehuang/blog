@@ -23,20 +23,18 @@ export const activity = {
   /** 比赛的英文名 / 品牌名 */
   name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
-  subtitle: '比赛进行中',
+  subtitle: '报名重新开放',
   tagline:
-    '入群后 @bot 发送「我要报名SOA owner/repo」（替换为自己的公开 GitHub 仓库），以 bot 返回报名编号为准。旧网站组队已于7月10日截止，原成员无需重复报名；QQ 新报名暂未同步至下方名单。',
-  /** 组队截止日（YYYY-MM-DD，测试会校验格式） */
-  legacyTeamDeadline: '2026-07-10',
-  competitionClosesAt: '2026-10-01T00:00:00+08:00',
-  /** 组队截止时刻（北京时间 7/10 晚 12 点）——过点后 API 与看板同时关闭报名/建队 */
-  signupClosesAt: '2026-07-11T00:00:00+08:00',
+    '网站报名通道已重新开放：在下方选一个赛道报名，或自建赛道（组队 / 个人都行），填个昵称就能报，不需要口令。',
+  /** 截止时刻（带时区）；null 表示长期开放，过点后 API 与看板同时关闭报名/建队 */
+  signupClosesAt: null as string | null,
   /** 活动详情文档（飞书 wiki） */
   docHref: 'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 }
 
 /** 组队是否已截止——报名 / 建队通道随之关闭（API 与看板共用） */
 export function isSignupClosed(now: number = Date.now()): boolean {
+  if (activity.signupClosesAt === null) return false
   return now >= Date.parse(activity.signupClosesAt)
 }
 
