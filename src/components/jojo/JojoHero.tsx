@@ -7,6 +7,7 @@ import {
   readStored,
   stillReason,
   writeStored,
+  type DockStateDetail,
   type IntroEventDetail
 } from '@/lib/jojo/keys'
 import { initialPoke, poke } from '@/lib/jojo/poke'
@@ -32,6 +33,9 @@ interface Props {
  *  - a first visit had no intro (a one-time greeting, ≤ 1.2 s),
  *  - the visitor pokes it (click / Enter / Space), or hovers the hero with a
  *    fine pointer (eyes follow while the pointer is over the hero).
+ * With the dock on, a tap opens the dock's panel instead: Jojo hops over to
+ * the corner (the seat empties while the panel is up), and the seat falls
+ * back to a poke whenever the dock has to stay away.
  * No speech bubble and no live-region announcements: poking is a quiet
  * visual easter egg. Reduced motion or Save-Data: no greeting, no gaze
  * follow, no prefetch; a poke still swaps to a static face (no animation).
@@ -43,6 +47,10 @@ export default function JojoHero({ lang, staticSvg }: Props) {
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [motion, setMotion] = useState<MotionPref>('transitions')
   const [gaze, setGaze] = useState<GazeInput>('auto')
+  // the dock exists (scheme B): a tap opens its panel instead of poking
+  const [dockable, setDockable] = useState(false)
+  // the panel this seat opened is up: Jojo is over in the corner
+  const [away, setAway] = useState(false)
   const still = useStill()
   // the engine loads only when something is about to move; each intent counts,
   // so a later intent asks again after a failed download
@@ -154,6 +162,22 @@ export default function JojoHero({ lang, staticSvg }: Props) {
     }
   }, [wake])
 
+  useEffect(() => {
+    setDockable(modeHas(currentMode(), 'b'))
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<DockStateDetail>).detail
+      setAway(d.open && d.from === 'hero')
+    }
+    document.addEventListener(JOJO_EVENTS.dockState, on)
+    return () => document.removeEventListener(JOJO_EVENTS.dockState, on)
+  }, [])
+
+  const onClick = () => {
+    // the dock takes the tap unless it has to stay away (intro, typing)
+    const req = new CustomEvent(JOJO_EVENTS.dockToggle, { cancelable: true })
+    if (!document.dispatchEvent(req)) return
+    onPoke()
+  }
   const onPoke = () => {
     const r = poke(pokeState.current, performance.now())
     pokeState.current = r.state
@@ -167,14 +191,28 @@ export default function JojoHero({ lang, staticSvg }: Props) {
     if (!stillReason()) wake()
   }
 
+  const label = dockable
+    ? zh
+      ? '打开 Jojo 小菜单'
+      : 'Open the Jojo menu'
+    : zh
+      ? '戳一下 Jojo'
+      : 'Poke Jojo'
+
   return (
-    <span className='jojo-seat' data-jojo-seat='' data-jojo-anchor=''>
+    <span
+      className='jojo-seat'
+      data-jojo-seat=''
+      data-jojo-anchor=''
+      data-away={away ? '' : undefined}
+    >
       <button
         ref={buttonRef}
         type='button'
         className='jojo-seat-btn jojo-poke-target'
-        aria-label={zh ? '戳一下 Jojo' : 'Poke Jojo'}
-        onClick={onPoke}
+        aria-label={label}
+        aria-expanded={dockable ? away : undefined}
+        onClick={onClick}
         onPointerEnter={prefetch}
         onFocus={prefetch}
       >

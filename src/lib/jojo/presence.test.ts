@@ -42,6 +42,11 @@ describe('dock presence', () => {
     expect(dockPresence({ ...base, tucked: true, anchorInView: true })).toBe('tucked')
   })
 
+  it('a panel the hero seat opened shows Jojo even when tucked', () => {
+    expect(dockPresence({ ...base, tucked: true, anchorInView: true, open: true })).toBe('shown')
+    expect(dockPresence({ ...base, tucked: true, introRunning: true, open: true })).toBe('hidden')
+  })
+
   it('keyboard heuristic and editable detection', () => {
     expect(keyboardLikelyOpen(844, 844)).toBe(false)
     expect(keyboardLikelyOpen(844, 500)).toBe(true)
