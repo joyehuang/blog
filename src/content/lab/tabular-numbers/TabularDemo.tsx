@@ -10,7 +10,10 @@
  * - 下载计数：小字号下同样会抖。
  * - 账单：虚线对准“合计”的小数点，看其余几行能不能对上。
  * 暂停后画面定格，方便细看。减少动态效果时，秒表默认暂停。
+ *
+ * 底部“再进一步”：同样是等宽数字，数字变化时直接换 vs 用 NumberFlow 滚过去。
  */
+import NumberFlow from '@number-flow/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 const BILL: { item: string; amount: string }[] = [
@@ -191,6 +194,46 @@ function Column({
       </div>
       <p className='tn-caption'>{caption}</p>
     </div>
+  )
+}
+
+const PRICES = [128, 1048, 99.9, 3251.02, 980.8, 12, 2599]
+const CNY = { style: 'currency', currency: 'CNY' } as const
+
+/** Bonus: tabular digits that also roll to the new value (NumberFlow). */
+function Rolling() {
+  const [i, setI] = useState(0)
+  const price = PRICES[i % PRICES.length]!
+  return (
+    <section className='tn-roll' aria-labelledby='tn-roll-title'>
+      <div className='tn-roll-head'>
+        <span className='tn-tag tn-tag--good' id='tn-roll-title'>
+          ✓ 再进一步：让数字滚过去
+        </span>
+        <button type='button' className='tn-roll-btn' onClick={() => setI((n) => n + 1)}>
+          换一个价格
+        </button>
+      </div>
+      <div className='tn-roll-grid'>
+        <div className='tn-frame tn-roll-card'>
+          <span className='tn-roll-label'>等宽数字 · 直接换</span>
+          <span className='tn-roll-value tn-tab'>
+            {new Intl.NumberFormat('zh-CN', CNY).format(price)}
+          </span>
+        </div>
+        <div className='tn-frame tn-roll-card'>
+          <span className='tn-roll-label'>等宽数字 · NumberFlow 滚动</span>
+          <NumberFlow className='tn-roll-value tn-tab' value={price} locales='zh-CN' format={CNY} />
+        </div>
+      </div>
+      <p className='tn-caption'>
+        等宽数字解决了“抖”，数字变化本身还是一下跳过去的。价格、余额、计数这种值得被注意到的变化，可以让每一位像拨号盘一样滚到新值：变了多少、往哪个方向变，一眼就看得到。右边用的是{' '}
+        <a href='https://number-flow.barvian.me/' target='_blank' rel='noopener noreferrer'>
+          NumberFlow
+        </a>
+        ，一个很小的开源组件，系统开启减少动态效果时会自动不滚。
+      </p>
+    </section>
   )
 }
 
@@ -433,6 +476,38 @@ export default function TabularDemo() {
           pointer-events: none;
         }
 
+        .tn-roll { max-width: 960px; margin: 36px auto 0; }
+        .tn-roll-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 10px; }
+        .tn-roll-btn {
+          font: 500 12px/1 'JetBrains Mono', monospace;
+          color: var(--ink);
+          background: var(--card);
+          border: 1px solid var(--rule);
+          border-radius: 999px;
+          padding: 8px 14px;
+          cursor: pointer;
+          box-shadow: var(--shadow);
+          transition: transform 0.15s ease;
+        }
+        .tn-roll-btn:active { transform: scale(0.97); }
+        .tn-roll-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+        .tn-roll-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        @media (max-width: 768px) {
+          .tn-roll-grid { grid-template-columns: 1fr; }
+        }
+        .tn-roll-card { display: flex; flex-direction: column; gap: 8px; padding: 18px 20px 20px; }
+        .tn-roll-label { font-size: 12px; color: var(--muted); }
+        .tn-roll-value {
+          font-size: 40px;
+          font-weight: 500;
+          line-height: 1.1;
+          letter-spacing: -0.01em;
+          color: var(--ink);
+        }
+        .tn-tab { font-variant-numeric: tabular-nums; }
+        .tn-roll .tn-caption { margin-top: 10px; }
+        .tn-roll .tn-caption a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+
         .tn-takeaways {
           max-width: 960px;
           margin: 36px auto 0;
@@ -490,6 +565,8 @@ export default function TabularDemo() {
           caption='同一个字体，只是让每个数字占一样宽。秒表只有数字在变，位置纹丝不动；账单的小数点和千分位自然排成一条竖线。'
         />
       </div>
+
+      <Rolling />
 
       <div className='tn-takeaways'>
         <div className='tn-takeaway'>
