@@ -14,7 +14,6 @@ import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
-import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
 import JojoHero from '@/components/jojo/JojoHero'
 import JojoIntro from '@/components/jojo/JojoIntro.astro'
 import JoJo from '@/components/mascot/JoJo'
@@ -106,8 +105,6 @@ const latestTalk = talks[0]
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  {/* Jojo on → the build-the-site intro replaces the particle intro and the ASCII mascot */}
-  {!__JOJO__ && <LegacyIntroOverlay />}
   <JojoIntro />
   <main class='flex w-full flex-col items-center'>
     <section
@@ -660,32 +657,18 @@ const latestTalk = talks[0]
         if (event.key === 'Escape') closePromo()
       })
 
-      // 入场动画还在放的时候不要抢镜：等 intro overlay 落到静止态再开始。
+      // 入场动画还在放的时候不要抢镜：等 Jojo 的开场放完再开始。
       const afterIntro = (run) => {
-        // Jojo intro armed or running: wait until it has finished
         const root = document.documentElement
         const jojoBusy = () =>
           ['armed', 'running'].includes(root.getAttribute('data-jojo-intro') || '')
-        if (jojoBusy()) {
-          const jojoObserver = new MutationObserver(() => {
-            if (jojoBusy()) return
-            jojoObserver.disconnect()
-            run()
-          })
-          jojoObserver.observe(root, { attributes: true, attributeFilter: ['data-jojo-intro'] })
-          return
-        }
-        const overlay = document.getElementById('intro-overlay')
-        if (!overlay) return run()
-        const settled = () =>
-          overlay.classList.contains('intro-idle') || overlay.classList.contains('intro-done')
-        if (settled()) return run()
+        if (!jojoBusy()) return run()
         const observer = new MutationObserver(() => {
-          if (!settled()) return
+          if (jojoBusy()) return
           observer.disconnect()
           run()
         })
-        observer.observe(overlay, { attributes: true, attributeFilter: ['class'] })
+        observer.observe(root, { attributes: true, attributeFilter: ['data-jojo-intro'] })
       }
 
       afterIntro(() => {

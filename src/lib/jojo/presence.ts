@@ -28,9 +28,10 @@ export type Presence = 'hidden' | 'shown' | 'tucked'
 export function dockPresence(p: PresenceInput): Presence {
   if (!p.enabled || p.introRunning) return 'hidden'
   if (p.editingElsewhere || p.keyboardOpen) return 'hidden'
-  if (p.tucked) return 'tucked'
-  // an open panel stays until the visitor closes it
+  // an open panel stays until the visitor closes it; tucked can only be open
+  // when the hero seat summoned the panel, and then Jojo comes out for it
   if (p.open) return 'shown'
+  if (p.tucked) return 'tucked'
   if (p.anchorInView) return 'hidden'
   if (p.compact && p.commentsInView) return 'hidden'
   return 'shown'
