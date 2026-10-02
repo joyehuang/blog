@@ -59,7 +59,7 @@ const COPY = {
     work: '这几年一直在做 AI Agent 产品：',
     care: '在意 LLM 底层怎么运转，也在意产品能不能真的跑起来。',
     play: '不写代码的时候，弹琴、拉大提琴、拍照。',
-    bye: '这些都写在博客里了，慢慢逛，有事戳我～'
+    bye: '这些都写在博客里了。想让我带你逛一圈的话，点我就好～'
   },
   en: {
     who: "Huh — someone's here?",
@@ -68,7 +68,7 @@ const COPY = {
     work: 'and has spent the last few years building AI agent products:',
     care: 'curious how LLMs work underneath, and whether products truly hold up.',
     play: 'Away from the keyboard: piano, cello, photography.',
-    bye: "It's all in the blog. Look around, and poke me if you need me!"
+    bye: "It's all in the blog. Tap me if you'd like a quick tour!"
   }
 }
 const PROJECTS = ['Playyy.ai', 'atypica', 'fAIshion.ai', 'AIXCut']

@@ -24,6 +24,13 @@ family). This site shows it in three ways that are designed to work together.
   connected.
 - **Where:** `JojoDock.tsx`, `dock.css`, `src/lib/jojo/chat/*`, `presence.ts`.
 - **JS:** a React island (`client:idle`) on every page.
+- **带我逛逛 (home only):** the first menu item. An opt-in walk down the
+  home page: the dock panel turns into a guide card ("Jojo 带路 · 3 / 8"), the
+  page scrolls smoothly to each section marked `data-jojo-stop` and outlines
+  it, and Jojo says one line taken from what the section already says
+  (`src/lib/jojo/guide.ts`). Back / Next (or ← / →), Esc or × to end; the
+  page stays usable (outside clicks do not end it). The intro's last line
+  invites the visitor to tap Jojo for it. Analytics: `jojo_guide`.
 
 ### C · intro
 

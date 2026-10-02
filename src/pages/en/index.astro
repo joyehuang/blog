@@ -182,7 +182,7 @@ const latestNotes = (await getCollection('notesEn'))
 
       {
         allPostsByDate.length > 0 && (
-          <Section title='Blog'>
+          <Section title='Blog' data-jojo-stop='blog'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {allPostsByDate.map((p) => (
                 <PostPreviewEn post={p} />
@@ -195,7 +195,7 @@ const latestNotes = (await getCollection('notesEn'))
 
       {
         latestNotes.length > 0 && (
-          <Section title='Notes'>
+          <Section title='Notes' data-jojo-stop='notes'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {latestNotes.map((note) => (
                 <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
@@ -244,7 +244,7 @@ const latestNotes = (await getCollection('notesEn'))
         )
       }
 
-      <Section title='Experience'>
+      <Section title='Experience' data-jojo-stop='experience'>
         <LinkCard
           heading='Adastra Labs (Shimo Docs)'
           subheading='AI Full-Stack Engineer'
@@ -305,7 +305,7 @@ const latestNotes = (await getCollection('notesEn'))
           </ul>
         </LinkCard>
       </Section>
-      <Section title='Open Source'>
+      <Section title='Open Source' data-jojo-stop='opensource'>
         {
           openSource.map((repo) => (
             <LinkCard
@@ -321,7 +321,7 @@ const latestNotes = (await getCollection('notesEn'))
           ))
         }
       </Section>
-      <Section title='Education'>
+      <Section title='Education' data-jojo-stop='education'>
         <Card
           as='a'
           heading='University of Melbourne'
@@ -330,7 +330,7 @@ const latestNotes = (await getCollection('notesEn'))
         />
       </Section>
 
-      <Section title='Skills'>
+      <Section title='Skills' data-jojo-stop='skills'>
         <SkillLayout title='Languages' skills={languages} />
         <SkillLayout title='Frontend' skills={frontend} />
         <SkillLayout title='Backend' skills={backend} />

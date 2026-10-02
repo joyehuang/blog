@@ -318,6 +318,27 @@ Required properties:
 Jojo seated beside the home avatar (added 2026-10-03; before that a tap there
 was a `jojo_poke`). At most once per page view per surface and action.
 
+### `jojo_guide`
+
+Visitor takes the opt-in home tour ("带我逛逛首页" in the Jojo dock menu): Jojo
+scrolls to each home section and says one line about it. Added 2026-10-03.
+
+Required properties:
+
+- `locale`, `page`
+- `surface`: `jojo_dock`
+- `action`: `start` | `complete` | `exit`
+- `steps`: number of stops on this page (8 on `/`, 6 on `/en`), for `start`
+  and `complete`
+- `step`: the stop the visitor left on (`product` | `blog` | `notes` | `talks`
+  | `experience` | `opensource` | `education` | `skills`), for `exit` only
+- `steps_seen`: how many stops were shown before leaving, for `exit` only
+
+`complete` fires when the visitor reaches the closing card; `exit` when the
+panel is closed (×, Esc, or the dock hiding) before that. At most once per page
+view per action. Clicks on links inside the sections are left to their own
+events (`project_link_click`, `github_link_click`) and Pages.
+
 ### `jojo_story_play`
 
 Visitor plays the Jojo short film on About (click-to-load).
@@ -544,7 +565,7 @@ Implemented in current code:
 - `talk_join_intent`
 - `language_switch_click`
 - `page_not_found`
-- `jojo_poke`, `jojo_dock_action`, `jojo_story_play` (Jojo builds only)
+- `jojo_poke`, `jojo_dock_action`, `jojo_guide`, `jojo_story_play` (Jojo builds only)
 
 Legacy events retained only for historical data interpretation:
 

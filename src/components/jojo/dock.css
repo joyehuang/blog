@@ -282,10 +282,51 @@ html[data-jojo-dock='shown'] #action-buttons.show {
   color: hsl(var(--foreground));
 }
 
+/* ---- "带我逛逛": the guide card and the stop it is on ---- */
+.jojo-guide {
+  margin-top: 0.75rem;
+}
+.jojo-guide-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
+}
+.jojo-guide-line {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+  color: hsl(var(--muted-foreground));
+}
+.jojo-dock-foot button.is-primary {
+  border-color: hsl(var(--foreground) / 0.25);
+  color: hsl(var(--foreground));
+  font-weight: 500;
+}
+.jojo-dock-foot button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+/* the sticky header must not cover a stop when it scrolls to the top */
+[data-jojo-stop] {
+  scroll-margin-top: 6rem;
+}
+[data-jojo-stop-active] {
+  border-radius: 14px;
+  outline: 2px solid hsl(var(--primary) / 0.55);
+  outline-offset: 10px;
+  transition: outline-color 0.3s ease;
+}
+@media (max-width: 640px) {
+  [data-jojo-stop-active] {
+    outline-offset: 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .jojo-dock-toggle,
   .jojo-dock-tab,
   .jojo-dock-panel,
+  [data-jojo-stop-active],
   .jojo-dock[data-open] .jojo-dock-panel,
   .jojo-dock[data-presence] .jojo-dock-toggle,
   .jojo-dock[data-presence] .jojo-dock-tab {
