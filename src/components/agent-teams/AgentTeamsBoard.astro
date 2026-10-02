@@ -253,17 +253,6 @@ const signupClosed = isSignupClosed()
                 placeholder='想说的一句话'
               />
             </label>
-            <label class='passcode-field flex-col gap-1 text-xs text-muted-foreground' data-passcode-field hidden>
-              报名口令
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='passcode'
-                type='text'
-                maxlength='40'
-                autocomplete='off'
-                placeholder='群里公布的口令'
-              />
-            </label>
 
             {/* 蜜罐：正常用户看不到、不会填 */}
             <div class='hp-field' aria-hidden='true'>
@@ -303,7 +292,7 @@ const signupClosed = isSignupClosed()
               <div class='manage-dialog-body'>
             <section class='manage-section'>
               <h3 class='manage-section-title'>个人退出</h3>
-              <p class='manage-section-hint'>仅退出你自己的报名，需要 QQ 群口令。</p>
+              <p class='manage-section-hint'>仅退出你自己的报名。</p>
           <form class='leave-form manage-form' data-leave-form>
             <label class='manage-field'>
               你的 QQ 昵称（要和报名时一致）
@@ -315,18 +304,6 @@ const signupClosed = isSignupClosed()
                 required
                 autocomplete='off'
                 placeholder='报名时填的昵称'
-              />
-            </label>
-            <label class='manage-field'>
-              QQ 群口令（粉丝群的名字）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='passcode'
-                type='text'
-                maxlength='40'
-                required
-                autocomplete='off'
-                placeholder='群里公布的口令'
               />
             </label>
             <div class='manage-actions'>
@@ -345,18 +322,6 @@ const signupClosed = isSignupClosed()
               <h3 class='manage-section-title'>队长管理</h3>
               <p class='manage-section-hint'>维护项目资料、转让队长或移除摸鱼队员。</p>
           <form class='detail-form manage-form' data-detail-form>
-            <label class='manage-field'>
-              口令（粉丝群的名字）
-              <input
-                class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-                name='passcode'
-                type='text'
-                maxlength='40'
-                autocomplete='off'
-                placeholder='粉丝群的名字'
-                required
-              />
-            </label>
             <label class='manage-field'>
               详细介绍（会公开显示，最多 600 字，可分段）
               <textarea
@@ -1050,9 +1015,6 @@ const signupClosed = isSignupClosed()
   .github-link[data-show] {
     display: inline-flex;
   }
-  .passcode-field[data-show] {
-    display: flex;
-  }
   .team-capacity-field[data-show] {
     display: flex;
   }
@@ -1204,7 +1166,6 @@ const signupClosed = isSignupClosed()
   type BoardData = {
     configured: boolean
     degraded?: boolean
-    passcodeRequired: boolean
     detailEditable: boolean
     signupClosed?: boolean
     teams: Team[]
@@ -1511,7 +1472,6 @@ const signupClosed = isSignupClosed()
         name: String(data.get('name') || ''),
         contact: String(data.get('contact') || ''),
         note: String(data.get('note') || ''),
-        passcode: String(data.get('passcode') || ''),
         hp: String(data.get('hp') || '')
       }
 
@@ -1590,8 +1550,7 @@ const signupClosed = isSignupClosed()
         const data = new FormData(leaveForm)
         const payload = {
           teamId,
-          name: String(data.get('name') || ''),
-          passcode: String(data.get('passcode') || '')
+          name: String(data.get('name') || '')
         }
 
         if (submitBtn) submitBtn.disabled = true
@@ -1628,14 +1587,12 @@ const signupClosed = isSignupClosed()
         const teamId = card.dataset.teamId || ''
         const saveBtn = detailForm.querySelector<HTMLButtonElement>('button[type="submit"]')
         const data = new FormData(detailForm)
-        const passcode = String(data.get('passcode') || '')
         const captainName = String(data.get('captain') || '').trim()
         const kickName = String(data.get('kick') || '').trim()
         const detailPayload = {
           teamId,
           detail: String(data.get('detail') || ''),
-          githubUrl: String(data.get('githubUrl') || ''),
-          passcode
+          githubUrl: String(data.get('githubUrl') || '')
         }
 
         if (saveBtn) saveBtn.disabled = true
@@ -1658,7 +1615,7 @@ const signupClosed = isSignupClosed()
             const cres = await fetch('/api/agent-teams', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'captain', teamId, name: captainName, passcode })
+              body: JSON.stringify({ action: 'captain', teamId, name: captainName })
             })
             const cbody = await cres.json()
             if (!(cres.ok && cbody.ok)) {
@@ -1671,7 +1628,7 @@ const signupClosed = isSignupClosed()
             const kres = await fetch('/api/agent-teams', {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'kick', teamId, name: kickName, passcode })
+              body: JSON.stringify({ action: 'kick', teamId, name: kickName })
             })
             const kbody = await kres.json()
             if (!(kres.ok && kbody.ok)) {
@@ -1811,7 +1768,6 @@ const signupClosed = isSignupClosed()
     data: BoardData
   ) {
     board.dataset.configured = data.configured ? 'true' : 'false'
-    board.dataset.passcodeRequired = data.passcodeRequired ? 'true' : 'false'
     signupClosed = data.signupClosed ?? false
 
     // 只有至少一位队员报名的队伍才能参加最终评选。数据库降级时名单未知，
@@ -1891,18 +1847,6 @@ const signupClosed = isSignupClosed()
         card
           .querySelectorAll<HTMLButtonElement>('[data-signup-toggle], [data-manage-toggle]')
           .forEach((toggle) => (toggle.disabled = true))
-      }
-    }
-
-    // 需要口令：显示报名表单里的口令输入；退出与队长管理的口令始终必填。
-    if (data.passcodeRequired) {
-      for (const card of cards.values()) {
-        card.querySelectorAll<HTMLElement>('[data-passcode-field]').forEach((field) => {
-          field.dataset.show = ''
-          field.hidden = false
-          const input = field.querySelector<HTMLInputElement>('input[name="passcode"]')
-          if (input) input.required = true
-        })
       }
     }
 
