@@ -109,6 +109,8 @@ gitignored `vendor/jojo-web/`, first match wins:
   asset named in `scripts/jojo/jojo-web.lock.json` through the GitHub API
   (token in a header — never in a URL, lockfile or log), verifies sha256,
   unpacks.
+- **Local, by hand:** `bun run jojo:pull` downloads the pinned asset with your
+  logged-in GitHub CLI, verifies sha256 and unpacks it (never used by builds).
 - **None of the above → Jojo off:** the site builds without Jojo (ASCII
   mascot, promo modal, no intro — the old particle intro was removed on
   2026-10-03).

@@ -13,6 +13,8 @@
 // the expected result for forks and unreviewed PRs, which get no token.
 //
 //   node scripts/jojo/jojo-web.mjs          # prepare, print status (no secrets)
+//   node scripts/jojo/jojo-web.mjs --gh     # local only: fetch the pinned asset with
+//                                           # your logged-in GitHub CLI (bun run jojo:pull)
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
@@ -48,9 +50,9 @@ function installedVersion() {
 function extractTgz(buf) {
   const tmp = mkdtempSync(join(tmpdir(), 'jojo-web-'))
   try {
-    const tgz = join(tmp, 'pkg.tgz')
-    writeFileSync(tgz, buf)
-    execFileSync('tar', ['-xzf', tgz, '-C', tmp])
+    writeFileSync(join(tmp, 'pkg.tgz'), buf)
+    // Relative paths: GNU tar (Git Bash on Windows) reads "C:\…" as a remote host.
+    execFileSync('tar', ['-xzf', 'pkg.tgz'], { cwd: tmp })
     rmSync(VENDOR, { recursive: true, force: true })
     mkdirSync(dirname(VENDOR), { recursive: true })
     cpSync(join(tmp, 'package'), VENDOR, { recursive: true })
@@ -127,6 +129,25 @@ export async function prepareJojoWeb({ env = process.env, log = console.log } = 
   return { available: false, version: null, source: 'none' }
 }
 
+/** Local convenience: download the pinned release asset through the GitHub CLI. */
+function pullWithGh() {
+  const tmp = mkdtempSync(join(tmpdir(), 'jojo-web-gh-'))
+  try {
+    execFileSync(
+      'gh',
+      ['release', 'download', LOCK.tag, '-R', LOCK.repo, '-p', LOCK.asset, '--clobber'],
+      { cwd: tmp, stdio: 'inherit' }
+    )
+    const buf = readFileSync(join(tmp, LOCK.asset))
+    verified(buf, false)
+    extractTgz(buf)
+    return { available: !!installedVersion(), version: installedVersion(), source: 'gh' }
+  } finally {
+    rmSync(tmp, { recursive: true, force: true })
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  prepareJojoWeb().then((r) => console.log(JSON.stringify(r)))
+  if (process.argv.includes('--gh')) console.log(JSON.stringify(pullWithGh()))
+  else prepareJojoWeb().then((r) => console.log(JSON.stringify(r)))
 }
