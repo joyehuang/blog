@@ -1,10 +1,61 @@
 import { Resvg } from '@resvg/resvg-js'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import satori from 'satori'
 
 const avatarBuffer = fs.readFileSync(path.resolve('./src/assets/avatar.png'))
 const avatarDataUrl = `data:image/png;base64,${avatarBuffer.toString('base64')}`
+
+// Rendered PNGs are cached across builds: each one costs two Google Fonts
+// round trips plus a satori/resvg render (~0.5s), and Vercel restores
+// node_modules from its build cache. The key covers the card's inputs and
+// everything that shapes the render (this file, the avatar, renderer
+// versions), so any change there re-renders.
+const CACHE_DIR = path.resolve('./node_modules/.cache/og-png')
+const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+const rendererHash = (() => {
+  const h = createHash('sha256')
+  h.update(fs.readFileSync(path.resolve('./src/lib/og.ts')))
+  h.update(avatarBuffer)
+  for (const pkg of ['satori', '@resvg/resvg-js']) {
+    try {
+      h.update(fs.readFileSync(path.resolve(`./node_modules/${pkg}/package.json`)))
+    } catch {
+      h.update(pkg)
+    }
+  }
+  return h.digest('hex')
+})()
+
+// Hits refresh mtime, so anything untouched for a month is stale input.
+try {
+  for (const name of fs.readdirSync(CACHE_DIR)) {
+    const file = path.join(CACHE_DIR, name)
+    if (Date.now() - fs.statSync(file).mtimeMs > CACHE_TTL_MS) fs.rmSync(file)
+  }
+} catch {}
+
+async function cachedPng(input: unknown, render: () => Promise<Buffer>) {
+  const key = createHash('sha256').update(rendererHash).update(JSON.stringify(input)).digest('hex')
+  const file = path.join(CACHE_DIR, `${key.slice(0, 32)}.png`)
+  try {
+    const png = fs.readFileSync(file)
+    const now = new Date()
+    fs.utimesSync(file, now, now)
+    return png
+  } catch {}
+
+  const png = await render()
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true })
+    const tmp = `${file}.${process.pid}.tmp`
+    fs.writeFileSync(tmp, png)
+    fs.renameSync(tmp, file)
+  } catch {}
+  return png
+}
 
 const PRIMARY = '#659EB9'
 const SITE = 'joyehuang.me'
@@ -167,7 +218,9 @@ export async function defaultOgPng(opts: {
     ),
     footerLine('Melbourne · Build fast, learn faster')
   ])
-  return renderPng(tree, opts.name + opts.tagline + 'Melbourne · Build fast, learn faster')
+  return cachedPng({ kind: 'default', ...opts }, () =>
+    renderPng(tree, opts.name + opts.tagline + 'Melbourne · Build fast, learn faster')
+  )
 }
 
 export async function postOgPng(opts: {
@@ -250,5 +303,5 @@ export async function postOgPng(opts: {
   ])
 
   const subset = [opts.title, truncDesc, tags.join(''), opts.date].join('')
-  return renderPng(tree, subset)
+  return cachedPng({ kind: 'post', ...opts }, () => renderPng(tree, subset))
 }
