@@ -316,7 +316,7 @@ html[data-jojo-dock='shown'] #action-buttons.show {
   position: absolute;
   left: 0;
   top: 0;
-  width: min(300px, calc(100vw - 24px));
+  width: min(340px, calc(100vw - 24px));
   padding: 0.6rem 0.8rem 0.65rem;
   border: 2px solid var(--jojo-indigo);
   border-radius: 14px;
@@ -457,19 +457,10 @@ html[data-jojo-dock='shown'] #action-buttons.show {
   outline: 2px solid var(--jojo-coral);
   outline-offset: 2px;
 }
-/* while Jojo is out, the seat is empty and every stop leaves room above it
-   for Jojo to stand on its top edge under the sticky header */
+/* while Jojo is out, the seat is empty (the room each stop leaves above it
+   for Jojo and its bubble is measured per stop, see JojoGuide) */
 html[data-jojo-guide] .jojo-seat-btn {
   opacity: 0;
-}
-html[data-jojo-guide] [data-jojo-stop] {
-  scroll-margin-top: 13.5rem;
-}
-@media (max-width: 640px) {
-  /* phones: the bubble sits above Jojo, so the stop needs more room */
-  html[data-jojo-guide] [data-jojo-stop] {
-    scroll-margin-top: 18rem;
-  }
 }
 [data-jojo-stop-active] {
   border-radius: 14px;

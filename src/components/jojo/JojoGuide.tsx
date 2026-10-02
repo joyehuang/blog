@@ -1,5 +1,5 @@
 import { trackOnce } from '@/lib/jojo/analytics'
-import { GUIDE_END, type Stop } from '@/lib/jojo/guide'
+import { GUIDE_END, type Bubble, type Stop } from '@/lib/jojo/guide'
 import { initialPoke, poke } from '@/lib/jojo/poke'
 import { isEditable } from '@/lib/jojo/presence'
 import { createStepPlayer } from '@/lib/jojo/steps'
@@ -62,6 +62,10 @@ type Phase =
 const placeKey = (p: Phase) =>
   p.kind === 'stop' ? `stop:${p.at}` : p.kind === 'home' ? `home:${p.to}` : 'end'
 
+/** the sticky header's bottom edge — it hides on scroll down and comes back
+ *  on scroll up, so always count it as shown */
+const headerBottom = () =>
+  Math.max(72, document.querySelector('header-component')?.getBoundingClientRect().bottom ?? 0)
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
 const pulse = (t: number, t0: number, len: number) =>
   t <= t0 || t >= t0 + len ? 0 : Math.sin((Math.PI * (t - t0)) / len)
@@ -71,7 +75,8 @@ const pulse = (t: number, t0: number, len: number) =>
  * home section (a spring that follows the section while the page scrolls,
  * with a hop arc, a lean into the turn, a stretch in the air and a squash on
  * landing), stands on the section's top edge — left end, then right end, so
- * it criss-crosses the page — and talks in a bubble, in the mood that section
+ * it criss-crosses the page — and talks it through in a few bubbles, each with
+ * its own face (falling back to the mood that section
  * deserves. Eyes follow a fine pointer while it talks; poking it gets a
  * reaction. At the end it flies home: to the seat beside the avatar ("back to
  * top") or back to the dock corner. Every frame is driven by one rAF loop that
@@ -161,18 +166,53 @@ export default function JojoGuide({
     const el = document.querySelector<HTMLElement>(`[data-jojo-stop="${stops[phase.at].id}"]`)
     if (!el) return
     el.setAttribute('data-jojo-stop-active', '')
+    // leave exactly the room this stop's tallest bubble needs above the
+    // section (beside Jojo when there is space, else above it), so neither
+    // Jojo nor the section ends up under the bubble
+    el.style.scrollMarginTop = `${roomAbove(el, stops[phase.at], phase.at % 2 === 1)}px`
     el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' })
-    return () => el.removeAttribute('data-jojo-stop-active')
+    return () => {
+      el.removeAttribute('data-jojo-stop-active')
+      el.style.removeProperty('scroll-margin-top')
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place, still, stops])
 
+  /** px between the sticky header and a stop's top edge for this stop's bubbles */
+  function roomAbove(el: HTMLElement, st: Stop, rightEnd: boolean) {
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const size = vw <= 640 ? 64 : 80
+    const header = headerBottom()
+    // the tallest of this stop's bubbles, laid out off screen at full length
+    let h = 160
+    let w = Math.min(340, vw - 24)
+    const b = bubbleRef.current
+    if (b) {
+      const probe = b.cloneNode(true) as HTMLDivElement
+      probe.style.cssText = 'position:fixed;left:-9999px;top:0;transform:none;visibility:hidden'
+      probe.removeAttribute('data-shown')
+      document.body.appendChild(probe)
+      const line = probe.querySelector('.jojo-guide-line')
+      h = 0
+      for (const bb of st.bubbles) {
+        if (line) line.textContent = bb.text
+        h = Math.max(h, probe.offsetHeight)
+      }
+      w = probe.offsetWidth
+      probe.remove()
+    }
+    const r = el.getBoundingClientRect()
+    const x = rightEnd ? r.right - size * 0.55 : r.left + size * 0.55
+    const beside = rightEnd ? x - size / 2 - 12 - w >= 12 : x + size / 2 + 12 + w <= vw - 12
+    const need = beside ? header + h + 14 : header + h + 12 + size + 14
+    return Math.min(need, vh * 0.62)
+  }
+
   // the bubble types its line once Jojo has landed
+  const bubble: Bubble | null = phase.kind === 'stop' ? (stop?.bubbles[phase.page] ?? null) : null
   const line =
-    phase.kind === 'end'
-      ? GUIDE_END[lang].line
-      : phase.kind === 'stop'
-        ? (stop?.lines[phase.page] ?? '')
-        : ''
+    phase.kind === 'end' ? GUIDE_END[lang].line : phase.kind === 'stop' ? (bubble?.text ?? '') : ''
   const chars = Array.from(line)
   useEffect(() => {
     setTyped(0)
@@ -206,7 +246,7 @@ export default function JojoGuide({
   useEffect(() => {
     let raf = 0
     let last = performance.now()
-    const header = document.querySelector('header-component')?.getBoundingClientRect().bottom ?? 72
+    const header = headerBottom()
     const target = (ph: Phase, size: number): { x: number; y: number; size: number } => {
       const vw = window.innerWidth
       const vh = window.innerHeight
@@ -329,11 +369,21 @@ export default function JojoGuide({
     return () => cancelAnimationFrame(raf)
   }, [still, stops, onHandoff, onDone])
 
-  const go = (d: 1 | -1) =>
+  // Next while a line is still typing finishes it first, so nothing is skipped unread
+  const typing = useRef(false)
+  typing.current = arrived && typed < chars.length
+  const go = (d: 1 | -1) => {
+    if (d === 1 && typing.current) {
+      setTyped(Number.MAX_SAFE_INTEGER)
+      return
+    }
+    step(d)
+  }
+  const step = (d: 1 | -1) =>
     setPhase((p) => {
       if (p.kind === 'stop') {
         const page = p.page + d
-        if (page >= 0 && page < stops[p.at].lines.length) return { ...p, page }
+        if (page >= 0 && page < stops[p.at].bubbles.length) return { ...p, page }
         const n = p.at + d
         if (n < 0) return p
         return n >= stops.length ? { kind: 'end' } : { kind: 'stop', at: n, page: 0 }
@@ -389,7 +439,7 @@ export default function JojoGuide({
         ? 'happy'
         : phase.kind === 'end'
           ? 'celebrate'
-          : (stop?.mood ?? 'happy'))
+          : (bubble?.mood ?? stop?.mood ?? 'happy'))
   const status: StatusId = phase.kind === 'end' && arrived ? 'success' : 'idle'
   const gaze: GazeInput =
     !arrived || phase.kind === 'home'
@@ -403,7 +453,7 @@ export default function JojoGuide({
   const last =
     phase.kind === 'stop' &&
     phase.at === stops.length - 1 &&
-    phase.page === stops[phase.at].lines.length - 1
+    phase.page === stops[phase.at].bubbles.length - 1
 
   return createPortal(
     <div className='jojo-guide-layer' aria-live='polite'>
@@ -461,9 +511,9 @@ export default function JojoGuide({
         {stop && (
           <p className='jojo-guide-title'>
             {stop.title}
-            {phase.kind === 'stop' && stop.lines.length > 1 && (
+            {phase.kind === 'stop' && stop.bubbles.length > 1 && (
               <span className='jojo-guide-pages' aria-hidden='true'>
-                {stop.lines.map((_, i) => (
+                {stop.bubbles.map((_, i) => (
                   <i key={i} data-on={i === phase.page ? '' : undefined} />
                 ))}
               </span>
@@ -496,14 +546,15 @@ export default function JojoGuide({
             </>
           ) : (
             <>
-              {stop?.link && (
+              {bubble?.link && (
                 <a
                   className='jojo-guide-link'
-                  href={stop.link.href}
-                  target='_blank'
-                  rel='noopener noreferrer'
+                  href={bubble.link.href}
+                  {...(bubble.link.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                 >
-                  {stop.link.label}
+                  {bubble.link.label}
                 </a>
               )}
               <button

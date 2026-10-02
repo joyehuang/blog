@@ -330,10 +330,10 @@ Required properties:
 - `locale`, `page`
 - `surface`: `jojo_dock`
 - `action`: `start` | `complete` | `exit`
-- `steps`: number of stops on this page (7 on `/`, 5 on `/en`), for `start`
+- `steps`: number of stops on this page (5 on `/`, 3 on `/en`), for `start`
   and `complete`
 - `step`: the stop the visitor left on (`product` | `blog` | `talks` |
-  `experience` | `opensource` | `education` | `skills`), for `exit` only
+  `experience` | `opensource`), for `exit` only
 - `steps_seen`: how many stops were shown before leaving, for `exit` only
 
 `complete` fires when the visitor reaches the closing bubble; `exit` when the
@@ -342,7 +342,9 @@ view per action. Clicks on links inside the sections are left to their own
 events (`project_link_click`, `github_link_click`) and Pages; the bubble's own
 links (the Bilibili live room, the Links page) are left to Pages (`/links`)
 and outbound-link tracking. The `talks` stop is about the live streams that
-replaced the weekly talks (2026-10-03); Notes is not a stop.
+replaced the weekly talks (2026-10-03); Notes, Education and Skills are not
+stops. Each stop is talked through in several bubbles; moving between bubbles
+is not tracked.
 
 ### `jojo_story_play`
 

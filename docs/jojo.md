@@ -30,13 +30,15 @@ family). This site shows it in three ways that are designed to work together.
   on a spring that follows the section while the page scrolls (hop arc, lean
   into the turn, stretch in the air, squash on landing), stands on the
   section's top edge — left end, then right end, so it criss-crosses the page —
-  and talks in one or more bubbles beside it, in the section's mood
-  (`src/lib/jojo/guide.ts`: smug, think, laugh, focus, happy, shy, celebrate;
-  `success` status at the end). The lines carry what skimming would miss —
-  Joye's views on agents from the posts, what each open-source repo takes
-  apart, the live streams that replaced the weekly talks (with a Bilibili
-  link); Notes is skipped. The closing bubble links to `/links#apply-links`
-  for friend links. Eyes follow a fine pointer once a
+  and talks it through in a few bubbles beside it, each with its own face
+  (`src/lib/jojo/guide.ts`). The bubbles carry what the section does not say:
+  which post to start with for your situation (with links), what each product
+  actually is (from the products' own sites), what each open-source repo lets
+  you do beyond its card, the live streams that replaced the weekly talks.
+  Stops: 面试手记, Blog, 直播 (Talks), Experience, Open Source — Notes,
+  Education and Skills are skipped. The closing bubble links to
+  `/links#apply-links` for friend links; `success` status at the end. Next
+  while a line is still typing finishes it first. Eyes follow a fine pointer once a
   line is typed; poking it gets a reaction. Back / Next (or ← / →), Esc or ×
   to end; at the end it flies home to the seat ("back to top") or the corner.
   The dock stays away while Jojo is out (one Jojo per viewport). Reduced
