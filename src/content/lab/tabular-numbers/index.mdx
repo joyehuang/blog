@@ -37,7 +37,7 @@ import TabularDemo from './TabularDemo.tsx'
 
 等宽数字解决的是“抖”，但数字变化本身仍然是一下跳过去的。对价格、余额、点赞数这种**值得被注意到的变化**，我更喜欢让每一位像拨号盘一样滚到新值：涨了还是跌了、变了多少，不用盯着前后两个数去比。
 
-demo 最下面那组用的是 [NumberFlow](https://number-flow.barvian.me/)，Maxwell Barvian 做的开源数字动画组件。它把格式化交给浏览器自带的数字格式（货币、千分位、单位都能用），没有额外依赖，系统开启减少动态效果时会自动不滚，React、Vue、Svelte 都有对应的版本。想给自己的页面加上这种效果，把这个链接丢给你的 Agent 就够了。
+demo 最下面那组用的是 [NumberFlow](https://number-flow.barvian.me/)，Maxwell Barvian 做的开源数字动画组件。它把格式化交给浏览器自带的数字格式（货币、千分位、单位都能用），无需额外的格式化库；使用 NumberFlow 本身仍需安装对应的组件包。系统开启减少动态效果时会自动不滚，React、Vue、Svelte 都有对应的版本。想给自己的页面加上这种效果，把这个链接丢给你的 Agent 就够了。
 
 ## 什么时候不该用
 
