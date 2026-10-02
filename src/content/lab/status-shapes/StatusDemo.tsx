@@ -10,10 +10,17 @@
  *   出错晃两下就停。
  * - 状态和表情分开：出错不会让头像哭，脸始终不变。
  *
- * 左边是常见做法（只换圆点颜色，工作中 / 等你回复 / 出错都在闪），右边是
- * 形状做法。每个框底部有一排“体检”：六种状态并排，32px、灰度、静止。
+ * 左边是常见做法（头像角上叠一个彩色在线点，工作中 / 等你回复 / 出错都在闪），
+ * 右边是形状做法。每个框底部有一排“体检”：六种状态并排，32px、灰度、静止。
+ *
+ * 有 Jojo 包的构建（__JOJO__）直接用真正的 Jojo 和它自带的六种状态；没有时
+ * 退回下面这个通用头像，演示同样的规则。左边的彩色点是叠在头像外面的独立圆点，
+ * 不给 Jojo 重新上色。
  */
-import { useState } from 'react'
+import type { JojoProps } from '@jojo-web/runtime'
+import { useEffect, useState, type ComponentType } from 'react'
+
+import { loadJojoRuntime } from '@/components/jojo/LazyJojo'
 
 type Status = 'idle' | 'working' | 'needs-input' | 'success' | 'error' | 'offline'
 type Kind = 'color' | 'shape'
@@ -90,13 +97,62 @@ function Avatar({ status, kind, small }: { status: Status; kind: Kind; small?: b
   )
 }
 
-function Panel({ kind, status }: { kind: Kind; status: Status }) {
+type JojoComponent = ComponentType<JojoProps>
+// 'off': no Jojo in this build → generic avatar. null: still loading → empty seat.
+type JojoState = JojoComponent | 'off' | null
+
+function useJojo(): JojoState {
+  const [jojo, setJojo] = useState<JojoState>(__JOJO__ ? null : 'off')
+  useEffect(() => {
+    if (!__JOJO__) return
+    let alive = true
+    loadJojoRuntime()
+      .then((C) => alive && setJojo(() => C))
+      .catch(() => alive && setJojo('off'))
+    return () => {
+      alive = false
+    }
+  }, [])
+  return jojo
+}
+
+function Face({
+  jojo,
+  status,
+  kind,
+  small
+}: {
+  jojo: JojoState
+  status: Status
+  kind: Kind
+  small?: boolean
+}) {
+  if (jojo === 'off')
+    return <Avatar key={small ? undefined : status} status={status} kind={kind} small={small} />
+  if (!jojo) return null
+  const Jojo = jojo
+  const shaped = kind === 'shape'
+  return (
+    <span className='sa-jojo' data-kind={kind} data-status={status}>
+      <Jojo
+        status={shaped ? status : 'idle'}
+        size={small ? 32 : 136}
+        motion={small ? 'static' : shaped ? 'auto' : 'static'}
+        decorative={small || !shaped}
+        title={shaped ? undefined : 'Jojo'}
+      />
+      {!shaped && <span className='sa-badge' aria-hidden='true' />}
+    </span>
+  )
+}
+
+function Panel({ kind, status, jojo }: { kind: Kind; status: Status; jojo: JojoState }) {
   const shaped = kind === 'shape'
   return (
     <div className='sa-frame'>
       <div className='sa-stage'>
         <div className='sa-seat'>
-          <Avatar key={status} status={status} kind={kind} />
+          <Face jojo={jojo} status={status} kind={kind} />
         </div>
         <span className='sa-name' aria-live='polite'>
           {shaped ? LABEL[status] : ' '}
@@ -108,7 +164,7 @@ function Panel({ kind, status }: { kind: Kind; status: Status }) {
           {STATUSES.map((s) => (
             <div className='sa-cell' key={s.id}>
               <span className='sa-mini'>
-                <Avatar status={s.id} kind={kind} small />
+                <Face jojo={jojo} status={s.id} kind={kind} small />
               </span>
               <span className='sa-cell-label'>{s.label}</span>
             </div>
@@ -121,9 +177,11 @@ function Panel({ kind, status }: { kind: Kind; status: Status }) {
 
 export default function StatusDemo() {
   const [status, setStatus] = useState<Status>('working')
+  const jojo = useJojo()
 
   return (
-    <div className='sa-root'>
+    // data-jojo-anchor: an in-flow Jojo lives here, so the dock steps aside.
+    <div className='sa-root' data-jojo-anchor={__JOJO__ ? '' : undefined}>
       <style>{`
         .sa-root {
           --bg: #F1F3EE;
@@ -271,7 +329,30 @@ export default function StatusDemo() {
         .sa-mini { width: 32px; height: 32px; }
         .sa-cell-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
-        /* ---------- the avatar ---------- */
+        /* ---------- Jojo (when the package is in the build) ---------- */
+        .sa-jojo { position: relative; display: block; width: 100%; height: 100%; }
+        .sa-jojo > svg, .sa-jojo > span:not(.sa-badge) { display: block; width: 100%; height: 100%; }
+        .sa-badge {
+          position: absolute;
+          right: 6%;
+          bottom: 6%;
+          width: 24%;
+          height: 24%;
+          border-radius: 50%;
+          border: 3px solid var(--card);
+          background: var(--c-idle);
+        }
+        .sa-mini .sa-badge { border-width: 1.5px; width: 30%; height: 30%; right: 0; bottom: 0; }
+        .sa-jojo[data-status='working'] .sa-badge { background: var(--c-working); }
+        .sa-jojo[data-status='needs-input'] .sa-badge { background: var(--c-needs-input); }
+        .sa-jojo[data-status='success'] .sa-badge { background: var(--c-success); }
+        .sa-jojo[data-status='error'] .sa-badge { background: var(--c-error); }
+        .sa-jojo[data-status='offline'] .sa-badge { background: var(--c-offline); }
+        .sa-stage .sa-jojo:is([data-status='working'], [data-status='needs-input'], [data-status='error']) .sa-badge {
+          animation: sa-pulse 0.9s ease-in-out infinite alternate;
+        }
+
+        /* ---------- the generic avatar (builds without Jojo) ---------- */
         .sa-avatar { display: block; width: 100%; height: 100%; overflow: visible; }
         .sa-avatar * { transform-box: fill-box; }
         .sa-shell { fill: var(--shell); }
@@ -415,14 +496,14 @@ export default function StatusDemo() {
       <div className='sa-compare'>
         <div className='sa-col'>
           <span className='sa-tag sa-tag--bad'>✕ 只换圆点颜色，一直在闪</span>
-          <Panel kind='color' status={status} />
+          <Panel kind='color' status={status} jojo={jojo} />
           <p className='sa-caption'>
             看底下那排体检：去掉颜色、缩小之后，六个头像几乎一模一样。工作中、等你回复、出错还一直在闪，哪个才需要我处理？
           </p>
         </div>
         <div className='sa-col'>
           <span className='sa-tag sa-tag--good'>✓ 每个状态一个形状，动一下就停</span>
-          <Panel kind='shape' status={status} />
+          <Panel kind='shape' status={status} jojo={jojo} />
           <p className='sa-caption'>
             进度弧、问号气泡、对勾徽章、感叹号、整体变灰，轮廓本身就是答案。只有“工作中”在动，其他状态出现时动一下，然后安静地停住。
           </p>
