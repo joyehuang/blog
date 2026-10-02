@@ -30,6 +30,7 @@
     "@astrojs/vercel": "^8.1.4",
     "@fontsource-variable/geist": "^5.2.9",
     "@neondatabase/serverless": "^1.1.0",
+    "@number-flow/react": "^0.6.2",
     "@playform/compress": "^0.1.9",
     "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^19.2.14",

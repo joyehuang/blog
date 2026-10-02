@@ -1,0 +1,41 @@
+---
+title: 能点的范围，比看起来大
+blurb: 复选框、关闭叉号、图标按钮可以画得小，但能点的范围不该跟着小：让文字也能勾选，让叉号四周一圈都算点中。
+date: 2026-10-03
+category: interaction
+tags:
+  - hit-area
+  - accessibility
+  - forms
+source: https://vercel.com/design/guidelines
+---
+
+import DemoFrame from '@/components/lab/DemoFrame.astro'
+
+import HitAreaDemo from './HitAreaDemo.tsx'
+
+在手机上关掉一个弹窗，我经常要点两三次：叉号只有指甲盖的一角那么大，手指稍微偏一点就落空。设置页也一样，我习惯去点“新评论”这几个字，结果什么都没发生，只好再把手指挪到那个小方块上。问题不在图形太小，而在能点的范围和图形一样小。
+
+<DemoFrame bleed label='两个面板长得一模一样。各点几下，再打开“显示可点区域”看看真实范围。'>
+  <HitAreaDemo client:visible />
+</DemoFrame>
+
+## 为什么这样更好
+
+- **目标越大，越容易点中**。Fitts 定律说，点中一个目标花的时间取决于它离得多远、有多大。可点范围放大一圈，手指或鼠标不用那么精确，速度和准确率都会上来。
+- **图形大小和可点范围是两件事**。叉号画成 14px 是为了不抢内容的风头，这是视觉上的决定；能点的范围是操作上的决定，完全可以给到 44×44，而画面上看不出任何变化。
+- **文字和复选框是同一件事**。读的人眼睛落在“新评论”这几个字上，手自然也会点那里。让整行都能勾选，可点范围就从一个小方块变成一整行，也不会出现“点了没反应”的死角。
+- **点空的代价比看起来高**。每点空一次，人就要停下来确认“刚才是我没点中，还是它坏了”。demo 里的“点空了”计数，记的就是这些多出来的停顿。
+- **尺寸有现成的下限可以参考**。WCAG 2.2 的 2.5.8 要求可点目标至少 24×24 CSS 像素（或者周围留出足够的间距），更严格的 2.5.5 是 44×44；Apple 在 iOS 上的默认控件尺寸是 44×44 pt。
+
+放大可点范围时，我会顺手检查相邻两个目标有没有重叠。两个按钮的可点区域叠在一起，就只是把“点空”换成了“点错”。
+
+## 什么时候不该用
+
+- 目标挨得很密的时候，比如工具栏里一排图标。可点范围只能扩到彼此的中线为止，再往外就会抢走邻居的点击。
+- 正文里的链接。它的范围由行高决定，强行撑大会挡住上下几行的文字；WCAG 也把句子里的链接列为例外。
+- 会造成损失的操作，比如“删除”。这类按钮不该靠放大范围去“好点”，而应该放远一点，或者加一步确认。
+
+## 出处
+
+Vercel 的 [Web Interface Guidelines](https://vercel.com/design/guidelines) 里有两条讲的就是这件事：图形小于 24px 时，把可点范围扩到 24px 以上（手机上至少 44px）；复选框和它的文字共用一个足够大的可点区域。Fitts 定律的说法引自 Rauno Freiberg 的 [_Invisible Details of Interaction Design_](https://rauno.me/craft/interaction-design)，尺寸下限来自 W3C 的 [_Understanding SC 2.5.8: Target Size (Minimum)_](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) 和 Apple 的 [_Human Interface Guidelines: Accessibility_](https://developer.apple.com/design/human-interface-guidelines/accessibility)。
