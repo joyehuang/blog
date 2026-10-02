@@ -374,8 +374,8 @@ export default function TooltipDemo() {
         </div>
         <div className='wt-takeaway'>
           <span className='wt-num'>03</span>
-          键盘 Tab 聚焦直接显示、Escape 收起；触屏不出提示，点一下就执行。按钮本身始终有
-          aria-label，不靠提示解释自己。
+          键盘 Tab 聚焦直接显示、Escape
+          收起；触屏不出提示，点一下就执行。按钮本身始终有名字，不靠提示解释自己。
         </div>
       </div>
     </div>

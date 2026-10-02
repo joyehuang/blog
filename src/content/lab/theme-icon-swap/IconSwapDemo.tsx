@@ -7,7 +7,7 @@
  * 2. 只做淡入淡出：中途两个图标叠在一起，能看到“重影”。
  * 3. 模糊 + 缩放（本站做法）：opacity + blur(4px) + scale(0.6)，0.25s ease。
  *
- * 三个按钮共用一个状态，点任意一个，三个一起切，方便对照；“慢放”把时长拉到 1.5s，
+ * 三个按钮各自独立，一个一个点着对比手感；“慢放”把时长拉到 0.75s（×3），
  * 中间帧就看得清了。系统开启减少动态效果时，过渡全部关闭，状态照样切换。
  */
 import { useState, type CSSProperties } from 'react'
@@ -111,13 +111,39 @@ function ToggleButton({
   )
 }
 
-export default function IconSwapDemo() {
+function Column({ variant }: { variant: (typeof VARIANTS)[number] }) {
   const [mode, setMode] = useState<Mode>('system')
-  const [slow, setSlow] = useState(false)
   const next = () => setMode((m) => ORDER[(ORDER.indexOf(m) + 1) % ORDER.length]!)
 
   return (
-    <div className='is-root' style={{ '--is-dur': slow ? '1.5s' : '0.25s' } as CSSProperties}>
+    <div className='is-col'>
+      <span className={`is-tag is-tag--${variant.tone}`}>{variant.tag}</span>
+      <div className='is-frame'>
+        <div className='is-chrome' aria-hidden='true'>
+          joye.
+          <span className='is-chrome-nav'>
+            <span />
+            <span />
+            <span />
+          </span>
+        </div>
+        <div className='is-stage'>
+          <ToggleButton variant={variant.id} mode={mode} onClick={next} />
+          <span className='is-state' aria-live='polite'>
+            {MODE_LABEL[mode]}
+          </span>
+        </div>
+      </div>
+      <p className='is-caption'>{variant.caption}</p>
+    </div>
+  )
+}
+
+export default function IconSwapDemo() {
+  const [slow, setSlow] = useState(false)
+
+  return (
+    <div className='is-root' style={{ '--is-dur': slow ? '0.75s' : '0.25s' } as CSSProperties}>
       <style>{`
         .is-root {
           --bg: #F1F3EE;
@@ -170,10 +196,8 @@ export default function IconSwapDemo() {
         }
         .is-hint { font-size: 13px; color: var(--muted); }
         .is-state {
-          font-family: 'JetBrains Mono', monospace;
           font-size: 12px;
-          color: var(--accent);
-          margin-left: auto;
+          color: var(--muted);
         }
         .is-switch {
           display: inline-flex;
@@ -260,9 +284,12 @@ export default function IconSwapDemo() {
           background: var(--rule);
         }
         .is-stage {
-          height: 168px;
-          display: grid;
-          place-items: center;
+          height: 180px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
         }
         .is-btn {
           position: relative;
@@ -339,10 +366,6 @@ export default function IconSwapDemo() {
           .is-takeaways { grid-template-columns: 1fr; max-width: 420px; }
         }
         .is-takeaway { font-size: 13px; line-height: 1.7; color: var(--ink-soft); }
-        .is-takeaway code {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-        }
         .is-num {
           font: 11px 'JetBrains Mono', monospace;
           color: var(--faint);
@@ -356,7 +379,7 @@ export default function IconSwapDemo() {
       `}</style>
 
       <div className='is-bar'>
-        <span className='is-hint'>点任意一个按钮，三个会一起切换。</span>
+        <span className='is-hint'>一个一个点，感受三种切换的手感。</span>
         <button
           type='button'
           className='is-switch'
@@ -364,49 +387,28 @@ export default function IconSwapDemo() {
           onClick={() => setSlow((s) => !s)}
         >
           <span className='is-track' aria-hidden='true' />
-          慢放 ×6
+          慢放 ×3
         </button>
-        <span className='is-state' aria-live='polite'>
-          当前：{MODE_LABEL[mode]}
-        </span>
       </div>
 
       <div className='is-compare'>
         {VARIANTS.map((v) => (
-          <div className='is-col' key={v.id}>
-            <span className={`is-tag is-tag--${v.tone}`}>{v.tag}</span>
-            <div className='is-frame'>
-              <div className='is-chrome' aria-hidden='true'>
-                joye.
-                <span className='is-chrome-nav'>
-                  <span />
-                  <span />
-                  <span />
-                </span>
-              </div>
-              <div className='is-stage'>
-                <ToggleButton variant={v.id} mode={mode} onClick={next} />
-              </div>
-            </div>
-            <p className='is-caption'>{v.caption}</p>
-          </div>
+          <Column key={v.id} variant={v} />
         ))}
       </div>
 
       <div className='is-takeaways'>
         <div className='is-takeaway'>
           <span className='is-num'>01</span>
-          三个图标叠在同一个位置，全部常驻；切换只改哪个“亮着”，不增删 DOM，过渡才有起点和终点。
+          状态切换不要“瞬间替换”。哪怕只有零点几秒的过渡，也能让人确认：这个变化是我刚才点出来的。
         </div>
         <div className='is-takeaway'>
           <span className='is-num'>02</span>
-          退场 <code>scale(0.6) blur(4px) opacity 0</code>，入场回到 <code>scale(1) blur(0)</code>
-          。缩放给了“按下去有回应”的感觉，模糊负责把两个轮廓揉在一起。
+          缩放带来点击感：旧图标缩下去、新图标弹出来，和手指按下、松开的节奏对得上。模糊负责把两个轮廓揉成一个，避免重影。
         </div>
         <div className='is-takeaway'>
           <span className='is-num'>03</span>
-          时长 <code>0.25s ease</code>
-          ，三个属性同步。打开慢放能看清中间帧，但正常速度下你只会觉得“切得很顺”。
+          要快。整个过程在四分之一秒左右，正常速度下你不会注意到动画本身，只会觉得“切得很顺”。
         </div>
       </div>
     </div>

@@ -20,22 +20,21 @@ import TooltipDemo from './TooltipDemo.tsx'
   <TooltipDemo client:visible />
 </DemoFrame>
 
-## 拆开看它怎么做到的
+## 为什么这样更好
 
-把“热不热”这个状态放在**整组工具栏**上，而不是每个按钮自己：
+- **延迟是用来过滤“路过”的**。鼠标只是划过工具栏，不该到处冒提示，所以第一个提示等半秒再出来是对的。
+- **一旦有人停下来看，他就是在找东西**。这时候后面每个提示还要再等半秒，就只剩阻碍了。所以只要组里有提示亮着、或者刚关掉一小会儿，下一个就立即出现。
+- **后面的提示连动画都省掉**。一个接一个直接换内容，看起来就像同一个提示在跟着鼠标走，比每个都淡入一次安静得多。
+- **离开整组一会儿才重新变冷**。鼠标在两个按钮之间短暂滑出去的那一下，不会把这种“热身”状态打断。
+- **键盘和触屏各有各的规矩**。用 Tab 键切到按钮时提示直接出现；触屏没有悬停，点一下就该执行，不弹提示。
 
-- **冷进入等 600ms**。鼠标在某个按钮上停够了，第一个提示才出现，带一个 150ms 的淡入。
-- **热的时候直接显示**。只要组里有提示正亮着，或者刚关掉不到 300ms，下一个提示立即出现，**而且不播动画**，看起来就像同一个提示跟着鼠标在走。
-- **离开整组超过 300ms 才变冷**。这样鼠标快速从一个按钮滑到相邻按钮、中间短暂离开的那一下，也不会把热身打断。
-- **键盘和触屏单独处理**。Tab 聚焦时直接显示，Escape 收起；触屏没有悬停，点一下就该执行按钮，不弹提示。每个按钮都有自己的 `aria-label`，tooltip 只是补充，不负责解释按钮。
-
-这也是成熟组件库的默认行为。Radix 的 Tooltip 有两个参数：`delayDuration`（默认 700ms）管第一次要等多久，`skipDelayDuration`（默认 300ms）管多短时间内移到下一个可以跳过等待。demo 里冷延迟用的是 600ms，只是为了演示时少等一点。
+成熟的组件库基本都默认这么做，比如 Radix 的 Tooltip 默认第一次等 0.7 秒，0.3 秒内移到下一个就跳过等待。macOS 的菜单栏和工具栏提示也是同样的手感。
 
 ## 什么时候不该用
 
-- tooltip 只适合放“锦上添花”的信息：按钮名称、快捷键。触屏用户看不到它，必读的说明、报错、操作条件不要放进去。
+- tooltip 只适合放锦上添花的信息：按钮名称、快捷键。触屏用户看不到它，必读的说明、报错、操作条件不要放进去。
 - 彼此不相关、隔得很远的按钮不用共享热身。这个技巧只适用于一排挨着、会被连续扫读的按钮。
 
 ## 出处
 
-参数参考 [Radix Primitives: Tooltip](https://www.radix-ui.com/primitives/docs/components/tooltip) 的 `delayDuration` / `skipDelayDuration`。“后续的 tooltip 不该再有延迟和动画”这一条，Emil Kowalski 在 [_7 Practical Animation Tips_](https://emilkowal.ski/ui/7-practical-animation-tips) 里也专门讲过。
+参考 [Radix Primitives: Tooltip](https://www.radix-ui.com/primitives/docs/components/tooltip) 的默认行为。“后续的 tooltip 不该再有延迟和动画”这一条，Emil Kowalski 在 [_7 Practical Animation Tips_](https://emilkowal.ski/ui/7-practical-animation-tips) 里也专门讲过。

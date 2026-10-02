@@ -373,7 +373,7 @@ export default function StatusDemo() {
         </div>
         <div className='ss-takeaway'>
           <span className='ss-num'>03</span>
-          图标再清楚也要配 aria-label 或文字。屏幕阅读器读不到形状，demo 里每个图标都带着状态名。
+          图标再清楚也要配文字。读屏软件读不出形状，demo 里每个图标背后都带着状态名。
         </div>
       </div>
     </div>
