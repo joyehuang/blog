@@ -83,16 +83,18 @@ type OgNode = {
   props: { style?: Record<string, unknown>; children?: OgNode | OgNode[] | string; [k: string]: unknown }
 }
 
-async function renderPng(tree: OgNode, textForSubset: string) {
+async function renderPng(tree: OgNode, textForSubset: string, opts: { mono?: boolean } = {}) {
   const subset = LATIN_CHARS + textForSubset
   const fonts: NonNullable<Parameters<typeof satori>[1]['fonts']> = []
 
-  const [regular, bold] = await Promise.all([
+  const [regular, bold, mono] = await Promise.all([
     loadGoogleFont('Noto Sans SC', subset, 500),
-    loadGoogleFont('Noto Sans SC', subset, 700)
+    loadGoogleFont('Noto Sans SC', subset, 700),
+    opts.mono ? loadGoogleFont('Geist Mono', subset, 500) : null
   ])
   if (regular) fonts.push({ name: 'Noto Sans SC', data: regular, weight: 500, style: 'normal' })
   if (bold) fonts.push({ name: 'Noto Sans SC', data: bold, weight: 700, style: 'normal' })
+  if (mono) fonts.push({ name: 'Geist Mono', data: mono, weight: 500, style: 'normal' })
 
   const svg = await satori(tree as Parameters<typeof satori>[0], {
     width: 1200,
@@ -304,4 +306,184 @@ export async function postOgPng(opts: {
 
   const subset = [opts.title, truncDesc, tags.join(''), opts.date].join('')
   return cachedPng({ kind: 'post', ...opts }, () => renderPng(tree, subset))
+}
+
+// Talks cards mirror the slide decks' terminal cover (cyan on near-black,
+// mono prompt lines), since the deck links are what get shared.
+const TERM = {
+  bg: '#0B0B10',
+  panel: '#14151F',
+  text: '#FAFAFA',
+  dim: '#BCBCC2',
+  faint: '#74768A',
+  border: '#2C2D39',
+  cyan: '#B4EBFD',
+  teal: '#517E94',
+  teal2: '#6FA3B8'
+}
+const MONO = 'Geist Mono'
+
+function clip(s: string, max: number) {
+  return s.length > max ? s.slice(0, max - 1) + '…' : s
+}
+
+function span(color: string, children: string): OgNode {
+  return { type: 'span', props: { style: { color }, children } }
+}
+
+function termLine(children: OgNode[], cursor = false): OgNode {
+  return div({ alignItems: 'center', whiteSpace: 'pre' }, [
+    ...children,
+    ...(cursor
+      ? [{ type: 'div', props: { style: { width: 13, height: 26, marginLeft: 6, background: TERM.cyan } } }]
+      : [])
+  ])
+}
+
+function terminalShell(eyebrow: string, title: string, subtitle: string, lines: OgNode[]): OgNode {
+  return div(
+    {
+      width: 1200,
+      height: 630,
+      padding: '56px 64px',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      backgroundColor: TERM.bg,
+      backgroundImage: 'radial-gradient(circle at 88% 0%, rgba(180,235,253,0.13) 0%, rgba(11,11,16,0) 55%)',
+      color: TERM.text,
+      fontFamily: 'Noto Sans SC'
+    },
+    [
+      div({ justifyContent: 'space-between', fontFamily: MONO, fontSize: 24, fontWeight: 500 }, [
+        text({ color: TERM.teal2 }, eyebrow),
+        text({ color: TERM.faint }, 'joyehuang.me/talks')
+      ]),
+      div({ flexDirection: 'column', gap: 18 }, [
+        text(
+          {
+            fontSize: title.length > 16 ? 60 : 72,
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
+            maxWidth: 1072
+          },
+          title
+        ),
+        text({ fontSize: 28, fontWeight: 500, color: TERM.dim, lineHeight: 1.45, maxWidth: 1072 }, subtitle)
+      ]),
+      div(
+        {
+          flexDirection: 'column',
+          border: `1px solid ${TERM.border}`,
+          borderRadius: 14,
+          backgroundColor: TERM.panel
+        },
+        [
+          div(
+            {
+              alignItems: 'center',
+              gap: 8,
+              padding: '12px 18px',
+              borderBottom: `1px solid ${TERM.border}`
+            },
+            [
+              ...[TERM.faint, TERM.teal, TERM.cyan].map(
+                (c): OgNode => ({
+                  type: 'div',
+                  props: { style: { width: 12, height: 12, borderRadius: 999, background: c } }
+                })
+              ),
+              text({ marginLeft: 8, fontFamily: MONO, fontSize: 17, color: TERM.faint }, 'joye@2026: ~/talks')
+            ]
+          ),
+          div(
+            {
+              flexDirection: 'column',
+              gap: 10,
+              padding: '18px 24px',
+              fontFamily: MONO,
+              fontSize: 22,
+              fontWeight: 500,
+              color: TERM.dim
+            },
+            lines
+          )
+        ]
+      )
+    ]
+  )
+}
+
+function prompt(cmd: string): OgNode {
+  return termLine([span(TERM.cyan, 'joye@2026'), span(TERM.faint, ' ~/talks'), span(TERM.text, ` $ ${cmd}`)])
+}
+
+export async function talkOgPng(opts: {
+  episode: number
+  title: string
+  subtitle?: string
+  date: string
+  durationMinutes?: number
+  attendees?: string
+  topics?: string[]
+  upcoming?: boolean
+}) {
+  const version = 'v' + String(opts.episode).padStart(2, '0')
+  const eyebrow = `// 分享会 · 第 ${opts.episode} 期`
+  const subtitle = clip((opts.subtitle ?? '').trim(), 44)
+  const meta = [
+    opts.date,
+    opts.upcoming ? '即将开讲' : null,
+    opts.durationMinutes ? `${opts.durationMinutes} min` : null,
+    opts.attendees
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  // Whole topics only, as many as fit on the terminal line.
+  const topics = (opts.topics ?? []).reduce(
+    (line, t) => (!line ? clip(t, 40) : line.length + t.length + 3 <= 40 ? `${line} · ${t}` : line),
+    ''
+  )
+
+  const lines = [
+    prompt(`./${version}`),
+    termLine([span(TERM.dim, `> ${meta}`)], !topics),
+    ...(topics ? [termLine([span(TERM.dim, `> ${topics}`)], true)] : [])
+  ]
+  const tree = terminalShell(eyebrow, opts.title, subtitle, lines)
+
+  return cachedPng({ kind: 'talk', ...opts }, () =>
+    renderPng(tree, [eyebrow, opts.title, subtitle, meta, topics, 'joye@2026 ~/talks $ ./' + version].join(''), {
+      mono: true
+    })
+  )
+}
+
+export async function talksOgPng(opts: {
+  description: string
+  episodes: { episode: number; date: string; title: string; upcoming?: boolean }[]
+}) {
+  const eyebrow = '// 分享会 · Talks'
+  const title = '分享会 · Talks'
+  const subtitle = clip(opts.description, 44)
+  const shown = opts.episodes.slice(0, 3)
+  const rows = shown.map((e, i) =>
+    termLine(
+      [
+        span(TERM.cyan, 'v' + String(e.episode).padStart(2, '0')),
+        span(TERM.faint, `  ${e.upcoming ? 'upcoming  ' : e.date}  `),
+        span(TERM.dim, clip(e.title, 24))
+      ],
+      i === shown.length - 1
+    )
+  )
+  const tree = terminalShell(eyebrow, title, subtitle, [prompt('ls'), ...rows])
+
+  return cachedPng({ kind: 'talks', ...opts }, () =>
+    renderPng(
+      tree,
+      [eyebrow, title, subtitle, 'joye@2026 ~/talks $ ls upcoming', ...shown.map((e) => e.date + e.title)].join(''),
+      { mono: true }
+    )
+  )
 }

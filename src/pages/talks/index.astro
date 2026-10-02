@@ -15,7 +15,8 @@ const talks = sortTalks((await getCollection('talks')).filter((t) => !t.data.dra
 <PageLayout
   meta={{
     title: '分享会 · Talks',
-    description: '群里每周一次的线上交流会，聊技术、求职和 AI 行业。轮流分享，公开沉淀。'
+    description: '群里每周一次的线上交流会，聊技术、求职和 AI 行业。轮流分享，公开沉淀。',
+    ogImage: '/og/talks.png'
   }}
   highlightColor='#6FA3B8'
 >
