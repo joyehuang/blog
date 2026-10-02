@@ -8,12 +8,13 @@ This Astro 5 blog uses TypeScript and Bun. Routes live in `src/pages/`; reusable
 
 - `bun install` installs the locked dependencies from `bun.lock`.
 - `bun dev` starts the local Astro development server.
+- `bun run jojo:pull` installs the private Jojo package into `vendor/jojo-web` with your `gh` login, so local builds show Jojo.
 - `bun test` runs the Bun test suite under `src/`.
 - `bun run check` runs Astro Pure checks and Astro type/content validation.
 - `bun run lint` applies ESLint fixes to source files.
 - `bun run format` formats JavaScript, TypeScript, Markdown, MDX, and Astro files.
 - `bun run build:checked` validates the project and creates a production build.
-- `bun preview` serves the production build locally for final review.
+- `bun run preview:local` builds and serves the production output on port 4323 for final review (`bun preview` serves the last build without rebuilding). On-demand routes need `bun dev`.
 
 ## Coding Style & Naming Conventions
 
@@ -23,8 +24,12 @@ Use TypeScript for application logic and Astro for page-oriented UI. Prettier en
 
 Tests use Bun's `bun:test` API. Name files `*.test.ts` and place them beside the code they cover, as in `src/lib/agent-teams/board.test.ts`. Test parsing, validation, state transitions, and regressions. There is no fixed coverage threshold; new behavior should cover meaningful happy paths and edge cases. Run `bun test` and `bun run check` before opening a pull request.
 
+## Review & Deployments
+
+Review changes on the local server, not on Vercel. `main` deploys to production, so never push to it directly: open a PR from a feature branch and merge after approval. Vercel Preview builds are opt-in because the project builds on a Turbo machine that Vercel cannot limit to production; `scripts/vercel/ignore-build.sh` skips non-production pushes unless the commit message contains `[preview]`.
+
 ## Commit & Pull Request Guidelines
 
 All new commits must follow Conventional Commits: `type(optional-scope): imperative summary`. Prefer `feat`, `fix`, `docs`, `refactor`, `test`, `style`, `perf`, `build`, `ci`, and `chore`; for example, `fix(i18n): route unknown English pages to 404`. Keep each commit focused and mark breaking changes with `!` or a `BREAKING CHANGE:` footer.
 
-Pull requests should explain the problem and solution, link relevant issues, list validation commands, and include screenshots or recordings for visible UI changes. Note content, configuration, analytics, or deployment implications explicitly. Keep unrelated refactors out of the same PR.
+Pull requests should explain the problem and solution, link relevant issues, list validation commands, and include screenshots or recordings from the local server for visible UI changes. Note content, configuration, analytics, or deployment implications explicitly. Keep unrelated refactors out of the same PR.

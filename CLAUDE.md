@@ -12,14 +12,17 @@
 To add one, create a folder under `src/content/lab/<slug>/` with:
 
 - `index.mdx` — frontmatter (`title`, `blurb` one-line 观点, `date`, `category` from the `lib/lab.ts` enum, `tags`, optional `source` URL) + the write-up. Embed the demo with:
+
   ```mdx
   import DemoFrame from '@/components/lab/DemoFrame.astro'
+
   import Demo from './Demo.tsx'
 
   <DemoFrame bleed>
     <Demo client:visible />
   </DemoFrame>
   ```
+
 - `Demo.tsx` — the demo component, co-located (the md/mdx loader ignores it).
 
 Conventions:
@@ -32,7 +35,12 @@ Conventions:
 
 Commit at natural checkpoints — even small changes. Don't batch unrelated work; create the commit promptly. No need to ask before committing.
 
-**Preview-first — do NOT push straight to `main`.** `main` is the production branch and auto-deploys to Vercel, so anything pushed there is immediately live. Instead create a feature branch and push there so Vercel builds a preview, share it, and only merge/push to `main` after the user has seen the preview and approved. (This rule exists because a blog post was once auto-pushed to `main` and went to production before review.)
+**Review locally, never push straight to `main`.** `main` is the production branch and auto-deploys to Vercel, so anything pushed there is immediately live. Work on a feature branch, verify the change on the local server, push the branch and open a PR, and only merge after the user has approved. (This rule exists because a blog post was once auto-pushed to `main` and went to production before review.)
+
+- Iterate on `bun dev` (`.claude/launch.json` → `astro-dev`, port 4322).
+- Before asking for review, check the production build with `bun run preview:local` (`astro-preview`, port 4323): the same prerendered pages Vercel ships. Put screenshots in the PR.
+- Jojo is a private package; run `bun run jojo:pull` once (uses your `gh` login) so local builds show the real Jojo instead of the Jojo-off fallback.
+- **Vercel Preview builds are opt-in.** The project builds on a fixed Turbo machine and Vercel can't pick a machine per environment, so `scripts/vercel/ignore-build.sh` skips every non-production push unless the commit message contains `[preview]`. Only ask for one when something can't be checked locally (API routes, Vercel-only behaviour, a link to share).
 
 Name feature branches with a conventional type prefix: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/` followed by a short kebab-case description (e.g. `feat/talks-week3-preview`).
 
@@ -58,6 +66,7 @@ Small fix:
 Multi-change PR:
 
 > Tidy the agent-teams entry points.
+>
 > - Throttle the intro animation to once per 24h (was per-session).
 > - Popout dismissal is per-session, not permanent.
 > - Add a Summer of Agents section to the About page.

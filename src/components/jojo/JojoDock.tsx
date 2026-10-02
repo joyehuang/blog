@@ -9,6 +9,7 @@ import {
   readStored,
   stillReason,
   writeStored,
+  type DockStateDetail,
   type IntroEventDetail
 } from '@/lib/jojo/keys'
 import { initialPoke, poke } from '@/lib/jojo/poke'
@@ -115,6 +116,9 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
   const [chat, setChat] = useState(() => adapter.getState())
   const rootRef = useRef<HTMLDivElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
+  const navRef = useRef<HTMLElement>(null)
+  // which Jojo opened the panel: focus goes back there on close
+  const openedFrom = useRef<DockStateDetail['from']>('dock')
   const pokeState = useRef(initialPoke())
   const player = useRef<ReturnType<typeof createStepPlayer> | null>(null)
 
@@ -226,9 +230,23 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     if (presence === 'hidden' && open) setOpen(false)
   }, [presence, open])
 
-  const closePanel = useCallback((focusToggle: boolean) => {
+  // tell the hero seat (it steps out while the panel it opened is up)
+  useEffect(() => {
+    document.dispatchEvent(
+      new CustomEvent<DockStateDetail>(JOJO_EVENTS.dockState, {
+        detail: { open, from: openedFrom.current }
+      })
+    )
+  }, [open])
+
+  const closePanel = useCallback((focusOpener: boolean) => {
     setOpen(false)
-    if (focusToggle) toggleRef.current?.focus()
+    if (!focusOpener) return
+    if (openedFrom.current === 'hero') {
+      document.querySelector<HTMLElement>('[data-jojo-seat] button')?.focus()
+    } else {
+      toggleRef.current?.focus()
+    }
   }, [])
 
   // Esc and outside clicks close the panel
@@ -238,7 +256,10 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
       if (e.key === 'Escape') closePanel(true)
     }
     const onDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) closePanel(false)
+      const target = e.target as Element
+      // the hero seat toggles the panel itself
+      if (target.closest?.('[data-jojo-seat]')) return
+      if (!rootRef.current?.contains(target)) closePanel(false)
     }
     document.addEventListener('keydown', onKey)
     document.addEventListener('pointerdown', onDown)
@@ -273,12 +294,42 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
 
   const toggle = () => {
     const next = !open
+    openedFrom.current = 'dock'
     setOpen(next)
     if (next) {
       playSteps([{ emotion: 'happy', ms: 700 }])
       trackOnce('jojo_dock_action', { surface: 'jojo_dock', action: 'open' })
     }
   }
+
+  // the hero seat's Jojo opens the same panel (it hops over to the corner).
+  // Not taken while the dock must stay away (intro, typing, keyboard): the
+  // seat then falls back to a poke.
+  const heroToggle = useRef<() => boolean>(() => false)
+  heroToggle.current = () => {
+    if (!enabled || introRunning || editing || keyboard) return false
+    if (open) {
+      closePanel(true)
+      return true
+    }
+    openedFrom.current = 'hero'
+    setOpen(true)
+    playSteps([{ emotion: 'happy', ms: 700 }])
+    trackOnce('jojo_dock_action', { surface: 'home_hero', action: 'open' })
+    return true
+  }
+  // opened from afar: move focus into the panel once it is no longer inert
+  useEffect(() => {
+    if (!open || openedFrom.current !== 'hero') return
+    navRef.current?.querySelector<HTMLElement>('a, button')?.focus({ preventScroll: true })
+  }, [open])
+  useEffect(() => {
+    const on = (e: Event) => {
+      if (heroToggle.current()) e.preventDefault()
+    }
+    document.addEventListener(JOJO_EVENTS.dockToggle, on)
+    return () => document.removeEventListener(JOJO_EVENTS.dockToggle, on)
+  }, [])
   const onPoke = () => {
     const r = poke(pokeState.current, performance.now())
     pokeState.current = r.state
@@ -398,7 +449,7 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
           </button>
         </header>
 
-        <nav className='jojo-dock-nav' aria-label={t.nav}>
+        <nav ref={navRef} className='jojo-dock-nav' aria-label={t.nav}>
           {links.latest && (
             <a href={links.latest.href}>
               <span>{t.latest}</span>

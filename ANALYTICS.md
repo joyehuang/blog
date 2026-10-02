@@ -311,10 +311,12 @@ Pages).
 Required properties:
 
 - `locale`, `page`
-- `surface`: `jojo_dock`
+- `surface`: `jojo_dock` | `home_hero`
 - `action`: `open` | `tuck` | `restore`
 
-At most once per page view per action.
+`surface: home_hero` + `action: open` means the panel was opened by tapping the
+Jojo seated beside the home avatar (added 2026-10-03; before that a tap there
+was a `jojo_poke`). At most once per page view per surface and action.
 
 ### `jojo_story_play`
 

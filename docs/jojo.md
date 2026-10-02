@@ -7,7 +7,9 @@ family). This site shows it in three ways that are designed to work together.
 
 ### A · signature
 
-- **What:** Jojo seated beside the home avatar (pokeable), a card at the end of
+- **What:** Jojo seated beside the home avatar (a tap opens the dock's panel —
+  Jojo hops to the corner for it; it pokes instead when the dock is off or
+  has to stay away), a card at the end of
   every post, the 404 page, and an About section with the short film and three
   friends.
 - **Where:** `src/components/jojo/JojoHero.tsx`, `JojoArticleEnd.astro`,
@@ -101,8 +103,11 @@ gitignored `vendor/jojo-web/`, first match wins:
   asset named in `scripts/jojo/jojo-web.lock.json` through the GitHub API
   (token in a header — never in a URL, lockfile or log), verifies sha256,
   unpacks.
-- **None of the above → Jojo off:** the site builds exactly as before
-  (particle intro, ASCII mascot, promo modal).
+- **Local, by hand:** `bun run jojo:pull` downloads the pinned asset with your
+  logged-in GitHub CLI, verifies sha256 and unpacks it (never used by builds).
+- **None of the above → Jojo off:** the site builds without Jojo (ASCII
+  mascot, promo modal, no intro — the old particle intro was removed on
+  2026-10-03).
 
 `PUBLIC_JOJO=0` also switches Jojo off with the package present — that is the
 rollback switch. `@jojo-web/runtime` / `@jojo-web/static` resolve (Vite alias)

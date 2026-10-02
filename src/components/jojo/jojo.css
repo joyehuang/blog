@@ -54,6 +54,26 @@
   width: 100% !important;
   height: 100% !important;
 }
+/* the seat opened the dock panel: Jojo hops over to the corner (one Jojo per
+   viewport), the empty seat keeps its hit area so a second tap closes it.
+   On the button, not the SVG: the live engine's SVG sets its own transition. */
+.jojo-seat-btn {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.jojo-seat[data-away] .jojo-seat-btn {
+  opacity: 0;
+  transform: translate(8px, -10px) scale(0.85);
+}
+@media (prefers-reduced-motion: reduce) {
+  .jojo-seat-btn {
+    transition: none;
+  }
+  .jojo-seat[data-away] .jojo-seat-btn {
+    transform: none;
+  }
+}
 @media (max-width: 640px) {
   .jojo-seat {
     right: -16px;
