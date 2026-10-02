@@ -21,12 +21,14 @@ export interface PresenceInput {
   compact: boolean
   /** the panel is open (the visitor is using the dock) */
   open: boolean
+  /** Jojo is out walking the visitor around the page ("带我逛逛") */
+  guiding?: boolean
 }
 
 export type Presence = 'hidden' | 'shown' | 'tucked'
 
 export function dockPresence(p: PresenceInput): Presence {
-  if (!p.enabled || p.introRunning) return 'hidden'
+  if (!p.enabled || p.introRunning || p.guiding) return 'hidden'
   if (p.editingElsewhere || p.keyboardOpen) return 'hidden'
   // an open panel stays until the visitor closes it; tucked can only be open
   // when the hero seat summoned the panel, and then Jojo comes out for it

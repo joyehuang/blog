@@ -298,7 +298,8 @@ Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_hero` | `jojo_dock`
+- `surface`: `home_hero` | `jojo_dock` | `jojo_guide` (the Jojo out on the page
+  during "带我逛逛", added 2026-10-03)
 
 At most once per page view per surface (the first poke). No poke counts, no
 timings, nothing re-sent on pagehide.
@@ -321,7 +322,8 @@ was a `jojo_poke`). At most once per page view per surface and action.
 ### `jojo_guide`
 
 Visitor takes the opt-in home tour ("带我逛逛首页" in the Jojo dock menu): Jojo
-scrolls to each home section and says one line about it. Added 2026-10-03.
+leaves the dock, flies to each home section and says one line about it in a
+speech bubble. Added 2026-10-03.
 
 Required properties:
 
@@ -334,8 +336,8 @@ Required properties:
   | `experience` | `opensource` | `education` | `skills`), for `exit` only
 - `steps_seen`: how many stops were shown before leaving, for `exit` only
 
-`complete` fires when the visitor reaches the closing card; `exit` when the
-panel is closed (×, Esc, or the dock hiding) before that. At most once per page
+`complete` fires when the visitor reaches the closing bubble; `exit` when the
+tour is ended (× or Esc) before that. At most once per page
 view per action. Clicks on links inside the sections are left to their own
 events (`project_link_click`, `github_link_click`) and Pages.
 

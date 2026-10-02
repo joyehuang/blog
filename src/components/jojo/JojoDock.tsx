@@ -1,7 +1,7 @@
 import { trackOnce } from '@/lib/jojo/analytics'
 import { statusForPhase, type ChatAdapter } from '@/lib/jojo/chat/types'
 import { createUnavailableChat } from '@/lib/jojo/chat/unavailable'
-import { GUIDE_END, guideStops, type Stop } from '@/lib/jojo/guide'
+import { guideStops, type Stop } from '@/lib/jojo/guide'
 import {
   currentMode,
   JOJO_EVENTS,
@@ -19,6 +19,7 @@ import { createStepPlayer, type Step } from '@/lib/jojo/steps'
 import type { EmotionId, StatusId } from '@jojo-web/runtime'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import JojoGuide from './JojoGuide'
 import LazyJojo, { loadJojoRuntime, useStill } from './LazyJojo'
 
 import './jojo.css'
@@ -59,15 +60,7 @@ const COPY = {
     tuck: '先躲一下',
     back: '叫 Jojo 回来',
     preview: '状态预览 · 仅演示，未连接任何 Agent',
-    guide: '带我逛逛首页',
-    guideMeta: 'Jojo 带路',
-    guideDone: '逛完了',
-    prev: '上一个',
-    next: '下一个',
-    finish: '完成',
-    top: '回到顶部',
-    ok: '好的',
-    endGuide: '结束带路'
+    guide: '带我逛逛首页'
   },
   en: {
     open: 'Open the Jojo menu',
@@ -86,15 +79,7 @@ const COPY = {
     tuck: 'Hide for now',
     back: 'Bring Jojo back',
     preview: 'State preview · demo only, no agent connected',
-    guide: 'Show me around',
-    guideMeta: 'Tour',
-    guideDone: 'All done',
-    prev: 'Back',
-    next: 'Next',
-    finish: 'Finish',
-    top: 'Back to top',
-    ok: 'Done',
-    endGuide: 'End the tour'
+    guide: 'Show me around'
   }
 } as const
 
@@ -124,9 +109,13 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
   const [compact, setCompact] = useState(false)
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [previewStatus, setPreviewStatus] = useState<StatusId | null>(null)
-  // "带我逛逛": the stops on this page and where we are (at === stops.length: the end)
-  const [guide, setGuide] = useState<{ stops: Stop[]; at: number } | null>(null)
-  const guideNextRef = useRef<HTMLButtonElement>(null)
+  // "带我逛逛": Jojo leaves the corner and walks the page (JojoGuide); the
+  // dock stays away until Jojo is back
+  const [guide, setGuide] = useState<{
+    stops: Stop[]
+    from: { x: number; y: number; w: number; h: number }
+  } | null>(null)
+  const [guiding, setGuiding] = useState(false)
   const still = useStill()
   // each intent counts, so a later intent asks again after a failed download
   const [live, setLive] = useState(0)
@@ -237,7 +226,8 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     keyboardOpen: keyboard,
     commentsInView,
     compact,
-    open
+    open,
+    guiding
   })
 
   // tell the page (back-to-top stacks above a shown dock)
@@ -276,15 +266,8 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closePanel(true)
-      // left / right arrows walk the tour (not while typing somewhere)
-      if (guide && !isEditable(document.activeElement)) {
-        if (e.key === 'ArrowRight') stepGuide(1)
-        if (e.key === 'ArrowLeft') stepGuide(-1)
-      }
     }
     const onDown = (e: PointerEvent) => {
-      // on the tour the visitor reads and clicks the page: only Esc or the close button end it
-      if (guide) return
       const target = e.target as Element
       // the hero seat toggles the panel itself
       if (target.closest?.('[data-jojo-seat]')) return
@@ -296,8 +279,7 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
       document.removeEventListener('keydown', onKey)
       document.removeEventListener('pointerdown', onDown)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, closePanel, guide])
+  }, [open, closePanel])
 
   useEffect(() => {
     const p = createStepPlayer({
@@ -396,57 +378,23 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     document.dispatchEvent(new CustomEvent(JOJO_EVENTS.introReplay))
   }
 
-  const stepGuide = (d: 1 | -1) =>
-    setGuide((g) => (g ? { ...g, at: Math.max(0, Math.min(g.stops.length, g.at + d)) } : g))
   const onGuide = () => {
     const ids = Array.from(document.querySelectorAll<HTMLElement>('[data-jojo-stop]')).map(
       (el) => el.dataset.jojoStop ?? ''
     )
     const stops = guideStops(ids, lang)
     if (!stops.length) return
-    setGuide({ stops, at: 0 })
-    trackOnce('jojo_guide', { surface: 'jojo_dock', action: 'start', steps: stops.length })
+    // Jojo takes off from where the corner Jojo is drawn
+    const r = toggleRef.current?.querySelector('svg')?.getBoundingClientRect()
+    const from = r
+      ? { x: r.left, y: r.top, w: r.width, h: r.height }
+      : { x: window.innerWidth - 70, y: window.innerHeight - 70, w: 38, h: 38 }
+    setOpen(false)
+    setGuide({ stops, from })
+    setGuiding(true)
   }
-  // each stop: scroll it into view and outline it; Jojo reacts
-  const guideAt = guide ? guide.at : -1
-  const guideStop = guide && guide.at < guide.stops.length ? guide.stops[guide.at] : null
-  useEffect(() => {
-    if (!guide) return
-    if (!guideStop) {
-      playSteps([{ emotion: 'celebrate', ms: 900 }])
-      trackOnce('jojo_guide', {
-        surface: 'jojo_dock',
-        action: 'complete',
-        steps: guide.stops.length
-      })
-      guideNextRef.current?.focus({ preventScroll: true })
-      return
-    }
-    const el = document.querySelector<HTMLElement>(`[data-jojo-stop="${guideStop.id}"]`)
-    if (!el) return
-    el.setAttribute('data-jojo-stop-active', '')
-    el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' })
-    playSteps([{ emotion: guideAt % 2 ? 'focus' : 'happy', ms: 700 }])
-    guideNextRef.current?.focus({ preventScroll: true })
-    return () => el.removeAttribute('data-jojo-stop-active')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guideAt, guideStop?.id])
-  // closing the panel any way ends the tour
-  useEffect(() => {
-    if (open || !guide) return
-    if (guide.at < guide.stops.length)
-      trackOnce('jojo_guide', {
-        surface: 'jojo_dock',
-        action: 'exit',
-        step: guide.stops[guide.at].id,
-        steps_seen: guide.at + 1
-      })
-    setGuide(null)
-  }, [open, guide])
-  const onGuideTop = () => {
-    window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' })
-    closePanel(false)
-  }
+  const onGuideHandoff = useCallback(() => setGuiding(false), [])
+  const onGuideDone = useCallback(() => setGuide(null), [])
 
   // Always return an element: Astro's React renderer identifies React
   // components by rendering them, and a bare `null` on the server fails that.
@@ -511,18 +459,12 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
         <header className='jojo-dock-head'>
           <div>
             <p className='jojo-dock-name'>Jojo</p>
-            <p className='jojo-dock-tagline'>
-              {guide
-                ? guideStop
-                  ? `${t.guideMeta} · ${guide.at + 1} / ${guide.stops.length}`
-                  : t.guideDone
-                : t.tagline}
-            </p>
+            <p className='jojo-dock-tagline'>{t.tagline}</p>
           </div>
           <button
             type='button'
             className='jojo-dock-icon'
-            aria-label={guide ? t.endGuide : t.close}
+            aria-label={t.close}
             onClick={() => closePanel(true)}
           >
             <svg viewBox='0 0 24 24' width='16' height='16' aria-hidden='true'>
@@ -537,104 +479,67 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
           </button>
         </header>
 
-        {guide ? (
-          <>
-            <div className='jojo-guide' aria-live='polite'>
-              {guideStop ? (
-                <>
-                  <p className='jojo-guide-title'>{guideStop.title}</p>
-                  <p className='jojo-guide-line'>{guideStop.line}</p>
-                </>
-              ) : (
-                <p className='jojo-guide-line'>{GUIDE_END[lang]}</p>
-              )}
-            </div>
-            <footer className='jojo-dock-foot'>
-              {guideStop ? (
-                <>
-                  <button type='button' onClick={() => stepGuide(-1)} disabled={guide.at === 0}>
-                    {t.prev}
-                  </button>
-                  <button
-                    ref={guideNextRef}
-                    type='button'
-                    className='is-primary'
-                    onClick={() => stepGuide(1)}
-                  >
-                    {guide.at === guide.stops.length - 1 ? t.finish : t.next}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button type='button' onClick={onGuideTop}>
-                    {t.top}
-                  </button>
-                  <button
-                    ref={guideNextRef}
-                    type='button'
-                    className='is-primary'
-                    onClick={() => closePanel(true)}
-                  >
-                    {t.ok}
-                  </button>
-                </>
-              )}
-            </footer>
-          </>
-        ) : (
-          <>
-            <nav ref={navRef} className='jojo-dock-nav' aria-label={t.nav}>
-              {home && (
-                <button type='button' onClick={onGuide}>
-                  <span>{t.guide}</span>
-                </button>
-              )}
-              {links.latest && (
-                <a href={links.latest.href}>
-                  <span>{t.latest}</span>
-                  <small>{links.latest.title}</small>
-                </a>
-              )}
-              {links.pool.length > 1 && (
-                <button type='button' onClick={onRandom}>
-                  <span>{t.random}</span>
-                </button>
-              )}
-              <a href={`${links.about}#jojo`}>
-                <span>{t.who}</span>
-              </a>
-              {canReplay && (
-                <button type='button' onClick={onReplay}>
-                  <span>{t.replay}</span>
-                </button>
-              )}
-            </nav>
+        <nav ref={navRef} className='jojo-dock-nav' aria-label={t.nav}>
+          {home && (
+            <button type='button' onClick={onGuide}>
+              <span>{t.guide}</span>
+            </button>
+          )}
+          {links.latest && (
+            <a href={links.latest.href}>
+              <span>{t.latest}</span>
+              <small>{links.latest.title}</small>
+            </a>
+          )}
+          {links.pool.length > 1 && (
+            <button type='button' onClick={onRandom}>
+              <span>{t.random}</span>
+            </button>
+          )}
+          <a href={`${links.about}#jojo`}>
+            <span>{t.who}</span>
+          </a>
+          {canReplay && (
+            <button type='button' onClick={onReplay}>
+              <span>{t.replay}</span>
+            </button>
+          )}
+        </nav>
 
-            <div className='jojo-dock-chat' data-phase={chat.phase}>
-              <p className='jojo-dock-chat-line'>
-                <span className='jojo-dock-chat-dot' aria-hidden='true' />
-                <span>
-                  {t.chatTitle} · {t.chatState}
-                </span>
-              </p>
-              <p className='jojo-dock-chat-note'>{t.chatNote}</p>
-              {/* A composer is rendered only for an adapter that can really send
+        <div className='jojo-dock-chat' data-phase={chat.phase}>
+          <p className='jojo-dock-chat-line'>
+            <span className='jojo-dock-chat-dot' aria-hidden='true' />
+            <span>
+              {t.chatTitle} · {t.chatState}
+            </span>
+          </p>
+          <p className='jojo-dock-chat-note'>{t.chatNote}</p>
+          {/* A composer is rendered only for an adapter that can really send
               (`capabilities.compose`); the unavailable adapter never can. */}
-            </div>
+        </div>
 
-            {previewStatus && <p className='jojo-dock-preview'>{t.preview}</p>}
+        {previewStatus && <p className='jojo-dock-preview'>{t.preview}</p>}
 
-            <footer className='jojo-dock-foot'>
-              <button type='button' onClick={onPoke}>
-                {t.poke}
-              </button>
-              <button type='button' onClick={onTuck}>
-                {t.tuck}
-              </button>
-            </footer>
-          </>
-        )}
+        <footer className='jojo-dock-foot'>
+          <button type='button' onClick={onPoke}>
+            {t.poke}
+          </button>
+          <button type='button' onClick={onTuck}>
+            {t.tuck}
+          </button>
+        </footer>
       </section>
+      {guide && (
+        <JojoGuide
+          lang={lang}
+          stops={guide.stops}
+          from={guide.from}
+          staticSvg={staticSvg}
+          still={!!still}
+          onHandoff={onGuideHandoff}
+          onDone={onGuideDone}
+        />
+      )}
     </div>
   )
 }

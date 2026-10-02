@@ -24,12 +24,19 @@ family). This site shows it in three ways that are designed to work together.
   connected.
 - **Where:** `JojoDock.tsx`, `dock.css`, `src/lib/jojo/chat/*`, `presence.ts`.
 - **JS:** a React island (`client:idle`) on every page.
-- **带我逛逛 (home only):** the first menu item. An opt-in walk down the
-  home page: the dock panel turns into a guide card ("Jojo 带路 · 3 / 8"), the
-  page scrolls smoothly to each section marked `data-jojo-stop` and outlines
-  it, and Jojo says one line taken from what the section already says
-  (`src/lib/jojo/guide.ts`). Back / Next (or ← / →), Esc or × to end; the
-  page stays usable (outside clicks do not end it). The intro's last line
+- **带我逛逛 (home only):** the first menu item, opt-in. Jojo leaves the
+  corner and walks the visitor down the home page (`JojoGuide.tsx`, one rAF
+  loop writing transforms): it flies to each section marked `data-jojo-stop`
+  on a spring that follows the section while the page scrolls (hop arc, lean
+  into the turn, stretch in the air, squash on landing), stands on the
+  section's top edge — left end, then right end, so it criss-crosses the page —
+  and talks in a bubble beside it, in the section's mood
+  (`src/lib/jojo/guide.ts`: smug, think, curious, laugh, focus, happy, shy,
+  celebrate; `success` status at the end). Eyes follow a fine pointer once a
+  line is typed; poking it gets a reaction. Back / Next (or ← / →), Esc or ×
+  to end; at the end it flies home to the seat ("back to top") or the corner.
+  The dock stays away while Jojo is out (one Jojo per viewport). Reduced
+  motion / Save-Data: no flight or float, static faces. The intro's last line
   invites the visitor to tap Jojo for it. Analytics: `jojo_guide`.
 
 ### C · intro

@@ -1,9 +1,11 @@
+import type { EmotionId } from '@jojo-web/runtime'
+
 /**
  * "带我逛逛" — an opt-in walk down the home page, offered from the Jojo dock.
- * Each stop is a home section marked `data-jojo-stop="<id>"`; Jojo scrolls to
- * it, outlines it and says one line taken from what the section already says.
- * Only stops that exist on the page are visited (the English home has no
- * Product or Talks).
+ * Each stop is a home section marked `data-jojo-stop="<id>"`; Jojo flies to
+ * it, lands on its top edge and says one line taken from what the section
+ * already says, in the mood that section deserves. Only stops that exist on
+ * the page are visited (the English home has no Product or Talks).
  */
 
 export type StopId =
@@ -20,6 +22,20 @@ export interface Stop {
   id: StopId
   title: string
   line: string
+  /** Jojo's face while it talks about this stop */
+  mood: EmotionId
+}
+
+/** how Jojo feels about each stop */
+export const MOODS: Record<StopId, EmotionId> = {
+  product: 'smug',
+  blog: 'think',
+  notes: 'curious',
+  talks: 'laugh',
+  experience: 'focus',
+  opensource: 'happy',
+  education: 'shy',
+  skills: 'celebrate'
 }
 
 export const STOP_ORDER: readonly StopId[] = [
@@ -97,7 +113,7 @@ export function guideStops(pageIds: readonly string[], lang: 'zh' | 'en'): Stop[
   for (const id of pageIds) {
     if (!isStop(id) || seen.has(id)) continue
     seen.add(id)
-    out.push({ id, ...LINES[lang][id] })
+    out.push({ id, ...LINES[lang][id], mood: MOODS[id] })
   }
   return out
 }
