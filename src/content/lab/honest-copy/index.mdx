@@ -1,0 +1,35 @@
+---
+title: 复制按钮别撒谎
+blurb: 打勾是一句承诺：等剪贴板确认成功，再把这句话说出口。
+date: 2026-10-03
+category: interaction
+tags: [clipboard, accessibility]
+---
+
+import DemoFrame from '@/components/lab/DemoFrame.astro'
+
+import CopyDemo from './CopyDemo.tsx'
+
+我在优化本站的微交互时，碰到过一种特别容易被忽略的假成功：按钮已经打勾，剪贴板却没有收到文字。顺利的时候两种实现几乎一样，只有把权限拒绝摆到台面上，区别才显出来。
+
+<DemoFrame bleed label='可交互对照 · 支持键盘与明暗主题'>
+  <CopyDemo client:visible />
+</DemoFrame>
+
+## 拆开看
+
+我把同一段文字交给两个按钮。先打开「模拟权限被拒」，保留「模拟时兜底也失败」，然后分别点一次。
+
+- 左侧发起 `clipboard.writeText` 就打勾。后来的异常虽然被记录了，却没有纠正按钮的承诺。
+- 右侧先 `await`。API 失败之后，我才创建临时文本框、选中文字，并检查 `execCommand('copy')` 的返回值。
+- 两条路都失败，就明确说失败，并把原文留在页面上让人手动复制。临时文本框会移除，原有焦点与选区会恢复。
+
+取消第二个开关可以尝试真实兜底。这里没有把「调用过复制接口」算成「复制成功」，也没有为了演示偷偷改浏览器权限。
+
+## 什么时候不该用
+
+我不会把旧接口兜底当作权限绕过方案。浏览器仍可能拒绝它。对于敏感内容或需要人先检查的内容，直接给一个可选择的文本区域，有时比自动写入更合适。
+
+## 出处
+
+来自本站博客微交互优化分支 `feat/microinteractions-20260919-r3` 的 [src/lib/copy.ts](https://github.com/joyehuang/blog/blob/feat/microinteractions-20260919-r3/src/lib/copy.ts)。我沿用「先确认、再兜底、最后才报失败」的思路，把失败路径做成了可控实验；没有合并该分支。

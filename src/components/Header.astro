@@ -1,5 +1,11 @@
 ---
-import { getLangFromUrl, hasEnAlternate, localizedPath, useTranslations, type Lang } from '@/i18n/ui'
+import {
+  getLangFromUrl,
+  hasEnAlternate,
+  localizedPath,
+  useTranslations,
+  type Lang
+} from '@/i18n/ui'
 
 import { Icon } from 'astro-pure/user'
 import LanguageSwitcher from '@/components/LanguageSwitcher.astro'
@@ -115,8 +121,9 @@ const searchHref = localizedPath('/search', lang)
   }
 </script>
 <script>
-  import { setTheme, showToast } from 'astro-pure/utils'
   import { trackSiteEvent } from '@/lib/analytics'
+
+  import { setTheme, showToast } from 'astro-pure/utils'
 
   class Header extends HTMLElement {
     private toggleMenuBtn: HTMLElement | null = null
@@ -190,6 +197,25 @@ const searchHref = localizedPath('/search', lang)
 </script>
 
 <style>
+  /* One press treatment for language, dev mode, theme and mobile menu. */
+  header-component :global(button[id^='toggle']) {
+    transition:
+      color 0.25s ease,
+      background-color 0.25s ease,
+      transform 0.25s ease;
+  }
+  header-component :global(button[id^='toggle']:active) {
+    transform: scale(0.94);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    header-component :global(button[id^='toggle']) {
+      transition: none;
+    }
+    header-component :global(button[id^='toggle']:active) {
+      transform: none;
+    }
+  }
+
   header-component {
     transition:
       padding 0.3s,

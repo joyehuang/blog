@@ -1,0 +1,36 @@
+---
+title: 减少动态效果要在每个入口都拦
+blurb: 偏好检查不是页面头部的一次性手续；重放、延迟和运行中变化都要管。
+date: 2026-10-03
+category: animation
+tags: [reduced-motion, lifecycle]
+---
+
+import DemoFrame from '@/components/lab/DemoFrame.astro'
+
+import MotionDemo from './MotionDemo.tsx'
+
+我修复 Jojo 入场动画对 reduced-motion 的处理时，发现「首次进入没有播放」并不能证明整个功能尊重偏好。动画还有重放入口，还有等待资源就绪后才启动的路径，用户也可能在播放途中打开减少动态效果。
+
+<DemoFrame bleed label='可交互对照 · 支持键盘与明暗主题'>
+  <MotionDemo client:visible />
+</DemoFrame>
+
+## 拆开看
+
+这个实验把偏好做成一个模拟开关。先打开它，再分别点重放：左侧仍会加载并播放，右侧在请求动画模块之前就拒绝。
+
+- 首次进入、重放按钮、延迟启动，都应该走同一个入口检查。右侧被拒绝时，模块加载请求计数不会增加。
+- 异步边界之后要再检查一次。等待中的偏好可能变化，不能拿点击瞬间的旧值继续播放。
+- 运行中打开开关，我会取消动画、清掉待启动任务，并让页面恢复正常显示。结束不只是停时间线，更要归还页面。
+- demo 的动画模块通过动态 import 加载；计数统计入口请求，不代表缓存后的真实网络下载。快速重复操作只保留最新一次启动。
+
+左侧只会忽略这个实验里的模拟偏好。如果操作系统真的开启减少动态效果，两侧都会停止；我不想让一个解释无障碍问题的反例本身妨碍阅读。
+
+## 什么时候不该用
+
+我不会把这个守卫当成所有动画的统一开关。必要的状态变化仍要发生，只是可以直接到达最终状态。也不能只写一条 CSS media query 就结束：异步加载、计时器和隐藏过的内容需要 JavaScript 一起收尾。
+
+## 出处
+
+来自本站 Jojo 入场动画对 reduced-motion 的修复，参考 [intro/entry.ts](https://github.com/joyehuang/blog/blob/main/src/lib/jojo/intro/entry.ts) 的加载前守卫，以及 [intro/controller.ts](https://github.com/joyehuang/blog/blob/main/src/lib/jojo/intro/controller.ts) 的运行中结束与恢复。这里只讲生命周期思路，demo 使用文字卡片，没有引入角色或私有动画素材。

@@ -1,0 +1,57 @@
+.rotation-cards {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0;
+}
+.lab-experiment .rotation-card {
+  width: 27%;
+  max-width: 104px;
+  min-width: 0;
+  height: 128px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform: rotate(var(--rot));
+  transition: transform 0.25s ease;
+}
+.rotation-broken .rotation-card {
+  animation: lab-rotate-bad 0.7s ease forwards;
+}
+.rotation-fixed .rotation-card {
+  animation: lab-rotate-good 0.7s ease backwards;
+}
+@keyframes lab-rotate-bad {
+  from {
+    opacity: 0;
+    transform: translateY(24px) rotate(var(--rot));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lab-rotate-good {
+  from {
+    opacity: 0;
+    transform: translateY(24px) rotate(var(--rot));
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--rot));
+  }
+}
+.lab-experiment .rotation-card:focus-visible {
+  transform: translateY(-8px) rotate(var(--rot));
+}
+@media (hover: hover) and (pointer: fine) {
+  .lab-experiment .rotation-card:hover {
+    transform: translateY(-8px) rotate(var(--rot));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-experiment .rotation-card:is(:hover, :focus-visible, :active) {
+    transform: rotate(var(--rot));
+  }
+}
