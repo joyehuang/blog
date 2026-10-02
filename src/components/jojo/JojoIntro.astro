@@ -96,6 +96,201 @@
     border-radius: 9999px;
     background: #fe6a4a;
   }
+  /* ---- story intros (lib/jojo/intro/story): Jojo's own palette, like the
+     character itself; the veil is the page's background (or a night sky) ---- */
+  .jojo-story-veil,
+  .jojo-story-layer {
+    position: absolute;
+    inset: 0;
+  }
+  .jojo-story-veil {
+    opacity: 0;
+    background: hsl(var(--background));
+  }
+  .jojo-story-veil[data-tone='night'] {
+    background: #070914;
+  }
+  .jojo-story-bubble {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-width: min(300px, calc(100vw - 24px));
+    padding: 0.5rem 0.8rem;
+    border: 2px solid #fe6a4a;
+    border-radius: 14px;
+    background: #fff;
+    color: #2d3272;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 22px;
+    box-shadow: 0 10px 28px rgb(20 24 60 / 0.18);
+    opacity: 0;
+  }
+  .jojo-story-bubble::after {
+    content: '';
+    position: absolute;
+    left: var(--tail, 50%);
+    bottom: -7px;
+    width: 12px;
+    height: 12px;
+    border-right: 2px solid #fe6a4a;
+    border-bottom: 2px solid #fe6a4a;
+    background: #fff;
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .jojo-story-bubble[data-side='below']::after {
+    top: -7px;
+    bottom: auto;
+    transform: translateX(-50%) rotate(225deg);
+  }
+  .jojo-story-bubble[data-side='right']::after,
+  .jojo-story-bubble[data-side='left']::after {
+    top: var(--tail, 50%);
+    bottom: auto;
+  }
+  .jojo-story-bubble[data-side='right']::after {
+    left: -7px;
+    transform: translateY(-50%) rotate(135deg);
+  }
+  .jojo-story-bubble[data-side='left']::after {
+    left: auto;
+    right: -7px;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+  .jojo-story-bubble .is-off {
+    visibility: hidden;
+  }
+  .jojo-story-badge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 2px solid #fe6a4a;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 6px 16px rgb(20 24 60 / 0.16);
+    opacity: 0;
+  }
+  .jojo-story-badge svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: #2d3272;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .jojo-story-term {
+    position: absolute;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 12px;
+    background: #0d1117;
+    box-shadow: 0 22px 54px rgb(0 0 0 / 0.32);
+    color: #e6edf3;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px;
+    transform-origin: 50% 0;
+    opacity: 0;
+  }
+  .jojo-story-term-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    border-bottom: 1px solid rgb(255 255 255 / 0.06);
+  }
+  .jojo-story-term-bar i {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background: #fe6a4a;
+  }
+  .jojo-story-term-bar i + i {
+    background: #ffbf3c;
+  }
+  .jojo-story-term-bar i + i + i {
+    background: #5fc4a6;
+  }
+  .jojo-story-term-body {
+    padding: 9px 14px;
+    white-space: pre;
+  }
+  .jojo-story-term-line.is-cmd::before {
+    content: '$ ';
+    color: #fe6a4a;
+  }
+  .jojo-story-term-line.is-out {
+    color: #cff0e6;
+  }
+  .jojo-story-term-line.has-caret::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 1.1em;
+    margin-left: 2px;
+    vertical-align: -0.2em;
+    background: #cff0e6;
+    animation: jojo-story-caret 1s steps(1) infinite;
+  }
+  @keyframes jojo-story-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+  .jojo-story-glow {
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      rgb(255 226 170 / 0.3) 0%,
+      rgb(255 226 170 / 0.1) 45%,
+      transparent 70%
+    );
+    opacity: 0;
+  }
+  .jojo-story-ping {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 9999px;
+    background: #fe6a4a;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    opacity: 0;
+  }
+  .jojo-story-z {
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #cfd6ff;
+    font-weight: 700;
+    opacity: 0;
+  }
+  /* the indigo shell would sink into the night: a hairline halo */
+  .jojo-story--night .jojo-intro-actor > svg {
+    filter: drop-shadow(0 0 0.8px rgb(255 255 255 / 0.8))
+      drop-shadow(0 0 10px rgb(180 200 255 / 0.25));
+  }
+  @media (max-width: 640px) {
+    .jojo-story-bubble {
+      max-width: min(240px, calc(100vw - 24px));
+      font-size: 14px;
+      line-height: 20px;
+    }
+    .jojo-story-term {
+      font-size: 12px;
+    }
+  }
   .jojo-intro-skip {
     position: fixed;
     z-index: 76;

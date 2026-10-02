@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { createIntroController, WATCHDOG_EXTRA_MS, type IntroDeps } from './controller'
+import { buildScript, createIntroController, WATCHDOG_EXTRA_MS, type IntroDeps } from './controller'
 import { planIntro, type IntroLayout } from './timeline'
 
 const layout: IntroLayout = {
@@ -129,7 +129,7 @@ function harness(
   }
 }
 
-const plan = planIntro(layout)
+const plan = buildScript(planIntro(layout))
 
 describe('intro controller', () => {
   it('plays to completion, then cleans up everything once', () => {

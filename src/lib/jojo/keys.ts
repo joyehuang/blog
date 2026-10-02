@@ -8,7 +8,9 @@ export const JOJO_KEYS = {
   /** dock: 'tucked' when the visitor sent Jojo to the edge */
   dock: 'joye:jojo:dock:v1',
   /** Preview review mode (sessionStorage, review builds only) */
-  reviewMode: 'joye:jojo:review-mode'
+  reviewMode: 'joye:jojo:review-mode',
+  /** which intro story `?jojo-story=` picked this session (sessionStorage) */
+  story: 'joye:jojo:story'
 } as const
 
 export const JOJO_EVENTS = {

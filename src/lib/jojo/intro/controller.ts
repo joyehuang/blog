@@ -1,6 +1,19 @@
 import type { IntroEventDetail, IntroOutcome, IntroTrigger } from '../keys'
 import { sampleIntro, type IntroFrame, type IntroPlan } from './timeline'
 
+/** a frame-pure intro: every state is a function of `t` (ms) */
+export interface IntroScript<F> {
+  duration: number
+  sample(t: number): F
+  /** analytics `variant` (ANALYTICS.md) */
+  variant: string
+}
+
+/** the build-the-site intro as a script */
+export function buildScript(plan: IntroPlan): IntroScript<IntroFrame> {
+  return { duration: plan.duration, sample: (t) => sampleIntro(plan, t), variant: 'jojo_build' }
+}
+
 /**
  * Lifecycle of one intro run. Everything with side effects is injected, so the
  * rules below are unit-tested without a browser:
@@ -19,7 +32,7 @@ import { sampleIntro, type IntroFrame, type IntroPlan } from './timeline'
  *    finished page); a watchdog ends it if frames stop arriving.
  *  - end() is idempotent and never throws; unmount() always runs.
  */
-export interface IntroDeps {
+export interface IntroDeps<F = IntroFrame> {
   now(): number
   raf(cb: () => void): number
   caf(id: number): void
@@ -29,7 +42,7 @@ export interface IntroDeps {
   mount(): void
   /** remove the layer and restore every real piece; must be idempotent */
   unmount(): void
-  render(frame: IntroFrame): void
+  render(frame: F): void
   emit(detail: IntroEventDetail): void
   track(
     event: 'intro_start' | 'intro_complete' | 'intro_skip' | 'intro_abandon',
@@ -67,9 +80,9 @@ export interface IntroController {
 
 export const WATCHDOG_EXTRA_MS = 2500
 
-export function createIntroController(
-  plan: IntroPlan,
-  deps: IntroDeps,
+export function createIntroController<F>(
+  script: IntroScript<F>,
+  deps: IntroDeps<F>,
   trigger: IntroTrigger
 ): IntroController {
   let state: IntroState = 'idle'
@@ -79,7 +92,7 @@ export function createIntroController(
   let watchdog = 0
   const offs: Array<() => void> = []
   const source = trigger === 'replay' ? 'replay' : 'first_visit'
-  const base = { surface: 'intro_overlay', source, variant: 'jojo_build', trigger }
+  const base = { surface: 'intro_overlay', source, variant: script.variant, trigger }
 
   const elapsed = () => Math.max(0, Math.round(deps.now() - t0))
 
@@ -126,9 +139,9 @@ export function createIntroController(
       return
     }
     const t = deps.now() - t0
-    if (t >= plan.duration) {
+    if (t >= script.duration) {
       try {
-        deps.render(sampleIntro(plan, plan.duration))
+        deps.render(script.sample(script.duration))
       } catch {
         /* final frame is cosmetic */
       }
@@ -136,7 +149,7 @@ export function createIntroController(
       return
     }
     try {
-      deps.render(sampleIntro(plan, t))
+      deps.render(script.sample(t))
     } catch {
       end('error', null)
       return
@@ -170,7 +183,7 @@ export function createIntroController(
       t0 = deps.now()
       try {
         deps.mount()
-        deps.render(sampleIntro(plan, 0))
+        deps.render(script.sample(0))
       } catch {
         end('error', null)
         return
@@ -206,7 +219,7 @@ export function createIntroController(
           if (deps.still()) end('abort', null)
         })
       )
-      watchdog = deps.setTimeout(() => end('error', null), plan.duration + WATCHDOG_EXTRA_MS)
+      watchdog = deps.setTimeout(() => end('error', null), script.duration + WATCHDOG_EXTRA_MS)
       frame = deps.raf(tick)
     },
     skip,
@@ -220,7 +233,7 @@ export function createIntroController(
       if (watchdog) deps.clearTimeout(watchdog)
       watchdog = 0
       try {
-        deps.render(sampleIntro(plan, Math.max(0, Math.min(plan.duration, t))))
+        deps.render(script.sample(Math.max(0, Math.min(script.duration, t))))
       } catch {
         end('error', null)
       }

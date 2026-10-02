@@ -1,191 +1,26 @@
-import { trackSiteEvent } from '@/lib/analytics'
-import { Jojo, JOJO_GEOMETRY, type EmotionId } from '@jojo-web/runtime'
+import { Jojo, type EmotionId } from '@jojo-web/runtime'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 
+import { stillReason, type IntroTrigger } from '../keys'
+import { buildScript, createIntroController, type IntroController } from './controller'
 import {
-  JOJO_EVENTS,
-  JOJO_KEYS,
-  stillReason,
-  watchStill,
-  writeStored,
-  type IntroEventDetail,
-  type IntroTrigger
-} from '../keys'
-import { createIntroController, type IntroController } from './controller'
-import {
-  PIECE_IDS,
-  planIntro,
-  type Inset,
-  type IntroFrame,
-  type IntroLayout,
-  type PieceId,
-  type Rect
-} from './timeline'
+  cloneForStage,
+  emitIntro as emit,
+  layoutNow,
+  makeSkip,
+  sharedDeps,
+  STAND_IN
+} from './stage'
+import { pickStory } from './story/pick'
+import { runStory } from './story/run'
+import { planIntro, type Inset, type IntroFrame, type PieceId } from './timeline'
 
 /**
- * Browser side of the intro. The real page is never moved: each piece Jojo
- * "rebuilds" is cloned into an inert, aria-hidden layer at its exact on-screen
- * rect, the original is hidden with `visibility` (no layout change, so no
- * CLS), and at the end the clones sit exactly on the originals, which simply
- * reappear. The hidden state has a pure-CSS failsafe (see JojoIntro.astro), so
- * even a dead script cannot leave the page hidden.
+ * Browser side of the build-the-site intro (stage helpers: ./stage.ts).
  */
 
-const STAND_IN = 'jojo-intro-stand-in'
 let active: IntroController | null = null
-
-const rectOf = (el: Element): Rect => {
-  const r = el.getBoundingClientRect()
-  return { x: r.left, y: r.top, w: r.width, h: r.height }
-}
-
-function piece(id: PieceId): HTMLElement | null {
-  if (id === 'header') return document.querySelector('header-component')
-  // the two label chips (location, GitHub) move on their own
-  if (id === 'chip0' || id === 'chip1')
-    return document.querySelector(
-      `[data-jojo-piece="labels"] > :nth-child(${id === 'chip0' ? 1 : 2})`
-    )
-  return document.querySelector(`[data-jojo-piece="${id}"]`)
-}
-
-/**
- * Styles that only reach an element through its id (`#toggleDarkMode
- * .theme-icon`, `#headerExpandContent`) or its custom-element tag
- * (`header-component`) would be lost on the copy, which drops ids and swaps
- * custom elements for divs. The r2 recording showed exactly that: the theme
- * toggle's three stacked icons fell out of their absolute layering and stood
- * in a column. So those elements (and everything inside an id'd element) get
- * their computed style inlined first, while the copy still mirrors the
- * original node for node.
- */
-function freezeScopedStyles(orig: Element, copy: Element) {
-  const pairs: Array<[Element, Element, boolean]> = [[orig, copy, false]]
-  while (pairs.length) {
-    const [o, c, inScope] = pairs.pop()!
-    const scoped = inScope || o.hasAttribute('id')
-    if ((scoped || o.tagName.includes('-')) && 'style' in c) {
-      const cs = getComputedStyle(o)
-      const style = (c as HTMLElement | SVGElement).style
-      for (let i = 0; i < cs.length; i++) {
-        const p = cs[i]
-        if (p.startsWith('transition')) continue
-        style.setProperty(p, cs.getPropertyValue(p))
-      }
-      style.setProperty('transition', 'none')
-    }
-    const oc = o.children
-    const cc = c.children
-    for (let i = 0; i < oc.length && i < cc.length; i++) pairs.push([oc[i], cc[i], scoped])
-  }
-}
-
-/** a visual copy that cannot run, hydrate, submit, be focused or be read */
-function cloneForStage(el: HTMLElement): HTMLElement {
-  const copy = el.cloneNode(true) as HTMLElement
-  freezeScopedStyles(el, copy)
-  const swap = (node: Element) => {
-    // custom elements (header-component, astro-island, …) would upgrade and
-    // run their own code; plain divs with the same classes look the same
-    if (!node.tagName.includes('-')) return node
-    const div = document.createElement('div')
-    for (const a of Array.from(node.attributes)) div.setAttribute(a.name, a.value)
-    while (node.firstChild) div.appendChild(node.firstChild)
-    node.replaceWith(div)
-    return div
-  }
-  let root: Element = copy
-  if (copy.tagName.includes('-')) {
-    const holder = document.createElement('div')
-    holder.appendChild(copy)
-    root = swap(copy)
-  }
-  root.querySelectorAll('*').forEach((n) => {
-    if (n.tagName === 'SCRIPT' || n.tagName === 'TEMPLATE') n.remove()
-    else swap(n)
-  })
-  for (const n of [root, ...Array.from(root.querySelectorAll('*'))]) {
-    n.removeAttribute('id')
-    n.removeAttribute('for')
-    n.removeAttribute('data-jojo-piece')
-    n.removeAttribute('data-jojo-seat')
-    // page scripts find the real card by this; the copy must not be found
-    n.removeAttribute('data-hd-frame')
-    if (n.hasAttribute('tabindex')) n.setAttribute('tabindex', '-1')
-  }
-  return root as HTMLElement
-}
-
-/**
- * Measure only a settled page: an entrance animation still moving a piece's
- * ancestor (the `.animate` fade-in-up on #content-header / #content) would put
- * every stand-in off its original. The entry waits for them (bounded); any
- * still running here are finished so the rects are final.
- */
-function settleEntrance(els: Array<HTMLElement | undefined>) {
-  const seen = new Set<Element>()
-  for (const el of els) {
-    for (let n: Element | null = el?.parentElement ?? null; n; n = n.parentElement) {
-      if (seen.has(n)) break
-      seen.add(n)
-      if (!n.classList.contains('animate')) continue
-      for (const a of n.getAnimations()) {
-        try {
-          a.finish()
-        } catch {
-          /* infinite or already gone */
-        }
-      }
-    }
-  }
-}
-
-function layoutNow(): {
-  layout: IntroLayout
-  els: Partial<Record<PieceId, HTMLElement>>
-  seatEl: HTMLElement
-} | null {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
-  const els: Partial<Record<PieceId, HTMLElement>> = {}
-  const pieces: Partial<Record<PieceId, Rect>> = {}
-  settleEntrance(PIECE_IDS.map((id) => piece(id) ?? undefined))
-  for (const id of PIECE_IDS) {
-    const el = piece(id)
-    if (!el) continue
-    const r = rectOf(el)
-    if (r.w < 1 || r.h < 1) continue
-    els[id] = el
-    pieces[id] = r
-  }
-  const seatEl = document.querySelector<HTMLElement>('[data-jojo-seat]')
-  const seatSvg = seatEl?.querySelector('svg')
-  if (!seatEl || !seatSvg || !els.avatar) return null
-  const seat = rectOf(seatSvg)
-  if (seat.w < 8) return null
-  return {
-    layout: {
-      vw,
-      vh,
-      pieces,
-      seat,
-      // big enough to be the one thing to watch (the avatar is 112 px)
-      actor: vw <= 640 ? 80 : 100,
-      geometry: {
-        viewBox: JOJO_GEOMETRY.viewBox.tight,
-        pivot: JOJO_GEOMETRY.pivot,
-        dot: JOJO_GEOMETRY.dot
-      }
-    },
-    els,
-    seatEl
-  }
-}
-
-function emit(detail: IntroEventDetail) {
-  document.dispatchEvent(new CustomEvent(JOJO_EVENTS.intro, { detail }))
-}
 
 export type RunResult = { started: boolean; reason?: string; controller?: IntroController }
 
@@ -200,19 +35,14 @@ export function runIntro(trigger: IntroTrigger): RunResult {
   if (window.scrollY > 40) return { started: false, reason: 'scrolled' }
   const measured = layoutNow()
   if (!measured) return { started: false, reason: 'layout' }
-  // the Skip button is placed by CSS (a corner on phones); measure it so
-  // Jojo's route keeps out of it the whole run
-  const skipEl = document.createElement('button')
-  skipEl.type = 'button'
-  skipEl.className = 'jojo-intro-skip'
-  skipEl.textContent = zh ? '跳过' : 'Skip'
-  skipEl.setAttribute('aria-label', zh ? '跳过开场动画' : 'Skip the intro animation')
-  skipEl.style.visibility = 'hidden'
-  document.body.appendChild(skipEl)
-  const skipRect = rectOf(skipEl)
-  skipEl.remove()
-  skipEl.style.removeProperty('visibility')
-  if (skipRect.w > 0) measured.layout.keepOut = [skipRect]
+  const { el: skipEl, rect: skipRect } = makeSkip(zh)
+  if (skipRect) measured.layout.keepOut = [skipRect]
+  const story = pickStory()
+  if (story !== 'build') {
+    const r = runStory(story, trigger, { zh, measured, skipEl })
+    if (r.controller) active = r.controller
+    return r
+  }
   let plan
   try {
     plan = planIntro(measured.layout)
@@ -409,34 +239,9 @@ export function runIntro(trigger: IntroTrigger): RunResult {
     }
   }
 
-  const page = location.pathname
-  const locale = zh ? 'zh' : 'en'
   const controller: IntroController = createIntroController(
-    plan,
-    {
-      now: () => performance.now(),
-      raf: (cb) => requestAnimationFrame(cb),
-      caf: (id) => cancelAnimationFrame(id),
-      setTimeout: (cb, ms) => window.setTimeout(cb, ms),
-      clearTimeout: (id) => window.clearTimeout(id),
-      mount,
-      unmount,
-      render,
-      emit,
-      track: (event, props) => trackSiteEvent(event, { locale, page, ...props }),
-      markSeen: () => {
-        writeStored(JOJO_KEYS.intro, String(Date.now()))
-      },
-      isHidden: () => document.visibilityState === 'hidden',
-      still: () => stillReason(),
-      onStillChange: (cb) => watchStill(cb),
-      scrollY: () => window.scrollY,
-      on: (target, type, handler, options) => {
-        const t = target === 'window' ? window : document
-        t.addEventListener(type, handler, options)
-        return () => t.removeEventListener(type, handler, options)
-      }
-    },
+    buildScript(plan),
+    { ...sharedDeps(zh), mount, unmount, render },
     trigger
   )
   active = controller

@@ -58,6 +58,32 @@ family). This site shows it in three ways that are designed to work together.
   (every entry), `src/lib/jojo/intro/*`.
 - **JS:** loaded only when it plays.
 
+### C · story intros (candidates)
+
+Three alternatives to the build intro that also introduce Joye, in
+`src/lib/jojo/intro/story/` (pure plans + one runner). Pick one with
+`?jojo-intro=play&jojo-story=host|whoami|night` (`build` = the current one);
+the choice is kept for the session so the dock's replay plays it too.
+`DEFAULT_INTRO` in `story/pick.ts` decides what first visits get (still
+`build`).
+
+- **host** (≈ 11 s): the page dims to a blank stage; Jojo pops out beside the
+  avatar and introduces Joye in bubbles — each line lights what it talks about
+  (avatar + name; Melbourne, the terminal card, About; three hobby badges);
+  the lights come up and Jojo hops into its seat.
+- **whoami** (≈ 10 s): a terminal opens where the card is; Jojo types
+  `whoami`, `cat where.txt`, `ls projects/`, `ls hobbies/` — answers light
+  the matching pieces — then `open ~/home` folds it back into the real card.
+- **night** (≈ 11.5 s): lights out, Jojo asleep in a pool of light; a visitor
+  startles it, it flicks the lights on to a messy first screen, knocks each
+  piece back into place and shyly says hello.
+
+Same contract as the build intro: copies on an inert stage, originals hidden
+by `visibility` (CSS failsafe), every entry refused under reduced motion /
+Save-Data, skip on any input. Bubbles pick the side of Jojo (above / right /
+left / below) that covers least of what is lit. In dev and review builds
+`window.__jojoIntro.seek(t)` holds any frame.
+
 ## How they combine
 
 By default: first visit to `/` or `/en` → C plays and ends
