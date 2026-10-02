@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 
+import { STAND_IN_FAILSAFE_MS } from '../../keys'
+import { WATCHDOG_EXTRA_MS } from '../controller'
+import { LATEST_START_MS } from '../entry'
 import type { IntroLayout } from '../motion'
 import { bodyOf, type StoryPlan } from './kit'
 import { planTour } from './tour'
@@ -142,6 +145,12 @@ describe('story intros', () => {
       const tags = plan.sample(plan.duration / 2).props.tags.map((g) => g.text)
       expect(tags).toEqual(['Playyy.ai', 'atypica', 'fAIshion.ai', 'AIXCut'])
     }
+  })
+
+  it('never outlives the stand-in failsafe (originals would reappear mid-tour)', () => {
+    each((plan) => {
+      expect(LATEST_START_MS + plan.duration + WATCHDOG_EXTRA_MS).toBeLessThan(STAND_IN_FAILSAFE_MS)
+    })
   })
 
   it('needs the avatar on screen', () => {

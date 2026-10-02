@@ -3,7 +3,7 @@
 // whether the intro may run on this visit, plus the CSS that must exist
 // before any script: the dark the intro opens in, and the failsafe that un-hides stand-ins.
 import gateSource from '@/lib/jojo/head-gate.js?raw'
-import { JOJO_KEYS } from '@/lib/jojo/keys'
+import { JOJO_KEYS, STAND_IN_FAILSAFE_MS } from '@/lib/jojo/keys'
 import { transformSync } from 'esbuild'
 
 const cfg = {
@@ -18,12 +18,13 @@ const inline = transformSync(
 ).code.trim()
 // A piece played by its stand-in is hidden without changing layout. Not
 // !important: the failsafe animation must be able to override it, so that if
-// cleanup never runs (script error, blocked chunk) the piece reappears after 6 s.
+// cleanup never runs (script error, blocked chunk) the piece reappears (after
+// STAND_IN_FAILSAFE_MS, which outlasts the longest intro run).
 // No transitions while hidden: `visibility` transitions discretely, so a piece
 // with `transition-all` (e.g. the GitHub chip) would stay visible next to its
 // stand-in for the whole transition.
 const failsafeCss =
-  'html .jojo-intro-stand-in{visibility:hidden;animation:jojo-intro-failsafe 1ms linear 6s forwards}' +
+  `html .jojo-intro-stand-in{visibility:hidden;animation:jojo-intro-failsafe 1ms linear ${STAND_IN_FAILSAFE_MS}ms forwards}` +
   'html .jojo-intro-stand-in,html .jojo-intro-stand-in *{transition:none}' +
   '@keyframes jojo-intro-failsafe{to{visibility:visible}}' +
   // the intro opens in the dark: paint it before the first frame (the stage
