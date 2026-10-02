@@ -7,7 +7,9 @@ family). This site shows it in three ways that are designed to work together.
 
 ### A · signature
 
-- **What:** Jojo seated beside the home avatar (pokeable), a card at the end of
+- **What:** Jojo seated beside the home avatar (a tap opens the dock's panel —
+  Jojo hops to the corner for it; it pokes instead when the dock is off or
+  has to stay away), a card at the end of
   every post, the 404 page, and an About section with the short film and three
   friends.
 - **Where:** `src/components/jojo/JojoHero.tsx`, `JojoArticleEnd.astro`,

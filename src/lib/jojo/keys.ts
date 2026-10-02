@@ -17,8 +17,21 @@ export const JOJO_EVENTS = {
   /** ask the intro to play again (dock / review panel) */
   introReplay: 'jojo:intro-replay',
   /** detail: { status: StatusId | null } — review-only chat state preview */
-  reviewStatus: 'jojo:review-status'
+  reviewStatus: 'jojo:review-status',
+  /**
+   * the hero seat asks the dock to toggle its panel; cancelable — the dock
+   * calls preventDefault() when it took the request, otherwise the seat pokes
+   */
+  dockToggle: 'jojo:dock-toggle',
+  /** detail: DockStateDetail — the dock panel opened or closed */
+  dockState: 'jojo:dock-state'
 } as const
+
+export interface DockStateDetail {
+  open: boolean
+  /** which Jojo opened the panel */
+  from: 'dock' | 'hero'
+}
 
 export type IntroOutcome = 'complete' | 'skip' | 'abort' | 'error'
 export interface IntroEventDetail {
