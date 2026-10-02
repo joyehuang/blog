@@ -1,36 +1,41 @@
 ---
-title: 工具栏提示要有热身
-blurb: 第一次靠近时等一等，同组继续探索时就别让人重复等。
+title: 工具栏提示：第一个等一等，后面别再等
+blurb: tooltip 的延迟是用来过滤鼠标路过的；用户已经在一个个看按钮时，同组的下一个提示就该立刻出现，连入场动画都省掉。
 date: 2026-10-03
 category: interaction
-tags: [tooltip, keyboard]
+tags:
+  - tooltip
+  - hover
+  - keyboard
+source: https://www.radix-ui.com/primitives/docs/components/tooltip
 ---
 
 import DemoFrame from '@/components/lab/DemoFrame.astro'
 
 import TooltipDemo from './TooltipDemo.tsx'
 
-我给博客工具栏补提示时，发现延迟有两种完全不同的用途：它可以过滤鼠标偶然路过，也可能挡住已经开始探索的人。把所有按钮都设成同一个延迟，代码简单了，连续扫读却变慢了。
+图标按钮多的工具栏，几乎都离不开 tooltip。给 tooltip 加一个打开延迟是对的：鼠标只是路过的时候，不该到处冒提示。但如果每个按钮都各自计时，用户从左扫到右找按钮的时候，每一个都要重新等一遍，提示永远慢半拍。
 
-<DemoFrame bleed label='可交互对照 · 支持键盘与明暗主题'>
+<DemoFrame bleed label='用鼠标从左到右扫过两个工具栏，看底部记下的等待时间。'>
   <TooltipDemo client:visible />
 </DemoFrame>
 
-## 拆开看
+## 拆开看它怎么做到的
 
-先停在一组的第一个图标上，等提示出来，再横移到下一个。左侧每次重新等 420ms，右侧只在冷进入时等。
+把“热不热”这个状态放在**整组工具栏**上，而不是每个按钮自己：
 
-- 我把热身状态放在组里，而不是每个按钮里。真正显示过提示，才算热身完成；快速掠过不会提前变热。
-- 同组连续移动直接显示。离开后保留 900ms 的短暂热度，再恢复冷状态。这两个数值是这次实现的参数，不是普遍适用的研究结论。
-- 键盘 Tab 聚焦右侧时无延迟，Escape 可以关闭。按钮本身始终有可访问名称，不依赖气泡来解释含义。
-- 触屏不会先唤起提示再执行操作；一次点击直接触发按钮。
+- **冷进入等 600ms**。鼠标在某个按钮上停够了，第一个提示才出现，带一个 150ms 的淡入。
+- **热的时候直接显示**。只要组里有提示正亮着，或者刚关掉不到 300ms，下一个提示立即出现，**而且不播动画**，看起来就像同一个提示跟着鼠标在走。
+- **离开整组超过 300ms 才变冷**。这样鼠标快速从一个按钮滑到相邻按钮、中间短暂离开的那一下，也不会把热身打断。
+- **键盘和触屏单独处理**。Tab 聚焦时直接显示，Escape 收起；触屏没有悬停，点一下就该执行按钮，不弹提示。每个按钮都有自己的 `aria-label`，tooltip 只是补充，不负责解释按钮。
 
-两个工具栏的按钮都会在下方回显操作。可以用它确认：提示的存在没有抢走按钮的职责。
+这也是成熟组件库的默认行为。Radix 的 Tooltip 有两个参数：`delayDuration`（默认 700ms）管第一次要等多久，`skipDelayDuration`（默认 300ms）管多短时间内移到下一个可以跳过等待。demo 里冷延迟用的是 600ms，只是为了演示时少等一点。
 
 ## 什么时候不该用
 
-我不会把必读说明、报错或关键操作条件塞进 tooltip。触屏看不到它，键盘用户也不应该靠猜。复杂内容应该放进可明确打开和关闭的面板。
+- tooltip 只适合放“锦上添花”的信息：按钮名称、快捷键。触屏用户看不到它，必读的说明、报错、操作条件不要放进去。
+- 彼此不相关、隔得很远的按钮不用共享热身。这个技巧只适用于一排挨着、会被连续扫读的按钮。
 
 ## 出处
 
-来自本站博客微交互优化分支 `feat/microinteractions-20260919-r3` 中 [Header.astro 的 Warm Tooltip 实现](https://github.com/joyehuang/blog/blob/feat/microinteractions-20260919-r3/src/components/Header.astro)。这里将同组热身、键盘直达和触屏排除抽成对照实验，没有合并参考分支。
+参数参考 [Radix Primitives: Tooltip](https://www.radix-ui.com/primitives/docs/components/tooltip) 的 `delayDuration` / `skipDelayDuration`。“后续的 tooltip 不该再有延迟和动画”这一条，Emil Kowalski 在 [_7 Practical Animation Tips_](https://emilkowal.ski/ui/7-practical-animation-tips) 里也专门讲过。

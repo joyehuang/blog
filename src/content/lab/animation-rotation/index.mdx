@@ -1,35 +1,61 @@
 ---
-title: CSS 动画会吃掉元素自带的旋转
-blurb: '入场终点写 transform: none，再保留动画结果，倾斜和 hover 就一起被接管了。'
+title: 入场动画把卡片“摆正”了
+blurb: 倾斜写在 transform 里，入场动画又动 transform 还留着 forwards，结束后角度和 hover 都会被动画层吃掉；把倾斜交给独立的 rotate 属性就好了。
 date: 2026-10-03
 category: css
-tags: [transform, keyframes]
+tags:
+  - transform
+  - keyframes
+  - animation-fill-mode
+source: https://developer.mozilla.org/en-US/docs/Web/CSS/rotate
 ---
 
 import DemoFrame from '@/components/lab/DemoFrame.astro'
 
 import RotationDemo from './RotationDemo.tsx'
 
-我在本站手绘风样式实验里想让卡片稍微歪一点，看起来像随手摆上去的。静态样式明明写了旋转，入场结束却全站直了；继续调 hover 也没有反应。问题不在角度大小，而在动画结束后谁还占着 transform。
+我在给本站做手绘风卡片时，想让几张卡片稍微歪一点，像随手贴在板子上。静态样式写了 `transform: rotate(-6deg)`，再给它们加一个从下往上浮起的入场动画。结果动画一播完，所有卡片整整齐齐全被摆正了，hover 上浮也失灵了。
 
-<DemoFrame bleed label='可交互对照 · 支持键盘与明暗主题'>
+<DemoFrame bleed label='两块板子用的是同一组角度。底部会在动画结束后读出第一张便利贴的实际角度。'>
   <RotationDemo client:visible />
 </DemoFrame>
 
-## 拆开看
+## 拆开看它怎么做到的
 
-点「重播入场」，等卡片停稳，再悬停或用 Tab 聚焦。两边的卡片原本使用同一组角度。
+问题出在两个细节叠加：
 
-- 左侧终点是 `transform: none`，同时 `animation-fill-mode: forwards` 保留终点。动画层继续提供 transform，普通样式里的旋转与 hover 变换就被压住了。
-- 右侧把每张卡的角度放进 `--rot`，终点明确写 `rotate(var(--rot))`，避免落地前后突然跳角度。
-- 我把填充模式改成 `backwards`，只在开始之前填充首帧。播放结束后，transform 重新由静态样式和交互状态负责。
+1. **动画和倾斜抢的是同一个属性**。关键帧写的是 `transform`，倾斜也写在 `transform` 里。动画运行时，关键帧的值直接覆盖元素自己的 `transform`，而不是叠加上去。
+2. **`forwards` 让动画一直不退场**。`animation-fill-mode: forwards` 会在动画结束后继续保留最后一帧。最后一帧是 `transform: none`，于是动画层永远在说“transform 是 none”，倾斜没了，`:hover` 里写的 transform 也被压在下面。
 
-这里说的「吃掉」只是效果上的描述，CSS 声明没有消失。也可以让外层负责入场、内层负责旋转；我在这个小实验里保留单元素，让覆盖关系更容易看到。
+右边的改法也是两步：
+
+```css
+.note {
+  rotate: var(--rot); /* 倾斜放到独立的 rotate 属性 */
+  animation: drop 0.7s ease-out backwards;
+  animation-delay: calc(var(--i) * 90ms);
+}
+@keyframes drop {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  } /* 只写 from，终点就是元素自己的样式 */
+}
+.note:hover {
+  translate: 0 -6px;
+}
+```
+
+- `rotate`、`translate`、`scale` 是三个独立的 CSS 属性，和 `transform` 互不覆盖。入场只动 `translate`，动画根本碰不到角度。
+- `backwards` 只在动画**开始之前**（也就是错开的 delay 里）先套用第一帧，让卡片提前藏好；播完就把属性还给元素，hover 能正常生效。
+- 关键帧只写 `from`，终点自动就是元素本身的样式，不用把角度在关键帧里再抄一遍。
 
 ## 什么时候不该用
 
-如果动画本来就需要保留最终状态，不能机械地把所有 forwards 改成 backwards。我会先明确最后一帧由谁持有，再选择独立容器、独立变换属性或提交静态结束状态。系统要求减少动态效果时，这个实验直接保留倾斜，不播放入场。
+- 动画确实需要停在一个跟静态样式不同的终点时，`forwards` 是对的。这时候我会让外层元素负责入场、内层负责倾斜，或者动画结束后把终点写回静态样式，而不是一直靠 `forwards` 撑着。
+- 独立变换属性在现代浏览器里都能用（Chrome 104+、Safari 14.1+、Firefox 72+）。要兼容更老的环境，就用外层 / 内层两个元素拆开。
+- 系统开启减少动态效果时，demo 里两边都不播入场，便利贴直接以倾斜的样子出现。
 
 ## 出处
 
-来自我在本站手绘风样式中的 transform 与入场动画踩坑。这是一次项目内经验整理，没有引用外部数据或文章；示例卡片为本次重建。
+来自我给本站手绘风样式踩的坑，demo 是重新搭的。独立变换属性的说明见 [MDN: rotate](https://developer.mozilla.org/en-US/docs/Web/CSS/rotate)，`forwards` / `backwards` 的行为见 [MDN: animation-fill-mode](https://developer.mozilla.org/en-US/docs/Web/CSS/animation-fill-mode)。
