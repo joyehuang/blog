@@ -13,7 +13,6 @@ import {
   getRosters,
   isConfigured,
   kickMember,
-  passcodeRequired,
   removeSignup,
   setCaptain,
   updateDetail,
@@ -85,7 +84,6 @@ export const GET: APIRoute = async () => {
   if (!configured) {
     return json({
       configured: false,
-      passcodeRequired: false,
       detailEditable: editable,
       signupClosed,
       teams: buildTeams(fallbackMetas)
@@ -104,7 +102,6 @@ export const GET: APIRoute = async () => {
     ])
     return json({
       configured: true,
-      passcodeRequired: passcodeRequired(),
       detailEditable: editable,
       signupClosed,
       teams: buildTeams(metas, rosters, details, githubUrls, captains)
@@ -114,7 +111,6 @@ export const GET: APIRoute = async () => {
     return json({
       configured: true,
       degraded: true,
-      passcodeRequired: passcodeRequired(),
       detailEditable: editable,
       signupClosed,
       teams: buildTeams(fallbackMetas)
@@ -156,7 +152,6 @@ const STATUS_BY_CODE: Record<SignupErrorCode, number> = {
   invalid: 400,
   duplicate: 409,
   full: 409,
-  passcode: 403,
   rate_limited: 429,
   store_error: 500
 }
@@ -164,7 +159,6 @@ const STATUS_BY_CODE: Record<SignupErrorCode, number> = {
 const CREATE_STATUS_BY_CODE: Record<CreateErrorCode, number> = {
   not_configured: 503,
   invalid: 400,
-  passcode: 403,
   rate_limited: 429,
   store_error: 500
 }
@@ -193,7 +187,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       kind: str(body.kind) === 'solo' ? 'solo' : 'team',
       name: str(body.name),
       capacity: typeof capacityRaw === 'number' && Number.isFinite(capacityRaw) ? capacityRaw : undefined,
-      passcode: str(body.passcode),
       hp: str(body.hp),
       ip
     })
@@ -217,7 +210,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       name: str(body.name) ?? '',
       contact: str(body.contact),
       note: str(body.note),
-      passcode: str(body.passcode),
       hp: str(body.hp),
       ip
     },
@@ -234,7 +226,6 @@ const LEAVE_STATUS_BY_CODE: Record<LeaveErrorCode, number> = {
   not_configured: 503,
   invalid: 400,
   not_found: 404,
-  passcode: 403,
   store_error: 500
 }
 
@@ -254,7 +245,7 @@ export const DELETE: APIRoute = async ({ request }) => {
   }
 
   const result = await removeSignup(
-    { teamId, name: str(body.name) ?? '', passcode: str(body.passcode) },
+    { teamId, name: str(body.name) ?? '' },
     { capacity }
   )
 
@@ -270,7 +261,6 @@ export const DELETE: APIRoute = async ({ request }) => {
 const DETAIL_STATUS_BY_CODE: Record<DetailErrorCode, number> = {
   not_configured: 503,
   invalid: 400,
-  passcode: 403,
   store_error: 500
 }
 
@@ -278,7 +268,6 @@ const CAPTAIN_STATUS_BY_CODE: Record<CaptainErrorCode, number> = {
   not_configured: 503,
   invalid: 400,
   not_found: 404,
-  passcode: 403,
   store_error: 500
 }
 
@@ -288,21 +277,20 @@ export const PUT: APIRoute = async ({ request }) => {
   try {
     body = (await request.json()) as Record<string, unknown>
   } catch {
-    return json({ ok: false, code: 'passcode', message: '请求格式不正确' }, 400)
+    return json({ ok: false, code: 'invalid', message: '请求格式不正确' }, 400)
   }
 
   const teamId = str(body.teamId) ?? ''
   const known = (await resolveCapacity(teamId)) !== undefined
   if (!known) {
-    return json({ ok: false, code: 'passcode', message: '未知的队伍' }, 400)
+    return json({ ok: false, code: 'invalid', message: '未知的队伍' }, 400)
   }
 
   // 转让队长。
   if (body.action === 'captain') {
     const result = await setCaptain({
       teamId,
-      name: str(body.name) ?? '',
-      passcode: str(body.passcode)
+      name: str(body.name) ?? ''
     })
     if (result.ok) {
       return json({ ok: true, teamId: result.teamId, captain: result.captainKey })
@@ -319,7 +307,7 @@ export const PUT: APIRoute = async ({ request }) => {
       return json({ ok: false, code: 'invalid', message: '未知的队伍' }, 400)
     }
     const result = await kickMember(
-      { teamId, name: str(body.name) ?? '', passcode: str(body.passcode) },
+      { teamId, name: str(body.name) ?? '' },
       { capacity }
     )
     if (result.ok) return json({ ok: true, roster: result.roster })
@@ -332,8 +320,7 @@ export const PUT: APIRoute = async ({ request }) => {
   const result = await updateDetail({
     teamId,
     detail: str(body.detail) ?? '',
-    githubUrl: str(body.githubUrl),
-    passcode: str(body.passcode)
+    githubUrl: str(body.githubUrl)
   })
 
   if (result.ok) {

@@ -50,7 +50,6 @@ export type SignupInput = {
   name: string
   contact?: string
   note?: string
-  passcode?: string
   /** 蜜罐字段：正常用户永远为空 */
   hp?: string
   /** 调用方（API 路由）解析出的客户端 IP，用于限流 */
@@ -62,7 +61,6 @@ export type SignupErrorCode =
   | 'invalid'
   | 'duplicate'
   | 'full'
-  | 'passcode'
   | 'rate_limited'
   | 'store_error'
 
@@ -105,34 +103,15 @@ function getConn(): string | null {
   return c ? String(c) : null
 }
 
-// 统一的默认口令：粉丝群的名字（群成员都知道）。报名和建赛道已不再要口令（重新开放
-// 后对所有人开放，只靠蜜罐 + IP 限流挡刷），口令只留给退出 / 编辑 / 队长管理这类
-// 会动别人数据的操作。这只是轻门槛，不是强安全；可在 Vercel 配对应环境变量覆盖。
-const DEFAULT_GROUP_PASSCODE = '一群开心快乐的小奶龙'
-
-// 退出口令：默认就用群名。可用 AGENT_TEAMS_PASSCODE 覆盖。
-function getPasscode(): string | null {
-  const p = import.meta.env.AGENT_TEAMS_PASSCODE ?? process.env.AGENT_TEAMS_PASSCODE
-  return p && String(p).length > 0 ? String(p) : DEFAULT_GROUP_PASSCODE
-}
+// 报名、建赛道、退出、队伍管理都不需要口令（报名重新开放后对所有人开放），
+// 写入只靠蜜罐 + IP 限流挡刷。
 
 /** 数据库是否已配置——未配置时页面走"配置中"降级路径 */
 export function isConfigured(): boolean {
   return getConn() !== null
 }
 
-/** 是否需要报名口令——报名已对所有人开放，恒为 false（前端据此隐藏口令输入） */
-export function passcodeRequired(): boolean {
-  return false
-}
-
-// 编辑 / 建赛道口令：默认同样是粉丝群的名字。可用 AGENT_TEAMS_EDIT_PASSCODE 覆盖。
-function getEditPasscode(): string {
-  const p = import.meta.env.AGENT_TEAMS_EDIT_PASSCODE ?? process.env.AGENT_TEAMS_EDIT_PASSCODE
-  return p && String(p).length > 0 ? String(p) : DEFAULT_GROUP_PASSCODE
-}
-
-/** 编辑简介 / 建赛道是否开放——总有默认口令，故恒为 true（保留给未来做锁定开关） */
+/** 编辑简介 / 建赛道是否开放——恒为 true（保留给未来做锁定开关） */
 export function detailEditable(): boolean {
   return true
 }
@@ -487,17 +466,16 @@ export async function addSignup(
 export type LeaveInput = {
   teamId: string
   name: string
-  passcode?: string
 }
 
-export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
+export type LeaveErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'store_error'
 
 export type LeaveResult =
   | { ok: true; roster: TeamRoster }
   | { ok: false; code: LeaveErrorCode; message: string }
 
 /**
- * 按昵称把某人的有效报名标记为退出。退出与报名共用 QQ 群口令。
+ * 按昵称把某人的有效报名标记为退出。
  */
 export async function removeSignup(
   input: LeaveInput,
@@ -505,11 +483,6 @@ export async function removeSignup(
 ): Promise<LeaveResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '报名系统尚未配置' }
-
-  const passcode = getPasscode()
-  if (passcode && input.passcode !== passcode) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
-  }
 
   const name = cleanText(input.name ?? '')
   if (name.length === 0 || name.length > NAME_MAX) {
@@ -557,26 +530,22 @@ export type DetailUpdateInput = {
   teamId: string
   detail: string
   githubUrl?: string
-  passcode?: string
 }
 
-export type DetailErrorCode = 'not_configured' | 'invalid' | 'passcode' | 'store_error'
+export type DetailErrorCode = 'not_configured' | 'invalid' | 'store_error'
 
 export type DetailResult =
   | { ok: true; teamId: string; detail: string; githubUrl: string | null }
   | { ok: false; code: DetailErrorCode; message: string }
 
 /**
- * 队长更新某队的详细介绍。口令匹配该队的队长口令、或匹配管理员口令才放行。
+ * 队长更新某队的详细介绍。
  * detail / githubUrl 都可传空清除。teamId 合法性由调用方校验。
  */
 export async function updateDetail(input: DetailUpdateInput): Promise<DetailResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
 
-  if ((input.passcode ?? '') !== getEditPasscode()) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
-  }
 
   const detail = cleanMultiline(input.detail ?? '').slice(0, DETAIL_MAX)
   const github = normalizeGithubRepoUrl(input.githubUrl ?? '')
@@ -613,7 +582,6 @@ export type CreateTeamInput = {
   name?: string
   /** 仅「组队」有效：名额上限；省略/非法值则不限。个人赛道恒为 1，忽略这个字段。 */
   capacity?: number
-  passcode?: string
   /** 蜜罐字段：正常用户永远为空 */
   hp?: string
   ip?: string | null
@@ -622,7 +590,6 @@ export type CreateTeamInput = {
 export type CreateErrorCode =
   | 'not_configured'
   | 'invalid'
-  | 'passcode'
   | 'rate_limited'
   | 'store_error'
 
@@ -775,26 +742,22 @@ export async function getCaptains(teamIds: string[]): Promise<Record<string, str
   return out
 }
 
-export type CaptainErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'passcode' | 'store_error'
+export type CaptainErrorCode = 'not_configured' | 'invalid' | 'not_found' | 'store_error'
 
 export type CaptainResult =
   | { ok: true; teamId: string; captainKey: string }
   | { ok: false; code: CaptainErrorCode; message: string }
 
 /**
- * 转让队长：把队长设成名单里的某个昵称。口令匹配编辑口令才放行，且目标必须已在名单里。
+ * 转让队长：把队长设成名单里的某个昵称，目标必须已在名单里。
  */
 export async function setCaptain(input: {
   teamId: string
   name: string
-  passcode?: string
 }): Promise<CaptainResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
 
-  if ((input.passcode ?? '') !== getEditPasscode()) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
-  }
 
   const name = cleanText(input.name ?? '')
   const nameKey = name.toLowerCase()
@@ -829,14 +792,11 @@ export type KickMemberResult =
 
 /** 队长移除一名有效队员；队长本人必须先转让队长，不能直接踢掉。 */
 export async function kickMember(
-  input: { teamId: string; name: string; passcode?: string },
+  input: { teamId: string; name: string },
   opts: { capacity: number | null }
 ): Promise<KickMemberResult> {
   const sql = getSql()
   if (!sql) return { ok: false, code: 'not_configured', message: '系统尚未配置' }
-  if ((input.passcode ?? '') !== getEditPasscode()) {
-    return { ok: false, code: 'passcode', message: '口令不正确' }
-  }
 
   const name = cleanText(input.name ?? '')
   const nameKey = name.toLowerCase()
