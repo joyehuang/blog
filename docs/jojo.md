@@ -60,23 +60,24 @@ family). This site shows it in three ways that are designed to work together.
 
 ### C · story intros (candidates)
 
-Three alternatives to the build intro that also introduce Joye, in
+Alternatives to the build intro that tell who Joye is, in
 `src/lib/jojo/intro/story/` (pure plans + one runner). Pick one with
-`?jojo-intro=play&jojo-story=host|whoami|night` (`build` = the current one);
-the choice is kept for the session so the dock's replay plays it too.
+`?jojo-intro=play&jojo-story=tour|whoami` (`build` = the current one); the
+choice is kept for the session so the dock's replay plays it too.
 `DEFAULT_INTRO` in `story/pick.ts` decides what first visits get (still
 `build`).
 
-- **host** (≈ 11 s): the page dims to a blank stage; Jojo pops out beside the
-  avatar and introduces Joye in bubbles — each line lights what it talks about
-  (avatar + name; Melbourne, the terminal card, About; three hobby badges);
-  the lights come up and Jojo hops into its seat.
+- **tour** (≈ 16 s zh, 18 s en): opens dark — the head gate paints the night
+  before the first frame (`data-jojo-cover`, lifts itself after 4.5 s if no
+  script runs), so the blog never shows first. Jojo dozes in a pool of light,
+  wakes ("someone's here?"), switches the light on and walks the visitor
+  through Joye in seven lines: who (avatar + name light up), Melbourne, the
+  projects (Playyy.ai / atypica / fAIshion.ai / Goshu tags pop out at its
+  feet and file into About), what Joye cares about, the hobbies, and a
+  hand-over; then the lights come up and Jojo hops into its seat.
 - **whoami** (≈ 10 s): a terminal opens where the card is; Jojo types
   `whoami`, `cat where.txt`, `ls projects/`, `ls hobbies/` — answers light
   the matching pieces — then `open ~/home` folds it back into the real card.
-- **night** (≈ 11.5 s): lights out, Jojo asleep in a pool of light; a visitor
-  startles it, it flicks the lights on to a messy first screen, knocks each
-  piece back into place and shyly says hello.
 
 Same contract as the build intro: copies on an inert stage, originals hidden
 by `visibility` (CSS failsafe), every entry refused under reduced motion /

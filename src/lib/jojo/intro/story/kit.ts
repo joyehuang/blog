@@ -15,15 +15,17 @@ import {
 } from '../timeline'
 
 /**
- * Shared, frame-pure pieces of the story intros (host / whoami / night). A
+ * Shared, frame-pure pieces of the story intros (tour / whoami). A
  * story is a plan whose `sample(t)` returns everything on screen at `t` ms:
  * Jojo, the veil over the page, the copies of the pieces it "lights", the
  * speech bubble and the story's own props. Like the build intro, the real page
  * never moves: the runner (./run.ts) draws copies and hides the originals.
  */
 
-export type StoryId = 'host' | 'whoami' | 'night'
-export const STORY_IDS: readonly StoryId[] = ['host', 'whoami', 'night']
+export type StoryId = 'tour' | 'whoami'
+export const STORY_IDS: readonly StoryId[] = ['tour', 'whoami']
+/** stories whose first frame is dark: the head gate paints that dark before first paint */
+export const DARK_OPENING: readonly StoryId[] = ['tour']
 
 export interface Point {
   x: number
@@ -63,8 +65,10 @@ export interface StoryFrame<P> {
   actor: ActorState
   /** the dot that pops first, before the body unfolds */
   spawnDot: { x: number; y: number; r: number } | null
-  /** 0 = page fully visible, 1 = fully covered */
+  /** 0 = page fully visible, 1 = covered by the page's own colour */
   veil: number
+  /** the night over everything but Jojo and its props (0 = none) */
+  night: number
   pieces: Partial<Record<PieceId, PieceLook>>
   bubble: BubbleState | null
   props: P
@@ -75,8 +79,6 @@ export interface StoryPlan<P> {
   duration: number
   /** pieces drawn as copies (their originals are hidden while the story runs) */
   cast: PieceId[]
-  /** the veil's colour: the page's own background, or a night sky */
-  tone: 'page' | 'night'
   /** Jojo sits down in the seat */
   land: number
   sample(t: number): StoryFrame<P>
@@ -175,7 +177,7 @@ export interface Line {
 }
 
 /** ms per typed character */
-export const typeSpeed = (zh: boolean) => (zh ? 52 : 26)
+export const typeSpeed = (zh: boolean) => (zh ? 42 : 22)
 
 export function bubbleAt(
   lines: readonly Line[],

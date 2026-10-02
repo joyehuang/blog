@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'bun:test'
 
 import type { IntroLayout } from '../timeline'
-import { planHost } from './host'
 import { bodyOf, type StoryPlan } from './kit'
-import { planNight } from './night'
 import { pickStory } from './pick'
+import { planTour } from './tour'
 import { planWhoami } from './whoami'
 
 const geometry = {
@@ -62,7 +61,7 @@ function phone(vh: 844 | 667): IntroLayout {
 }
 
 const LAYOUTS = () => [desktop(), phone(844), phone(667)]
-const PLANNERS = { host: planHost, whoami: planWhoami, night: planNight }
+const PLANNERS = { tour: planTour, whoami: planWhoami }
 
 function each(fn: (plan: StoryPlan<unknown>, layout: IntroLayout, zh: boolean) => void) {
   for (const [, plan] of Object.entries(PLANNERS))
@@ -75,6 +74,7 @@ describe('story intros', () => {
     each((plan, layout) => {
       const f = plan.sample(plan.duration)
       expect(f.veil).toBeCloseTo(0, 3)
+      expect(f.night).toBeCloseTo(0, 3)
       for (const id of plan.cast) {
         const p = f.pieces[id]!
         expect(p.opacity).toBeCloseTo(1, 3)
@@ -125,7 +125,7 @@ describe('story intros', () => {
   it('takes as long as the story needs, but not forever', () => {
     each((plan) => {
       expect(plan.duration).toBeGreaterThan(5000)
-      expect(plan.duration).toBeLessThan(13000)
+      expect(plan.duration).toBeLessThan(20000)
     })
   })
 
@@ -140,12 +140,26 @@ describe('story intros', () => {
     }
   })
 
+  it('tour opens in the dark and tells the whole story before the lights come up', () => {
+    for (const layout of LAYOUTS()) {
+      const plan = planTour(layout, true)
+      expect(plan.sample(0).night).toBe(1)
+      const texts = new Set<string>()
+      for (let t = 0; t <= plan.duration; t += 50) {
+        const b = plan.sample(t).bubble
+        if (b) texts.add(b.text)
+      }
+      expect(texts.size).toBe(7)
+      expect([...texts].some((x) => x.includes('墨尔本'))).toBe(true)
+      expect([...texts].some((x) => x.includes('AI Agent'))).toBe(true)
+    }
+  })
+
   it('needs the avatar on screen', () => {
     const l = desktop()
     delete l.pieces.avatar
-    expect(() => planHost(l, true)).toThrow()
+    expect(() => planTour(l, true)).toThrow()
     expect(() => planWhoami(l, true)).toThrow()
-    expect(() => planNight(l, true)).toThrow()
   })
 })
 
@@ -161,10 +175,10 @@ describe('pickStory', () => {
   it('takes ?jojo-story=, remembers it for the session, ignores junk', () => {
     const s = store()
     expect(pickStory('https://x.dev/', s)).toBe('build')
-    expect(pickStory('https://x.dev/?jojo-story=night', s)).toBe('night')
-    expect(pickStory('https://x.dev/', s)).toBe('night')
-    expect(pickStory('https://x.dev/?jojo-story=nope', s)).toBe('night')
+    expect(pickStory('https://x.dev/?jojo-story=tour', s)).toBe('tour')
+    expect(pickStory('https://x.dev/', s)).toBe('tour')
+    expect(pickStory('https://x.dev/?jojo-story=nope', s)).toBe('tour')
     expect(pickStory('https://x.dev/?jojo-story=build', s)).toBe('build')
-    expect(pickStory('https://x.dev/?jojo-story=host', undefined)).toBe('host')
+    expect(pickStory('https://x.dev/?jojo-story=whoami', undefined)).toBe('whoami')
   })
 })

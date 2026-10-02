@@ -198,7 +198,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `animation`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_host` | `jojo_whoami` | `jojo_night`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour` | `jojo_whoami`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 
 Use this to measure how many visitors actually see the intro animation,
@@ -215,7 +215,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `content`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_host` | `jojo_whoami` | `jojo_night`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour` | `jojo_whoami`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to completion
 
@@ -233,7 +233,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `skip`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_host` | `jojo_whoami` | `jojo_night`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour` | `jojo_whoami`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to skip click
 
@@ -249,9 +249,9 @@ Required properties:
 - `locale`: `zh` | `en`
 - `page`: `/` | `/en`
 - `surface`: `intro_overlay`
-- `target`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_host` | `jojo_whoami` | `jojo_night`
+- `target`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour` | `jojo_whoami`
 - `source`: `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_host` | `jojo_whoami` | `jojo_night`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour` | `jojo_whoami`
 - `trigger`: `picker` | `event` | `replay`
 
 Use this to measure voluntary replay interest separately from first-visit
@@ -268,7 +268,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `pagehide`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_host` | `jojo_whoami` | `jojo_night`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour` | `jojo_whoami`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to page hide
 
@@ -286,10 +286,10 @@ replay`). The old `variant: focus | line | jojo` values belong to the `/v2`
 experiment and the particle intro (`LegacyIntroOverlay`), which no longer runs
 when Jojo is on — expect a break in those series from the Jojo launch date.
 
-### Story intros (`variant: jojo_host | jojo_whoami | jojo_night`)
+### Story intros (`variant: jojo_tour | jojo_whoami`)
 
-Added 2026-10-03: three story intros (Jojo hosts / types `whoami` / night
-shift) on the same controller, so the same `intro_*` events fire with the story
+Added 2026-10-03: two story intros (Jojo's night tour / Jojo types `whoami`)
+on the same controller, so the same `intro_*` events fire with the story
 in `variant`. They play only when picked with `?jojo-story=` (remembered for the
 session) until one becomes the default.
 

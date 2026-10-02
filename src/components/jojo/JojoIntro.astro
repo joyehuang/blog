@@ -97,8 +97,10 @@
     background: #fe6a4a;
   }
   /* ---- story intros (lib/jojo/intro/story): Jojo's own palette, like the
-     character itself; the veil is the page's background (or a night sky) ---- */
+     character itself; the veil is the page's background, the night is the
+     same colour the head gate paints before first paint ---- */
   .jojo-story-veil,
+  .jojo-story-night,
   .jojo-story-layer {
     position: absolute;
     inset: 0;
@@ -107,8 +109,36 @@
     opacity: 0;
     background: hsl(var(--background));
   }
-  .jojo-story-veil[data-tone='night'] {
+  .jojo-story-night {
     background: #070914;
+  }
+  .jojo-story-flash {
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      rgb(255 236 200 / 0.55) 0%,
+      rgb(255 236 200 / 0.18) 40%,
+      transparent 70%
+    );
+    opacity: 0;
+  }
+  .jojo-story-tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0.2rem 0.65rem;
+    border: 2px solid #fe6a4a;
+    border-radius: 9999px;
+    background: #fff;
+    color: #2d3272;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+    box-shadow: 0 6px 16px rgb(20 24 60 / 0.16);
+    opacity: 0;
   }
   .jojo-story-bubble {
     position: absolute;
@@ -277,7 +307,7 @@
     opacity: 0;
   }
   /* the indigo shell would sink into the night: a hairline halo */
-  .jojo-story--night .jojo-intro-actor > svg {
+  .jojo-story--tour .jojo-intro-actor > svg {
     filter: drop-shadow(0 0 0.8px rgb(255 255 255 / 0.8))
       drop-shadow(0 0 10px rgb(180 200 255 / 0.25));
   }

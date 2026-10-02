@@ -6,21 +6,20 @@ import type { IntroTrigger } from '../../keys'
 import { createIntroController, type IntroController } from '../controller'
 import { cloneForStage, emitIntro, layoutNow, sharedDeps, STAND_IN } from '../stage'
 import type { ActorState, PieceId, Rect } from '../timeline'
-import { planHost, type HobbyKind, type HostProps } from './host'
 import type { StoryFrame, StoryId, StoryPlan } from './kit'
-import { planNight, type NightProps } from './night'
+import { planTour, type HobbyKind, type TourProps } from './tour'
 import { planWhoami, type WhoamiProps } from './whoami'
 
 /**
  * Browser side of the story intros. Same contract as the build intro: copies
  * of the pieces on an inert, aria-hidden stage, originals hidden by
  * `visibility` (CSS failsafe in JojoHead.astro), one controller for skip /
- * still / pagehide / watchdog. On top: a veil over the page, a speech bubble
- * and each story's props.
+ * still / pagehide / watchdog. On top: a veil over the page (its own colour),
+ * a night over everything but Jojo, a speech bubble and each story's props.
  */
 
 type Measured = NonNullable<ReturnType<typeof layoutNow>>
-type AnyProps = HostProps | WhoamiProps | NightProps
+type AnyProps = TourProps | WhoamiProps
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 const HOBBY_PATHS: Record<HobbyKind, string[]> = {
@@ -56,40 +55,29 @@ function icon(paths: string[]) {
 }
 
 function plan(id: StoryId, measured: Measured, zh: boolean): StoryPlan<AnyProps> {
-  if (id === 'host') return planHost(measured.layout, zh)
   if (id === 'whoami') return planWhoami(measured.layout, zh)
-  return planNight(measured.layout, zh)
+  return planTour(measured.layout, zh)
 }
 
-/** a story's own props layer: built once, updated every frame */
-function propsLayer(id: StoryId, layer: HTMLElement): (p: AnyProps) => void {
-  if (id === 'host') {
-    const badges = new Map<HobbyKind, HTMLDivElement>()
-    return (raw) => {
-      for (const h of (raw as HostProps).hobbies) {
-        let el = badges.get(h.kind)
-        if (!el) {
-          el = document.createElement('div')
-          el.className = 'jojo-story-badge'
-          el.appendChild(icon(HOBBY_PATHS[h.kind]))
-          layer.appendChild(el)
-          badges.set(h.kind, el)
-        }
-        el.style.transform = `translate3d(${h.x.toFixed(1)}px,${h.y.toFixed(1)}px,0) translate(-50%,-50%) rotate(${h.rot.toFixed(1)}deg) scale(${h.scale.toFixed(3)})`
-        el.style.opacity = h.opacity.toFixed(3)
-      }
-    }
-  }
+const el = (cls: string, text?: string) => {
+  const e = document.createElement('div')
+  e.className = cls
+  if (text) e.textContent = text
+  return e
+}
+
+/**
+ * A story's own props, built once and updated every frame: `under` sits below
+ * Jojo, `over` above it.
+ */
+function propsLayer(id: StoryId, under: HTMLElement, over: HTMLElement): (p: AnyProps) => void {
   if (id === 'whoami') {
-    const term = document.createElement('div')
-    term.className = 'jojo-story-term'
-    const bar = document.createElement('div')
-    bar.className = 'jojo-story-term-bar'
+    const term = el('jojo-story-term')
+    const bar = el('jojo-story-term-bar')
     for (let i = 0; i < 3; i++) bar.appendChild(document.createElement('i'))
-    const body = document.createElement('div')
-    body.className = 'jojo-story-term-body'
+    const body = el('jojo-story-term-body')
     term.append(bar, body)
-    layer.appendChild(term)
+    under.appendChild(term)
     const rows: Array<{ el: HTMLDivElement; text: HTMLSpanElement; shown: number }> = []
     let caretAt: number | null = -1
     return (raw) => {
@@ -100,12 +88,11 @@ function propsLayer(id: StoryId, layer: HTMLElement): (p: AnyProps) => void {
       p.lines.forEach((l, i) => {
         let row = rows[i]
         if (!row) {
-          const el = document.createElement('div')
-          el.className = `jojo-story-term-line is-${l.kind}`
+          const line = el(`jojo-story-term-line is-${l.kind}`)
           const text = document.createElement('span')
-          el.appendChild(text)
-          body.appendChild(el)
-          row = { el, text, shown: -1 }
+          line.appendChild(text)
+          body.appendChild(line)
+          row = { el: line, text, shown: -1 }
           rows[i] = row
         }
         if (row.shown !== l.shown) {
@@ -120,24 +107,24 @@ function propsLayer(id: StoryId, layer: HTMLElement): (p: AnyProps) => void {
       }
     }
   }
-  const glow = document.createElement('div')
-  glow.className = 'jojo-story-glow'
-  const ping = document.createElement('div')
-  ping.className = 'jojo-story-ping'
-  ping.textContent = '!'
-  const zs = [0, 1, 2].map(() => {
-    const z = document.createElement('span')
-    z.className = 'jojo-story-z'
-    z.textContent = 'z'
-    return z
-  })
-  // the glow sits on the veil, under everything else
-  layer.prepend(glow)
-  layer.append(ping, ...zs)
+  const glow = el('jojo-story-glow')
+  const flash = el('jojo-story-flash')
+  const ping = el('jojo-story-ping', '!')
+  const zs = [0, 1, 2].map(() => el('jojo-story-z', 'z'))
+  const tags = new Map<string, HTMLDivElement>()
+  const badges = new Map<HobbyKind, HTMLDivElement>()
+  under.append(glow, flash)
+  over.append(ping, ...zs)
+  const circle = (e: HTMLElement, c: { x: number; y: number; r: number; opacity: number }) => {
+    e.style.cssText = `left:${(c.x - c.r).toFixed(1)}px;top:${(c.y - c.r).toFixed(1)}px;width:${(2 * c.r).toFixed(1)}px;height:${(2 * c.r).toFixed(1)}px;opacity:${c.opacity.toFixed(3)}`
+  }
+  const place = (e: HTMLElement, x: number, y: number, extra = '') => {
+    e.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) translate(-50%,-50%)${extra}`
+  }
   return (raw) => {
-    const p = raw as NightProps
-    const g = p.glow
-    glow.style.cssText = `left:${(g.x - g.r).toFixed(1)}px;top:${(g.y - g.r).toFixed(1)}px;width:${(2 * g.r).toFixed(1)}px;height:${(2 * g.r).toFixed(1)}px;opacity:${g.opacity.toFixed(3)}`
+    const p = raw as TourProps
+    circle(glow, p.glow)
+    circle(flash, p.flash)
     ping.style.transform = `translate3d(${p.ping.x.toFixed(1)}px,${p.ping.y.toFixed(1)}px,0) translate(-50%,-100%) scale(${p.ping.scale.toFixed(3)})`
     ping.style.opacity = p.ping.opacity.toFixed(3)
     p.zs.forEach((z, i) => {
@@ -145,6 +132,27 @@ function propsLayer(id: StoryId, layer: HTMLElement): (p: AnyProps) => void {
       zs[i].style.fontSize = `${z.size.toFixed(1)}px`
       zs[i].style.opacity = z.opacity.toFixed(3)
     })
+    for (const g of p.tags) {
+      let e = tags.get(g.text)
+      if (!e) {
+        e = el('jojo-story-tag', g.text)
+        under.appendChild(e)
+        tags.set(g.text, e)
+      }
+      place(e, g.x, g.y, ` scale(${g.scale.toFixed(3)})`)
+      e.style.opacity = g.opacity.toFixed(3)
+    }
+    for (const h of p.hobbies) {
+      let e = badges.get(h.kind)
+      if (!e) {
+        e = el('jojo-story-badge')
+        e.appendChild(icon(HOBBY_PATHS[h.kind]))
+        under.appendChild(e)
+        badges.set(h.kind, e)
+      }
+      place(e, h.x, h.y, ` rotate(${h.rot.toFixed(1)}deg) scale(${h.scale.toFixed(3)})`)
+      e.style.opacity = h.opacity.toFixed(3)
+    }
   }
 }
 
@@ -228,6 +236,7 @@ export function runStory(
 
   let stage: HTMLDivElement | null = null
   let veil: HTMLDivElement | null = null
+  let night: HTMLDivElement | null = null
   let actorBox: HTMLDivElement | null = null
   let actorRoot: Root | null = null
   let spawnDot: HTMLDivElement | null = null
@@ -273,10 +282,7 @@ export function runStory(
     stage.inert = true
     veil = document.createElement('div')
     veil.className = 'jojo-story-veil'
-    veil.dataset.tone = story.tone
-    const under = document.createElement('div')
-    under.className = 'jojo-story-layer'
-    stage.append(veil, under)
+    stage.appendChild(veil)
     for (const pid of story.cast) {
       const el = els[pid]
       const r = layout.pieces[pid]
@@ -294,23 +300,22 @@ export function runStory(
       stage.appendChild(box)
       boxes[pid] = box
     }
+    // the night covers the page and its copies, never Jojo or its props
+    night = document.createElement('div')
+    night.className = 'jojo-story-night'
+    const under = document.createElement('div')
+    under.className = 'jojo-story-layer'
     const over = document.createElement('div')
     over.className = 'jojo-story-layer'
-    stage.appendChild(over)
-    renderProps = propsLayer(id, id === 'night' ? under : over)
+    renderProps = propsLayer(id, under, over)
+    stage.append(night, under)
     spawnDot = document.createElement('div')
     spawnDot.className = 'jojo-intro-spawn'
     stage.appendChild(spawnDot)
     actorBox = document.createElement('div')
     actorBox.className = 'jojo-intro-actor'
     actorBox.style.cssText = `width:${S}px;height:${S}px;transform-origin:${pivotPx.x}px ${pivotPx.y}px`
-    stage.appendChild(actorBox)
-    // night: the z's and the "!" float above Jojo
-    if (id === 'night') {
-      for (const n of Array.from(under.querySelectorAll('.jojo-story-ping, .jojo-story-z')))
-        over.appendChild(n)
-      stage.appendChild(over)
-    }
+    stage.append(actorBox, over)
     bubble = document.createElement('div')
     bubble.className = 'jojo-story-bubble'
     bubbleOn = document.createElement('span')
@@ -351,6 +356,7 @@ export function runStory(
 
   const render = (f: StoryFrame<AnyProps>) => {
     if (veil) veil.style.opacity = f.veil.toFixed(3)
+    if (night) night.style.opacity = f.night.toFixed(3)
     for (const pid of story.cast) {
       const p = f.pieces[pid]
       const box = boxes[pid]

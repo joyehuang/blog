@@ -172,7 +172,6 @@ export function planWhoami(layout: IntroLayout, zh: boolean): StoryPlan<WhoamiPr
     id: 'whoami',
     duration,
     cast,
-    tone: 'page',
     land,
     sample(tt) {
       const actor = actorAt(track, tt)
@@ -217,6 +216,7 @@ export function planWhoami(layout: IntroLayout, zh: boolean): StoryPlan<WhoamiPr
           [up + 600, 0]
         ]),
         pieces,
+        night: 0,
         bubble: null,
         props: {
           term: {
