@@ -1,9 +1,11 @@
 /**
  * Runs inline in <head> before first paint (inlined verbatim by
  * JojoHead.astro — keep it self-contained ES2019, no imports, no closures).
- * Decides the review mode and whether the build-the-site intro is armed, and
- * records both as attributes on <html>. It never hides anything: arming only
- * lets the intro script start; if that script never runs, nothing changes.
+ * Decides the review mode and whether the intro is armed, and records both as
+ * attributes on <html>. Arming lets the intro script start, and lets
+ * JojoHead's CSS paint the intro's opening dark before the first frame, so
+ * the blog never flashes first (the CSS lifts it on its own after a few
+ * seconds if the intro script never runs).
  *
  * @param {Window} w
  * @param {{ review: boolean, homePaths: string[], keys: { intro: string, reviewMode: string } }} cfg

@@ -27,37 +27,31 @@ family). This site shows it in three ways that are designed to work together.
 
 ### C · intro
 
-- **What:** "Jojo builds the site", a first-visit intro compressed from the
-  29 s film (≈ 4.4 s at 1440×900, 3.9 s at 1280×720 or 390×844, 3.2 s
-  at 375×667). As Jojo pops out under the avatar, the
-  first screen dims in place to a faint blueprint (nothing flies away). Then
-  Jojo builds it back along one route down the page: a short tether pulls the
-  header down; the thump knocks the avatar loose onto Jojo's head, and Jojo
-  tosses it onto its spot; a stomp pops Connect, the label chips and the name
-  up; a shove lays the terminal card out to the right; Jojo slides down
-  About's left edge and reveals it like a blind; a last stomp makes the
-  Product card rise from below the fold to its feet. Then Jojo leaps home into
-  its seat. Pieces only move rigidly or are revealed by a clip, never
-  flattened or stretched.
-- **Keep-out (phones, r3):** where Jojo stands is chosen against what is
-  already built. The labels stomp happens in the free space beside them (on
-  phones: below the chips, left of Connect — never on "Melbourne"); with no
-  margin beside About (phones) Jojo hangs under the blind's edge, so the text
-  it reveals is above it, and the rest drops as it leaps off. Skip sits in the
-  bottom-right corner on phones (44 px tall; the dock is hidden during the
-  intro), its measured rect is a keep-out for the whole route, and the tests
-  sample every frame for it. Only flights (hops, the leap home) may pass over
-  finished text, ≤ 150 ms per label.
-- **Who takes part:** only pieces at least 35 % on screen. Desktop 1440×900
-  gets all nine; 1280×720 and 390×844 skip Product (below the fold); 375×667
-  also skips About; `/en` has no Product. Nothing off screen is dragged in.
-- **Measuring:** stand-ins are measured only after the page's own `.animate`
-  entrance has finished (the entry waits for it, `runIntro` finishes any
-  leftover), and ids / custom-element tags are replaced by their computed
-  style on the copies, so the copies match the page exactly (the r2 build lost
-  `#toggleDarkMode` styles and stacked the theme icons).
-- **Where:** `JojoHead.astro` (gate), `JojoIntro.astro` → `intro/entry.ts`
-  (every entry), `src/lib/jojo/intro/*`.
+- **What:** "Night tour", a first-visit intro that tells who Joye is (≈ 16 s
+  zh, 18 s en). The page opens dark from the first frame: the head gate arms
+  the intro before first paint and JojoHead's CSS paints the night over it
+  (`html[data-jojo-intro='armed']::after`, lifts itself after 4.5 s if no
+  script runs), so the blog never shows first. Jojo dozes in a pool of light,
+  wakes ("someone's here?"), switches the light on and walks the visitor
+  through Joye in seven lines — who (avatar + name light up as the welcome
+  ends), Melbourne, the projects (Playyy.ai / atypica / fAIshion.ai / AIXCut
+  tags pop out at its feet and file into About), what Joye cares about, the
+  hobbies (three badges), and a hand-over; then the lights come up on the rest
+  and Jojo hops into its seat. All copy comes from the About text.
+- **Staging:** Jojo talks in the free space left of the avatar, then on the
+  terminal card's top edge. Props pop out at its feet so the side beside it
+  stays free for the bubble; each bubble picks the side of Jojo (above /
+  right / left / below) that covers least of the lit pieces. Skip is a
+  keep-out (bottom-right on phones).
+- **Who takes part:** only pieces at least 35 % on screen; nothing off screen
+  is dragged in.
+- **Measuring:** copies are measured only after the page's own `.animate`
+  entrance has finished, and ids / custom-element tags are replaced by their
+  computed style on the copies, so the copies match the page exactly.
+- **Where:** `JojoHead.astro` (gate + dark cover), `JojoIntro.astro` →
+  `intro/entry.ts` (every entry), `src/lib/jojo/intro/` (`run.ts` → `story/`:
+  `tour.ts` plan, `kit.ts` helpers, `run.ts` runner). In dev and review
+  builds `window.__jojoIntro.seek(t)` holds any frame.
 - **JS:** loaded only when it plays.
 
 ## How they combine
@@ -169,9 +163,9 @@ freezes the intro at a frame for inspection.
 
 ## Tests
 
-- `bun test src/lib/jojo` — gate, timeline (fits 2.5–4.5 s, starts and ends
-  exactly on the real page, nothing flattened/stretched, dims to a blueprint in
-  place, every piece arrives by a Jojo action, short tether only), controller (complete, skip by
+- `bun test src/lib/jojo` — gate, tour (ends exactly on the real page with
+  Jojo in its seat, every frame finite and on screen, every line fully typed,
+  opens dark, all seven lines told), controller (complete, skip by
   key/pointer/wheel/touch/scroll, hidden tab, pagehide, watchdog, render error,
   mount failure, seek, refuse while still, still switched on mid-run), entry
   (every trigger refuses before the chunk loads, never left `armed`), step
@@ -189,6 +183,6 @@ freezes the intro at a frame for inspection.
 scripts/jojo/jojo-web.mjs, jojo-web.lock.json   package loader + pin
 scripts/jojo/measure-pages.mjs                   page weight inventory
 src/components/jojo/                             A/B/C components, css
-src/lib/jojo/                                    gate, entry, timeline, controller, runner, steps, presence, poke, chat seam
+src/lib/jojo/                                    gate, entry, tour, controller, runner, steps, presence, poke, chat seam
 src/lib/jojo/fallback/                           typed stand-ins (package absent)
 ```

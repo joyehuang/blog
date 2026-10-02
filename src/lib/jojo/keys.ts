@@ -33,6 +33,13 @@ export interface DockStateDetail {
   from: 'dock' | 'hero'
 }
 
+/**
+ * The CSS failsafe un-hides stand-ins after this long if cleanup never ran. It
+ * must outlast the longest intro run (the tour plus the watchdog), or the
+ * originals reappear under a running intro.
+ */
+export const STAND_IN_FAILSAFE_MS = 30000
+
 export type IntroOutcome = 'complete' | 'skip' | 'abort' | 'error'
 export interface IntroEventDetail {
   /** `refused`: asked to play but not allowed (reduced motion / Save-Data); nothing ran */

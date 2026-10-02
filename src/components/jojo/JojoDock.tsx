@@ -358,9 +358,9 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     setOpen(false)
     trackOnce('intro_replay', {
       surface: 'intro_overlay',
-      target: 'jojo_build',
+      target: 'jojo_tour',
       source: 'replay',
-      variant: 'jojo_build',
+      variant: 'jojo_tour',
       trigger: 'replay'
     })
     document.dispatchEvent(new CustomEvent(JOJO_EVENTS.introReplay))

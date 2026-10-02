@@ -375,19 +375,16 @@ a transparent ≥ 44 px hit area with a `--ring` focus-visible outline.
   only: the intro landing or a one-time greeting (≤ 1.2 s), a poke, the end of
   a post (one short hop, using the Blurred Icon Transition for the face swap).
   No speech bubbles, no auto quips, no `aria-live` for reactions.
-- **Intro.** The build-the-site intro plays once per browser on `/` and
-  `/en`, runs ≈ 3.2–4.4 s depending on how much of the home is on screen, is
-  skippable by any key, click, wheel or scroll, never locks scroll or sets
-  `inert` on the page, and works on clones in an inert layer (originals hidden
-  by `visibility` only, with a CSS failsafe). The first screen dims in place to
-  a faint blueprint and Jojo builds it back along one route (tether pull,
-  catch, stomp, shove, slide, rise) — every piece arrives by something Jojo
-  does. Pieces stay whole and readable: rigid moves or clip reveals only, never
-  flattened, stretched or thrown across the screen; Jojo (~avatar size) is the
-  one focal point, and the tether is only a short pull. Only pieces really on
-  screen take part. Finished text is never left under Jojo (it stands in free
-  space, hangs below a reveal edge on phones; only hops may pass over), and
-  the Skip pill is a keep-out the route never enters (bottom-right on phones).
+- **Intro.** Jojo's night tour plays once per browser on `/` and `/en`
+  (≈ 16 s zh / 18 s en), is skippable by any key, click, wheel or scroll,
+  never locks scroll or sets `inert` on the page, and works on clones in an
+  inert layer (originals hidden by `visibility` only, with a CSS failsafe).
+  It opens dark from the very first frame (the head gate paints it), so the
+  blog never shows first; Jojo wakes up, switches the light on and introduces
+  Joye in speech bubbles, each line lighting what it talks about. Bubbles use
+  Jojo's palette (white, indigo border) and pick the side of Jojo that covers
+  least of what is lit. Pieces stay whole and readable: rigid moves only.
+  Only pieces really on screen take part, and the Skip pill is a keep-out.
   Never change the visitor's settings in a performance (no
   theme toggling). Reduced motion or Save-Data: no intro from any entry.
 - **Status ≠ emotion.** Emotions are performance. The status shapes (working

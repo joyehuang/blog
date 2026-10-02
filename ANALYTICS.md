@@ -198,7 +198,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `animation`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 
 Use this to measure how many visitors actually see the intro animation,
@@ -215,7 +215,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `content`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to completion
 
@@ -233,7 +233,7 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `skip`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to skip click
 
@@ -249,9 +249,9 @@ Required properties:
 - `locale`: `zh` | `en`
 - `page`: `/` | `/en`
 - `surface`: `intro_overlay`
-- `target`: `focus` | `line` | `jojo` | `jojo_build`
+- `target`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour`
 - `source`: `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour`
 - `trigger`: `picker` | `event` | `replay`
 
 Use this to measure voluntary replay interest separately from first-visit
@@ -268,23 +268,27 @@ Required properties:
 - `surface`: `intro_overlay`
 - `target`: `pagehide`
 - `source`: `first_visit` | `replay`
-- `variant`: `focus` | `line` | `jojo` | `jojo_build`
+- `variant`: `focus` | `line` | `jojo` | `jojo_build` | `jojo_tour`
 - `trigger`: `first_visit` | `url` | `picker` | `event` | `replay`
 - `duration_ms`: milliseconds from animation start to page hide
 
 Use this to estimate watch time for visitors who do not click enter or skip.
 
-### Jojo intro (`variant: jojo_build`)
+### Jojo intro (`variant: jojo_tour`)
 
 Added 2026-09-25 with the Jojo character layer (`docs/jojo.md`). The
-`intro_*` events above keep their meaning; the build-the-site intro reports
-`variant: jojo_build` and `surface: intro_overlay`. `intro_start` fires when it
-actually starts (first visit or `?jojo-intro=play`), `intro_skip` on any skip
-(key, click, wheel, scroll), `intro_abandon` only on pagehide mid-run,
-`intro_replay` when a visitor asks for it from the dock menu (`trigger:
-replay`). The old `variant: focus | line | jojo` values belong to the `/v2`
-experiment and the particle intro (`LegacyIntroOverlay`, removed 2026-10-03) —
-expect a break in those series from the Jojo launch date.
+`intro_*` events above keep their meaning; the intro reports `surface:
+intro_overlay` and, since 2026-10-03, `variant: jojo_tour` (Jojo's night
+tour). From 2026-09-26 to 2026-10-03 the intro was the build-the-site intro,
+`variant: jojo_build` — expect that series to stop and `jojo_tour` to start
+on the switch date. `intro_start` fires when it actually starts (first visit
+or `?jojo-intro=play`), `intro_skip` on any skip (key, click, wheel, scroll),
+`intro_abandon` only on pagehide mid-run, `intro_replay` when a visitor asks
+for it from the dock menu (`trigger: replay`, `target: jojo_tour`). The tour
+is ≈ 16 s (zh) / 18 s (en), so `intro_skip.duration_ms` tells how far into
+the story visitors got. The old `variant: focus | line | jojo` values belong
+to the `/v2` experiment and the particle intro (`LegacyIntroOverlay`, removed
+2026-10-03).
 
 ### `jojo_poke`
 
