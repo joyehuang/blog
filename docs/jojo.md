@@ -107,8 +107,9 @@ gitignored `vendor/jojo-web/`, first match wins:
   asset named in `scripts/jojo/jojo-web.lock.json` through the GitHub API
   (token in a header — never in a URL, lockfile or log), verifies sha256,
   unpacks.
-- **None of the above → Jojo off:** the site builds exactly as before
-  (particle intro, ASCII mascot, promo modal).
+- **None of the above → Jojo off:** the site builds without Jojo (ASCII
+  mascot, promo modal, no intro — the old particle intro was removed on
+  2026-10-03).
 
 `PUBLIC_JOJO=0` also switches Jojo off with the package present — that is the
 rollback switch. `@jojo-web/runtime` / `@jojo-web/static` resolve (Vite alias)

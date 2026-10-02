@@ -12,7 +12,6 @@ import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
-import LegacyIntroOverlay from '@/components/intro/LegacyIntroOverlay.astro'
 import JojoHero from '@/components/jojo/JojoHero'
 import JojoIntro from '@/components/jojo/JojoIntro.astro'
 import JoJo from '@/components/mascot/JoJo'
@@ -107,8 +106,6 @@ const latestNotes = (await getCollection('notesEn'))
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  {/* Jojo on → the build-the-site intro replaces the particle intro and the ASCII mascot */}
-  {!__JOJO__ && <LegacyIntroOverlay />}
   <JojoIntro />
   <main class='flex w-full flex-col items-center'>
     <section

@@ -283,8 +283,8 @@ actually starts (first visit or `?jojo-intro=play`), `intro_skip` on any skip
 (key, click, wheel, scroll), `intro_abandon` only on pagehide mid-run,
 `intro_replay` when a visitor asks for it from the dock menu (`trigger:
 replay`). The old `variant: focus | line | jojo` values belong to the `/v2`
-experiment and the particle intro (`LegacyIntroOverlay`), which no longer runs
-when Jojo is on — expect a break in those series from the Jojo launch date.
+experiment and the particle intro (`LegacyIntroOverlay`, removed 2026-10-03) —
+expect a break in those series from the Jojo launch date.
 
 ### `jojo_poke`
 
