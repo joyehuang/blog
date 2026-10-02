@@ -10,7 +10,7 @@ import {
   type IntroEventDetail
 } from '../keys'
 import type { IntroDeps } from './controller'
-import { PIECE_IDS, type IntroLayout, type PieceId, type Rect } from './timeline'
+import { PIECE_IDS, type IntroLayout, type PieceId, type Rect } from './motion'
 
 /**
  * What every intro shares about the real page: finding the pieces, measuring

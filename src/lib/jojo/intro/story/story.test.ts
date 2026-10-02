@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 
-import type { IntroLayout } from '../timeline'
+import type { IntroLayout } from '../motion'
 import { bodyOf, type StoryPlan } from './kit'
-import { pickStory } from './pick'
 import { planTour } from './tour'
-import { planWhoami } from './whoami'
 
 const geometry = {
   viewBox: { x: 230, y: 228, w: 795, h: 760 },
@@ -61,7 +59,7 @@ function phone(vh: 844 | 667): IntroLayout {
 }
 
 const LAYOUTS = () => [desktop(), phone(844), phone(667)]
-const PLANNERS = { tour: planTour, whoami: planWhoami }
+const PLANNERS = { tour: planTour }
 
 function each(fn: (plan: StoryPlan<unknown>, layout: IntroLayout, zh: boolean) => void) {
   for (const [, plan] of Object.entries(PLANNERS))
@@ -129,17 +127,6 @@ describe('story intros', () => {
     })
   })
 
-  it('whoami keeps its terminal above the Skip button', () => {
-    for (const layout of LAYOUTS()) {
-      const plan = planWhoami(layout, true)
-      const term = plan.sample(2000).props.term
-      const skip = layout.keepOut![0]
-      expect(term.y + term.h).toBeLessThanOrEqual(skip.y)
-      expect(term.x).toBeGreaterThanOrEqual(0)
-      expect(term.x + term.w).toBeLessThanOrEqual(layout.vw)
-    }
-  })
-
   it('tour opens in the dark and tells the whole story before the lights come up', () => {
     for (const layout of LAYOUTS()) {
       const plan = planTour(layout, true)
@@ -152,6 +139,8 @@ describe('story intros', () => {
       expect(texts.size).toBe(7)
       expect([...texts].some((x) => x.includes('墨尔本'))).toBe(true)
       expect([...texts].some((x) => x.includes('AI Agent'))).toBe(true)
+      const tags = plan.sample(plan.duration / 2).props.tags.map((g) => g.text)
+      expect(tags).toEqual(['Playyy.ai', 'atypica', 'fAIshion.ai', 'AIXCut'])
     }
   })
 
@@ -159,26 +148,5 @@ describe('story intros', () => {
     const l = desktop()
     delete l.pieces.avatar
     expect(() => planTour(l, true)).toThrow()
-    expect(() => planWhoami(l, true)).toThrow()
-  })
-})
-
-describe('pickStory', () => {
-  const store = () => {
-    const m = new Map<string, string>()
-    return {
-      getItem: (k: string) => m.get(k) ?? null,
-      setItem: (k: string, v: string) => void m.set(k, v),
-      removeItem: (k: string) => void m.delete(k)
-    } as unknown as Storage
-  }
-  it('takes ?jojo-story=, remembers it for the session, ignores junk', () => {
-    const s = store()
-    expect(pickStory('https://x.dev/', s)).toBe('build')
-    expect(pickStory('https://x.dev/?jojo-story=tour', s)).toBe('tour')
-    expect(pickStory('https://x.dev/', s)).toBe('tour')
-    expect(pickStory('https://x.dev/?jojo-story=nope', s)).toBe('tour')
-    expect(pickStory('https://x.dev/?jojo-story=build', s)).toBe('build')
-    expect(pickStory('https://x.dev/?jojo-story=whoami', undefined)).toBe('whoami')
   })
 })

@@ -1,4 +1,4 @@
-import { E, lerp, pulse, seg, type IntroLayout, type PieceId } from '../timeline'
+import { E, lerp, pulse, seg, type IntroLayout, type PieceId } from '../motion'
 import {
   actorAt,
   actorBox,
@@ -71,7 +71,7 @@ const COPY = {
     bye: "It's all in the blog. Look around, and poke me if you need me!"
   }
 }
-const PROJECTS = ['Playyy.ai', 'atypica', 'fAIshion.ai', 'Goshu']
+const PROJECTS = ['Playyy.ai', 'atypica', 'fAIshion.ai', 'AIXCut']
 
 const PIECES: readonly PieceId[] = [
   'header',
@@ -232,7 +232,6 @@ export function planTour(layout: IntroLayout, zh: boolean): StoryPlan<TourProps>
 
   const glowAt: Point = { x: Z.x, y: Z.y - S * 0.35 }
   return {
-    id: 'tour',
     duration,
     cast,
     land,

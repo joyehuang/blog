@@ -2,14 +2,13 @@
  * Runs inline in <head> before first paint (inlined verbatim by
  * JojoHead.astro — keep it self-contained ES2019, no imports, no closures).
  * Decides the review mode and whether the intro is armed, and records both as
- * attributes on <html>. Arming only lets the intro script start. One thing is
- * painted here: when the picked story opens in the dark (`cfg.dark`), the
- * `data-jojo-cover` attribute lets JojoHead's CSS paint that dark before the
- * first frame, so the blog never flashes first; the CSS lifts it on its own
- * after a few seconds if the intro script never runs.
+ * attributes on <html>. Arming lets the intro script start, and lets
+ * JojoHead's CSS paint the intro's opening dark before the first frame, so
+ * the blog never flashes first (the CSS lifts it on its own after a few
+ * seconds if the intro script never runs).
  *
  * @param {Window} w
- * @param {{ review: boolean, homePaths: string[], keys: { intro: string, reviewMode: string, story?: string }, stories?: string[], defaultStory?: string, dark?: string[] }} cfg
+ * @param {{ review: boolean, homePaths: string[], keys: { intro: string, reviewMode: string } }} cfg
  * @returns {{ mode: string, intro: string | null, reason: string }}
  */
 function jojoHeadGate(w, cfg) {
@@ -85,18 +84,6 @@ function jojoHeadGate(w, cfg) {
     out.intro = forced ? 'url' : 'first_visit'
     root.setAttribute('data-jojo-intro', 'armed')
     root.setAttribute('data-jojo-intro-trigger', out.intro)
-    // the same pick as story/pick.ts: ?jojo-story=, else this session's, else the default
-    var stories = cfg.stories || []
-    var story = url.searchParams.get('jojo-story')
-    if (stories.indexOf(story) < 0) {
-      try {
-        story = cfg.keys.story ? w.sessionStorage.getItem(cfg.keys.story) : null
-      } catch {
-        story = null
-      }
-    }
-    if (stories.indexOf(story) < 0) story = cfg.defaultStory
-    if (cfg.dark && cfg.dark.indexOf(story) >= 0) root.setAttribute('data-jojo-cover', '')
   } catch {
     out.reason = 'error'
   }

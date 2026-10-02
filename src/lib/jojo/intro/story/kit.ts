@@ -12,20 +12,15 @@ import {
   type Move,
   type PieceId,
   type Rect
-} from '../timeline'
+} from '../motion'
 
 /**
- * Shared, frame-pure pieces of the story intros (tour / whoami). A
+ * Shared, frame-pure pieces of the intro. A
  * story is a plan whose `sample(t)` returns everything on screen at `t` ms:
  * Jojo, the veil over the page, the copies of the pieces it "lights", the
  * speech bubble and the story's own props. Like the build intro, the real page
  * never moves: the runner (./run.ts) draws copies and hides the originals.
  */
-
-export type StoryId = 'tour' | 'whoami'
-export const STORY_IDS: readonly StoryId[] = ['tour', 'whoami']
-/** stories whose first frame is dark: the head gate paints that dark before first paint */
-export const DARK_OPENING: readonly StoryId[] = ['tour']
 
 export interface Point {
   x: number
@@ -75,7 +70,6 @@ export interface StoryFrame<P> {
 }
 
 export interface StoryPlan<P> {
-  id: StoryId
   duration: number
   /** pieces drawn as copies (their originals are hidden while the story runs) */
   cast: PieceId[]

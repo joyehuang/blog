@@ -1,23 +1,17 @@
 import { describe, expect, it } from 'bun:test'
 
-import { buildScript, createIntroController, WATCHDOG_EXTRA_MS, type IntroDeps } from './controller'
-import { planIntro, type IntroLayout } from './timeline'
+import {
+  createIntroController,
+  WATCHDOG_EXTRA_MS,
+  type IntroDeps,
+  type IntroScript
+} from './controller'
 
-const layout: IntroLayout = {
-  vw: 1440,
-  vh: 900,
-  actor: 76,
-  geometry: {
-    viewBox: { x: 230, y: 228, w: 795, h: 760 },
-    pivot: { x: 627.5, y: 958 },
-    dot: { cx: 501, cy: 297, r: 53 }
-  },
-  seat: { x: 764, y: 196, w: 48, h: 48 },
-  pieces: {
-    header: { x: 160, y: 16, w: 1120, h: 56 },
-    avatar: { x: 664, y: 120, w: 112, h: 112 },
-    name: { x: 670, y: 260, w: 100, h: 36 }
-  }
+/** the controller only needs a duration and a frame per t */
+const plan: IntroScript<{ t: number }> = {
+  duration: 4000,
+  sample: (t) => ({ t }),
+  variant: 'jojo_tour'
 }
 
 function harness(
@@ -36,7 +30,7 @@ function harness(
   let scroll = 0
   let still: string | null = opts.still ?? null
   const stillWatchers = new Set<() => void>()
-  const deps: IntroDeps = {
+  const deps: IntroDeps<{ t: number }> = {
     now: () => clock,
     raf: (cb) => {
       const id = nextId++
@@ -129,8 +123,6 @@ function harness(
   }
 }
 
-const plan = buildScript(planIntro(layout))
-
 describe('intro controller', () => {
   it('plays to completion, then cleans up everything once', () => {
     const h = harness()
@@ -147,7 +139,7 @@ describe('intro controller', () => {
     expect(h.timers.size).toBe(0)
     expect(h.tracked.map(([e]) => e)).toEqual(['intro_start', 'intro_complete'])
     const done = h.tracked[1][1]
-    expect(done.variant).toBe('jojo_build')
+    expect(done.variant).toBe('jojo_tour')
     expect(done.source).toBe('first_visit')
     expect(Number(done.duration_ms)).toBeGreaterThanOrEqual(plan.duration)
   })

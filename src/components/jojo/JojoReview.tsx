@@ -17,7 +17,7 @@ const MODES: { id: JojoMode; zh: string; en: string }[] = [
   { id: 'abc', zh: '整合 A+B+C（默认）', en: 'Integrated A+B+C (default)' },
   { id: 'a', zh: '只 A · 署名', en: 'A only · signature' },
   { id: 'b', zh: '只 B · 常驻 dock', en: 'B only · dock' },
-  { id: 'c', zh: '只 C · 搭站开场', en: 'C only · intro' },
+  { id: 'c', zh: '只 C · 夜间导览', en: 'C only · intro' },
   { id: 'off', zh: '关掉 Jojo', en: 'Jojo off' }
 ]
 const STATES: (StatusId | null)[] = [null, 'working', 'needs-input', 'success', 'error', 'offline']

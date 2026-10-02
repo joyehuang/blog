@@ -1,5 +1,4 @@
 import type { IntroEventDetail, IntroOutcome, IntroTrigger } from '../keys'
-import { sampleIntro, type IntroFrame, type IntroPlan } from './timeline'
 
 /** a frame-pure intro: every state is a function of `t` (ms) */
 export interface IntroScript<F> {
@@ -7,11 +6,6 @@ export interface IntroScript<F> {
   sample(t: number): F
   /** analytics `variant` (ANALYTICS.md) */
   variant: string
-}
-
-/** the build-the-site intro as a script */
-export function buildScript(plan: IntroPlan): IntroScript<IntroFrame> {
-  return { duration: plan.duration, sample: (t) => sampleIntro(plan, t), variant: 'jojo_build' }
 }
 
 /**
@@ -32,7 +26,7 @@ export function buildScript(plan: IntroPlan): IntroScript<IntroFrame> {
  *    finished page); a watchdog ends it if frames stop arriving.
  *  - end() is idempotent and never throws; unmount() always runs.
  */
-export interface IntroDeps<F = IntroFrame> {
+export interface IntroDeps<F> {
   now(): number
   raf(cb: () => void): number
   caf(id: number): void

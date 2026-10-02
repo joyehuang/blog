@@ -103,34 +103,4 @@ describe('head gate', () => {
   it('skips tiny or very short viewports', () => {
     expect(jojoHeadGate(fakeWindow({ w: 800, h: 420 }).w, cfg()).reason).toBe('viewport')
   })
-
-  it('paints the dark first only for a story that opens in the dark', () => {
-    const dark = {
-      review: false,
-      homePaths: ['/', '/en'],
-      keys: { ...KEYS, story: 'joye:jojo:story' },
-      stories: ['build', 'tour', 'whoami'],
-      defaultStory: 'build',
-      dark: ['tour']
-    }
-    const a = fakeWindow({ href: 'https://www.joyehuang.me/?jojo-intro=play&jojo-story=tour' })
-    jojoHeadGate(a.w, dark)
-    expect(a.attrs['data-jojo-cover']).toBe('')
-    const b = fakeWindow({ href: 'https://www.joyehuang.me/?jojo-story=whoami' })
-    jojoHeadGate(b.w, dark)
-    expect(b.attrs['data-jojo-intro']).toBe('armed')
-    expect(b.attrs['data-jojo-cover']).toBeUndefined()
-    // remembered for the session
-    const c = fakeWindow({ session: { 'joye:jojo:story': 'tour' } })
-    jojoHeadGate(c.w, dark)
-    expect(c.attrs['data-jojo-cover']).toBe('')
-    // the default
-    const d = fakeWindow({})
-    jojoHeadGate(d.w, { ...dark, defaultStory: 'tour' })
-    expect(d.attrs['data-jojo-cover']).toBe('')
-    // never when the intro is not armed
-    const e = fakeWindow({ href: 'https://www.joyehuang.me/?jojo-story=tour', reduce: true })
-    jojoHeadGate(e.w, dark)
-    expect(e.attrs['data-jojo-cover']).toBeUndefined()
-  })
 })
