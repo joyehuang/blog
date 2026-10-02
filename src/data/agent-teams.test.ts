@@ -59,11 +59,6 @@ describe('teams 配置', () => {
 })
 
 describe('activity 配置', () => {
-  test('deadline 是合法的 YYYY-MM-DD', () => {
-    expect(activity.legacyTeamDeadline).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(Number.isNaN(Date.parse(activity.legacyTeamDeadline))).toBe(false)
-  })
-
   test('title / subtitle / tagline 非空', () => {
     expect(activity.title.length).toBeGreaterThan(0)
     expect(activity.subtitle.length).toBeGreaterThan(0)
@@ -74,17 +69,20 @@ describe('activity 配置', () => {
     expect(activity.docHref).toMatch(/^https?:\/\//)
   })
 
-  test('signupClosesAt 是带时区的合法时刻，且与 deadline 同一天（北京时间晚 12 点）', () => {
-    const closes = Date.parse(activity.signupClosesAt)
-    expect(Number.isNaN(closes)).toBe(false)
-    expect(activity.signupClosesAt).toMatch(/[+-]\d{2}:\d{2}$/)
-    // 晚 12 点 = deadline 次日 00:00
-    const deadlineMidnight = Date.parse(`${activity.legacyTeamDeadline}T00:00:00+08:00`)
-    expect(closes - deadlineMidnight).toBe(24 * 60 * 60 * 1000)
+  test('signupClosesAt 为 null（长期开放）或带时区的合法时刻', () => {
+    const at = activity.signupClosesAt
+    if (at === null) return
+    expect(Number.isNaN(Date.parse(at))).toBe(false)
+    expect(at).toMatch(/[+-]\d{2}:\d{2}$/)
   })
 
-  test('isSignupClosed 以 signupClosesAt 为界', () => {
-    const closes = Date.parse(activity.signupClosesAt)
+  test('isSignupClosed 以 signupClosesAt 为界，null 时恒为开放', () => {
+    const at = activity.signupClosesAt
+    if (at === null) {
+      expect(isSignupClosed()).toBe(false)
+      return
+    }
+    const closes = Date.parse(at)
     expect(isSignupClosed(closes - 1)).toBe(false)
     expect(isSignupClosed(closes)).toBe(true)
     expect(isSignupClosed(closes + 1)).toBe(true)

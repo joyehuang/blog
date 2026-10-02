@@ -26,7 +26,7 @@ const signupClosed = isSignupClosed()
         <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
           <span class='inline-flex items-center gap-1.5'>
             <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
-            比赛延期至9月30日23:59（北京时间）
+            报名通道开放中
           </span>
           <a
             class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
@@ -47,7 +47,7 @@ const signupClosed = isSignupClosed()
               data-qq-group-toggle
               aria-expanded='false'
             >
-              加入 QQ 群报名 <span aria-hidden='true'>↗</span>
+              加入 QQ 粉丝群 <span aria-hidden='true'>↗</span>
             </button>
             <span
               class='qq-group-popover absolute left-0 top-full z-20 mt-2 whitespace-nowrap rounded-lg border bg-background px-3 py-2 text-sm shadow-lg'
@@ -318,7 +318,7 @@ const signupClosed = isSignupClosed()
               />
             </label>
             <label class='manage-field'>
-              QQ 群口令（和报名时一致）
+              QQ 群口令（粉丝群的名字）
               <input
                 class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
                 name='passcode'
@@ -524,19 +524,6 @@ const signupClosed = isSignupClosed()
           />
         </label>
       </div>
-
-      <label class='flex flex-col gap-1 text-xs text-muted-foreground'>
-        口令（粉丝群的名字）
-        <input
-          class='rounded-lg border bg-background px-2.5 py-1.5 text-sm text-foreground'
-          name='passcode'
-          type='text'
-          maxlength='40'
-          required
-          autocomplete='off'
-          placeholder='粉丝群的名字'
-        />
-      </label>
 
       {/* 蜜罐 */}
       <div class='hp-field' aria-hidden='true'>
@@ -1830,6 +1817,8 @@ const signupClosed = isSignupClosed()
     // 只有至少一位队员报名的队伍才能参加最终评选。数据库降级时名单未知，
     // 保留静态兜底卡片和计数骨架，避免把「加载失败」误判成「无人报名」。
     const eligibleTeams = data.degraded ? data.teams : data.teams.filter((team) => team.count > 0)
+    // 报名开放时空赛道也要展示，否则没人能报进去；截止后只留参评队伍。
+    const visibleTeams = signupClosed ? eligibleTeams : data.teams
 
     const banner = board.querySelector<HTMLElement>('[data-board-banner]')
     if (banner) {
@@ -1848,15 +1837,15 @@ const signupClosed = isSignupClosed()
     }
 
     if (!data.degraded) {
-      const eligibleIds = new Set(eligibleTeams.map((team) => team.id))
+      const visibleIds = new Set(visibleTeams.map((team) => team.id))
       for (const [id, card] of cards) {
-        if (eligibleIds.has(id)) continue
+        if (visibleIds.has(id)) continue
         card.remove()
         cards.delete(id)
       }
     }
 
-    for (const team of eligibleTeams) {
+    for (const team of visibleTeams) {
       let card = cards.get(team.id)
       if (!card) {
         // 自定义赛道：动态建卡并接线
@@ -1975,7 +1964,6 @@ const signupClosed = isSignupClosed()
         name: String(data.get('name') || ''),
         // 只有「组队」才带名额上限；留空就交给后端按不限处理。
         capacity: kind === 'team' && capacityRaw ? Number(capacityRaw) : undefined,
-        passcode: String(data.get('passcode') || ''),
         hp: String(data.get('hp') || '')
       }
 
