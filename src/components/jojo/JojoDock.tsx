@@ -1,6 +1,7 @@
 import { trackOnce } from '@/lib/jojo/analytics'
 import { statusForPhase, type ChatAdapter } from '@/lib/jojo/chat/types'
 import { createUnavailableChat } from '@/lib/jojo/chat/unavailable'
+import { guideStops, type Stop } from '@/lib/jojo/guide'
 import {
   currentMode,
   JOJO_EVENTS,
@@ -18,6 +19,7 @@ import { createStepPlayer, type Step } from '@/lib/jojo/steps'
 import type { EmotionId, StatusId } from '@jojo-web/runtime'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
+import JojoGuide from './JojoGuide'
 import LazyJojo, { loadJojoRuntime, useStill } from './LazyJojo'
 
 import './jojo.css'
@@ -57,7 +59,8 @@ const COPY = {
     poke: '戳一下',
     tuck: '先躲一下',
     back: '叫 Jojo 回来',
-    preview: '状态预览 · 仅演示，未连接任何 Agent'
+    preview: '状态预览 · 仅演示，未连接任何 Agent',
+    guide: '带我逛逛首页'
   },
   en: {
     open: 'Open the Jojo menu',
@@ -75,7 +78,8 @@ const COPY = {
     poke: 'Poke',
     tuck: 'Hide for now',
     back: 'Bring Jojo back',
-    preview: 'State preview · demo only, no agent connected'
+    preview: 'State preview · demo only, no agent connected',
+    guide: 'Show me around'
   }
 } as const
 
@@ -105,6 +109,13 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
   const [compact, setCompact] = useState(false)
   const [emotion, setEmotion] = useState<EmotionId>('calm')
   const [previewStatus, setPreviewStatus] = useState<StatusId | null>(null)
+  // "带我逛逛": Jojo leaves the corner and walks the page (JojoGuide); the
+  // dock stays away until Jojo is back
+  const [guide, setGuide] = useState<{
+    stops: Stop[]
+    from: { x: number; y: number; w: number; h: number }
+  } | null>(null)
+  const [guiding, setGuiding] = useState(false)
   const still = useStill()
   // each intent counts, so a later intent asks again after a failed download
   const [live, setLive] = useState(0)
@@ -215,7 +226,8 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     keyboardOpen: keyboard,
     commentsInView,
     compact,
-    open
+    open,
+    guiding
   })
 
   // tell the page (back-to-top stacks above a shown dock)
@@ -366,6 +378,24 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
     document.dispatchEvent(new CustomEvent(JOJO_EVENTS.introReplay))
   }
 
+  const onGuide = () => {
+    const ids = Array.from(document.querySelectorAll<HTMLElement>('[data-jojo-stop]')).map(
+      (el) => el.dataset.jojoStop ?? ''
+    )
+    const stops = guideStops(ids, lang)
+    if (!stops.length) return
+    // Jojo takes off from where the corner Jojo is drawn
+    const r = toggleRef.current?.querySelector('svg')?.getBoundingClientRect()
+    const from = r
+      ? { x: r.left, y: r.top, w: r.width, h: r.height }
+      : { x: window.innerWidth - 70, y: window.innerHeight - 70, w: 38, h: 38 }
+    setOpen(false)
+    setGuide({ stops, from })
+    setGuiding(true)
+  }
+  const onGuideHandoff = useCallback(() => setGuiding(false), [])
+  const onGuideDone = useCallback(() => setGuide(null), [])
+
   // Always return an element: Astro's React renderer identifies React
   // components by rendering them, and a bare `null` on the server fails that.
   if (!enabled) return <div className='jojo-dock' data-presence='hidden' hidden />
@@ -450,6 +480,11 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
         </header>
 
         <nav ref={navRef} className='jojo-dock-nav' aria-label={t.nav}>
+          {home && (
+            <button type='button' onClick={onGuide}>
+              <span>{t.guide}</span>
+            </button>
+          )}
           {links.latest && (
             <a href={links.latest.href}>
               <span>{t.latest}</span>
@@ -494,6 +529,17 @@ export default function JojoDock({ lang, links, home, review = false, staticSvg 
           </button>
         </footer>
       </section>
+      {guide && (
+        <JojoGuide
+          lang={lang}
+          stops={guide.stops}
+          from={guide.from}
+          staticSvg={staticSvg}
+          still={!!still}
+          onHandoff={onGuideHandoff}
+          onDone={onGuideDone}
+        />
+      )}
     </div>
   )
 }

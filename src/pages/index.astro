@@ -178,7 +178,12 @@ const latestTalk = talks[0]
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
       {/* 导流：另一个产品「面试手记」joyehuang.dev */}
-      <section id='product' aria-labelledby='product-heading' data-jojo-piece='product'>
+      <section
+        id='product'
+        aria-labelledby='product-heading'
+        data-jojo-piece='product'
+        data-jojo-stop='product'
+      >
         <h2 id='product-heading' class='sr-only'>Product</h2>
         <a
           href='https://joyehuang.dev'
@@ -233,7 +238,7 @@ const latestTalk = talks[0]
       </section>
       {
         allPostsByDate.length > 0 && (
-          <Section title='Blog'>
+          <Section title='Blog' data-jojo-stop='blog'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {allPostsByDate.map((p) => (
                 <li class='flex flex-col gap-x-2 sm:flex-row'>
@@ -248,7 +253,7 @@ const latestTalk = talks[0]
 
       {
         latestNotes.length > 0 && (
-          <Section title='Notes'>
+          <Section title='Notes' data-jojo-stop='notes'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {latestNotes.map((note) => (
                 <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
@@ -299,10 +304,18 @@ const latestTalk = talks[0]
 
       {
         latestTalk && (
-          <Section title='Talks'>
+          <Section title='Talks' data-jojo-stop='talks'>
             <p class='text-muted-foreground'>
-              群里每周一次的线上交流会，轮流分享技术、求职和 AI 行业 ——
-              每期的内容与幻灯片都公开沉淀在这里。
+              每周分享已改成
+              <a
+                href='https://space.bilibili.com/3546914882587480'
+                target='_blank'
+                rel='noopener noreferrer'
+                class='underline underline-offset-4 hover:text-foreground'
+              >
+                B 站直播
+              </a>
+              ：更像线上自习室，一起写代码、读文档，随时提问。往期内容与幻灯片仍在这里。
             </p>
             <LinkCard
               heading={latestTalk.data.title}
@@ -316,7 +329,7 @@ const latestTalk = talks[0]
         )
       }
 
-      <Section title='Experience'>
+      <Section title='Experience' data-jojo-stop='experience'>
         <LinkCard
           heading='Adastra Labs（石墨文档海外）'
           subheading='AI 全栈工程师'

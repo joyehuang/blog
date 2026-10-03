@@ -298,7 +298,8 @@ Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_hero` | `jojo_dock`
+- `surface`: `home_hero` | `jojo_dock` | `jojo_guide` (the Jojo out on the page
+  during "带我逛逛", added 2026-10-03)
 
 At most once per page view per surface (the first poke). No poke counts, no
 timings, nothing re-sent on pagehide.
@@ -317,6 +318,33 @@ Required properties:
 `surface: home_hero` + `action: open` means the panel was opened by tapping the
 Jojo seated beside the home avatar (added 2026-10-03; before that a tap there
 was a `jojo_poke`). At most once per page view per surface and action.
+
+### `jojo_guide`
+
+Visitor takes the opt-in home tour ("带我逛逛首页" in the Jojo dock menu): Jojo
+leaves the dock, flies to each home section and says one line about it in a
+speech bubble. Added 2026-10-03.
+
+Required properties:
+
+- `locale`, `page`
+- `surface`: `jojo_dock`
+- `action`: `start` | `complete` | `exit`
+- `steps`: number of stops on this page (5 on `/`, 3 on `/en`), for `start`
+  and `complete`
+- `step`: the stop the visitor left on (`product` | `blog` | `notes` | `talks`
+  | `experience`), for `exit` only
+- `steps_seen`: how many stops were shown before leaving, for `exit` only
+
+`complete` fires when the visitor reaches the closing bubble; `exit` when the
+tour is ended (× or Esc) before that. At most once per page
+view per action. Clicks on links inside the sections are left to their own
+events (`project_link_click`, `github_link_click`) and Pages; the bubble's own
+links (the Bilibili live room, the Links page) are left to Pages (`/links`)
+and outbound-link tracking. The `talks` stop is about the live streams that
+replaced the weekly talks (2026-10-03); the `notes` stop also introduces Lab;
+Open Source, Education and Skills are not stops. Each stop is talked through in several bubbles; moving between bubbles
+is not tracked.
 
 ### `jojo_story_play`
 
@@ -544,7 +572,7 @@ Implemented in current code:
 - `talk_join_intent`
 - `language_switch_click`
 - `page_not_found`
-- `jojo_poke`, `jojo_dock_action`, `jojo_story_play` (Jojo builds only)
+- `jojo_poke`, `jojo_dock_action`, `jojo_guide`, `jojo_story_play` (Jojo builds only)
 
 Legacy events retained only for historical data interpretation:
 

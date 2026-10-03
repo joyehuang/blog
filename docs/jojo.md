@@ -24,6 +24,29 @@ family). This site shows it in three ways that are designed to work together.
   connected.
 - **Where:** `JojoDock.tsx`, `dock.css`, `src/lib/jojo/chat/*`, `presence.ts`.
 - **JS:** a React island (`client:idle`) on every page.
+- **带我逛逛 (home only):** the first menu item, opt-in. Jojo leaves the
+  corner and walks the visitor down the home page (`JojoGuide.tsx`, one rAF
+  loop writing transforms): it flies to each section marked `data-jojo-stop`
+  on a spring that follows the section while the page scrolls (hop arc, lean
+  into the turn, stretch in the air, squash on landing), stands on the
+  section's top edge — left end, then right end, so it criss-crosses the page —
+  and talks it through in a few bubbles beside it, each with its own face
+  (`src/lib/jojo/guide.ts`; a bubble can also show a status signal). The
+  bubbles carry what the section does not say: which post to start with for
+  your situation (with links), what Notes are and what Lab is (Lab has no
+  home section, so Notes introduces it), what each product actually is (from
+  the products' own sites, each with a link), the live streams that replaced
+  the weekly talks. Stops: 面试手记, Blog, Notes (+ Lab), 直播 (Talks),
+  Experience — Open Source, Education and Skills are skipped, and Blog leaves
+  out the OpenHarness post and the early Transformer series. The closing
+  bubble links to
+  `/links#apply-links` for friend links; `success` status at the end. Next
+  while a line is still typing finishes it first. Eyes follow a fine pointer once a
+  line is typed; poking it gets a reaction. Back / Next (or ← / →), Esc or ×
+  to end; at the end it flies home to the seat ("back to top") or the corner.
+  The dock stays away while Jojo is out (one Jojo per viewport). Reduced
+  motion / Save-Data: no flight or float, static faces. The intro's last line
+  invites the visitor to tap Jojo for it. Analytics: `jojo_guide`.
 
 ### C · intro
 

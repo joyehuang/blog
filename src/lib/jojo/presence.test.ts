@@ -37,6 +37,11 @@ describe('dock presence', () => {
     expect(dockPresence({ ...base, compact: false, commentsInView: true })).toBe('shown')
   })
 
+  it('stays away while Jojo is out guiding (one Jojo per viewport)', () => {
+    expect(dockPresence({ ...base, guiding: true })).toBe('hidden')
+    expect(dockPresence({ ...base, guiding: true, open: true })).toBe('hidden')
+  })
+
   it('tucked stays tucked', () => {
     expect(dockPresence({ ...base, tucked: true })).toBe('tucked')
     expect(dockPresence({ ...base, tucked: true, anchorInView: true })).toBe('tucked')
