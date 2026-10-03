@@ -253,7 +253,7 @@ const latestTalk = talks[0]
 
       {
         latestNotes.length > 0 && (
-          <Section title='Notes'>
+          <Section title='Notes' data-jojo-stop='notes'>
             <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
               {latestNotes.map((note) => (
                 <li class='post-preview group/card flex flex-col relative rounded-2xl border bg-background transition-colors ease-in-out px-5 py-2.5 hover:bg-muted'>
@@ -387,7 +387,7 @@ const latestTalk = talks[0]
           </ul>
         </LinkCard>
       </Section>
-      <Section title='Open Source' data-jojo-stop='opensource'>
+      <Section title='Open Source'>
         {
           openSource.map((repo) => (
             <LinkCard
@@ -403,7 +403,7 @@ const latestTalk = talks[0]
           ))
         }
       </Section>
-      <Section title='Education' data-jojo-stop='education'>
+      <Section title='Education'>
         <Card
           as='a'
           heading='墨尔本大学'
@@ -412,7 +412,7 @@ const latestTalk = talks[0]
         />
       </Section>
 
-      <Section title='Skills' data-jojo-stop='skills'>
+      <Section title='Skills'>
         <SkillLayout title='Languages' skills={languages} />
         <SkillLayout title='Frontend' skills={frontend} />
         <SkillLayout title='Backend' skills={backend} />

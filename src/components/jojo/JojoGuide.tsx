@@ -440,7 +440,8 @@ export default function JojoGuide({
         : phase.kind === 'end'
           ? 'celebrate'
           : (bubble?.mood ?? stop?.mood ?? 'happy'))
-  const status: StatusId = phase.kind === 'end' && arrived ? 'success' : 'idle'
+  const status: StatusId =
+    phase.kind === 'end' && arrived ? 'success' : arrived ? (bubble?.status ?? 'idle') : 'idle'
   const gaze: GazeInput =
     !arrived || phase.kind === 'home'
       ? 'auto'

@@ -1,22 +1,24 @@
-import type { EmotionId } from '@jojo-web/runtime'
+import type { EmotionId, StatusId } from '@jojo-web/runtime'
 
 /**
  * "带我逛逛" — an opt-in onboarding walk down the home page, offered from the
  * Jojo dock. Each stop is a home section marked `data-jojo-stop="<id>"`; Jojo
  * flies to it, lands on its top edge and talks the visitor through it in a few
  * bubbles. The bubbles carry what the section itself does not say — which
- * post to start with for your situation, what each product actually is, what
- * a repo lets you do beyond its one-line card — taken from Joye's posts, the
- * products' own sites and the repos' READMEs. Only stops that exist on the
- * page are visited (the English home has no Product or Talks).
+ * post to start with for your situation, what Notes and Lab are, what each
+ * product actually is — taken from Joye's posts and notes, the Lab entries and
+ * the products' own sites. Only stops that exist on the page are visited (the
+ * English home has no Product or Talks).
  */
 
-export type StopId = 'product' | 'blog' | 'talks' | 'experience' | 'opensource'
+export type StopId = 'product' | 'blog' | 'notes' | 'talks' | 'experience'
 
 export interface Bubble {
   text: string
   /** Jojo's face for this bubble (else the stop's) */
   mood?: EmotionId
+  /** a status signal Jojo shows while saying it */
+  status?: StatusId
   link?: { href: string; label: string; external?: boolean }
 }
 
@@ -28,24 +30,19 @@ export interface Stop {
   mood: EmotionId
 }
 
-export const STOP_ORDER: readonly StopId[] = [
-  'product',
-  'blog',
-  'talks',
-  'experience',
-  'opensource'
-]
+export const STOP_ORDER: readonly StopId[] = ['product', 'blog', 'notes', 'talks', 'experience']
 
 const MOODS: Record<StopId, EmotionId> = {
   product: 'smug',
   blog: 'think',
+  notes: 'curious',
   talks: 'happy',
-  experience: 'focus',
-  opensource: 'happy'
+  experience: 'focus'
 }
 
 export const BILIBILI = 'https://space.bilibili.com/3546914882587480'
 const post = (lang: 'zh' | 'en', slug: string) => `${lang === 'en' ? '/en' : ''}/blog/${slug}/post`
+const site = (href: string, label: string) => ({ href, label, external: true })
 
 type Copy = Omit<Stop, 'id' | 'mood'>
 const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
@@ -63,7 +60,7 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
         {
           text: '还没上线，免费，可以先留邮箱预约。你要是也面过 Agent 岗，上线后能投稿，署你的名。',
           mood: 'happy',
-          link: { href: 'https://joyehuang.dev', label: '去预约', external: true }
+          link: site('https://joyehuang.dev', '去预约')
         }
       ]
     },
@@ -71,7 +68,7 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
       title: 'Blog',
       bubbles: [
         {
-          text: '博客这一年主要在写 Agent 工程，分三条线：怎么入门、Agent 底下的 Harness 怎么搭、怎么找 Agent 相关的工作。按你的情况挑一条读就好。'
+          text: '博客这一年主要在写 Agent 工程，分三条线：怎么入门、Agent 产品底下的 Harness 怎么搭、怎么找 Agent 相关的工作。按你的情况挑一条读就好。'
         },
         {
           text: '刚想入门的话，先读《写给所有"想入门 Agent"的人》：1.8 万字，从 Agent 是什么、为什么是现在，一路讲到怎么入门和求职，适合当地图用。',
@@ -79,19 +76,47 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
           link: { href: post('zh', '20260517---agentonboardingguide'), label: '读入门指南' }
         },
         {
-          text: '想知道 Agent 底下怎么跑，先读《花一天读完 OpenHarness》，再读权限隔离那篇：Joye 用自己的个人 Agent 和 800 人群里的 QQ bot，讲一条请求要过的五道检查。',
+          text: '想知道 Agent 产品底下怎么搭，先读权限隔离那篇：Joye 用自己的个人 Agent 和 800 人群里的 QQ bot 举例，讲一条请求要过的五道检查，每道怎么设计、常见错在哪。',
           mood: 'focus',
-          link: { href: post('zh', '20260410---openharnessphase1'), label: '从这篇读起' }
+          link: { href: post('zh', '20260912---agentpermissionisolation'), label: '读权限隔离' }
+        },
+        {
+          text: '接着读《三种协作尺度》：从 Codex 负责人的一段播客说起，讲模型变强以后，哪些 Harness 会被模型学走，哪些反而会越做越大。',
+          mood: 'think',
+          link: { href: post('zh', '20260912---codexharnessevolution'), label: '读协作尺度' }
+        },
+        {
+          text: '还有一篇更个人的：Joye 给自己的 Agent 开了独立邮箱，又接上支付授权、记忆和 QQ 分身，聊怎么把它从一次性工具，慢慢变成能长期共事的同伴。',
+          mood: 'shy',
+          link: { href: post('zh', '20260914-agent-email-chatgpt'), label: '读这篇' }
         },
         {
           text: '在准备 Agent 岗面试的话，看那两篇模拟面试复盘：每道题、候选人的回答、Joye 的点评，还有 Joye 自己会怎么答，都摊开写了。',
           mood: 'smug',
           link: { href: post('zh', '20260512---agentmockinterview'), label: '看模拟面试' }
+        }
+      ]
+    },
+    notes: {
+      title: 'Notes',
+      bubbles: [
+        {
+          text: 'Notes 和博客不一样：博客是想清楚了才写的长文，这里是 Joye 研究一个东西时整理的笔记，更短，也更贴近工程细节。'
         },
         {
-          text: '想往模型里面看一层，去年底还有个 Transformer 原理系列：归一化、RoPE、Attention、FeedForward，四篇读完能自己拼出一个完整的 Block。',
-          mood: 'curious',
-          link: { href: post('zh', '20251216---normalization'), label: '从第一篇读起' }
+          text: '比如拆 Hermes Agent 的记忆系统：不用向量库，靠 SQLite 全文搜索加 LLM 摘要分四层；还有 Prompt Caching、RAG 检索这些专题。',
+          mood: 'focus',
+          link: { href: '/notes', label: '看全部笔记' }
+        },
+        {
+          text: '顺便说下顶部导航里的 Lab：那里是前端小样，排版、布局、动效、交互里那些「其实可以更好」的小技巧，每条都能直接上手玩，再配一段为什么。',
+          mood: 'happy',
+          link: { href: '/lab', label: '去 Lab 玩玩' }
+        },
+        {
+          text: '比如跳动的数字为什么要用等宽数字、加载提示为什么要晚一点出现。还有一条是 Joye 给我设计状态信号时想明白的：一个状态一个形状，动一下就停。',
+          mood: 'smug',
+          status: 'working'
         }
       ]
     },
@@ -104,7 +129,7 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
         {
           text: '直播不一定每次都有主题，更像一个线上自习室：Joye 写代码、读文档、做项目，你可以一起学、随时提问，也可以挂着各忙各的。一个人学容易焦虑，一群人一起会轻松很多。',
           mood: 'laugh',
-          link: { href: BILIBILI, label: '去 B 站看看', external: true }
+          link: site(BILIBILI, '去 B 站看看')
         }
       ]
     },
@@ -112,46 +137,23 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
       title: 'Experience',
       bubbles: [
         {
-          text: '这四段都在做 AI 产品。先说 Playyy.ai：石墨文档出海团队做的 AI 设计画布，用一句话或几张参考图生成营销图，生成后图层还能接着改，一整套素材也能保持同一个品牌风格。'
+          text: '这四段都在做 AI 产品。先说 Playyy.ai：石墨文档出海团队做的 AI 设计画布，用一句话或几张参考图生成营销图，生成后图层还能接着改，一整套素材也能保持同一个品牌风格。',
+          link: site('https://playyy.ai/', 'Playyy.ai')
         },
         {
           text: 'atypica 是特赞的商业研究产品：用真实行为数据搭出一批 AI 消费者，品牌和咨询团队可以去访谈它们、开焦点小组、测新概念，最后拿到研究报告。底下是一套 Multi-Agent 系统。',
-          mood: 'think'
+          mood: 'think',
+          link: site('https://atypica.ai/', 'atypica.ai')
         },
         {
           text: 'AIXCut 是网页上的 AI 剪辑工具，用脚本驱动剪辑；时间线能导出成 Final Cut、Premiere、达芬奇或 CapCut 的工程接着精修。Joye 参与做了里面的剪辑 Agent。',
-          mood: 'curious'
+          mood: 'curious',
+          link: site('https://aixcut.cn/', 'aixcut.cn')
         },
         {
           text: 'fAIshion.ai 是 AI 穿搭助手：上传照片和身材数据，把各家店的衣服收进一个数字衣橱，它按场合帮你搭，还能虚拟试穿看效果。',
-          mood: 'happy'
-        }
-      ]
-    },
-    opensource: {
-      title: 'Open Source',
-      bubbles: [
-        {
-          text: 'Learn-Open-Harness 是 HKUDS 开源 OpenHarness 的第二天就做出来的：把它 1.1 万多行的 Harness 代码，拆成 12 章零基础也能跟的交互教程。',
-          mood: 'smug'
-        },
-        {
-          text: '里面能直接上手：看 Agent Loop 一步步转，在权限沙盒里试三层权限会拦下什么，每章还有小测验。它和博客里那篇 OpenHarness 是一对，一篇读源码，一个陪你动手。',
-          mood: 'laugh',
-          link: {
-            href: 'https://learn-openharness.vercel.app',
-            label: '在线体验',
-            external: true
-          }
-        },
-        {
-          text: 'minimind-notes 往模型里走：每个设计选择都用对照实验回答"不这样做会怎样"。比如去掉归一化，训练约 500 步就出 NaN；Pre-LN + RMSNorm 最稳，也是现在大模型的标配。',
-          mood: 'focus'
-        },
-        {
-          text: '实验基于 MiniMind，在笔记本 CPU 上几分钟就能跑完，文档放在 minimind.wiki；它和博客里的 Transformer 系列讲的是同一套组件，可以对着读。',
           mood: 'happy',
-          link: { href: 'https://minimind.wiki', label: '看文档', external: true }
+          link: site('https://www.faishion.ai/', 'fAIshion.ai')
         }
       ]
     }
@@ -161,7 +163,7 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
       title: 'Blog',
       bubbles: [
         {
-          text: 'This year Joye has mostly written about agent engineering, along three threads: getting started, how the harness under an agent works, and landing an agent job. Pick the one that fits you.'
+          text: 'This year Joye has mostly written about agent engineering, along three threads: getting started, how the harness under an agent product is built, and landing an agent job. Pick the one that fits you.'
         },
         {
           text: 'New to agents? Start with the beginner’s guide. It runs from what an agent is and why now, all the way to how to get in and get hired, so you can use it as a map.',
@@ -169,19 +171,32 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
           link: { href: post('en', '20260517---agentonboardingguide'), label: 'Read the guide' }
         },
         {
-          text: 'Curious what actually runs under an agent? Start with the post on reading OpenHarness in a day: Joye reads the core of an 11,733-line harness, from CLI startup to the agent loop.',
-          mood: 'focus',
-          link: { href: post('en', '20260410---openharnessphase1'), label: 'Start here' }
+          text: "The newest harness posts are in Chinese for now: the five checks a request should pass, which parts of a harness models will absorb and which keep growing, and giving Joye's own agent an inbox.",
+          mood: 'think',
+          link: { href: post('zh', '20260912---agentpermissionisolation'), label: 'Read (Chinese)' }
         },
         {
           text: "Preparing for agent interviews? The two mock-interview write-ups lay out every question, the candidate's answer, the feedback, and how Joye would answer it.",
           mood: 'smug',
           link: { href: post('en', '20260512---agentmockinterview'), label: 'Read one' }
+        }
+      ]
+    },
+    notes: {
+      title: 'Notes',
+      bubbles: [
+        {
+          text: 'Notes are different from the blog: posts are written once an idea is settled; notes are what Joye writes while digging into something. Shorter, and closer to the engineering.'
         },
         {
-          text: 'Want to look inside the model? Late last year Joye wrote a Transformer series: normalization, RoPE, attention, feed-forward. Together they add up to a full block.',
-          mood: 'curious',
-          link: { href: post('en', '20251216---normalization'), label: 'Start the series' }
+          text: "For example: how Hermes Agent's memory works in four layers with SQLite full-text search and LLM summaries instead of a vector store, how to design for prompt caching, the details of RAG retrieval.",
+          mood: 'focus',
+          link: { href: '/en/notes', label: 'All notes' }
+        },
+        {
+          text: 'And Lab, up in the menu, is a set of small frontend demos: typography, layout, motion and interaction tips you can play with, each with a why. Written in Chinese, but the demos speak for themselves.',
+          mood: 'happy',
+          link: { href: '/lab', label: 'Open Lab' }
         }
       ]
     },
@@ -189,46 +204,23 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
       title: 'Experience',
       bubbles: [
         {
-          text: "All four are AI products. Playyy.ai, from Shimo Docs' global team, is an AI design canvas: make marketing images from a sentence or a few references, keep editing the layers, and keep a whole campaign on-brand."
+          text: "All four are AI products. Playyy.ai, from Shimo Docs' global team, is an AI design canvas: make marketing images from a sentence or a few references, keep editing the layers, and keep a whole campaign on-brand.",
+          link: site('https://playyy.ai/', 'Playyy.ai')
         },
         {
           text: "atypica, at Tezign, is for business research: it builds AI consumers from real behavioral data, so brands can interview them, run focus groups, test concepts and get a report. There's a multi-agent system underneath.",
-          mood: 'think'
+          mood: 'think',
+          link: site('https://atypica.ai/', 'atypica.ai')
         },
         {
           text: 'AIXCut is a script-driven video editor in the browser; the timeline exports to Final Cut, Premiere, DaVinci or CapCut for finishing. Joye worked on its editing agent.',
-          mood: 'curious'
+          mood: 'curious',
+          link: site('https://aixcut.cn/', 'aixcut.cn')
         },
         {
           text: 'fAIshion.ai is an AI stylist: add a photo and your sizes, collect clothes from different stores into one wardrobe, get outfits for the occasion and try them on virtually.',
-          mood: 'happy'
-        }
-      ]
-    },
-    opensource: {
-      title: 'Open Source',
-      bubbles: [
-        {
-          text: 'Learn-Open-Harness was built the day after HKUDS open-sourced OpenHarness: its ~11,700 lines of harness code, turned into 12 interactive chapters anyone can follow.',
-          mood: 'smug'
-        },
-        {
-          text: "It's hands-on: watch the agent loop turn, see what three permission tiers block in a sandbox, take a quiz every chapter. It pairs with the OpenHarness post: one reads the source, the other gets you playing.",
-          mood: 'laugh',
-          link: {
-            href: 'https://learn-openharness.vercel.app',
-            label: 'Try it live',
-            external: true
-          }
-        },
-        {
-          text: 'minimind-notes goes into the model, answering each design choice with a controlled experiment: drop normalization and training hits NaN around step 500; Pre-LN + RMSNorm is the most stable, which is why modern LLMs use it.',
-          mood: 'focus'
-        },
-        {
-          text: "The experiments build on MiniMind and run on a laptop CPU in minutes, with docs at minimind.wiki. They cover the same components as the blog's Transformer series, so read them side by side.",
           mood: 'happy',
-          link: { href: 'https://minimind.wiki', label: 'Docs', external: true }
+          link: site('https://www.faishion.ai/', 'fAIshion.ai')
         }
       ]
     }

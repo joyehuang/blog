@@ -4,14 +4,13 @@ import { GUIDE_END, guideStops, STOP_ORDER } from './guide'
 
 describe('guide stops', () => {
   it('keeps page order, skips unknown, repeated and silent stops', () => {
-    const s = guideStops(['blog', 'notes', 'experience', 'blog', 'education', 'skills'], 'zh')
-    expect(s.map((x) => x.id)).toEqual(['blog', 'experience'])
+    const s = guideStops(
+      ['blog', 'notes', 'talks', 'experience', 'blog', 'opensource', 'education', 'skills'],
+      'zh'
+    )
+    expect(s.map((x) => x.id)).toEqual(['blog', 'notes', 'talks', 'experience'])
     // the English home has no Product or Talks, and nothing is said about them
-    expect(guideStops(STOP_ORDER, 'en').map((x) => x.id)).toEqual([
-      'blog',
-      'experience',
-      'opensource'
-    ])
+    expect(guideStops(STOP_ORDER, 'en').map((x) => x.id)).toEqual(['blog', 'notes', 'experience'])
   })
 
   it('talks each stop through in more than a one-liner', () => {
@@ -27,13 +26,31 @@ describe('guide stops', () => {
     }
   })
 
-  it('names the products as the page does', () => {
-    const exp = guideStops(['experience'], 'zh')[0]
-      .bubbles.map((b) => b.text)
-      .join('')
-    for (const name of ['Playyy.ai', 'atypica', 'AIXCut', 'fAIshion.ai'])
-      expect(exp).toContain(name)
-    expect(exp).not.toContain('Goshu')
+  it('introduces every product by name, each with a link to it', () => {
+    for (const lang of ['zh', 'en'] as const) {
+      const exp = guideStops(['experience'], lang)[0].bubbles
+      const names = ['Playyy.ai', 'atypica', 'AIXCut', 'fAIshion.ai']
+      names.forEach((name, i) => {
+        expect(exp[i].text).toContain(name)
+        expect(exp[i].link?.external).toBe(true)
+      })
+      expect(exp.map((b) => b.text).join('')).not.toContain('Goshu')
+    }
+  })
+
+  it('leaves out OpenHarness and the early Transformer series', () => {
+    const blog = guideStops(['blog'], 'zh')[0].bubbles.map((b) => b.text + (b.link?.href ?? ''))
+    for (const t of blog) {
+      expect(t).not.toContain('OpenHarness')
+      expect(t).not.toMatch(/openharness|normalization|RoPE/i)
+    }
+  })
+
+  it('mentions Lab inside Notes, with a link to it', () => {
+    for (const lang of ['zh', 'en'] as const) {
+      const notes = guideStops(['notes'], lang)[0].bubbles
+      expect(notes.some((b) => b.link?.href === '/lab')).toBe(true)
+    }
   })
 
   it('links to real routes and opens outside sites in a new tab', () => {
@@ -42,9 +59,7 @@ describe('guide stops', () => {
         for (const b of s.bubbles) {
           if (!b.link) continue
           if (b.link.href.startsWith('/')) {
-            expect(b.link.href).toMatch(
-              lang === 'en' ? /^\/en\/blog\/.+\/post$/ : /^\/blog\/.+\/post$/
-            )
+            expect(b.link.href).toMatch(/^(\/en)?\/(blog\/.+\/post|notes|lab)$/)
             expect(b.link.external).toBeFalsy()
           } else {
             expect(b.link.href).toMatch(/^https:\/\//)

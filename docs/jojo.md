@@ -31,12 +31,15 @@ family). This site shows it in three ways that are designed to work together.
   into the turn, stretch in the air, squash on landing), stands on the
   section's top edge — left end, then right end, so it criss-crosses the page —
   and talks it through in a few bubbles beside it, each with its own face
-  (`src/lib/jojo/guide.ts`). The bubbles carry what the section does not say:
-  which post to start with for your situation (with links), what each product
-  actually is (from the products' own sites), what each open-source repo lets
-  you do beyond its card, the live streams that replaced the weekly talks.
-  Stops: 面试手记, Blog, 直播 (Talks), Experience, Open Source — Notes,
-  Education and Skills are skipped. The closing bubble links to
+  (`src/lib/jojo/guide.ts`; a bubble can also show a status signal). The
+  bubbles carry what the section does not say: which post to start with for
+  your situation (with links), what Notes are and what Lab is (Lab has no
+  home section, so Notes introduces it), what each product actually is (from
+  the products' own sites, each with a link), the live streams that replaced
+  the weekly talks. Stops: 面试手记, Blog, Notes (+ Lab), 直播 (Talks),
+  Experience — Open Source, Education and Skills are skipped, and Blog leaves
+  out the OpenHarness post and the early Transformer series. The closing
+  bubble links to
   `/links#apply-links` for friend links; `success` status at the end. Next
   while a line is still typing finishes it first. Eyes follow a fine pointer once a
   line is typed; poking it gets a reaction. Back / Next (or ← / →), Esc or ×
