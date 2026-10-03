@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 
 import { jojoHeadGate } from './head-gate.js'
 
-const KEYS = { intro: 'joye:jojo:intro:v1', reviewMode: 'joye:jojo:review-mode' }
+const KEYS = { intro: 'joye:jojo:intro:v2', reviewMode: 'joye:jojo:review-mode' }
 
 function fakeWindow(o: {
   href?: string

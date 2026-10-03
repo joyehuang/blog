@@ -1,8 +1,8 @@
 // Storage keys and DOM event names shared by every Jojo surface. Keys are
 // versioned so a future redesign can re-show something once.
 export const JOJO_KEYS = {
-  /** the build-the-site intro has been shown (or started) in this browser */
-  intro: 'joye:jojo:intro:v1',
+  /** the intro has been shown (or started) in this browser; v2 = the night tour */
+  intro: 'joye:jojo:intro:v2',
   /** the identity-slot greeting has played (used when the intro did not) */
   hello: 'joye:jojo:hello:v1',
   /** dock: 'tucked' when the visitor sent Jojo to the edge */
