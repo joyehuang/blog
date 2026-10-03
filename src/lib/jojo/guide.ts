@@ -68,7 +68,17 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
       title: 'Blog',
       bubbles: [
         {
-          text: '博客这一年主要在写 Agent 工程，分三条线：怎么入门、Agent 产品底下的 Harness 怎么搭、怎么找 Agent 相关的工作。按你的情况挑一条读就好。'
+          text: '博客这一年主要在写 Agent 工程，分三条线：怎么找 Agent 相关的工作、怎么入门、Agent 产品底下的 Harness 怎么搭。按你的情况挑一条读就好。'
+        },
+        {
+          text: '在准备 Agent 岗面试的话，先看《面试不是考试，是双向选择》：Joye 面了 100 多家之后，讲为什么要早投简历、录音复盘、认真反问，怎么和创始人聊到同一张桌子上。',
+          mood: 'laugh',
+          link: { href: post('zh', '20260523---agentinterviewmindset'), label: '读面试心态' }
+        },
+        {
+          text: '再看那两篇模拟面试复盘：每道题、候选人的回答、Joye 的点评，还有 Joye 自己会怎么答，都摊开写了。',
+          mood: 'smug',
+          link: { href: post('zh', '20260512---agentmockinterview'), label: '看模拟面试' }
         },
         {
           text: '刚想入门的话，先读《写给所有"想入门 Agent"的人》：1.8 万字，从 Agent 是什么、为什么是现在，一路讲到怎么入门和求职，适合当地图用。',
@@ -89,16 +99,6 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
           text: '还有一篇更个人的：Joye 给自己的 Agent 开了独立邮箱，又接上支付授权、记忆和 QQ 分身，聊怎么把它从一次性工具，慢慢变成能长期共事的同伴。',
           mood: 'shy',
           link: { href: post('zh', '20260914-agent-email-chatgpt'), label: '读这篇' }
-        },
-        {
-          text: '在准备 Agent 岗面试的话，先看《面试不是考试，是双向选择》：Joye 面了 100 多家之后，讲为什么要早投简历、录音复盘、认真反问，怎么和创始人聊到同一张桌子上。',
-          mood: 'laugh',
-          link: { href: post('zh', '20260523---agentinterviewmindset'), label: '读面试心态' }
-        },
-        {
-          text: '再看那两篇模拟面试复盘：每道题、候选人的回答、Joye 的点评，还有 Joye 自己会怎么答，都摊开写了。',
-          mood: 'smug',
-          link: { href: post('zh', '20260512---agentmockinterview'), label: '看模拟面试' }
         }
       ]
     },
@@ -168,17 +168,7 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
       title: 'Blog',
       bubbles: [
         {
-          text: 'This year Joye has mostly written about agent engineering, along three threads: getting started, how the harness under an agent product is built, and landing an agent job. Pick the one that fits you.'
-        },
-        {
-          text: 'New to agents? Start with the beginner’s guide. It runs from what an agent is and why now, all the way to how to get in and get hired, so you can use it as a map.',
-          mood: 'happy',
-          link: { href: post('en', '20260517---agentonboardingguide'), label: 'Read the guide' }
-        },
-        {
-          text: "The newest harness posts are in Chinese for now: the five checks a request should pass, which parts of a harness models will absorb and which keep growing, and giving Joye's own agent an inbox.",
-          mood: 'think',
-          link: { href: post('zh', '20260912---agentpermissionisolation'), label: 'Read (Chinese)' }
+          text: 'This year Joye has mostly written about agent engineering, along three threads: landing an agent job, getting started, and how the harness under an agent product is built. Pick the one that fits you.'
         },
         {
           text: 'Preparing for agent interviews? Start with “Interviews are a two-way choice”: after 100+ agent interviews, why Joye applies early, records and reviews every round, asks real questions back, and talks with founders as a peer.',
@@ -189,6 +179,16 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
           text: "Then the two mock-interview write-ups lay out every question, the candidate's answer, the feedback, and how Joye would answer it.",
           mood: 'smug',
           link: { href: post('en', '20260512---agentmockinterview'), label: 'Read one' }
+        },
+        {
+          text: 'New to agents? Start with the beginner’s guide. It runs from what an agent is and why now, all the way to how to get in and get hired, so you can use it as a map.',
+          mood: 'happy',
+          link: { href: post('en', '20260517---agentonboardingguide'), label: 'Read the guide' }
+        },
+        {
+          text: "The newest harness posts are in Chinese for now: the five checks a request should pass, which parts of a harness models will absorb and which keep growing, and giving Joye's own agent an inbox.",
+          mood: 'think',
+          link: { href: post('zh', '20260912---agentpermissionisolation'), label: 'Read (Chinese)' }
         }
       ]
     },
