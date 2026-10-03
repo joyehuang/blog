@@ -8,7 +8,8 @@
  *    requestAnimationFrame 里按经过的时间算出该亮到第几个字，再用 CSS 做 160ms
  *    淡入。前后几个字的淡入叠在一起，节奏的不均匀被抹平。
  *
- * 两边各自可以重播，也可以一起重播；“慢放”把打字间隔和淡入都拉长到 ×3。
+ * 两边各自可以重播，也可以一起重播；“速度”滑块调每秒出几个字（本站约 24 字/秒），
+ * 淡入时长跟着变成大约四个字的时间（最少 160ms）。
  * 有 Jojo 包的构建（__JOJO__）用真正的 Jojo 说话，没有时退回一个通用头像。
  * 系统开启减少动态效果时，淡入关闭，字照样逐个出现。
  */
@@ -17,11 +18,15 @@ import { useEffect, useRef, useState, type ComponentType, type CSSProperties } f
 
 import { loadJojoRuntime } from '@/components/jojo/LazyJojo'
 
-const LINE = '嗨，我是 Jojo。这句话是一个字一个字打出来的，留意每个字出现的那一下。'
+const LINE =
+  '嗨，我是 Jojo，欢迎来到 Joye 的博客。这段话是一个字一个字打出来的：先看左边，每个字都是一下子跳出来的；再看右边，每个字都是慢慢浮现出来的。把上面的速度往快调一点，或者往慢调一点，两边的差别会更明显。'
 const CHARS = Array.from(LINE)
-/** ms per character, the same pace as the site's tour */
-const STEP = 42
-const FADE = 0.16
+/** characters per second: the site's tour types one every ~42ms */
+const SITE_CPS = 24
+const MIN_CPS = 6
+const MAX_CPS = 60
+/** each character fades in over about four characters' time, never under 160ms */
+const fadeMs = (step: number) => Math.max(160, step * 4)
 
 type JojoComponent = ComponentType<JojoProps>
 // 'off': no Jojo in this build → generic avatar. null: still loading → empty seat.
@@ -113,14 +118,14 @@ const VARIANTS: { id: Variant; tag: string; tone: 'bad' | 'good'; caption: strin
     tag: '✕ 定时器 + 整句替换',
     tone: 'bad',
     caption:
-      '定时器每 42ms 往句子里加一个字，新字从无到有只用一帧。定时器和屏幕刷新对不上，实际间隔在 33ms 和 50ms 之间来回跳，看着一顿一顿的。'
+      '定时器每隔一段时间往句子里加一个字，新字从无到有只用一帧。定时器和屏幕刷新对不上，实际间隔在相邻的两个整帧之间来回跳（每字 42ms 时是 33ms 和 50ms），看着一顿一顿的。'
   },
   {
     id: 'fade',
     tag: '✓ 按帧点亮 + 逐字淡入（本站）',
     tone: 'good',
     caption:
-      '每个字是独立的一小块，按经过的时间在每一帧算出该亮到哪，再花 160ms 淡入。前后几个字的淡入叠在一起，节奏的不均匀被抹平了。'
+      '每个字是独立的一小块，按经过的时间在每一帧算出该亮到哪，再用大约四个字的时间淡入（最少 160ms）。前后几个字的淡入叠在一起，节奏的不均匀被抹平了。'
   }
 ]
 
@@ -176,13 +181,13 @@ function Column({
 }
 
 export default function TypingDemo() {
-  const [slow, setSlow] = useState(false)
+  const [cps, setCps] = useState(SITE_CPS)
   const [all, setAll] = useState(0)
   const jojo = useJojo()
-  const k = slow ? 3 : 1
+  const step = Math.round(1000 / cps)
 
   return (
-    <div className='st-root' style={{ '--st-fade': `${FADE * k}s` } as CSSProperties}>
+    <div className='st-root' style={{ '--st-fade': `${fadeMs(step)}ms` } as CSSProperties}>
       <style>{`
         .st-root {
           --bg: #F1F3EE;
@@ -237,7 +242,7 @@ export default function TypingDemo() {
         }
         .st-hint { font-size: 13px; color: var(--muted); }
         .st-bar-actions { display: flex; gap: 10px; margin-left: auto; }
-        .st-switch, .st-btn {
+        .st-btn, .st-speed {
           display: inline-flex;
           align-items: center;
           gap: 8px;
@@ -247,38 +252,72 @@ export default function TypingDemo() {
           border: 1px solid var(--rule);
           border-radius: 999px;
           padding: 6px 12px;
-          cursor: pointer;
           box-shadow: var(--shadow);
+        }
+        .st-btn {
+          cursor: pointer;
           transition: background-color 0.2s ease;
         }
-        .st-switch { padding-left: 6px; }
         @media (hover: hover) and (pointer: fine) {
           .st-btn:hover { background: var(--btn-hover); }
         }
-        .st-track {
-          width: 26px;
-          height: 16px;
+        .st-btn:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 3px;
+        }
+        .st-speed { padding: 4px 14px; gap: 10px; }
+        .st-speed-name { color: var(--muted); }
+        .st-speed-value {
+          min-width: 19ch;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
+        .st-speed input {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 150px;
+          height: 24px;
+          margin: 0;
+          background: transparent;
+          cursor: pointer;
+        }
+        .st-speed input::-webkit-slider-runnable-track {
+          height: 4px;
           border-radius: 999px;
           background: var(--faint);
-          position: relative;
-          transition: background 0.2s ease;
         }
-        .st-track::after {
-          content: '';
-          position: absolute;
-          top: 2px;
-          left: 2px;
+        .st-speed input::-moz-range-track {
+          height: 4px;
+          border-radius: 999px;
+          background: var(--faint);
+        }
+        .st-speed input::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 16px;
+          height: 16px;
+          margin-top: -6px;
+          border-radius: 50%;
+          background: var(--accent);
+          border: 2px solid var(--card);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .st-speed input::-moz-range-thumb {
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          background: #fff;
-          transition: transform 0.2s ease;
+          background: var(--accent);
+          border: 2px solid var(--card);
         }
-        .st-switch[aria-pressed='true'] .st-track { background: var(--accent); }
-        .st-switch[aria-pressed='true'] .st-track::after { transform: translateX(10px); }
-        .st-switch:focus-visible, .st-btn:focus-visible {
+        .st-speed input:focus-visible {
           outline: 2px solid var(--accent);
-          outline-offset: 3px;
+          outline-offset: 2px;
+          border-radius: 999px;
+        }
+        @media (max-width: 520px) {
+          .st-bar-actions { margin-left: 0; flex-wrap: wrap; }
+          .st-speed { width: 100%; }
+          .st-speed input { flex: 1; width: auto; min-width: 0; }
+          .st-speed-value { min-width: 0; }
         }
 
         .st-compare {
@@ -310,7 +349,7 @@ export default function TypingDemo() {
           align-items: flex-end;
           gap: 14px;
           padding: 28px 22px 18px;
-          min-height: 170px;
+          min-height: 210px;
         }
         .st-seat {
           flex: none;
@@ -348,6 +387,23 @@ export default function TypingDemo() {
           border-bottom: 2px solid var(--indigo);
           background: var(--bubble);
           transform: rotate(45deg);
+        }
+        /* narrow: the bubble takes the full width, Jojo sits under its tail */
+        @media (max-width: 520px) {
+          .st-stage {
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 20px 16px 14px;
+          }
+          .st-bubble { width: 100%; margin-bottom: 0; }
+          .st-bubble::after {
+            left: 30px;
+            bottom: -7px;
+            border-left: none;
+            border-right: 2px solid var(--indigo);
+            transform: rotate(45deg);
+          }
         }
         .st-line {
           margin: 0;
@@ -399,31 +455,37 @@ export default function TypingDemo() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .st-root .st-ch, .st-track, .st-track::after, .st-btn, .st-switch { transition: none !important; }
+          .st-root .st-ch, .st-btn { transition: none !important; }
         }
       `}</style>
 
       <div className='st-bar'>
-        <span className='st-hint'>同一句话、同样的速度，盯着句子末尾正在出现的字看。</span>
+        <span className='st-hint'>同一段话、同样的速度，盯着正在出现的那几个字看。</span>
         <div className='st-bar-actions'>
           <button type='button' className='st-btn' onClick={() => setAll((v) => v + 1)}>
             ↻ 两边一起重播
           </button>
-          <button
-            type='button'
-            className='st-switch'
-            aria-pressed={slow}
-            onClick={() => setSlow((s) => !s)}
-          >
-            <span className='st-track' aria-hidden='true' />
-            慢放 ×3
-          </button>
+          <label className='st-speed'>
+            <span className='st-speed-name'>速度</span>
+            <input
+              type='range'
+              min={MIN_CPS}
+              max={MAX_CPS}
+              step={1}
+              value={cps}
+              onChange={(e) => setCps(Number(e.currentTarget.value))}
+              aria-valuetext={`每秒 ${cps} 个字`}
+            />
+            <span className='st-speed-value'>
+              {cps} 字/秒 · 每字 {step}ms{cps === SITE_CPS ? ' · 本站' : ''}
+            </span>
+          </label>
         </div>
       </div>
 
       <div className='st-compare'>
         {VARIANTS.map((v) => (
-          <Column key={v.id} variant={v} jojo={jojo} step={STEP * k} all={all} />
+          <Column key={v.id} variant={v} jojo={jojo} step={step} all={all} />
         ))}
       </div>
 
