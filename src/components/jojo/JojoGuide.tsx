@@ -96,7 +96,8 @@ export default function JojoGuide({
   const zh = lang === 'zh'
   const [phase, setPhase] = useState<Phase>({ kind: 'stop', at: 0, page: 0 })
   const [arrived, setArrived] = useState(false)
-  const [typed, setTyped] = useState(0)
+  /** the current line has finished typing (the characters themselves are lit outside React) */
+  const [typedAll, setTypedAll] = useState(false)
   const [override, setOverride] = useState<EmotionId | null>(null)
   const [S, setS] = useState(80)
   const phaseRef = useRef(phase)
@@ -214,24 +215,44 @@ export default function JojoGuide({
   const line =
     phase.kind === 'end' ? GUIDE_END[lang].line : phase.kind === 'stop' ? (bubble?.text ?? '') : ''
   const chars = Array.from(line)
+  const lineRef = useRef<HTMLParagraphElement>(null)
+  /** lights the first n characters; each fades in by CSS, so the typing reads smooth */
+  const lightChars = (n: number) => {
+    const spans = lineRef.current?.children
+    if (!spans) return
+    for (let i = 0; i < spans.length; i++) spans[i].classList.toggle('is-on', i < n)
+  }
   useEffect(() => {
-    setTyped(0)
+    setTypedAll(false)
     // a new bubble at the same stop: a little hop of emphasis
     if (sim.current.arrived) sim.current.landedAt = performance.now()
   }, [line])
   useEffect(() => {
-    if (!arrived || phase.kind === 'home') return
+    // typedAll also stops the clock when Next finishes the line early
+    if (!arrived || phase.kind === 'home' || typedAll) return
     if (still) {
-      setTyped(chars.length)
+      lightChars(chars.length)
+      setTypedAll(true)
       return
     }
-    const id = window.setInterval(
-      () => setTyped((n) => (n >= chars.length ? n : n + 1)),
-      zh ? 36 : 18
-    )
-    return () => window.clearInterval(id)
+    // on the frame clock, not a timer: no re-render per character, no uneven steps
+    const ms = zh ? 36 : 18
+    const t0 = performance.now()
+    let raf = 0
+    let lit = -1
+    const tick = (now: number) => {
+      const n = Math.min(chars.length, Math.floor((now - t0) / ms) + 1)
+      if (n !== lit) {
+        lit = n
+        lightChars(n)
+      }
+      if (n >= chars.length) setTypedAll(true)
+      else raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [arrived, line])
+  }, [arrived, line, typedAll])
   useEffect(() => {
     if (arrived && phase.kind !== 'home') nextRef.current?.focus({ preventScroll: true })
   }, [arrived, phase.kind])
@@ -371,10 +392,11 @@ export default function JojoGuide({
 
   // Next while a line is still typing finishes it first, so nothing is skipped unread
   const typing = useRef(false)
-  typing.current = arrived && typed < chars.length
+  typing.current = arrived && !typedAll
   const go = (d: 1 | -1) => {
     if (d === 1 && typing.current) {
-      setTyped(Number.MAX_SAFE_INTEGER)
+      lightChars(chars.length)
+      setTypedAll(true)
       return
     }
     step(d)
@@ -445,7 +467,7 @@ export default function JojoGuide({
   const gaze: GazeInput =
     !arrived || phase.kind === 'home'
       ? 'auto'
-      : typed < chars.length
+      : !typedAll
         ? { x: side === 'left' ? 0.8 : -0.8, y: -0.1 }
         : fine.current
           ? 'pointer'
@@ -521,11 +543,12 @@ export default function JojoGuide({
             )}
           </p>
         )}
-        <p className='jojo-guide-line'>
-          <span>{chars.slice(0, typed).join('')}</span>
-          <span className='is-off' aria-hidden='true'>
-            {chars.slice(typed).join('')}
-          </span>
+        <p key={line} ref={lineRef} className='jojo-guide-line'>
+          {chars.map((c, i) => (
+            <span key={i} className='jojo-guide-char'>
+              {c}
+            </span>
+          ))}
         </p>
         <div className='jojo-guide-actions'>
           {phase.kind === 'end' ? (

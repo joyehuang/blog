@@ -166,8 +166,12 @@
     right: -7px;
     transform: translateY(-50%) rotate(-45deg);
   }
-  .jojo-story-bubble .is-off {
-    visibility: hidden;
+  .jojo-story-char {
+    opacity: 0;
+    transition: opacity 0.16s ease-out;
+  }
+  .jojo-story-char.is-on {
+    opacity: 1;
   }
   .jojo-story-badge {
     position: absolute;
