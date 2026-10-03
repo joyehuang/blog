@@ -193,11 +193,11 @@ export function runStory(
   let actorRoot: Root | null = null
   let spawnDot: HTMLDivElement | null = null
   let bubble: HTMLDivElement | null = null
-  let bubbleOn: HTMLSpanElement | null = null
-  let bubbleOff: HTMLSpanElement | null = null
+  /** one span per character of the current line, faded in by CSS as it is typed */
+  let bubbleChars: HTMLSpanElement[] = []
   let bubbleId = -1
   let bubbleSize = { w: 0, h: 0 }
-  let bubbleShown = -1
+  let bubbleShown = 0
   let bubbleSide: Side = 'above'
   let renderProps: ((p: TourProps) => void) | null = null
   const boxes: Partial<Record<PieceId, HTMLDivElement>> = {}
@@ -270,10 +270,6 @@ export function runStory(
     stage.append(actorBox, over)
     bubble = document.createElement('div')
     bubble.className = 'jojo-story-bubble'
-    bubbleOn = document.createElement('span')
-    bubbleOff = document.createElement('span')
-    bubbleOff.className = 'is-off'
-    bubble.append(bubbleOn, bubbleOff)
     stage.appendChild(bubble)
 
     skipEl.addEventListener('click', () => controller.skip())
@@ -332,29 +328,34 @@ export function runStory(
         spawnDot.style.cssText = `left:${x - r}px;top:${y - r}px;width:${2 * r}px;height:${2 * r}px;opacity:1`
       } else spawnDot.style.opacity = '0'
     }
-    if (bubble && bubbleOn && bubbleOff) {
+    if (bubble) {
       const b = f.bubble
       if (!b) bubble.style.opacity = '0'
       else {
-        const chars = Array.from(b.text)
         if (b.id !== bubbleId) {
           bubbleId = b.id
-          bubbleShown = -1
-          bubbleOn.textContent = ''
-          bubbleOff.textContent = b.text
+          bubbleShown = 0
+          bubbleChars = Array.from(b.text, (c) => {
+            const s = document.createElement('span')
+            s.className = 'jojo-story-char'
+            s.textContent = c
+            return s
+          })
+          bubble.replaceChildren(...bubbleChars)
           // laid out at full length once, so typing never reflows it
           bubbleSize = { w: bubble.offsetWidth, h: bubble.offsetHeight }
           bubbleSide = pickSide(b.actor, bubbleSize, b.avoid)
           bubble.dataset.side = bubbleSide
         }
         if (b.shown !== bubbleShown) {
+          const lo = Math.min(b.shown, bubbleShown)
+          const hi = Math.max(b.shown, bubbleShown)
+          for (let i = lo; i < hi; i++) bubbleChars[i]?.classList.toggle('is-on', i < b.shown)
           bubbleShown = b.shown
-          bubbleOn.textContent = chars.slice(0, b.shown).join('')
-          bubbleOff.textContent = chars.slice(b.shown).join('')
         }
         const box = placeBubble(bubbleSide, b.actor, bubbleSize)
-        bubble.style.left = `${box.x.toFixed(1)}px`
-        bubble.style.top = `${box.y.toFixed(1)}px`
+        // a transform, not left/top: no layout per frame and no snapping to whole pixels
+        bubble.style.transform = `translate3d(${box.x.toFixed(2)}px,${box.y.toFixed(2)}px,0)`
         // the tail points at Jojo's head (above/below) or its face (sides)
         const tail =
           bubbleSide === 'above' || bubbleSide === 'below'
