@@ -91,7 +91,12 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
           link: { href: post('zh', '20260914-agent-email-chatgpt'), label: '读这篇' }
         },
         {
-          text: '在准备 Agent 岗面试的话，看那两篇模拟面试复盘：每道题、候选人的回答、Joye 的点评，还有 Joye 自己会怎么答，都摊开写了。',
+          text: '在准备 Agent 岗面试的话，先看《面试不是考试，是双向选择》：Joye 面了 100 多家之后，讲为什么要早投简历、录音复盘、认真反问，怎么和创始人聊到同一张桌子上。',
+          mood: 'laugh',
+          link: { href: post('zh', '20260523---agentinterviewmindset'), label: '读面试心态' }
+        },
+        {
+          text: '再看那两篇模拟面试复盘：每道题、候选人的回答、Joye 的点评，还有 Joye 自己会怎么答，都摊开写了。',
           mood: 'smug',
           link: { href: post('zh', '20260512---agentmockinterview'), label: '看模拟面试' }
         }
@@ -176,7 +181,12 @@ const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
           link: { href: post('zh', '20260912---agentpermissionisolation'), label: 'Read (Chinese)' }
         },
         {
-          text: "Preparing for agent interviews? The two mock-interview write-ups lay out every question, the candidate's answer, the feedback, and how Joye would answer it.",
+          text: 'Preparing for agent interviews? Start with “Interviews are a two-way choice”: after 100+ agent interviews, why Joye applies early, records and reviews every round, asks real questions back, and talks with founders as a peer.',
+          mood: 'laugh',
+          link: { href: post('en', '20260523---agentinterviewmindset'), label: 'Read it' }
+        },
+        {
+          text: "Then the two mock-interview write-ups lay out every question, the candidate's answer, the feedback, and how Joye would answer it.",
           mood: 'smug',
           link: { href: post('en', '20260512---agentmockinterview'), label: 'Read one' }
         }
