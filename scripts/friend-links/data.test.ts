@@ -1,6 +1,14 @@
 import { expect, test } from 'bun:test'
 
+import { canonicalApplication, htmlApplication, jsonApplication } from './application-fixtures'
 import { normalizeUrl, parseApplication, publicAddress, renderFiles, safeGet } from './data.mjs'
+
+test.each([
+  ['original comment 64', jsonApplication],
+  ['Waline stored HTML', htmlApplication]
+])('JSON-style application matches canonical fields: %s', (_label, text) => {
+  expect(parseApplication(text)).toEqual(parseApplication(canonicalApplication))
+})
 
 const raw = `Name: Home · Zaixi\nDesc: All in AI Agent\nLink: https://lizaixi01.github.io/\nAvatar: https://lizaixi01.github.io/assets/zaixi.jpg`
 test('plain and Waline HTML applications are equivalent', () => {
@@ -36,7 +44,7 @@ test('reject missing, extra, duplicate and ambiguous fields/links', () => {
 })
 test('source, shell, Markdown and HTML characters stay data', () => {
   const app = parseApplication(
-    raw.replace('Home · Zaixi', "&quot;'); $(touch /tmp/PWN) `code` &lt;img onerror=x&gt;")
+    raw.replace('Home · Zaixi', "Home &quot;'); $(touch /tmp/PWN) `code` &lt;img onerror=x&gt;")
   )
   const files = {
     'public/links.json': '{"friends":[{"id_name":"friend-links","link_list":[]}]}',

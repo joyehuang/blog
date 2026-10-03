@@ -35,8 +35,12 @@ export function parseApplication(raw) {
   if (typeof raw !== 'string' || Buffer.byteLength(raw) > 16384) throw Error('comment too large')
   const walk = (node) => {
     if (node.nodeName === '#text') return node.value
+    if (node.nodeName !== '#document-fragment' && !['p', 'div', 'br', 'a'].includes(node.tagName))
+      throw Error('unsupported markup')
+    const allowedAttrs = node.tagName === 'a' ? ['href', 'target', 'rel', 'title'] : []
+    if ((node.attrs || []).some((attr) => !allowedAttrs.includes(attr.name)))
+      throw Error('unsupported HTML attribute')
     if (node.tagName === 'br') return '\n'
-    if (node.tagName && !['p', 'div', 'a'].includes(node.tagName)) throw Error('unsupported markup')
     const text = (node.childNodes || []).map(walk).join('')
     if (node.tagName === 'a') {
       const hrefs = (node.attrs || []).filter((a) => a.name === 'href')
@@ -45,22 +49,45 @@ export function parseApplication(raw) {
     }
     return text + (['p', 'div'].includes(node.tagName) ? '\n' : '')
   }
-  const lines = walk(
+  let text = walk(
     parseFragment(raw, {
       onParseError: () => {
         throw Error('ambiguous HTML')
       }
     })
-  )
+  ).trim()
+  // Accept a single optional object wrapper, but keep one field per line.
+  // Do not use JSON.parse: it silently overwrites duplicate keys.
+  if (text.startsWith('{') || text.endsWith('}')) {
+    if (!text.startsWith('{') || !text.endsWith('}')) throw Error('unbalanced object wrapper')
+    text = text.slice(1, -1).trim()
+  }
+  const lines = text
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter(Boolean)
   if (lines.length !== 4) throw Error('exactly four fields required')
   const fields = {}
   for (const line of lines) {
-    const m = /^(Name|Desc|Link|Avatar):\s*(.+)$/i.exec(line)
-    if (!m || fields[m[1].toLowerCase()]) throw Error('duplicate or unknown field')
-    fields[m[1].toLowerCase()] = m[2]
+    const m =
+      /^(Name|Desc|Link|Avatar|"(?:Name|Desc|Link|Avatar)"|“(?:Name|Desc|Link|Avatar)”)\s*[:：]\s*(.+)$/i.exec(
+        line
+      )
+    if (!m) throw Error('duplicate or unknown field')
+    const key = m[1].replace(/["“”]/g, '').toLowerCase()
+    if (Object.hasOwn(fields, key)) throw Error('duplicate or unknown field')
+    let value = m[2].replace(/,$/, '').trim()
+    if (/^["“”]/.test(value)) {
+      // Matched delimiters only; escaped strings and multiple values are outside
+      // this line-oriented format. Never globally remove quotes or punctuation.
+      const quoted = /^(?:"([^"“”\\]*)"|“([^"“”\\]*)”)$/.exec(value)
+      if (!quoted) throw Error('ambiguous quoted value')
+      value = quoted[1] ?? quoted[2]
+    } else if (/[{}\[\]]|[,，]\s*["“”\w-]+\s*[:：]|["“”]\s*$|,$/.test(value)) {
+      throw Error('nested or ambiguous value')
+    }
+    if (!value.trim()) throw Error('empty field')
+    fields[key] = value
   }
   if (
     !fields.name ||
@@ -83,8 +110,8 @@ export function eligible(c) {
   return (
     c &&
     c.url === '/links' &&
-    !c.pid &&
-    !c.rid &&
+    [undefined, null, ''].includes(c.pid) &&
+    [undefined, null, ''].includes(c.rid) &&
     c.type !== 'administrator' &&
     c.status === 'approved' &&
     /^[A-Za-z0-9_-]{1,100}$/.test(String(c.objectId || ''))
