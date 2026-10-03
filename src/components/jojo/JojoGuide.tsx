@@ -345,8 +345,7 @@ export default function JojoGuide({
       else if (s.arrived) s.facing = 1
       const air = still ? 0 : Math.sin(Math.PI * u)
       const bob = s.arrived && !still && ph.kind !== 'home' ? 2.5 * Math.sin(now / 480) : 0
-      const hopLift = s.hop * air
-      const lift = hopLift + bob
+      const lift = s.hop * air + bob
       const land = still ? 0 : pulse(now, s.landedAt, 160)
       const sy =
         1 + 0.1 * air - 0.16 * land + (s.arrived && !still ? 0.015 * Math.sin(now / 480) : 0)
@@ -366,13 +365,11 @@ export default function JojoGuide({
         const vh = window.innerHeight
         const { w, h } = s.bubble
         const half = (s.size / 2) * 1.02
-        // the bubble follows hops but not the idle bob: a slow 2.5px float can only move
-        // its text in whole-pixel steps (the compositor snaps it), which reads as stutter
-        const top = s.y - hopLift - s.size
+        const top = s.y - lift - s.size
         const wantRight = !(ph.kind === 'stop' && ph.at % 2 === 1)
         let bx = wantRight ? s.x + half + 12 : s.x - half - 12 - w
         // sits on the section's top edge too, never over the section it introduces
-        let by = clamp(s.y - hopLift - h - 4, header + 6, vh - h - 8)
+        let by = clamp(s.y - lift - h - 4, header + 6, vh - h - 8)
         let place = wantRight ? 'right' : 'left'
         if (bx < 12 || bx + w > vw - 12) {
           // no room beside: above Jojo
@@ -381,12 +378,15 @@ export default function JojoGuide({
           place = 'above'
         }
         b.dataset.side = place
-        b.style.transform = `translate3d(${bx.toFixed(1)}px,${by.toFixed(1)}px,0)`
+        // it floats with Jojo's 2.5px bob, so it needs sub-pixel steps: 0.1px rounding
+        // plus a repaint each step snapped the text to whole pixels (see dock.css)
+        b.style.transform = `translate3d(${bx.toFixed(2)}px,${by.toFixed(2)}px,0)`
         const tail =
           place === 'above'
             ? clamp(s.x - bx, 18, w - 18)
             : clamp(top + s.size * 0.45 - by, 16, h - 16)
-        b.style.setProperty('--tail', `${tail.toFixed(1)}px`)
+        // whole pixels: an unchanged value costs nothing, a changing one repaints the bubble
+        b.style.setProperty('--tail', `${Math.round(tail)}px`)
       }
     }
     raf = requestAnimationFrame(tick)

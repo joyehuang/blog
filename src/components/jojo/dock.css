@@ -326,6 +326,9 @@ html[data-jojo-dock='shown'] #action-buttons.show {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  /* its own layer: the bob moves the painted bubble by sub-pixels on the GPU. Without
+     it every step repaints, and repainted text snaps to whole pixels (a 1px stutter) */
+  will-change: transform;
   transition:
     opacity 0.18s ease,
     visibility 0s linear 0.18s;
