@@ -123,7 +123,8 @@ export const integ: IntegrationUserConfig = {
         content: '添加 <a href="https://lizaixi01.github.io/" target="_blank" rel="noopener noreferrer">Home · Zaixi</a>。'
       },
       { date: "2026-09-26", content: "添加 <a href=\"https://yunling086.pages.dev/\" target=\"_blank\" rel=\"noopener noreferrer\">雲凌的BLOG</a>。" },
-      { date: "2026-10-02", content: "添加 <a href=\"https://clannad.top/\" target=\"_blank\" rel=\"noopener noreferrer\">HZH</a>。" }
+      { date: "2026-10-02", content: "添加 <a href=\"https://clannad.top/\" target=\"_blank\" rel=\"noopener noreferrer\">HZH</a>。" },
+      { date: "2026-10-03", content: "添加 <a href=\"https://ragnote.top/\" target=\"_blank\" rel=\"noopener noreferrer\">Alex</a>。" }
     ],
     // Yourself link info
     applyTip: [
