@@ -23,11 +23,13 @@ export const activity = {
   /** 比赛的英文名 / 品牌名 */
   name: 'Summer of Agents',
   title: '第一届 Joye 粉丝 Agent 比赛',
-  subtitle: '报名重新开放',
+  subtitle: '已圆满结束',
   tagline:
-    '网站报名通道已重新开放：在下方选一个赛道报名，或自建赛道（组队 / 个人都行），填个昵称就能报，不需要口令。',
+    '10 月 4 日晚上的线上展示已经办完，谢谢每一位上来展示的同学。下面是各赛道的参赛队伍和项目，获奖作品和评审时聊到的问题写在复盘文章里。',
   /** 截止时刻（带时区）；null 表示长期开放，过点后 API 与看板同时关闭报名/建队 */
-  signupClosesAt: null as string | null,
+  signupClosesAt: '2026-10-04T00:00:00+08:00' as string | null,
+  /** 赛后复盘文章 */
+  reviewHref: '/blog/20261006---soareview/post',
   /** 活动详情文档（飞书 wiki） */
   docHref: 'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
 }

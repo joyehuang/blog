@@ -6,10 +6,11 @@ import { activity, isSignupClosed } from './agent-teams'
 const read = (file: string) => readFileSync(new URL(file, import.meta.url), 'utf8')
 
 describe('SOA website registration', () => {
-  test('reopened signup has no deadline and stays open', () => {
-    expect(activity.signupClosesAt).toBeNull()
-    for (const now of [0, Date.now(), Date.parse('2099-01-01T00:00:00+08:00')]) {
-      expect(isSignupClosed(now)).toBe(false)
+  test('signup closes on the 10/4 showcase day', () => {
+    expect(activity.signupClosesAt).toBe('2026-10-04T00:00:00+08:00')
+    expect(isSignupClosed(Date.parse('2026-10-03T23:59:59+08:00'))).toBe(false)
+    for (const now of [Date.parse('2026-10-04T00:00:00+08:00'), Date.now()]) {
+      expect(isSignupClosed(now)).toBe(true)
     }
   })
 
