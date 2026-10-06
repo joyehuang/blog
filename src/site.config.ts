@@ -125,7 +125,8 @@ export const integ: IntegrationUserConfig = {
       { date: "2026-09-26", content: "添加 <a href=\"https://yunling086.pages.dev/\" target=\"_blank\" rel=\"noopener noreferrer\">雲凌的BLOG</a>。" },
       { date: "2026-10-02", content: "添加 <a href=\"https://clannad.top/\" target=\"_blank\" rel=\"noopener noreferrer\">HZH</a>。" },
       { date: "2026-10-03", content: "添加 <a href=\"https://ragnote.top/\" target=\"_blank\" rel=\"noopener noreferrer\">Alex</a>。" },
-      { date: "2026-10-06", content: "添加 <a href=\"https://sanduanhuang.dpdns.org/\" target=\"_blank\" rel=\"noopener noreferrer\">三段荒</a>。" }
+      { date: "2026-10-06", content: "添加 <a href=\"https://sanduanhuang.dpdns.org/\" target=\"_blank\" rel=\"noopener noreferrer\">三段荒</a>。" },
+      { date: "2026-10-06", content: "添加 <a href=\"https://lloydkai.cn/\" target=\"_blank\" rel=\"noopener noreferrer\">Lloyd的个人博客</a>。" }
     ],
     // Yourself link info
     applyTip: [
