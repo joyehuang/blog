@@ -24,10 +24,21 @@ const signupClosed = isSignupClosed()
         </h1>
         <p class='mt-3 max-w-2xl leading-relaxed text-muted-foreground'>{activity.tagline}</p>
         <div class='mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground'>
-          <span class='inline-flex items-center gap-1.5'>
-            <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500'></span>
-            报名通道开放中
-          </span>
+          {
+            signupClosed ? (
+              <a
+                class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
+                href={activity.reviewHref}
+              >
+                赛后复盘文章 →
+              </a>
+            ) : (
+              <span class='inline-flex items-center gap-1.5'>
+                <span class='inline-block size-1.5 animate-pulse rounded-full bg-amber-500' />
+                报名通道开放中
+              </span>
+            )
+          }
           <a
             class='inline-flex items-center gap-1 text-foreground underline-offset-4 hover:underline'
             href={activity.docHref}
@@ -197,7 +208,7 @@ const signupClosed = isSignupClosed()
               data-development-status
               hidden={!signupClosed}
             >
-              开发中
+              已结束
             </span>
             <button
               type='button'
