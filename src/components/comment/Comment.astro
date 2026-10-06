@@ -32,8 +32,8 @@ const lang = walineLangs[getLangFromUrl(Astro.url)]
 
 <script>
   import { stripEn } from '@/lib/waline-views'
-  import { init as walineInit } from '@waline/client'
   import type { WalineEmojiPresets } from '@waline/client'
+  import { init as walineInit } from '@waline/client/full'
   import config from 'virtual:config'
 
   const walineConfig = config.integ.waline
@@ -156,5 +156,9 @@ const lang = walineLangs[getLangFromUrl(Astro.url)]
   }
   :global(.dark) #waline :global(.wl-reaction img) {
     filter: invert(75%);
+  }
+  #waline :global(.wl-reaction-item.active img) {
+    content: url('/icons/heart-item-active.svg');
+    filter: none;
   }
 </style>
