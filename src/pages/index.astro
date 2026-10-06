@@ -119,6 +119,8 @@ const latestTalk = talks[0]
           data-jojo-piece='avatar'
           class='h-28 w-auto rounded-full border p-1'
           loading='eager'
+          fetchpriority='high'
+          decoding='async'
         />
         {__JOJO__ && <JojoHero client:idle lang='zh' staticSvg={jojoSeatSvg} />}
       </div>
