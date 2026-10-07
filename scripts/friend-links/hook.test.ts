@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 
+import { canonicalApplication, htmlApplication, jsonApplication } from './application-fixtures'
 import hook from './friend-link-hook.cjs'
 import { sign } from './state.mjs'
 
@@ -28,16 +29,35 @@ test('Waline hook sends only application IDs, signs handoff, excludes replies an
     expect(sent[0].body).toBe('{"id":"123"}')
     const h = sent[0].headers
     expect(h['x-fl-signature']).toBe(sign(secret, h['x-fl-time'], h['x-fl-nonce'], sent[0].body))
+    for (const comment of [
+      canonicalApplication,
+      jsonApplication,
+      htmlApplication,
+      jsonApplication.replaceAll('“', '"').replaceAll('”', '"').replaceAll('":', '"：')
+    ]) {
+      await hook({ ...c, comment })
+      const request = sent.at(-1)
+      expect(request.body).toBe('{"id":"123"}')
+      expect(request.headers['x-fl-signature']).toBe(
+        sign(secret, request.headers['x-fl-time'], request.headers['x-fl-nonce'], request.body)
+      )
+    }
+    expect(sent).toHaveLength(5)
     for (const extra of [
       { pid: '1' },
       { rid: '1' },
+      { pid: 0 },
+      { rid: false },
       { type: 'administrator' },
       { url: '/blog' },
       { status: 'spam' },
-      { comment: 'ordinary comment' }
+      { comment: 'ordinary comment' },
+      { comment: jsonApplication.replace('“Desc”', '“Name”') },
+      { comment: jsonApplication.replace('“HZH”', '“HZH”, “other”') },
+      { comment: jsonApplication.replace('“HZH”', '<script>bad()</script>') }
     ])
       await hook({ ...c, ...extra })
-    expect(sent).toHaveLength(1)
+    expect(sent).toHaveLength(5)
     globalThis.fetch = (async () => {
       throw Error('offline')
     }) as any
