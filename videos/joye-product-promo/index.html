@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Joye Product Promo</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Satoshi";
+        src: url("assets/Satoshi-Variable.ttf") format("truetype");
+        font-weight: 300 900;
+        font-style: normal;
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: "Satoshi";
+        src: url("assets/Satoshi-VariableItalic.ttf") format("truetype");
+        font-weight: 300 900;
+        font-style: italic;
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: url("capture/assets/fonts/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8-qxjPQ.ttf")
+          format("truetype");
+        font-weight: 400 700;
+        font-style: normal;
+        font-display: block;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b0b10;
+        color: #fafafa;
+        font-family: "Satoshi", sans-serif;
+      }
+
+      #root {
+        width: 1920px;
+        height: 1080px;
+        position: relative;
+        overflow: hidden;
+        background: #0b0b10;
+      }
+
+      .scene {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b0b10;
+      }
+
+      #scene-1 {
+        z-index: 1;
+        opacity: 1;
+      }
+
+      #scene-2 {
+        z-index: 2;
+        opacity: 0;
+      }
+
+      #scene-3 {
+        z-index: 3;
+        opacity: 0;
+      }
+
+      #scene-4 {
+        z-index: 4;
+        opacity: 0;
+      }
+
+      #scene-5 {
+        z-index: 5;
+        opacity: 0;
+      }
+
+      .scene-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.08;
+        background-image:
+          radial-gradient(circle at 20% 30%, rgba(180, 235, 253, 0.16), rgba(180, 235, 253, 0) 24%),
+          radial-gradient(circle at 76% 70%, rgba(74, 222, 128, 0.08), rgba(74, 222, 128, 0) 26%);
+      }
+
+      .grid {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.2;
+        background-image:
+          linear-gradient(rgba(49, 49, 53, 0.34) 1px, rgba(11, 11, 16, 0) 1px),
+          linear-gradient(90deg, rgba(49, 49, 53, 0.34) 1px, rgba(11, 11, 16, 0) 1px);
+        background-size: 80px 80px;
+      }
+
+      .hairline {
+        position: absolute;
+        height: 1px;
+        background: #313135;
+        opacity: 0.85;
+        transform-origin: left center;
+      }
+
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .label {
+        color: #bcbcc2;
+        font-size: 24px;
+        line-height: 1.35;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 0 20px;
+        border: 1px solid #313135;
+        border-radius: 999px;
+        background: #1d1d20;
+        color: #fafafa;
+      }
+
+      .green-dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 28px rgba(74, 222, 128, 0.52);
+        flex: 0 0 auto;
+      }
+
+      .icon-img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        filter: invert(1);
+        opacity: 0.96;
+      }
+
+      .meta-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 42px;
+        height: 28px;
+        padding: 0 8px;
+        border: 1px solid #313135;
+        border-radius: 8px;
+        background: #1d1d20;
+        color: #b4ebfd;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      .terminal {
+        border: 1px solid #313135;
+        border-radius: 18px;
+        background: #09090b;
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .terminal-top {
+        height: 58px;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 0 24px;
+        border-bottom: 1px solid #313135;
+      }
+
+      .dot {
+        width: 14px;
+        height: 14px;
+        border: 1px solid #313135;
+        border-radius: 50%;
+      }
+
+      .terminal-body {
+        padding: 30px 34px;
+      }
+
+      .prompt {
+        color: #b4ebfd;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .typed,
+      .cmd {
+        color: #fafafa;
+        font-family: "JetBrains Mono", monospace;
+        font-variant-ligatures: none;
+      }
+
+      .cursor {
+        display: inline-block;
+        width: 13px;
+        height: 28px;
+        margin-left: 6px;
+        background: #4ade80;
+        vertical-align: -5px;
+      }
+
+      .tiny-route {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid #313135;
+        border-radius: 9px;
+        background: #1d1d20;
+        color: #bcbcc2;
+        font-size: 21px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .card {
+        border: 1px solid #313135;
+        border-radius: 18px;
+        background: #1d1d20;
+        color: #fafafa;
+      }
+
+      .row-card {
+        display: grid;
+        grid-template-columns: 142px 1fr 28px;
+        align-items: center;
+        gap: 24px;
+        min-height: 76px;
+        padding: 0 26px;
+        border: 1px solid #313135;
+        border-radius: 18px;
+        background: #09090b;
+      }
+
+      .row-meta {
+        color: #bcbcc2;
+        font-size: 20px;
+      }
+
+      .row-title {
+        color: #fafafa;
+        font-size: 27px;
+        font-weight: 560;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .arrow-img {
+        width: 24px;
+        height: 24px;
+        filter: invert(1);
+        opacity: 0.72;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 42px;
+        padding: 0 18px;
+        border: 1px solid #313135;
+        border-radius: 12px;
+        background: #1d1d20;
+        color: #bcbcc2;
+        font-size: 22px;
+      }
+
+      /* Beat 1 */
+      .identity-wrap {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 106px 0 0;
+      }
+
+      .avatar-ring {
+        width: 184px;
+        height: 184px;
+        border: 1px solid #313135;
+        border-radius: 50%;
+        padding: 8px;
+        background: #1d1d20;
+        box-shadow: 0 0 86px rgba(180, 235, 253, 0.18);
+      }
+
+      .avatar-ring img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .name-line {
+        margin-top: 36px;
+        font-size: 82px;
+        line-height: 0.95;
+        font-weight: 740;
+      }
+
+      .meta-row {
+        display: flex;
+        gap: 34px;
+        align-items: center;
+        margin-top: 28px;
+      }
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #fafafa;
+        font-size: 27px;
+      }
+
+      .connect-pill {
+        margin-top: 30px;
+        font-size: 24px;
+        background: #09090b;
+      }
+
+      .hook-terminal {
+        width: 1040px;
+        min-height: 110px;
+        margin-top: 58px;
+      }
+
+      .hook-terminal .terminal-body {
+        font-size: 28px;
+        padding: 28px 34px;
+      }
+
+      .power-user {
+        position: absolute;
+        left: 528px;
+        top: 576px;
+        color: #bcbcc2;
+        font-size: 22px;
+      }
+
+      .power-user code {
+        padding: 6px 10px;
+        border: 1px solid #313135;
+        border-radius: 7px;
+        background: #1d1d20;
+        color: #fafafa;
+      }
+
+      /* Beat 2 */
+      .cli-stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 114px 150px;
+      }
+
+      .big-terminal {
+        width: 1520px;
+        height: 720px;
+      }
+
+      .big-terminal .terminal-body {
+        display: grid;
+        grid-template-columns: 520px 1fr;
+        gap: 34px;
+        height: 662px;
+      }
+
+      .command-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .command-line {
+        display: flex;
+        align-items: center;
+        min-height: 74px;
+        padding: 0 24px;
+        border: 1px solid #313135;
+        border-radius: 14px;
+        background: #1d1d20;
+        font-size: 27px;
+      }
+
+      .command-line .prompt {
+        margin-right: 14px;
+      }
+
+      .result-board {
+        position: relative;
+        padding: 4px 0;
+      }
+
+      .result-card {
+        display: grid;
+        grid-template-columns: 128px 1fr;
+        gap: 20px;
+        align-items: center;
+        min-height: 94px;
+        margin-bottom: 18px;
+        padding: 0 24px;
+        border: 1px solid #313135;
+        border-radius: 16px;
+        background: #1d1d20;
+        opacity: 0;
+      }
+
+      .result-kicker {
+        color: #4ade80;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 18px;
+      }
+
+      .result-title {
+        color: #fafafa;
+        font-size: 29px;
+        font-weight: 620;
+      }
+
+      .connector-svg {
+        position: absolute;
+        left: -78px;
+        top: 42px;
+        width: 106px;
+        height: 392px;
+        overflow: visible;
+      }
+
+      .draw-path {
+        stroke: #4ade80;
+        stroke-width: 2.5;
+        fill: none;
+        stroke-linecap: round;
+        stroke-dasharray: 760;
+        stroke-dashoffset: 760;
+        opacity: 0.9;
+      }
+
+      /* Beat 3 */
+      .work-board {
+        position: absolute;
+        inset: 0;
+        padding: 88px 108px 76px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 34px;
+      }
+
+      .eyebrow {
+        color: #4ade80;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 23px;
+      }
+
+      .headline {
+        margin-top: 8px;
+        max-width: 980px;
+        font-size: 72px;
+        line-height: 0.96;
+        font-weight: 760;
+      }
+
+      .screen-slice {
+        position: absolute;
+        width: 520px;
+        height: 334px;
+        border: 1px solid #313135;
+        border-radius: 18px;
+        overflow: hidden;
+        opacity: 0.18;
+        background: #1d1d20;
+      }
+
+      .screen-slice img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .slice-a {
+        right: 102px;
+        top: 86px;
+      }
+
+      .slice-b {
+        right: 244px;
+        bottom: 72px;
+      }
+
+      .columns {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+        margin-top: 34px;
+        z-index: 2;
+      }
+
+      .column-card {
+        min-height: 548px;
+        padding: 26px;
+      }
+
+      .column-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #fafafa;
+        font-size: 34px;
+        font-weight: 680;
+        margin-bottom: 26px;
+      }
+
+      .column-title img {
+        width: 25px;
+        height: 25px;
+        filter: invert(1);
+        opacity: 0.64;
+      }
+
+      .mini-row {
+        min-height: 112px;
+        padding: 22px;
+        margin-bottom: 16px;
+        border: 1px solid #313135;
+        border-radius: 15px;
+        background: #09090b;
+      }
+
+      .mini-row strong {
+        display: block;
+        color: #fafafa;
+        font-size: 24px;
+        line-height: 1.18;
+      }
+
+      .mini-row span {
+        display: block;
+        margin-top: 11px;
+        color: #bcbcc2;
+        font-size: 20px;
+        line-height: 1.28;
+      }
+
+      .chip-cloud {
+        position: absolute;
+        left: 118px;
+        bottom: 58px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        max-width: 960px;
+      }
+
+      /* Beat 4 */
+      .proof-wrap {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 100px 130px;
+      }
+
+      .proof-bg {
+        position: absolute;
+        right: 90px;
+        top: 70px;
+        width: 720px;
+        height: 405px;
+        border: 1px solid #313135;
+        border-radius: 18px;
+        overflow: hidden;
+        opacity: 0.17;
+      }
+
+      .proof-bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .proof-title {
+        position: relative;
+        z-index: 2;
+        max-width: 880px;
+        margin-top: 14px;
+        font-size: 70px;
+        line-height: 1.02;
+        font-weight: 760;
+      }
+
+      .stat-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 26px;
+        margin-top: 62px;
+        z-index: 2;
+      }
+
+      .stat-card {
+        height: 250px;
+        padding: 34px 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .stat-value {
+        color: #fafafa;
+        font-size: 82px;
+        line-height: 1;
+        font-weight: 760;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .stat-label {
+        color: #bcbcc2;
+        font-size: 27px;
+      }
+
+      .stat-route {
+        color: #4ade80;
+        font-size: 21px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .proof-line {
+        position: absolute;
+        left: 214px;
+        top: 742px;
+        width: 1120px;
+        height: 130px;
+        pointer-events: none;
+      }
+
+      .proof-line path {
+        stroke: #4ade80;
+        stroke-width: 3;
+        fill: none;
+        stroke-linecap: round;
+        stroke-dasharray: 1220;
+        stroke-dashoffset: 1220;
+      }
+
+      #proof-dot {
+        position: absolute;
+        left: 204px;
+        top: 732px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 30px rgba(74, 222, 128, 0.72);
+        z-index: 4;
+      }
+
+      /* Beat 5 */
+      .cta-wrap {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 94px;
+      }
+
+      .cta-panel {
+        width: 1180px;
+        min-height: 720px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 70px;
+        border: 1px solid #313135;
+        border-radius: 24px;
+        background: #1d1d20;
+        box-shadow: 0 0 120px rgba(180, 235, 253, 0.1);
+      }
+
+      .cta-avatar {
+        width: 142px;
+        height: 142px;
+        border: 1px solid #313135;
+        border-radius: 50%;
+        padding: 7px;
+        background: #09090b;
+      }
+
+      .cta-avatar img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .cta-title {
+        margin-top: 26px;
+        font-size: 82px;
+        font-weight: 760;
+        line-height: 1;
+      }
+
+      .cta-sub {
+        margin-top: 14px;
+        color: #bcbcc2;
+        font-size: 27px;
+      }
+
+      .cta-terminal {
+        width: 850px;
+        margin-top: 48px;
+      }
+
+      .cta-terminal .terminal-body {
+        min-height: 108px;
+        font-size: 30px;
+      }
+
+      .url-pill {
+        margin-top: 28px;
+        min-height: 64px;
+        padding: 0 28px;
+        font-size: 31px;
+        font-weight: 620;
+      }
+
+      .cta-chips {
+        display: flex;
+        gap: 14px;
+        margin-top: 30px;
+      }
+
+      .social-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 38px;
+        color: #bcbcc2;
+        font-size: 22px;
+      }
+
+      .social-row img {
+        width: 28px;
+        height: 28px;
+        filter: invert(1);
+        opacity: 0.86;
+      }
+
+      .fade-black {
+        position: absolute;
+        inset: 0;
+        background: #0b0b10;
+        opacity: 0;
+        z-index: 20;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-at0g" id="root" data-composition-id="main" data-start="0" data-duration="20" data-width="1920" data-height="1080">
+      <audio data-hf-id="hf-2so2" id="narration" src="narration.wav" data-start="0" data-duration="15" data-track-index="0" data-volume="1"></audio>
+
+      <div data-hf-id="hf-lio4" id="scene-1" class="scene">
+        <div data-hf-id="hf-97sb" class="scene-inner">
+          <div data-hf-id="hf-kxq8" class="grid"></div>
+          <div data-hf-id="hf-h60x" class="grain"></div>
+          <div data-hf-id="hf-rrq4" class="hairline" style="left: 340px; top: 774px; width: 1240px"></div>
+          <div data-hf-id="hf-7467" class="identity-wrap">
+            <div data-hf-id="hf-uj2y" class="avatar-ring">
+              <img data-hf-id="hf-s6i4" src="assets/avatar.png" alt="Joye avatar">
+            </div>
+            <div data-hf-id="hf-1yx0" class="name-line" id="name-type"></div>
+            <div data-hf-id="hf-gxgs" class="meta-row">
+              <div data-hf-id="hf-sswt" class="meta-item">
+                <span data-hf-id="hf-afva" class="meta-mark">MEL</span>
+                <span data-hf-id="hf-mjwi">Melbourne, Australia</span>
+              </div>
+              <div data-hf-id="hf-1fu9" class="meta-item">
+                <span data-hf-id="hf-yldr" class="meta-mark">GH</span>
+                <span data-hf-id="hf-x6wm">GitHub</span>
+              </div>
+            </div>
+            <div data-hf-id="hf-9uhd" class="pill connect-pill">
+              <span data-hf-id="hf-k9v8" class="green-dot"></span>
+              <span data-hf-id="hf-9vns">Connect Me!</span>
+            </div>
+            <div data-hf-id="hf-um5i" class="hook-terminal terminal">
+              <div data-hf-id="hf-jn8i" class="terminal-top">
+                <span data-hf-id="hf-9gry" class="dot"></span>
+                <span data-hf-id="hf-zcc2" class="dot"></span>
+                <span data-hf-id="hf-zqn3" class="dot"></span>
+                <span data-hf-id="hf-g88d" class="tiny-route">wterm v0.1</span>
+              </div>
+              <div data-hf-id="hf-vv39" class="terminal-body">
+                <span data-hf-id="hf-99ip" class="prompt">$</span>
+                <span data-hf-id="hf-idv7" id="hook-typed" class="typed"></span>
+                <span data-hf-id="hf-ceyr" class="cursor" id="hook-cursor"></span>
+              </div>
+            </div>
+          </div>
+          <div data-hf-id="hf-27lc" class="power-user mono">
+            // power user? Type <code data-hf-id="hf-zxvz">help</code>, <code data-hf-id="hf-c4uy">chat</code>, or <code data-hf-id="hf-l6ao">ls /blog</code>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-we5r" id="scene-2" class="scene">
+        <div data-hf-id="hf-skgb" class="scene-inner">
+          <div data-hf-id="hf-6qwo" class="grid"></div>
+          <div data-hf-id="hf-3l5h" class="grain"></div>
+          <div data-hf-id="hf-og2f" class="cli-stage">
+            <div data-hf-id="hf-yd6x" class="big-terminal terminal">
+              <div data-hf-id="hf-1ykm" class="terminal-top">
+                <span data-hf-id="hf-04y4" class="dot"></span>
+                <span data-hf-id="hf-0j95" class="dot"></span>
+                <span data-hf-id="hf-0xk6" class="dot"></span>
+                <span data-hf-id="hf-9x4q" class="meta-mark">CLI</span>
+                <span data-hf-id="hf-wv58" class="tiny-route">joye.devserver</span>
+              </div>
+              <div data-hf-id="hf-fl2x" class="terminal-body">
+                <div data-hf-id="hf-4tvo" class="command-stack">
+                  <div data-hf-id="hf-lcwm" class="command-line" id="cmd-1">
+                    <span data-hf-id="hf-yo2t" class="prompt">$</span><span data-hf-id="hf-fbrq" id="typed-cmd-1" class="cmd"></span>
+                  </div>
+                  <div data-hf-id="hf-hesl" class="command-line" id="cmd-2">
+                    <span data-hf-id="hf-zuzw" class="prompt">$</span><span data-hf-id="hf-bdnp" id="typed-cmd-2" class="cmd"></span>
+                  </div>
+                  <div data-hf-id="hf-gn4s" class="command-line" id="cmd-3">
+                    <span data-hf-id="hf-zgov" class="prompt">$</span><span data-hf-id="hf-alzw" id="typed-cmd-3" class="cmd"></span>
+                  </div>
+                </div>
+                <div data-hf-id="hf-klp8" class="result-board">
+                  <svg data-hf-id="hf-y703" class="connector-svg" viewBox="0 0 106 392">
+                    <path data-hf-id="hf-pxe0" class="draw-path" d="M 6 24 C 62 24 46 66 98 66" />
+                    <path data-hf-id="hf-wd5x" class="draw-path" d="M 6 150 C 58 150 44 192 98 192" />
+                    <path data-hf-id="hf-mc66" class="draw-path" d="M 6 276 C 60 276 48 318 98 318" />
+                  </svg>
+                  <div data-hf-id="hf-18tb" class="result-card result-1">
+                    <div data-hf-id="hf-n3uc" class="result-kicker">/blog</div>
+                    <div data-hf-id="hf-zulx" class="result-title">Agent interviews and OpenHarness notes</div>
+                  </div>
+                  <div data-hf-id="hf-skxg" class="result-card result-2">
+                    <div data-hf-id="hf-tbw5" class="result-kicker">/work</div>
+                    <div data-hf-id="hf-rsvx" class="result-title">Playyy.ai, atypica.ai, AIXCut</div>
+                  </div>
+                  <div data-hf-id="hf-tcl9" class="result-card result-3">
+                    <div data-hf-id="hf-pdy1" class="result-kicker">/whoami</div>
+                    <div data-hf-id="hf-vpub" class="result-title">AI Agent &amp; Full-Stack Developer</div>
+                  </div>
+                  <div data-hf-id="hf-c4ay" class="result-card result-4">
+                    <div data-hf-id="hf-swr4" class="result-kicker">/open</div>
+                    <div data-hf-id="hf-gkhi" class="result-title">Learn-Open-Harness and minimind-notes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-q8fy" id="scene-3" class="scene">
+        <div data-hf-id="hf-s65a" class="scene-inner">
+          <div data-hf-id="hf-4s2k" class="grain"></div>
+          <div data-hf-id="hf-93w1" class="screen-slice slice-a">
+            <img data-hf-id="hf-uzjn" src="capture/screenshots/scroll-041.png" alt="">
+          </div>
+          <div data-hf-id="hf-d202" class="screen-slice slice-b">
+            <img data-hf-id="hf-11qk" src="capture/screenshots/scroll-082.png" alt="">
+          </div>
+          <div data-hf-id="hf-zwa0" class="work-board">
+            <div data-hf-id="hf-k0k5" class="section-header">
+              <div data-hf-id="hf-yeow">
+                <div data-hf-id="hf-jn64" class="eyebrow">/work surface</div>
+                <div data-hf-id="hf-8u1p" class="headline">Research, products, and open source in one compact map.</div>
+              </div>
+              <div data-hf-id="hf-kndt" class="pill"><span data-hf-id="hf-mqrw" class="green-dot"></span><span data-hf-id="hf-e69b">Melbourne builder</span></div>
+            </div>
+            <div data-hf-id="hf-zyj5" class="columns">
+              <div data-hf-id="hf-ubrr" class="column-card card" id="work-col-1">
+                <div data-hf-id="hf-4ifv" class="column-title">
+                  <span data-hf-id="hf-64q2">AI Agent</span>
+                  <img data-hf-id="hf-g93u" src="capture/assets/svgs/svg-8cc4a162.svg" alt="">
+                </div>
+                <div data-hf-id="hf-f87a" class="mini-row">
+                  <strong data-hf-id="hf-ec2n">I Grilled Another Agent Candidate</strong>
+                  <span data-hf-id="hf-ef67">46-minute mock interview</span>
+                </div>
+                <div data-hf-id="hf-symi" class="mini-row">
+                  <strong data-hf-id="hf-dq9o">Hermes Agent Memory</strong>
+                  <span data-hf-id="hf-lyvm">Four-layer L0-L2 design</span>
+                </div>
+                <div data-hf-id="hf-tcxj" class="mini-row">
+                  <strong data-hf-id="hf-3qlh">Prompt Caching in Practice</strong>
+                  <span data-hf-id="hf-yd73">Cache design and defer_loading</span>
+                </div>
+              </div>
+              <div data-hf-id="hf-jga4" class="column-card card" id="work-col-2">
+                <div data-hf-id="hf-cql7" class="column-title">
+                  <span data-hf-id="hf-alx5">Product Builds</span>
+                  <img data-hf-id="hf-le26" src="capture/assets/svgs/svg-aa3fc4bf.svg" alt="">
+                </div>
+                <div data-hf-id="hf-tr8k" class="mini-row">
+                  <strong data-hf-id="hf-1nzu">Playyy.ai</strong>
+                  <span data-hf-id="hf-lm9q">AI image generation and brand design</span>
+                </div>
+                <div data-hf-id="hf-u5jl" class="mini-row">
+                  <strong data-hf-id="hf-s0g7">atypica.ai</strong>
+                  <span data-hf-id="hf-i8ul">Multi-agent commercial research</span>
+                </div>
+                <div data-hf-id="hf-ujum" class="mini-row">
+                  <strong data-hf-id="hf-1wjk">AIXCut</strong>
+                  <span data-hf-id="hf-lwn0">AI video-editing agent</span>
+                </div>
+              </div>
+              <div data-hf-id="hf-k7xx" class="column-card card" id="work-col-3">
+                <div data-hf-id="hf-cca6" class="column-title">
+                  <span data-hf-id="hf-ctoi">Open Source</span>
+                  <img data-hf-id="hf-9mx7" src="capture/assets/svgs/svg-8cc4a162-2.svg" alt="">
+                </div>
+                <div data-hf-id="hf-uy5n" class="mini-row">
+                  <strong data-hf-id="hf-4vji">Learn-Open-Harness</strong>
+                  <span data-hf-id="hf-zbth">Agent loop, tools, memory, multi-agent</span>
+                </div>
+                <div data-hf-id="hf-vcgo" class="mini-row">
+                  <strong data-hf-id="hf-wudd">minimind-notes</strong>
+                  <span data-hf-id="hf-aoto">LLM from scratch, pretraining, SFT</span>
+                </div>
+                <div data-hf-id="hf-vqrp" class="mini-row">
+                  <strong data-hf-id="hf-4agf">Field notes</strong>
+                  <span data-hf-id="hf-d4cf">Shipping products that run in the real world</span>
+                </div>
+              </div>
+            </div>
+            <div data-hf-id="hf-o4u2" class="chip-cloud">
+              <span data-hf-id="hf-ps3c" class="chip">TypeScript</span>
+              <span data-hf-id="hf-bi8a" class="chip">React</span>
+              <span data-hf-id="hf-tq28" class="chip">Node.js</span>
+              <span data-hf-id="hf-k3ug" class="chip">Vercel</span>
+              <span data-hf-id="hf-k2xa" class="chip">LLM</span>
+              <span data-hf-id="hf-ksq4" class="chip">Multi-Agent</span>
+              <span data-hf-id="hf-dy87" class="chip">RAG</span>
+              <span data-hf-id="hf-otn3" class="chip">Docker</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-13xl" id="scene-4" class="scene">
+        <div data-hf-id="hf-rru9" class="scene-inner">
+          <div data-hf-id="hf-5jzl" class="grid"></div>
+          <div data-hf-id="hf-4drj" class="grain"></div>
+          <div data-hf-id="hf-uk1q" class="proof-bg">
+            <img data-hf-id="hf-w7lj" src="capture/screenshots/scroll-100.png" alt="">
+          </div>
+          <div data-hf-id="hf-zmrv" class="proof-wrap">
+            <div data-hf-id="hf-g8hq" class="eyebrow">/site stats</div>
+            <div data-hf-id="hf-kyz9" class="proof-title">A portfolio with real paths through the work.</div>
+            <div data-hf-id="hf-0ul7" class="stat-grid">
+              <div data-hf-id="hf-dxm5" class="stat-card card">
+                <div data-hf-id="hf-3ts8" class="stat-value" id="stat-posts">0</div>
+                <div data-hf-id="hf-y7yw">
+                  <div data-hf-id="hf-e1b2" class="stat-label">Posts</div>
+                  <div data-hf-id="hf-6fy7" class="stat-route">/blog</div>
+                </div>
+              </div>
+              <div data-hf-id="hf-7bj5" class="stat-card card">
+                <div data-hf-id="hf-v68u" class="stat-value" id="stat-notes">0</div>
+                <div data-hf-id="hf-x11t">
+                  <div data-hf-id="hf-v94s" class="stat-label">Notes</div>
+                  <div data-hf-id="hf-ipbr" class="stat-route">/archive</div>
+                </div>
+              </div>
+              <div data-hf-id="hf-8ig8" class="stat-card card">
+                <div data-hf-id="hf-124r" class="stat-value" id="stat-projects">0</div>
+                <div data-hf-id="hf-xfcu">
+                  <div data-hf-id="hf-ts7p" class="stat-label">Projects</div>
+                  <div data-hf-id="hf-dnrp" class="stat-route">/projects</div>
+                </div>
+              </div>
+              <div data-hf-id="hf-8457" class="stat-card card">
+                <div data-hf-id="hf-nrbs" class="stat-value">CLI</div>
+                <div data-hf-id="hf-w8fr">
+                  <div data-hf-id="hf-57qp" class="stat-label">Interactive</div>
+                  <div data-hf-id="hf-x5n9" class="stat-route">` help</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <svg data-hf-id="hf-0p23" class="proof-line" viewBox="0 0 1120 130">
+            <path data-hf-id="hf-bxnz" id="proof-path" d="M 8 62 C 230 8 330 126 552 62 S 892 8 1110 62" />
+          </svg>
+          <div data-hf-id="hf-w2gf" id="proof-dot"></div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-0c9s" id="scene-5" class="scene">
+        <div data-hf-id="hf-rdj8" class="scene-inner">
+          <div data-hf-id="hf-5yam" class="grid"></div>
+          <div data-hf-id="hf-5kom" class="grain"></div>
+          <div data-hf-id="hf-466v" class="cta-wrap">
+            <div data-hf-id="hf-8svj" class="cta-panel">
+              <div data-hf-id="hf-8ess" class="cta-avatar">
+                <img data-hf-id="hf-2ldp" src="assets/avatar-cta.png" alt="Joye avatar">
+              </div>
+              <div data-hf-id="hf-bmzy" class="cta-title">Joye Personal Blog</div>
+              <div data-hf-id="hf-axjw" class="cta-sub">AI Agent &amp; Full-Stack Developer</div>
+              <div data-hf-id="hf-e6px" class="cta-terminal terminal">
+                <div data-hf-id="hf-2cvn" class="terminal-top">
+                  <span data-hf-id="hf-1bv7" class="dot"></span>
+                  <span data-hf-id="hf-1q68" class="dot"></span>
+                  <span data-hf-id="hf-vrkt" class="dot"></span>
+                  <span data-hf-id="hf-x3mr" class="tiny-route">joye.sh</span>
+                </div>
+                <div data-hf-id="hf-gs00" class="terminal-body">
+                  <span data-hf-id="hf-0nly" class="prompt">$</span>
+                  <span data-hf-id="hf-rfyu" id="cta-typed" class="typed"></span>
+                  <span data-hf-id="hf-5rjg" class="cursor" id="cta-cursor"></span>
+                </div>
+              </div>
+              <div data-hf-id="hf-yr3i" class="pill url-pill"><span data-hf-id="hf-ljut" class="green-dot"></span><span data-hf-id="hf-qtd7">joyehuang.me</span></div>
+              <div data-hf-id="hf-5ppw" class="cta-chips">
+                <span data-hf-id="hf-inrk" class="chip">AI Agent</span>
+                <span data-hf-id="hf-vonb" class="chip">Full-Stack</span>
+                <span data-hf-id="hf-1v0c" class="chip">Open Source</span>
+              </div>
+              <div data-hf-id="hf-muya" class="social-row">
+                <span data-hf-id="hf-4wjj" class="meta-mark">GH</span>
+                <span data-hf-id="hf-7vxc">github.com/joyehuang</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-g6ba" class="fade-black" id="fade-black"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      function typeText(selector, text, start, duration) {
+        var node = document.querySelector(selector);
+        tl.set(node, { textContent: "" }, start);
+        for (var i = 0; i < text.length; i += 1) {
+          (function (idx) {
+            tl.call(
+              function () {
+                node.textContent = text.slice(0, idx + 1);
+              },
+              [],
+              start + (idx / Math.max(text.length - 1, 1)) * duration,
+            );
+          })(i);
+        }
+      }
+
+      function countTo(selector, value, start, duration) {
+        var node = document.querySelector(selector);
+        var proxy = { n: 0 };
+        tl.to(
+          proxy,
+          {
+            n: value,
+            duration: duration,
+            ease: "power2.out",
+            onUpdate: function () {
+              node.textContent = String(Math.round(proxy.n));
+            },
+          },
+          start,
+        );
+      }
+
+      function enterScene(sceneSelector, start, y, duration) {
+        tl.set(sceneSelector, { opacity: 1 }, start);
+        tl.fromTo(
+          sceneSelector + " .scene-inner",
+          { y: y, opacity: 0, filter: "blur(18px)" },
+          { y: 0, opacity: 1, filter: "blur(0px)", duration: duration, ease: "power3.out" },
+          start,
+        );
+      }
+
+      tl.fromTo(
+        "#scene-1 .avatar-ring",
+        { y: 46, scale: 0.84, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.7, ease: "expo.out" },
+        0.18,
+      );
+      typeText("#name-type", "Joye", 0.62, 0.46);
+      tl.fromTo(
+        "#scene-1 .meta-item",
+        { y: 22, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.46, stagger: 0.12, ease: "power2.out" },
+        1.02,
+      );
+      tl.fromTo(
+        "#scene-1 .connect-pill",
+        { scale: 0.88, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.38, ease: "back.out(1.6)" },
+        1.38,
+      );
+      tl.fromTo(
+        "#scene-1 .hook-terminal",
+        { y: 48, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.58, ease: "power3.out" },
+        1.58,
+      );
+      typeText("#hook-typed", "help", 1.92, 0.46);
+      tl.to("#hook-cursor", { opacity: 0, duration: 0.16, repeat: 8, yoyo: true, ease: "steps(1)" }, 1.72);
+      tl.fromTo(
+        "#scene-1 .hairline",
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 0.85, duration: 0.72, ease: "sine.out" },
+        0.44,
+      );
+      tl.to(
+        "#scene-1 .green-dot",
+        { scale: 1.35, duration: 0.24, repeat: 4, yoyo: true, ease: "sine.inOut" },
+        1.68,
+      );
+
+      enterScene("#scene-2", 2.94, 120, 0.35);
+      tl.to(
+        "#scene-1 .scene-inner",
+        { y: -88, opacity: 0.25, filter: "blur(18px)", duration: 0.42, ease: "power2.in" },
+        2.86,
+      );
+      tl.set("#scene-1", { opacity: 0 }, 3.28);
+      typeText("#typed-cmd-1", "ls /blog", 3.18, 0.44);
+      typeText("#typed-cmd-2", "chat", 3.72, 0.34);
+      typeText("#typed-cmd-3", "whoami", 4.18, 0.36);
+      tl.fromTo(
+        "#scene-2 .command-line",
+        { x: -46, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.42, stagger: 0.16, ease: "power2.out" },
+        3.08,
+      );
+      tl.fromTo(
+        "#scene-2 .result-card",
+        { x: 36, opacity: 0 },
+        {
+          x: 0,
+          opacity: 1,
+          duration: 0.44,
+          stagger: 0.11,
+          ease: "back.out(1.2)",
+          immediateRender: false,
+        },
+        3.58,
+      );
+      tl.to("#scene-2 .draw-path", { strokeDashoffset: 0, duration: 0.8, stagger: 0.08, ease: "power2.out" }, 3.48);
+      tl.to("#scene-2 .result-card", { y: -6, duration: 0.9, repeat: 2, yoyo: true, ease: "sine.inOut" }, 4.32);
+
+      enterScene("#scene-3", 5.11, 150, 0.7);
+      tl.to(
+        "#scene-2 .scene-inner",
+        { y: -150, opacity: 0.12, filter: "blur(24px)", duration: 0.38, ease: "power3.in" },
+        5.02,
+      );
+      tl.set("#scene-2", { opacity: 0 }, 5.44);
+      tl.fromTo(
+        "#scene-3 .eyebrow",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.36, ease: "power2.out" },
+        5.32,
+      );
+      tl.fromTo(
+        "#scene-3 .headline",
+        { y: 44, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.58, ease: "expo.out" },
+        5.44,
+      );
+      tl.fromTo(
+        "#scene-3 .column-card",
+        { y: 72, rotationX: 7, opacity: 0 },
+        { y: 0, rotationX: 0, opacity: 1, duration: 0.58, stagger: 0.13, ease: "power3.out" },
+        5.96,
+      );
+      tl.fromTo(
+        "#scene-3 .mini-row",
+        { x: 30, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.34, stagger: 0.055, ease: "power2.out" },
+        6.38,
+      );
+      tl.fromTo(
+        "#scene-3 .chip",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.32, stagger: 0.045, ease: "back.out(1.5)" },
+        7.15,
+      );
+      tl.to("#scene-3 .screen-slice img", { scale: 1.035, duration: 4.0, ease: "none" }, 5.11);
+      tl.to("#scene-3 .column-card", { y: -8, duration: 1.15, repeat: 2, yoyo: true, ease: "sine.inOut" }, 7.0);
+
+      enterScene("#scene-4", 8.9, 120, 0.6);
+      tl.to(
+        "#scene-3 .scene-inner",
+        { scale: 0.96, opacity: 0.18, filter: "blur(20px)", duration: 0.4, ease: "power2.in" },
+        8.76,
+      );
+      tl.set("#scene-3", { opacity: 0 }, 9.22);
+      tl.fromTo(
+        "#scene-4 .proof-title",
+        { y: 38, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.54, ease: "expo.out" },
+        9.08,
+      );
+      tl.fromTo(
+        "#scene-4 .stat-card",
+        { y: 58, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.46, stagger: 0.1, ease: "back.out(1.25)" },
+        9.3,
+      );
+      countTo("#stat-posts", 12, 9.02, 0.68);
+      countTo("#stat-notes", 11, 9.74, 0.58);
+      countTo("#stat-projects", 12, 10.58, 0.58);
+      tl.to("#proof-path", { strokeDashoffset: 0, duration: 2.1, ease: "power1.inOut" }, 9.22);
+      tl.fromTo("#proof-dot", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.24, ease: "back.out(1.8)" }, 9.18);
+      tl.to("#proof-dot", { x: 360, y: -34, duration: 0.68, ease: "power2.inOut" }, 9.46);
+      tl.to("#proof-dot", { x: 704, y: 14, duration: 0.68, ease: "power2.inOut" }, 10.2);
+      tl.to("#proof-dot", { x: 1048, y: -22, duration: 0.68, ease: "power2.inOut" }, 10.96);
+      tl.to("#scene-4 .proof-bg img", { scale: 1.035, duration: 4.5, ease: "none" }, 8.9);
+      tl.to("#scene-4 .stat-card", { y: -5, duration: 0.9, repeat: 3, yoyo: true, ease: "sine.inOut" }, 10.9);
+
+      enterScene("#scene-5", 13.22, 90, 0.78);
+      tl.to(
+        "#scene-4 .scene-inner",
+        { opacity: 0.16, filter: "blur(22px)", duration: 0.55, ease: "sine.inOut" },
+        13.02,
+      );
+      tl.set("#scene-4", { opacity: 0 }, 13.72);
+      tl.fromTo(
+        "#scene-5 .cta-panel",
+        { y: 54, scale: 0.96, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.62, ease: "power3.out" },
+        13.3,
+      );
+      tl.fromTo(
+        "#scene-5 .cta-avatar",
+        { scale: 0.74, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.48, ease: "back.out(1.5)" },
+        13.52,
+      );
+      tl.fromTo(
+        "#scene-5 .cta-title",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.42, ease: "power2.out" },
+        13.76,
+      );
+      tl.fromTo(
+        "#scene-5 .cta-sub",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.36, ease: "power3.out" },
+        13.98,
+      );
+      tl.fromTo(
+        "#scene-5 .cta-terminal",
+        { y: 34, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.44, ease: "power2.out" },
+        14.2,
+      );
+      typeText("#cta-typed", "open joyehuang.me", 14.46, 0.86);
+      tl.to("#cta-cursor", { opacity: 0, duration: 0.16, repeat: 18, yoyo: true, ease: "steps(1)" }, 14.28);
+      tl.fromTo(
+        "#scene-5 .url-pill",
+        { scale: 0.9, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.38, ease: "back.out(1.5)" },
+        15.3,
+      );
+      tl.fromTo(
+        "#scene-5 .cta-chips .chip",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.32, stagger: 0.08, ease: "power2.out" },
+        15.72,
+      );
+      tl.fromTo(
+        "#scene-5 .social-row",
+        { y: 18, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "sine.out" },
+        16.22,
+      );
+      tl.to("#scene-5 .green-dot", { scale: 1.32, duration: 0.5, repeat: 5, yoyo: true, ease: "sine.inOut" }, 15.58);
+      tl.to("#scene-5 .cta-panel", { y: -5, duration: 1.6, repeat: 1, yoyo: true, ease: "sine.inOut" }, 16.3);
+      tl.to("#fade-black", { opacity: 1, duration: 0.58, ease: "sine.inOut" }, 19.42);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
