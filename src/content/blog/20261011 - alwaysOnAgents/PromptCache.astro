@@ -1,0 +1,243 @@
+---
+/**
+ * PromptCache.astro
+ *
+ * 常驻 Agent 那篇博文第四节的图：一次发给模型的提示，自上而下是系统提示词、工具定义、
+ * 对话历史和最新消息。缓存按前缀命中：上面的内容不变，就能命中；某一段一变，它以及它下面的
+ * 全部内容都要按原价重新计算。
+ *
+ * 交互：切换三种情况（正常追加一条消息 / 一轮中途加了一个工具 / A/B 测试打乱了拼接顺序），
+ * 每一块切换成「缓存命中」或「按原价」，下面的条显示按原价计费的大致比例。比例是示意，不是实测。
+ * 没有 JS 时停在第一种情况；prefers-reduced-motion 下取消过渡。
+ */
+import './figures.css'
+
+const blocks = [
+  { key: 'sys', name: '系统提示词', desc: '分段、每段做哈希、按固定顺序拼接', weight: 18 },
+  { key: 'tools', name: '工具定义', desc: '只放工具名；一轮中途不增删', weight: 12 },
+  { key: 'history', name: '对话历史', desc: '长输出写进文件，只留引用', weight: 62 },
+  { key: 'new', name: '最新消息', desc: '每次都是新的', weight: 8 }
+]
+
+const scenarios = [
+  {
+    key: 'append',
+    label: '正常追加一条消息',
+    paidFrom: 3,
+    note: '只有最底下的新消息按原价计费，上面的全部命中缓存。'
+  },
+  {
+    key: 'tool',
+    label: '一轮中途加了一个工具',
+    paidFrom: 1,
+    note: '工具定义一变，它下面的对话历史也跟着失去缓存，要按原价重新计算。'
+  },
+  {
+    key: 'order',
+    label: 'A/B 测试打乱了拼接顺序',
+    paidFrom: 0,
+    note: '顺序一乱，从第一个字开始就对不上，整段提示都要按原价计费。分段、做哈希、固定顺序，就是为了避免这种情况。'
+  }
+]
+
+const paidShare = (from: number) => blocks.slice(from).reduce((sum, b) => sum + b.weight, 0)
+const first = scenarios[0]
+---
+
+<figure class='aoa-fig aoa-cache not-prose' data-aoa-cache>
+  <figcaption class='aoa-cap'>
+    <strong>图 4 · 提示缓存按前缀命中。</strong>切换几种情况，看一个小改动会让多少内容失去缓存。
+  </figcaption>
+
+  <div class='aoa-choices' role='group' aria-label='选择一种情况'>
+    {
+      scenarios.map((s, i) => (
+        <button
+          type='button'
+          class='aoa-choice'
+          data-paid-from={s.paidFrom}
+          data-share={paidShare(s.paidFrom)}
+          data-note={s.note}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+        >
+          {s.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class='aoa-cache-stack' aria-label='一次发给模型的提示，自上而下'>
+    {
+      blocks.map((b, i) => (
+        <div
+          class='aoa-cache-block'
+          data-paid={i >= first.paidFrom ? 'true' : 'false'}
+          style={`--w: ${b.weight}`}
+        >
+          <span class='aoa-cache-name'>{b.name}</span>
+          <span class='aoa-cache-desc'>{b.desc}</span>
+          <span class='aoa-cache-badge'>
+            <span class='aoa-cache-b-hit'>缓存命中</span>
+            <span class='aoa-cache-b-paid'>按原价</span>
+          </span>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class='aoa-cache-meter'>
+    <span class='aoa-cache-meter-label'>按原价计费的部分</span>
+    <span class='aoa-cache-track'>
+      <span class='aoa-cache-fill' style={`--share: ${paidShare(first.paidFrom)}%`}></span>
+    </span>
+    <span class='aoa-cache-pct' data-cache-pct>{paidShare(first.paidFrom)}%</span>
+  </div>
+
+  <p class='aoa-note' aria-live='polite' data-cache-note>{first.note}</p>
+  <p class='aoa-note'>示意图，各块的大小和比例不是实测数据。</p>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-aoa-cache]').forEach((fig) => {
+    const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-choice')
+    const blocks = fig.querySelectorAll<HTMLElement>('.aoa-cache-block')
+    const fill = fig.querySelector<HTMLElement>('.aoa-cache-fill')
+    const pct = fig.querySelector<HTMLElement>('[data-cache-pct]')
+    const note = fig.querySelector<HTMLElement>('[data-cache-note]')
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'))
+        const from = Number(btn.dataset.paidFrom)
+        blocks.forEach((block, i) => (block.dataset.paid = i >= from ? 'true' : 'false'))
+        fill?.style.setProperty('--share', `${btn.dataset.share}%`)
+        if (pct) pct.textContent = `${btn.dataset.share}%`
+        if (note) note.textContent = btn.dataset.note ?? ''
+      })
+    })
+  })
+</script>
+
+<style>
+  .aoa-cache-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .aoa-cache-block {
+    display: grid;
+    grid-template-columns: 7.5em minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-height: calc(1.9rem + var(--w) * 0.06rem);
+    padding: 6px 12px;
+    border: 1px solid hsl(var(--primary) / 0.45);
+    border-radius: 9px;
+    background: hsl(var(--primary) / 0.1);
+    transition:
+      background-color 0.35s ease,
+      border-color 0.35s ease;
+  }
+
+  .aoa-cache-block[data-paid='true'] {
+    border-style: dashed;
+    border-color: hsl(var(--destructive) / 0.55);
+    background: hsl(var(--destructive) / 0.07);
+  }
+
+  :global(.dark) .aoa-cache-block[data-paid='true'] {
+    border-color: hsl(0 70% 65% / 0.6);
+    background: hsl(0 70% 60% / 0.1);
+  }
+
+  .aoa-cache-name {
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  .aoa-cache-desc {
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-cache-badge {
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .aoa-cache-b-hit {
+    color: hsl(var(--primary));
+  }
+
+  .aoa-cache-b-paid {
+    display: none;
+    color: hsl(var(--destructive));
+  }
+
+  :global(.dark) .aoa-cache-b-paid {
+    color: hsl(0 70% 72%);
+  }
+
+  .aoa-cache-block[data-paid='true'] .aoa-cache-b-hit {
+    display: none;
+  }
+
+  .aoa-cache-block[data-paid='true'] .aoa-cache-b-paid {
+    display: inline;
+  }
+
+  .aoa-cache-meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 0.78rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-cache-track {
+    position: relative;
+    flex: 1;
+    height: 8px;
+    border-radius: 8px;
+    background: hsl(var(--muted));
+    overflow: hidden;
+  }
+
+  .aoa-cache-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--share);
+    border-radius: inherit;
+    background: hsl(var(--destructive) / 0.6);
+    transition: width 0.45s var(--aoa-ease);
+  }
+
+  .aoa-cache-pct {
+    min-width: 3em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  @media (max-width: 640px) {
+    .aoa-cache-block {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .aoa-cache-desc {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-cache-block,
+    .aoa-cache-fill {
+      transition: none;
+    }
+  }
+</style>

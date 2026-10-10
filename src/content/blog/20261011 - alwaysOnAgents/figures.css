@@ -1,0 +1,172 @@
+/*
+ * 常驻 Agent 这篇博文的图共用的样式。全局 CSS，所以类名都带 aoa- 前缀。
+ * 只用站点的语义 token，明暗主题自动跟随。
+ *
+ * 注意：类名不要写成 UnoCSS 能识别的工具类（比如 h-xl、p-4、flex），否则会被当成工具类套上样式。
+ */
+
+.aoa-fig {
+  --aoa-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  margin: 2rem 0;
+  color: hsl(var(--foreground));
+}
+
+.aoa-cap {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+
+.aoa-cap strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.aoa-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+
+/* 卡片：浅色主题用 card 色，深色主题里 card 接近纯黑，改用前景色的淡底 */
+.aoa-card {
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--card));
+  padding: 12px 14px;
+}
+
+.dark .aoa-card {
+  background: hsl(var(--foreground) / 0.04);
+}
+
+.aoa-card-soft {
+  background: hsl(var(--muted) / 0.45);
+}
+
+.dark .aoa-card-soft {
+  background: hsl(var(--foreground) / 0.025);
+}
+
+.aoa-card-accent {
+  border-color: hsl(var(--primary) / 0.55);
+  background: hsl(var(--primary) / 0.06);
+}
+
+.dark .aoa-card-accent {
+  background: hsl(var(--primary) / 0.07);
+}
+
+.aoa-kicker {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.aoa-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.aoa-sub {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: hsl(var(--muted-foreground));
+}
+
+.aoa-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: hsl(var(--foreground) / 0.88);
+}
+
+.aoa-list li {
+  position: relative;
+  padding-left: 0.95em;
+}
+
+.aoa-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.68em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground) / 0.7);
+}
+
+/* 可点的选项（按钮） */
+.aoa-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.aoa-choice {
+  padding: 4px 11px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--background));
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: hsl(var(--foreground) / 0.85);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.aoa-choice:hover {
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+.aoa-choice[aria-pressed='true'] {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
+}
+
+.aoa-choice:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* ---------- 进入视口时的出现动画（配合 reveal.ts） ---------- */
+
+.aoa-armed .aoa-rv {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.aoa-play .aoa-rv {
+  transition:
+    opacity 0.5s ease calc(var(--i, 0) * 140ms),
+    transform 0.6s var(--aoa-ease) calc(var(--i, 0) * 140ms);
+}
+
+@media print {
+  .aoa-armed .aoa-rv {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aoa-play .aoa-rv,
+  .aoa-choice {
+    transition: none;
+  }
+}
