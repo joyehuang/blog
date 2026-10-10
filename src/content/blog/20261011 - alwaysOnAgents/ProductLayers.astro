@@ -1,0 +1,264 @@
+---
+/**
+ * ProductLayers.astro
+ *
+ * 常驻 Agent 那篇博文第八节的图：一个 Agent 产品的四层。
+ * 补偿层（可删）→ 接口层（薄而稳）→ 模型（外部变量）→ 承载层（要加厚）。
+ *
+ * 交互：上面三个按钮切换「今天的模型 / 下一代 / 再下一代」。每换一代，补偿层里的一部分
+ * 被划掉，补偿层的条变短；承载层的条变长。哪一项先被删是示意，因产品而异。
+ * 没有 JS 时停在「今天的模型」；prefers-reduced-motion 下取消过渡。
+ */
+import './figures.css'
+
+// gone：从第几代开始可以删掉（1 = 下一代，2 = 再下一代）
+const compensation = [
+  { label: '堆砌的 few-shot 示例', gone: 1 },
+  { label: '冗长、互相打架的规则', gone: 1 },
+  { label: '关键词意图路由', gone: 1 },
+  { label: '手写检索、RAG 分块', gone: 2 },
+  { label: '为单一任务做的专用小工具', gone: 2 },
+  { label: '向导、模式切换、模型选择器', gone: 2 }
+]
+
+const foundation = [
+  { name: '数据与记忆', desc: '用户画像、日志、可读的知识和语义层' },
+  { name: '评测与 trace', desc: '每个 bug 变成一条 eval，换模型先跑回归' },
+  { name: '集成与权限', desc: '账号、OAuth、支付；不可逆操作的审批和审计' },
+  { name: '分发与用户关系', desc: '用户、社群、渠道' },
+  { name: '运行时', desc: '持久化、沙箱、缓存、成本上限、可观测性' }
+]
+
+const gens = [
+  { label: '今天的模型', comp: 92, base: 45 },
+  { label: '下一代', comp: 55, base: 68 },
+  { label: '再下一代', comp: 22, base: 90 }
+]
+---
+
+<figure class='aoa-fig aoa-layers not-prose' data-aoa-layers data-gen='0'>
+  <figcaption class='aoa-cap'>
+    <strong>图 7 · 哪一层该删，哪一层该加厚。</strong>切换模型代际，看补偿层怎么变薄、承载层怎么变厚。
+  </figcaption>
+
+  <div class='aoa-choices' role='group' aria-label='选择模型代际'>
+    {
+      gens.map((g, i) => (
+        <button
+          type='button'
+          class='aoa-choice'
+          data-gen={i}
+          data-comp={g.comp}
+          data-base={g.base}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+        >
+          {g.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class='aoa-layers-stack'>
+    <section class='aoa-card aoa-card-soft aoa-layers-comp'>
+      <div class='aoa-layers-head'>
+        <p class='aoa-title'>补偿层 <span class='aoa-layers-verb'>可删</span></p>
+        <span class='aoa-layers-meter'><span class='aoa-layers-fill' data-fill='comp' style={`--v: ${gens[0].comp}%`}></span></span>
+      </div>
+      <ul class='aoa-layers-chips'>
+        {compensation.map((c) => <li data-gone={c.gone}>{c.label}</li>)}
+      </ul>
+    </section>
+
+    <section class='aoa-card aoa-layers-thin'>
+      <div class='aoa-layers-head'>
+        <p class='aoa-title'>接口层 <span class='aoa-layers-verb'>薄而稳</span></p>
+      </div>
+      <p class='aoa-sub'>一个对话入口 · 少量基础工具（shell、文件、搜索、发消息）· 按需加载的 skills</p>
+    </section>
+
+    <section class='aoa-layers-model'>
+      <p class='aoa-title'>模型 <span class='aoa-layers-verb'>外部变量</span></p>
+      <p class='aoa-sub'>每隔几个月换一代。用「换成强模型能多拿到多少提升」检验架构。</p>
+    </section>
+
+    <section class='aoa-card aoa-card-accent aoa-layers-base'>
+      <div class='aoa-layers-head'>
+        <p class='aoa-title'>承载层 <span class='aoa-layers-verb aoa-layers-verb-accent'>要加厚</span></p>
+        <span class='aoa-layers-meter'><span class='aoa-layers-fill aoa-layers-fill-accent' data-fill='base' style={`--v: ${gens[0].base}%`}></span></span>
+      </div>
+      <ul class='aoa-layers-base-list'>
+        {
+          foundation.map((f) => (
+            <li>
+              <strong>{f.name}</strong>
+              <span>{f.desc}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+
+  <p class='aoa-note'>示意图。哪一项先被删掉因产品而异，判断依据是评测，不是感觉。</p>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-aoa-layers]').forEach((fig) => {
+    const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-choice')
+    const comp = fig.querySelector<HTMLElement>('[data-fill="comp"]')
+    const base = fig.querySelector<HTMLElement>('[data-fill="base"]')
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'))
+        fig.dataset.gen = btn.dataset.gen ?? '0'
+        comp?.style.setProperty('--v', `${btn.dataset.comp}%`)
+        base?.style.setProperty('--v', `${btn.dataset.base}%`)
+      })
+    })
+  })
+</script>
+
+<style>
+  .aoa-layers-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .aoa-layers-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .aoa-layers-verb {
+    margin-left: 6px;
+    padding: 0 7px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+    vertical-align: 1px;
+  }
+
+  .aoa-layers-verb-accent {
+    border-color: hsl(var(--primary) / 0.6);
+    color: hsl(var(--primary));
+  }
+
+  .aoa-layers-meter {
+    position: relative;
+    flex: 0 0 34%;
+    height: 6px;
+    border-radius: 6px;
+    background: hsl(var(--muted));
+    overflow: hidden;
+  }
+
+  .aoa-layers-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--v);
+    border-radius: inherit;
+    background: hsl(var(--muted-foreground) / 0.55);
+    transition: width 0.5s var(--aoa-ease);
+  }
+
+  .aoa-layers-fill-accent {
+    background: hsl(var(--primary));
+  }
+
+  .aoa-layers-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aoa-layers-chips li {
+    padding: 2px 9px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    background: hsl(var(--background) / 0.7);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: hsl(var(--foreground) / 0.85);
+    transition:
+      opacity 0.35s ease,
+      color 0.35s ease;
+  }
+
+  /* 换代之后被删掉的补偿：划掉、变淡 */
+  .aoa-layers[data-gen='1'] .aoa-layers-chips li[data-gone='1'],
+  .aoa-layers[data-gen='2'] .aoa-layers-chips li {
+    opacity: 0.45;
+    text-decoration: line-through;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-layers-model {
+    padding: 8px 14px;
+    border: 1px dashed hsl(var(--muted-foreground) / 0.5);
+    border-radius: 12px;
+  }
+
+  .aoa-layers-base-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 8px 14px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aoa-layers-base-list li {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .aoa-layers-base-list strong {
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  .aoa-layers-base-list span {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-layers-base {
+    transition: box-shadow 0.4s ease;
+  }
+
+  .aoa-layers[data-gen='1'] .aoa-layers-base {
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.18);
+  }
+
+  .aoa-layers[data-gen='2'] .aoa-layers-base {
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.22);
+  }
+
+  @media (max-width: 640px) {
+    .aoa-layers-head {
+      flex-wrap: wrap;
+    }
+
+    .aoa-layers-meter {
+      flex-basis: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-layers-fill,
+    .aoa-layers-chips li,
+    .aoa-layers-base {
+      transition: none;
+    }
+  }
+</style>

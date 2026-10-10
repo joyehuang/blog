@@ -1,0 +1,279 @@
+---
+/**
+ * EscalationLadder.astro
+ *
+ * 常驻 Agent 那篇博文第三节的图：升级阶梯。先试最便宜、最可靠的办法，不行再往上爬，
+ * 实在不行才去打扰用户。
+ *
+ * 交互：上面是几个例子，点一个，阶梯从第 1 级开始一级一级检查：
+ * 不够用的级别标成「不够」，停下来的那一级标成「在这里解决」，后面的级别保持未用。
+ * prefers-reduced-motion 下直接显示结果，不做逐级动画。没有 JS 时显示第一个例子的结果。
+ */
+import './figures.css'
+
+const rungs = [
+  { name: '已知上下文', en: 'Known context', desc: '对话历史里已经知道的东西' },
+  { name: '连接器 / API', en: 'Connector · MCP · API', desc: '例如通过 Plaid 拉取银行信息' },
+  { name: '网页搜索', en: 'Web search', desc: '公开、实时的信息' },
+  { name: '浏览器', en: 'Browser', desc: '在电脑上打开浏览器搜索、操作' },
+  { name: '整个桌面', en: 'Full desktop', desc: '在 Linux 电脑上跑脚本、跑命令、构建东西' },
+  { name: '询问用户', en: 'Ask the user', desc: '以上都不行，才来打扰你：输入、审批、2FA 验证码' }
+]
+
+const tasks = [
+  { label: '我们刚才约的是周几？', stop: 1 },
+  { label: '这个月在外面吃饭花了多少？', stop: 2 },
+  { label: '昨晚小熊队的比分？', stop: 3 },
+  { label: '在一个没有 API 的网站上改预约', stop: 4 },
+  { label: '给新功能录一段演示视频', stop: 5 },
+  { label: '登录要输 2FA 验证码', stop: 6 }
+]
+
+const initialStop = tasks[0].stop
+---
+
+<figure class='aoa-fig aoa-ladder not-prose' data-aoa-ladder>
+  <figcaption class='aoa-cap'>
+    <strong>图 3 · 升级阶梯。</strong>点一个例子，看 Agent 会从第 1 级往上爬到哪一级。
+  </figcaption>
+
+  <div class='aoa-choices' role='group' aria-label='选择一个任务'>
+    {
+      tasks.map((t, i) => (
+        <button type='button' class='aoa-choice' data-stop={t.stop} aria-pressed={i === 0 ? 'true' : 'false'}>
+          {t.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <ol class='aoa-ladder-rungs'>
+    {
+      rungs.map((r, i) => (
+        <li
+          class='aoa-ladder-rung'
+          data-state={i + 1 < initialStop ? 'skip' : i + 1 === initialStop ? 'hit' : 'idle'}
+          data-last={i === rungs.length - 1 ? '' : undefined}
+        >
+          <span class='aoa-ladder-num'>{i + 1}</span>
+          <span class='aoa-ladder-body'>
+            <span class='aoa-ladder-name'>
+              {r.name}
+              <span class='aoa-ladder-en'>{r.en}</span>
+            </span>
+            <span class='aoa-ladder-desc'>{r.desc}</span>
+          </span>
+          <span class='aoa-ladder-status' aria-hidden='true'>
+            <span class='aoa-ladder-s-skip'>不够</span>
+            <span class='aoa-ladder-s-hit'>在这里解决</span>
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class='aoa-ladder-axis' aria-hidden='true'>
+    <span>便宜 · 可靠 · 快</span>
+    <span class='aoa-ladder-bar'></span>
+    <span>昂贵 · 打扰人</span>
+  </div>
+  <p class='aoa-sub aoa-ladder-live' aria-live='polite' data-ladder-live></p>
+</figure>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  document.querySelectorAll<HTMLElement>('[data-aoa-ladder]').forEach((fig) => {
+    const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-choice')
+    const rungs = Array.from(fig.querySelectorAll<HTMLElement>('.aoa-ladder-rung'))
+    const live = fig.querySelector<HTMLElement>('[data-ladder-live]')
+    let timers: number[] = []
+
+    const run = (stop: number) => {
+      timers.forEach((t) => window.clearTimeout(t))
+      timers = []
+      const names = rungs.map((r) => r.querySelector('.aoa-ladder-name')?.firstChild?.textContent?.trim() ?? '')
+      if (live) live.textContent = `停在第 ${stop} 级：${names[stop - 1]}`
+
+      if (reduce) {
+        rungs.forEach((r, i) => (r.dataset.state = i + 1 < stop ? 'skip' : i + 1 === stop ? 'hit' : 'idle'))
+        return
+      }
+
+      rungs.forEach((r) => (r.dataset.state = 'idle'))
+      for (let i = 0; i < stop; i++) {
+        timers.push(
+          window.setTimeout(() => {
+            rungs[i].dataset.state = i + 1 === stop ? 'hit' : 'check'
+            if (i + 1 < stop) {
+              timers.push(window.setTimeout(() => (rungs[i].dataset.state = 'skip'), 220))
+            }
+          }, i * 300)
+        )
+      }
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'))
+        run(Number(btn.dataset.stop))
+      })
+    })
+  })
+</script>
+
+<style>
+  .aoa-ladder-rungs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aoa-ladder-rung {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    background: hsl(var(--card));
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease,
+      opacity 0.25s ease;
+  }
+
+  :global(.dark) .aoa-ladder-rung {
+    background: hsl(var(--foreground) / 0.03);
+  }
+
+  .aoa-ladder-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: hsl(var(--muted));
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+  .aoa-ladder-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .aoa-ladder-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .aoa-ladder-en {
+    margin-left: 6px;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ladder-desc {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ladder-status {
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+
+  .aoa-ladder-status > span {
+    display: none;
+  }
+
+  /* 状态：idle 未用到 / check 正在检查 / skip 不够，继续往上 / hit 在这里解决 */
+  .aoa-ladder-rung[data-state='idle'] {
+    opacity: 0.55;
+  }
+
+  .aoa-ladder-rung[data-state='check'] {
+    border-color: hsl(var(--primary) / 0.6);
+  }
+
+  .aoa-ladder-rung[data-state='skip'] .aoa-ladder-s-skip {
+    display: inline;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ladder-rung[data-state='skip'] .aoa-ladder-name {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ladder-rung[data-state='hit'] {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .aoa-ladder-rung[data-state='hit'] .aoa-ladder-num {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .aoa-ladder-rung[data-state='hit'] .aoa-ladder-s-hit {
+    display: inline;
+    font-weight: 600;
+    color: hsl(var(--primary));
+  }
+
+  .aoa-ladder-axis {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 0.74rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ladder-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.25), hsl(var(--destructive) / 0.6));
+  }
+
+  .aoa-ladder-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  @media (max-width: 640px) {
+    .aoa-ladder-en {
+      display: none;
+    }
+
+    .aoa-ladder-rung {
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      padding: 7px 10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-ladder-rung,
+    .aoa-ladder-num {
+      transition: none;
+    }
+  }
+</style>

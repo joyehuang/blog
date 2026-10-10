@@ -1,0 +1,185 @@
+---
+/**
+ * D0Bars.astro
+ *
+ * 常驻 Agent 那篇博文第七节的图：Vercel 的数据 Agent d0 从 17 个工具删到 2 个之后，
+ * 平均耗时、token 和步数的对比。数据来自 Vercel 的博客，基准只有 5 条代表性查询。
+ * 动效：进入视口时条形从 0 长到实际长度；prefers-reduced-motion 下直接显示终态。
+ */
+import './figures.css'
+
+const metrics = [
+  { name: '平均耗时', unit: '秒', before: 274.8, after: 77.4, fmt: (v: number) => v.toFixed(1) },
+  { name: '平均 token', unit: 'k', before: 102, after: 61, fmt: (v: number) => `约 ${v}` },
+  { name: '平均步数', unit: '步', before: 12, after: 7, fmt: (v: number) => `约 ${v}` }
+]
+---
+
+<figure class='aoa-fig aoa-d0 not-prose' data-aoa-d0>
+  <figcaption class='aoa-cap'>
+    <strong>图 6 · Vercel d0：17 个工具删到 2 个。</strong>成功率从 80% 升到 100%，下面三项都明显下降。
+  </figcaption>
+
+  <div class='aoa-d0-legend' aria-hidden='true'>
+    <span><i class='aoa-d0-key aoa-d0-key-before'></i>旧架构（17 个工具）</span>
+    <span><i class='aoa-d0-key aoa-d0-key-after'></i>bash + SQL（2 个工具）</span>
+  </div>
+
+  <dl class='aoa-d0-list'>
+    {
+      metrics.map((m, i) => (
+        <div class='aoa-d0-row aoa-rv' style={`--i: ${i}`}>
+          <dt class='aoa-d0-name'>{m.name}</dt>
+          <dd class='aoa-d0-bars'>
+            <span class='aoa-d0-bar aoa-d0-before' style='--len: 100%'>
+              <span class='aoa-d0-val'>
+                {m.fmt(m.before)} {m.unit}
+              </span>
+            </span>
+            <span class='aoa-d0-bar aoa-d0-after' style={`--len: ${((m.after / m.before) * 100).toFixed(1)}%`}>
+              <span class='aoa-d0-val'>
+                {m.fmt(m.after)} {m.unit}
+              </span>
+            </span>
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <p class='aoa-note'>数据来自 Vercel 博客。样本只有 5 条代表性查询，应当看作很强的信号，而不是统计结论。</p>
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  armReveal('[data-aoa-d0]')
+</script>
+
+<style>
+  .aoa-d0-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-bottom: 10px;
+    font-size: 0.76rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-d0-key {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 3px;
+    vertical-align: -1px;
+  }
+
+  .aoa-d0-key-before,
+  .aoa-d0-before {
+    background: hsl(var(--muted-foreground) / 0.28);
+  }
+
+  .aoa-d0-key-after,
+  .aoa-d0-after {
+    background: hsl(var(--primary) / 0.75);
+  }
+
+  .aoa-d0-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+  }
+
+  .aoa-d0-row {
+    display: grid;
+    grid-template-columns: 6.5em minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .aoa-d0-name {
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  .aoa-d0-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .aoa-d0-bar {
+    position: relative;
+    display: block;
+    width: var(--len);
+    min-width: 2px;
+    height: 20px;
+    border-radius: 5px;
+  }
+
+  .aoa-d0-val {
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: hsl(var(--foreground) / 0.85);
+  }
+
+  /* 旧架构的条是满格的，数值写在条里面 */
+  .aoa-d0-before .aoa-d0-val {
+    left: auto;
+    right: 8px;
+  }
+
+  /* 动画用 width 而不是 scaleX，避免条里的数值跟着被压扁 */
+  .aoa-armed .aoa-d0-bar {
+    width: 0;
+  }
+
+  .aoa-armed .aoa-d0-val {
+    opacity: 0;
+  }
+
+  .aoa-play .aoa-d0-bar {
+    transition: width 0.9s var(--aoa-ease) calc(var(--i, 0) * 140ms + 120ms);
+  }
+
+  .aoa-play .aoa-d0-val {
+    transition: opacity 0.4s ease calc(var(--i, 0) * 140ms + 700ms);
+  }
+
+  @media print {
+    .aoa-armed .aoa-d0-bar {
+      width: var(--len);
+    }
+
+    .aoa-armed .aoa-d0-val {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .aoa-d0-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+
+    /* 窄屏上给条右侧留出写数值的位置 */
+    .aoa-d0-bars {
+      padding-right: 5.5em;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-play .aoa-d0-bar,
+    .aoa-play .aoa-d0-val {
+      transition: none;
+    }
+  }
+</style>

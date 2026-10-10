@@ -1,0 +1,346 @@
+---
+/**
+ * AgentArchitecture.astro
+ *
+ * 常驻 Agent 那篇博文第二节的图：触发器 → 服务器（队列/路由、Agent loop、数据库）→ Agent 的电脑。
+ *
+ * 交互：左边每个触发器都可以点，中间路由器下面那一行会换成这类消息的处理方式，
+ * 说明「消息从哪来」决定了优先级和要不要打扰用户。
+ * 动效：进入视口时三列从左到右依次出现；电脑那一列的「启动 → 使用 → 快照 → 休眠」循环高亮。
+ *
+ * 没有 JS 时停在第一个触发器；prefers-reduced-motion 下取消全部动画。
+ */
+import './figures.css'
+
+const triggers = [
+  {
+    key: 'me',
+    name: '你直接发消息',
+    hint: '手机 / 桌面 App',
+    tag: '优先级最高',
+    text: '正在跑的 Agent loop 会停下来，先处理你这句话，其他来源的消息排到后面。'
+  },
+  {
+    key: 'slack',
+    name: 'Slack / 群聊里 @',
+    hint: '它可以「住」在群里',
+    tag: '排队，合并',
+    text: '短时间内连发的几条消息合并成一轮再处理，然后一轮一轮地执行。'
+  },
+  {
+    key: 'mail',
+    name: '收到一封邮件',
+    hint: '也可能是钓鱼邮件',
+    tag: '不可信输入',
+    text: '邮件内容只当作资料，不当作用户的指令交给模型，防止提示注入。'
+  },
+  {
+    key: 'call',
+    name: '电话 / 会议',
+    hint: '派它去参会',
+    tag: '后台任务',
+    text: '替你参会、记笔记，结束之后再回来汇报要点。'
+  },
+  {
+    key: 'routine',
+    name: '定时任务',
+    hint: '类似 cron',
+    tag: '后台任务',
+    text: '可能一跑就是几小时甚至几天；有重要进展才打扰你，多数任务一天汇报一次就够。'
+  }
+]
+---
+
+<figure class='aoa-fig aoa-arch not-prose' data-aoa-arch>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · 常驻 Agent 的三段式架构。</strong>左边的触发器可以点，看不同来源的消息会被怎么处理。
+  </figcaption>
+
+  <div class='aoa-arch-grid'>
+    <section class='aoa-arch-col aoa-rv' style='--i: 0' aria-label='触发器'>
+      <p class='aoa-kicker'>① 触发器</p>
+      <div class='aoa-arch-triggers' role='group' aria-label='选择一个触发器'>
+        {
+          triggers.map((t, i) => (
+            <button
+              type='button'
+              class='aoa-arch-trigger'
+              data-key={t.key}
+              data-tag={t.tag}
+              data-text={t.text}
+              aria-pressed={i === 0 ? 'true' : 'false'}
+            >
+              <span class='aoa-arch-tname'>{t.name}</span>
+              <span class='aoa-arch-thint'>{t.hint}</span>
+            </button>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class='aoa-arch-arrow aoa-rv' style='--i: 1' aria-hidden='true'>
+      <span>→</span>
+    </div>
+
+    <section class='aoa-arch-col aoa-rv' style='--i: 2' aria-label='服务器'>
+      <p class='aoa-kicker'>② 服务器（厚）</p>
+      <div class='aoa-card aoa-card-soft'>
+        <p class='aoa-title'>队列 / 路由器</p>
+        <p class='aoa-sub'>去重 · 定优先级 · 合并连发 · 要不要打扰用户</p>
+        <p class='aoa-arch-route' aria-live='polite'>
+          <span class='aoa-arch-tag' data-route-tag>{triggers[0].tag}</span>
+          <span data-route-text>{triggers[0].text}</span>
+        </p>
+      </div>
+      <div class='aoa-arch-down' aria-hidden='true'>↓</div>
+      <div class='aoa-card aoa-card-accent'>
+        <p class='aoa-title'>Agent loop</p>
+        <p class='aoa-sub'>模型在循环里调用工具；每个任务是一个持久化工作流（Temporal），崩溃后从断点继续</p>
+      </div>
+      <div class='aoa-arch-down' aria-hidden='true'>↓</div>
+      <div class='aoa-card aoa-card-soft'>
+        <p class='aoa-title'>数据库</p>
+        <p class='aoa-sub'>对话日志 · 记忆 · 定时任务 · 状态，每一轮都写进来</p>
+      </div>
+    </section>
+
+    <div class='aoa-arch-arrow aoa-rv' style='--i: 3' aria-hidden='true'>
+      <span>⇄</span>
+    </div>
+
+    <section class='aoa-arch-col aoa-rv' style='--i: 4' aria-label='Agent 的电脑'>
+      <p class='aoa-kicker'>③ Agent 的电脑</p>
+      <div class='aoa-card'>
+        <p class='aoa-title'>Firecracker 虚拟机</p>
+        <ul class='aoa-list'>
+          <li>文件：记忆、技能、日志、长输出</li>
+          <li>在隔离、锁定的环境里跑命令</li>
+          <li>Chrome，多个虚拟桌面（每个 bot 一块屏）</li>
+          <li>可以实时查看，必要时亲手接管</li>
+        </ul>
+      </div>
+      <ol class='aoa-arch-cycle' aria-label='按需使用的生命周期'>
+        <li style='--k: 0'>启动</li>
+        <li style='--k: 1'>使用</li>
+        <li style='--k: 2'>快照</li>
+        <li style='--k: 3'>休眠</li>
+      </ol>
+      <p class='aoa-sub'>一直开着太贵，需要时才从快照唤醒。Agent loop 不在这里，所以虚拟机可以随时重建、打补丁。</p>
+    </section>
+  </div>
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  document.querySelectorAll<HTMLElement>('[data-aoa-arch]').forEach((fig) => {
+    const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-arch-trigger')
+    const tag = fig.querySelector<HTMLElement>('[data-route-tag]')
+    const text = fig.querySelector<HTMLElement>('[data-route-text]')
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'))
+        if (tag) tag.textContent = btn.dataset.tag ?? ''
+        if (text) text.textContent = btn.dataset.text ?? ''
+        const route = fig.querySelector<HTMLElement>('.aoa-arch-route')
+        route?.classList.remove('aoa-arch-flash')
+        void route?.offsetWidth
+        route?.classList.add('aoa-arch-flash')
+      })
+    })
+  })
+
+  armReveal('[data-aoa-arch]')
+</script>
+
+<style>
+  .aoa-arch-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) 22px minmax(0, 1.15fr) 22px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+  }
+
+  .aoa-arch-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .aoa-arch-triggers {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .aoa-arch-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 7px 10px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    background: hsl(var(--background));
+    font: inherit;
+    text-align: left;
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .aoa-arch-trigger:hover {
+    border-color: hsl(var(--primary) / 0.6);
+  }
+
+  .aoa-arch-trigger[aria-pressed='true'] {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .aoa-arch-trigger:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+  }
+
+  .aoa-arch-tname {
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .aoa-arch-thint {
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-arch-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    font-size: 1.1rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-arch-down {
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-arch-route {
+    margin: 10px 0 0;
+    padding-top: 9px;
+    border-top: 1px dashed hsl(var(--border));
+    font-size: 0.8rem;
+    line-height: 1.6;
+    min-height: 4.8em;
+  }
+
+  .aoa-arch-tag {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 0 7px;
+    border: 1px solid hsl(var(--primary) / 0.6);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: hsl(var(--primary));
+  }
+
+  .aoa-arch-flash {
+    animation: aoa-arch-flash 0.45s ease;
+  }
+
+  @keyframes aoa-arch-flash {
+    from {
+      opacity: 0.2;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .aoa-arch-cycle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 10px 0 2px;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+
+  .aoa-arch-cycle li {
+    position: relative;
+    padding: 1px 8px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    font-size: 0.74rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+    animation: aoa-arch-cycle 5.6s ease infinite;
+    animation-delay: calc(var(--k) * 1.4s);
+  }
+
+  .aoa-arch-cycle li:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -10px;
+    color: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .aoa-arch-cycle li:not(:last-child) {
+    margin-right: 8px;
+  }
+
+  @keyframes aoa-arch-cycle {
+    0%,
+    22% {
+      border-color: hsl(var(--primary));
+      color: hsl(var(--foreground));
+      background: hsl(var(--primary) / 0.1);
+    }
+    30%,
+    100% {
+      border-color: hsl(var(--border));
+      color: hsl(var(--muted-foreground));
+      background: transparent;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .aoa-arch-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .aoa-arch-arrow span {
+      display: inline-block;
+      transform: rotate(90deg);
+    }
+
+    .aoa-arch-triggers {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    .aoa-arch-trigger {
+      flex: 1 1 calc(50% - 6px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-arch-cycle li,
+    .aoa-arch-flash {
+      animation: none;
+    }
+
+    .aoa-arch-trigger {
+      transition: none;
+    }
+  }
+</style>
