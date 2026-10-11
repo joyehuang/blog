@@ -1,0 +1,139 @@
+---
+/**
+ * ThinClient.astro
+ *
+ * 常驻 Agent 那篇博文第三节的图：薄客户端和厚服务器之间只有一个工具 SendToUser。
+ * 动效：一个小圆点在中间那条线上来回走，表示消息在两端之间往返；只在图进入视口后才开始。
+ * prefers-reduced-motion 下圆点静止在中间。
+ */
+import './figures.css'
+---
+
+<figure class='aoa-fig aoa-thin not-prose' data-aoa-thin>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · 薄客户端，厚服务器。</strong>两端之间只有 SendToUser 这一个工具，重工具全部在服务器上。
+  </figcaption>
+
+  <div class='aoa-thin-row'>
+    <div class='aoa-card aoa-thin-side aoa-rv' style='--i: 0'>
+      <p class='aoa-kicker'>薄客户端</p>
+      <p class='aoa-title'>手机 · 桌面 · 邮件 · Slack</p>
+      <p class='aoa-sub'>收到消息后，按内容渲染成合适的交互：</p>
+      <ul class='aoa-list'>
+        <li>登录表单</li>
+        <li>付款</li>
+        <li>不可逆操作先确认草稿</li>
+        <li>不需要回话时，回一个表情</li>
+      </ul>
+    </div>
+
+    <div class='aoa-thin-wire aoa-rv' style='--i: 1'>
+      <span class='aoa-thin-line' aria-hidden='true'><span class='aoa-thin-dot'></span></span>
+      <span class='aoa-thin-pill'>SendToUser</span>
+      <span class='aoa-thin-only'>唯一的跨端工具</span>
+    </div>
+
+    <div class='aoa-card aoa-card-accent aoa-thin-side aoa-rv' style='--i: 2'>
+      <p class='aoa-kicker'>厚服务器</p>
+      <p class='aoa-title'>所有「重」工具都在这里</p>
+      <ul class='aoa-list'>
+        <li>shell 命令，读写文件</li>
+        <li>调用云端 Agent</li>
+        <li>录屏、做演示</li>
+        <li>连接器、MCP、插件</li>
+      </ul>
+    </div>
+  </div>
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  armReveal('[data-aoa-thin]')
+</script>
+
+<style>
+  .aoa-thin-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 0.7fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .aoa-thin-wire {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .aoa-thin-line {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: hsl(var(--border));
+  }
+
+  .aoa-thin-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    background: hsl(var(--primary));
+  }
+
+  .aoa-play .aoa-thin-dot {
+    animation: aoa-thin-travel 3.2s ease-in-out infinite;
+  }
+
+  @keyframes aoa-thin-travel {
+    0%,
+    100% {
+      left: 4%;
+    }
+    50% {
+      left: 96%;
+    }
+  }
+
+  .aoa-thin-pill {
+    padding: 3px 12px;
+    border: 1px solid hsl(var(--primary));
+    border-radius: 999px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+    background: hsl(var(--background));
+  }
+
+  .aoa-thin-only {
+    font-size: 0.72rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 640px) {
+    .aoa-thin-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .aoa-thin-wire {
+      padding: 6px 0;
+    }
+
+    .aoa-thin-line {
+      width: 60%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-play .aoa-thin-dot {
+      animation: none;
+    }
+  }
+</style>

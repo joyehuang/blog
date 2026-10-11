@@ -1,0 +1,272 @@
+---
+/**
+ * ProductLayers.astro
+ *
+ * 常驻 Agent 那篇博文第八节的图：一个 Agent 产品由补偿层、接口层、承载层组成，
+ * 模型是外部变量。上半部分是三根并排的堆叠柱（今天的模型 / 下一代 / 再下一代），
+ * 不用点就能看出：每换一代，补偿层变薄，承载层变厚，接口层基本不变。
+ * 下半部分两列，分别列出补偿层里可以删的东西和承载层里要加厚的东西。
+ *
+ * 比例是示意，不是测量值。
+ * 动效：进入视口时三根柱子从左到右依次长出来；没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import './figures.css'
+
+// 每根柱子三段的相对高度（加起来是 100）
+const gens = [
+  { label: '今天的模型', comp: 58, iface: 10, base: 32 },
+  { label: '下一代', comp: 32, iface: 10, base: 58 },
+  { label: '再下一代', comp: 12, iface: 10, base: 78 }
+]
+
+const compensation = [
+  '堆砌的 few-shot 示例',
+  '冗长、互相打架的规则',
+  '关键词意图路由',
+  '手写检索、RAG 分块',
+  '为单一任务做的专用小工具',
+  '向导、模式切换、模型选择器'
+]
+
+const foundation = [
+  { name: '数据与记忆', desc: '用户画像、日志、可读的知识' },
+  { name: '评测与 trace', desc: '每个 bug 变成一条 eval' },
+  { name: '集成与权限', desc: '账号、支付、不可逆操作的审批' },
+  { name: '分发与用户关系', desc: '用户、社群、渠道' },
+  { name: '运行时', desc: '持久化、沙箱、缓存、成本上限' }
+]
+---
+
+<figure class='aoa-fig aoa-stack not-prose' data-aoa-stack>
+  <figcaption class='aoa-cap'>
+    <strong>图 7 · 每换一代模型，补偿层变薄，承载层变厚。</strong>中间那层很薄的接口层基本不变；模型本身是外面的变量，不在产品里。
+  </figcaption>
+
+  <div class='aoa-stack-chart'>
+    <ol class='aoa-stack-cols'>
+      {
+        gens.map((g, i) => (
+          <li
+            class='aoa-stack-col'
+            style={`--i: ${i}`}
+            aria-label={`${g.label}：补偿层约 ${g.comp}%，接口层约 ${g.iface}%，承载层约 ${g.base}%`}
+          >
+            <div class='aoa-stack-bar' aria-hidden='true'>
+              <span class='aoa-stack-seg aoa-stack-comp' style={`--h: ${g.comp}`}>
+                <span class='aoa-stack-name'>补偿层</span>
+              </span>
+              <span class='aoa-stack-seg aoa-stack-iface' style={`--h: ${g.iface}`}>
+                <span class='aoa-stack-name'>接口层</span>
+              </span>
+              <span class='aoa-stack-seg aoa-stack-base' style={`--h: ${g.base}`}>
+                <span class='aoa-stack-name'>承载层</span>
+              </span>
+            </div>
+            <span class='aoa-stack-label' aria-hidden='true'>{g.label}</span>
+          </li>
+        ))
+      }
+    </ol>
+    <p class='aoa-stack-axis' aria-hidden='true'>模型代际 →</p>
+  </div>
+
+  <div class='aoa-stack-lists'>
+    <section class='aoa-stack-list aoa-stack-list-comp'>
+      <p class='aoa-title'>补偿层：可以删</p>
+      <p class='aoa-sub'>因为模型还不够好，才替它做的事</p>
+      <ul class='aoa-list'>
+        {compensation.map((c) => <li>{c}</li>)}
+      </ul>
+    </section>
+    <section class='aoa-stack-list aoa-stack-list-base'>
+      <p class='aoa-title'>承载层：要加厚</p>
+      <p class='aoa-sub'>不管模型多强都需要的东西</p>
+      <ul class='aoa-list'>
+        {
+          foundation.map((f) => (
+            <li>
+              <strong>{f.name}</strong>：{f.desc}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+
+  <p class='aoa-note'>
+    示意图，比例不是测量值。接口层指一个对话入口、少量基础工具和按需加载的 skills。哪一项先被删掉因产品而异，判断依据是评测。
+  </p>
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  armReveal('[data-aoa-stack]')
+</script>
+
+<style>
+  .aoa-stack-chart {
+    padding: 14px 14px 8px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .aoa-stack-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(12px, 4vw, 40px);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aoa-stack-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .aoa-stack-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: min(100%, 150px);
+    height: 230px;
+  }
+
+  .aoa-stack-seg {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: var(--h) 1 0;
+    min-height: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: flex-grow 0.9s var(--aoa-ease) calc(var(--i, 0) * 160ms + 150ms);
+  }
+
+  .aoa-stack-comp {
+    border: 1.5px dashed hsl(var(--muted-foreground) / 0.55);
+    background: hsl(var(--muted-foreground) / 0.08);
+  }
+
+  .aoa-stack-iface {
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+  }
+
+  :global(.dark) .aoa-stack-iface {
+    background: hsl(var(--foreground) / 0.08);
+  }
+
+  .aoa-stack-base {
+    background: hsl(var(--primary) / 0.85);
+  }
+
+  .aoa-stack-name {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-stack-iface .aoa-stack-name {
+    font-size: 0.64rem;
+  }
+
+  .aoa-stack-base .aoa-stack-name {
+    font-weight: 600;
+    color: hsl(var(--primary-foreground));
+  }
+
+  .aoa-stack-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .aoa-stack-axis {
+    margin: 6px 0 0;
+    text-align: right;
+    font-size: 0.72rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* 收起状态：补偿层和接口层高度为 0，承载层先占满，展开时各自长到目标比例 */
+  .aoa-armed .aoa-stack-seg {
+    flex-grow: 0;
+  }
+
+  .aoa-armed .aoa-stack-base {
+    flex-grow: 1;
+  }
+
+  .aoa-armed .aoa-stack-name {
+    opacity: 0;
+  }
+
+  .aoa-play .aoa-stack-name {
+    transition: opacity 0.4s ease calc(var(--i, 0) * 160ms + 800ms);
+  }
+
+  /* ---------- 下面两列 ---------- */
+
+  .aoa-stack-lists {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .aoa-stack-list {
+    padding: 12px 14px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .aoa-stack-list-comp {
+    border-style: dashed;
+    border-color: hsl(var(--muted-foreground) / 0.45);
+  }
+
+  .aoa-stack-list-comp .aoa-list li {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-stack-list-base {
+    border-color: hsl(var(--primary) / 0.55);
+    background: hsl(var(--primary) / 0.06);
+  }
+
+  .aoa-stack-list-base strong {
+    font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    .aoa-stack-bar {
+      height: 200px;
+    }
+
+    .aoa-stack-lists {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media print {
+    .aoa-armed .aoa-stack-seg {
+      flex-grow: var(--h);
+    }
+
+    .aoa-armed .aoa-stack-name {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-stack-seg,
+    .aoa-play .aoa-stack-name {
+      transition: none;
+    }
+  }
+</style>
