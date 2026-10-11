@@ -17,6 +17,13 @@ export function armReveal(selector: string, onPlay?: (el: HTMLElement) => void, 
   figs.forEach((fig) => {
     if (fig.dataset.aoaArmed) return
     fig.dataset.aoaArmed = '1'
+    // 模块脚本可能在首帧之后才执行：已经在视口里的图直接保持终态，不先藏起来再出现，避免闪一下
+    const r = fig.getBoundingClientRect()
+    if (r.top < window.innerHeight && r.bottom > 0) {
+      fig.classList.add('aoa-play')
+      onPlay?.(fig)
+      return
+    }
     fig.classList.add('aoa-armed')
     const io = new IntersectionObserver(
       (entries) => {

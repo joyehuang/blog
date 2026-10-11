@@ -33,11 +33,13 @@ const metrics = [
           <dd class='aoa-d0-bars'>
             <span class='aoa-d0-bar aoa-d0-before' style='--len: 100%'>
               <span class='aoa-d0-val'>
+                <span class='aoa-sr'>旧架构（17 个工具）：</span>
                 {m.fmt(m.before)} {m.unit}
               </span>
             </span>
             <span class='aoa-d0-bar aoa-d0-after' style={`--len: ${((m.after / m.before) * 100).toFixed(1)}%`}>
               <span class='aoa-d0-val'>
+                <span class='aoa-sr'>bash + SQL（2 个工具）：</span>
                 {m.fmt(m.after)} {m.unit}
               </span>
             </span>

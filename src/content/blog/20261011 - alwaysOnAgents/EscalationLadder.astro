@@ -30,6 +30,7 @@ const tasks = [
 ]
 
 const initialStop = tasks[0].stop
+const initialLive = `停在第 ${initialStop} 级：${rungs[initialStop - 1].name}`
 ---
 
 <figure class='aoa-fig aoa-ladder not-prose' data-aoa-ladder>
@@ -77,12 +78,10 @@ const initialStop = tasks[0].stop
     <span class='aoa-ladder-bar'></span>
     <span>昂贵 · 打扰人</span>
   </div>
-  <p class='aoa-sub aoa-ladder-live' aria-live='polite' data-ladder-live></p>
+  <p class='aoa-sub aoa-ladder-live' aria-live='polite' data-ladder-live>{initialLive}</p>
 </figure>
 
 <script>
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
   document.querySelectorAll<HTMLElement>('[data-aoa-ladder]').forEach((fig) => {
     const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-choice')
     const rungs = Array.from(fig.querySelectorAll<HTMLElement>('.aoa-ladder-rung'))
@@ -95,7 +94,8 @@ const initialStop = tasks[0].stop
       const names = rungs.map((r) => r.querySelector('.aoa-ladder-name')?.firstChild?.textContent?.trim() ?? '')
       if (live) live.textContent = `停在第 ${stop} 级：${names[stop - 1]}`
 
-      if (reduce) {
+      // 每次点击都重新查，页面打开期间改了系统的动画偏好也能生效
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         rungs.forEach((r, i) => (r.dataset.state = i + 1 < stop ? 'skip' : i + 1 === stop ? 'hit' : 'idle'))
         return
       }

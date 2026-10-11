@@ -62,10 +62,17 @@ const gens = [
     <section class='aoa-card aoa-card-soft aoa-layers-comp'>
       <div class='aoa-layers-head'>
         <p class='aoa-title'>补偿层 <span class='aoa-layers-verb'>可删</span></p>
-        <span class='aoa-layers-meter'><span class='aoa-layers-fill' data-fill='comp' style={`--v: ${gens[0].comp}%`}></span></span>
+        <span class='aoa-layers-meter' role='meter' aria-label='补偿层的分量' aria-valuemin='0' aria-valuemax='100' aria-valuenow={gens[0].comp} data-meter='comp'><span class='aoa-layers-fill' data-fill='comp' style={`--v: ${gens[0].comp}%`}></span></span>
       </div>
       <ul class='aoa-layers-chips'>
-        {compensation.map((c) => <li data-gone={c.gone}>{c.label}</li>)}
+        {
+          compensation.map((c) => (
+            <li data-gone={c.gone}>
+              {c.label}
+              <span class='aoa-sr aoa-layers-gone-sr'>（已删掉）</span>
+            </li>
+          ))
+        }
       </ul>
     </section>
 
@@ -84,7 +91,7 @@ const gens = [
     <section class='aoa-card aoa-card-accent aoa-layers-base'>
       <div class='aoa-layers-head'>
         <p class='aoa-title'>承载层 <span class='aoa-layers-verb aoa-layers-verb-accent'>要加厚</span></p>
-        <span class='aoa-layers-meter'><span class='aoa-layers-fill aoa-layers-fill-accent' data-fill='base' style={`--v: ${gens[0].base}%`}></span></span>
+        <span class='aoa-layers-meter' role='meter' aria-label='承载层的分量' aria-valuemin='0' aria-valuemax='100' aria-valuenow={gens[0].base} data-meter='base'><span class='aoa-layers-fill aoa-layers-fill-accent' data-fill='base' style={`--v: ${gens[0].base}%`}></span></span>
       </div>
       <ul class='aoa-layers-base-list'>
         {
@@ -99,6 +106,9 @@ const gens = [
     </section>
   </div>
 
+  <p class='aoa-sr' aria-live='polite' data-layers-live>
+    {gens[0].label}：补偿层 {gens[0].comp}%，承载层 {gens[0].base}%。
+  </p>
   <p class='aoa-note'>示意图。哪一项先被删掉因产品而异，判断依据是评测，不是感觉。</p>
 </figure>
 
@@ -107,6 +117,9 @@ const gens = [
     const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-choice')
     const comp = fig.querySelector<HTMLElement>('[data-fill="comp"]')
     const base = fig.querySelector<HTMLElement>('[data-fill="base"]')
+    const compMeter = fig.querySelector<HTMLElement>('[data-meter="comp"]')
+    const baseMeter = fig.querySelector<HTMLElement>('[data-meter="base"]')
+    const live = fig.querySelector<HTMLElement>('[data-layers-live]')
 
     buttons.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -114,6 +127,14 @@ const gens = [
         fig.dataset.gen = btn.dataset.gen ?? '0'
         comp?.style.setProperty('--v', `${btn.dataset.comp}%`)
         base?.style.setProperty('--v', `${btn.dataset.base}%`)
+        compMeter?.setAttribute('aria-valuenow', btn.dataset.comp ?? '')
+        baseMeter?.setAttribute('aria-valuenow', btn.dataset.base ?? '')
+        const total = fig.querySelectorAll('.aoa-layers-chips li').length
+        const struck = Array.from(fig.querySelectorAll<HTMLElement>('.aoa-layers-chips li')).filter(
+          (li) => Number(li.dataset.gone) <= Number(btn.dataset.gen) && Number(btn.dataset.gen) > 0
+        ).length
+        if (live)
+          live.textContent = `${btn.textContent?.trim()}：补偿层 ${btn.dataset.comp}%，承载层 ${btn.dataset.base}%，${total} 项补偿里删掉了 ${struck} 项。`
       })
     })
   })
@@ -199,6 +220,16 @@ const gens = [
     opacity: 0.45;
     text-decoration: line-through;
     color: hsl(var(--muted-foreground));
+  }
+
+  /* 「已删掉」只在被划掉时读出来 */
+  .aoa-layers-gone-sr {
+    display: none;
+  }
+
+  .aoa-layers[data-gen='1'] li[data-gone='1'] .aoa-layers-gone-sr,
+  .aoa-layers[data-gen='2'] li .aoa-layers-gone-sr {
+    display: inline;
   }
 
   .aoa-layers-model {

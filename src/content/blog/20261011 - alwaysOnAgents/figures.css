@@ -147,6 +147,8 @@
 /* ---------- 进入视口时的出现动画（配合 reveal.ts） ---------- */
 
 .aoa-armed .aoa-rv {
+  /* visibility 让收起状态里的按钮既不能聚焦，也点不到 */
+  visibility: hidden;
   opacity: 0;
   transform: translateY(8px);
 }
@@ -159,9 +161,20 @@
 
 @media print {
   .aoa-armed .aoa-rv {
+    visibility: visible;
     opacity: 1;
     transform: none;
   }
+}
+
+/* 只给读屏软件看的文字 */
+.aoa-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
