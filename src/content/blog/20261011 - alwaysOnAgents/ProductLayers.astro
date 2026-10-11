@@ -12,6 +12,8 @@
  */
 import './figures.css'
 
+import RevealBoot from './RevealBoot.astro'
+
 // 每根柱子三段的相对高度（加起来是 100）
 const gens = [
   { label: '今天的模型', comp: 58, iface: 10, base: 32 },
@@ -39,19 +41,20 @@ const foundation = [
 
 <figure class='aoa-fig aoa-stack not-prose' data-aoa-stack>
   <figcaption class='aoa-cap'>
-    <strong>图 7 · 每换一代模型，补偿层变薄，承载层变厚。</strong>中间那层很薄的接口层基本不变；模型本身是外面的变量，不在产品里。
+    <strong>图 7 · 每换一代模型，补偿层变薄，承载层变厚。</strong
+    >中间那层很薄的接口层基本不变；模型本身是外面的变量，不在产品里。
   </figcaption>
 
   <div class='aoa-stack-chart'>
     <ol class='aoa-stack-cols'>
       {
         gens.map((g, i) => (
-          <li
-            class='aoa-stack-col'
-            style={`--i: ${i}`}
-            aria-label={`${g.label}：补偿层约 ${g.comp}%，接口层约 ${g.iface}%，承载层约 ${g.base}%`}
-          >
-            <div class='aoa-stack-bar' aria-hidden='true'>
+          <li class='aoa-stack-col' style={`--i: ${i}`}>
+            <div
+              class='aoa-stack-bar'
+              role='img'
+              aria-label={`${g.label}：补偿层约 ${g.comp}%，接口层约 ${g.iface}%，承载层约 ${g.base}%`}
+            >
               <span class='aoa-stack-seg aoa-stack-comp' style={`--h: ${g.comp}`}>
                 <span class='aoa-stack-name'>补偿层</span>
               </span>
@@ -62,7 +65,9 @@ const foundation = [
                 <span class='aoa-stack-name'>承载层</span>
               </span>
             </div>
-            <span class='aoa-stack-label' aria-hidden='true'>{g.label}</span>
+            <span class='aoa-stack-label' aria-hidden='true'>
+              {g.label}
+            </span>
           </li>
         ))
       }
@@ -94,8 +99,10 @@ const foundation = [
   </div>
 
   <p class='aoa-note'>
-    示意图，比例不是测量值。接口层指一个对话入口、少量基础工具和按需加载的 skills。哪一项先被删掉因产品而异，判断依据是评测。
+    示意图，比例不是测量值。接口层指一个对话入口、少量基础工具和按需加载的
+    skills。哪一项先被删掉因产品而异，判断依据是评测。
   </p>
+  <RevealBoot />
 </figure>
 
 <script>

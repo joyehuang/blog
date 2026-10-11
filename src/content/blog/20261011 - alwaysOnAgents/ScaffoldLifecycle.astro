@@ -10,11 +10,14 @@
  * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
  */
 import './figures.css'
+
+import RevealBoot from './RevealBoot.astro'
 ---
 
 <figure class='aoa-fig aoa-life not-prose' data-aoa-life>
   <figcaption class='aoa-cap'>
-    <strong>图 5 · 补偿层的价值先升后降。</strong>横轴是时间，也是一代代的模型；补偿层的净价值在交叉点之后变成负数。
+    <strong>图 5 · 补偿层的价值先升后降。</strong
+    >横轴是时间，也是一代代的模型；补偿层的净价值在交叉点之后变成负数。
   </figcaption>
 
   <svg
@@ -41,15 +44,11 @@ import './figures.css'
 
     <g clip-path='url(#aoa-life-wipe)'>
       <g clip-path='url(#aoa-life-above)'>
-        <path
-          class='aoa-life-gain'
-          d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'
+        <path class='aoa-life-gain' d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'
         ></path>
       </g>
       <g clip-path='url(#aoa-life-below)'>
-        <path
-          class='aoa-life-loss'
-          d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'
+        <path class='aoa-life-loss' d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'
         ></path>
       </g>
       <path class='aoa-life-model' d='M50,255 C200,240 320,150 440,48'></path>
@@ -63,12 +62,16 @@ import './figures.css'
 
     <g class='aoa-life-late' style='--at: 1.05s'>
       <circle class='aoa-life-dot' cx='307' cy='200' r='5'></circle>
-      <text class='aoa-life-accent aoa-life-sm' x='318' y='190' font-weight='600'>② 交叉点：该删了</text>
+      <text class='aoa-life-accent aoa-life-sm' x='318' y='190' font-weight='600'
+        >② 交叉点：该删了</text
+      >
     </g>
 
     <g class='aoa-life-late' style='--at: 1.45s'>
       <text class='aoa-life-danger aoa-life-sm' x='300' y='256' text-anchor='end'>③ 变成负担</text>
-      <text class='aoa-life-muted aoa-life-sm' x='300' y='280' text-anchor='end'>限制模型、冲突、占上下文、要维护</text>
+      <text class='aoa-life-muted aoa-life-sm' x='300' y='280' text-anchor='end'
+        >限制模型、冲突、占上下文、要维护</text
+      >
     </g>
 
     <g class='aoa-life-late' style='--at: 1.7s'>
@@ -77,13 +80,16 @@ import './figures.css'
       <text class='aoa-life-sm aoa-life-muted' x='450' y='278'>的净价值</text>
     </g>
 
-    <text class='aoa-life-muted aoa-life-sm' x='470' y='310' text-anchor='end'>时间 / 模型代际 →</text>
+    <text class='aoa-life-muted aoa-life-sm' x='470' y='310' text-anchor='end'
+      >时间 / 模型代际 →</text
+    >
   </svg>
 
   <p class='aoa-note'>
-    概念示意图，不是实测数据。思路来自 Sutton 的 The Bitter Lesson、Hyung Won Chung 关于「结构多和结构少」的曲线，以及 Aaron
-    Levie 说的「建脚手架、模型追上来、拆掉脚手架」。
+    概念示意图，不是实测数据。思路来自 Sutton 的 The Bitter Lesson、Hyung Won Chung
+    关于「结构多和结构少」的曲线，以及 Aaron Levie 说的「建脚手架、模型追上来、拆掉脚手架」。
   </p>
+  <RevealBoot />
 </figure>
 
 <script>

@@ -8,6 +8,8 @@
  */
 import './figures.css'
 
+import RevealBoot from './RevealBoot.astro'
+
 const metrics = [
   { name: '平均耗时', unit: '秒', before: 274.8, after: 77.4, fmt: (v: number) => v.toFixed(1) },
   { name: '平均 token', unit: 'k', before: 102, after: 61, fmt: (v: number) => `约 ${v}` },
@@ -17,7 +19,8 @@ const metrics = [
 
 <figure class='aoa-fig aoa-d0 not-prose' data-aoa-d0>
   <figcaption class='aoa-cap'>
-    <strong>图 6 · Vercel d0：17 个工具删到 2 个。</strong>成功率从 80% 升到 100%，下面三项都明显下降。
+    <strong>图 6 · Vercel d0：17 个工具删到 2 个。</strong>成功率从 80% 升到
+    100%，下面三项都明显下降。
   </figcaption>
 
   <div class='aoa-d0-legend' aria-hidden='true'>
@@ -31,15 +34,23 @@ const metrics = [
         <div class='aoa-d0-row aoa-rv' style={`--i: ${i}`}>
           <dt class='aoa-d0-name'>{m.name}</dt>
           <dd class='aoa-d0-bars'>
-            <span class='aoa-d0-bar aoa-d0-before' style='--len: 100%'>
+            <span
+              class='aoa-d0-bar aoa-d0-before'
+              style='--len: 100%'
+              role='img'
+              aria-label={`旧架构（17 个工具）：${m.fmt(m.before)} ${m.unit}`}
+            >
               <span class='aoa-d0-val'>
-                <span class='aoa-sr'>旧架构（17 个工具）：</span>
                 {m.fmt(m.before)} {m.unit}
               </span>
             </span>
-            <span class='aoa-d0-bar aoa-d0-after' style={`--len: ${((m.after / m.before) * 100).toFixed(1)}%`}>
+            <span
+              class='aoa-d0-bar aoa-d0-after'
+              style={`--len: ${((m.after / m.before) * 100).toFixed(1)}%`}
+              role='img'
+              aria-label={`bash + SQL（2 个工具）：${m.fmt(m.after)} ${m.unit}`}
+            >
               <span class='aoa-d0-val'>
-                <span class='aoa-sr'>bash + SQL（2 个工具）：</span>
                 {m.fmt(m.after)} {m.unit}
               </span>
             </span>
@@ -49,7 +60,10 @@ const metrics = [
     }
   </dl>
 
-  <p class='aoa-note'>数据来自 Vercel 博客。样本只有 5 条代表性查询，应当看作很强的信号，而不是统计结论。</p>
+  <p class='aoa-note'>
+    数据来自 Vercel 博客。样本只有 5 条代表性查询，应当看作很强的信号，而不是统计结论。
+  </p>
+  <RevealBoot />
 </figure>
 
 <script>
