@@ -11,6 +11,8 @@
  */
 import './figures.css'
 
+import RevealBoot from './RevealBoot.astro'
+
 const stages = [
   { name: 'Tab 补全', desc: '按一下 Tab，补全这一行', ui: 1, model: 1 },
   { name: '选中几行，弹出小对话框', desc: '只能改选中的这几行', ui: 2, model: 2 },
@@ -21,7 +23,8 @@ const stages = [
 
 <figure class='aoa-fig aoa-ui not-prose' data-aoa-ui>
   <figcaption class='aoa-cap'>
-    <strong>图 4 · AI 写代码工具的界面：先变复杂，再回到一个对话框。</strong>模型能力一直在涨，界面却在最后一步变简单了。
+    <strong>图 4 · AI 写代码工具的界面：先变复杂，再回到一个对话框。</strong
+    >模型能力一直在涨，界面却在最后一步变简单了。
   </figcaption>
 
   <ol class='aoa-ui-row'>
@@ -76,21 +79,35 @@ const stages = [
 
           <dl class='aoa-ui-meters'>
             <div>
-              <dt>界面复杂度</dt>
+              <dt id={`aoa-ui-${i}-complexity`}>界面复杂度</dt>
               <dd>
-                <span class='aoa-ui-meter'>
+                <span
+                  class='aoa-ui-meter'
+                  role='meter'
+                  aria-labelledby={`aoa-ui-${i}-complexity`}
+                  aria-valuemin='0'
+                  aria-valuemax='4'
+                  aria-valuenow={s.ui}
+                  aria-valuetext={`${s.ui} / 4`}
+                >
                   <span class='aoa-ui-fill aoa-ui-fill-ui' style={`--v: ${s.ui * 25}%`} />
                 </span>
-                <span class='aoa-sr'>{`${s.ui} / 4`}</span>
               </dd>
             </div>
             <div>
-              <dt>模型能力</dt>
+              <dt id={`aoa-ui-${i}-model`}>模型能力</dt>
               <dd>
-                <span class='aoa-ui-meter'>
+                <span
+                  class='aoa-ui-meter'
+                  role='meter'
+                  aria-labelledby={`aoa-ui-${i}-model`}
+                  aria-valuemin='0'
+                  aria-valuemax='4'
+                  aria-valuenow={s.model}
+                  aria-valuetext={`${s.model} / 4`}
+                >
                   <span class='aoa-ui-fill aoa-ui-fill-model' style={`--v: ${s.model * 25}%`} />
                 </span>
-                <span class='aoa-sr'>{`${s.model} / 4`}</span>
               </dd>
             </div>
           </dl>
@@ -100,6 +117,7 @@ const stages = [
   </ol>
 
   <p class='aoa-note'>示意图。复杂度和能力是相对的比较，不是测量值。</p>
+  <RevealBoot />
 </figure>
 
 <script>

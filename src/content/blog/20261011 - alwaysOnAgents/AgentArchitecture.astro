@@ -12,6 +12,8 @@
  */
 import './figures.css'
 
+import RevealBoot from './RevealBoot.astro'
+
 const triggers = [
   {
     key: 'me',
@@ -53,7 +55,8 @@ const triggers = [
 
 <figure class='aoa-fig aoa-arch not-prose' data-aoa-arch>
   <figcaption class='aoa-cap'>
-    <strong>图 1 · 常驻 Agent 的三段式架构。</strong>左边的触发器可以点，看不同来源的消息会被怎么处理。
+    <strong>图 1 · 常驻 Agent 的三段式架构。</strong
+    >左边的触发器可以点，看不同来源的消息会被怎么处理。
   </figcaption>
 
   <div class='aoa-arch-grid'>
@@ -95,7 +98,9 @@ const triggers = [
       <div class='aoa-arch-down' aria-hidden='true'>↓</div>
       <div class='aoa-card aoa-card-accent'>
         <p class='aoa-title'>Agent loop</p>
-        <p class='aoa-sub'>模型在循环里调用工具；每个任务是一个持久化工作流（Temporal），崩溃后从断点继续</p>
+        <p class='aoa-sub'>
+          模型在循环里调用工具；每个任务是一个持久化工作流（Temporal），崩溃后从断点继续
+        </p>
       </div>
       <div class='aoa-arch-down' aria-hidden='true'>↓</div>
       <div class='aoa-card aoa-card-soft'>
@@ -125,9 +130,12 @@ const triggers = [
         <li style='--k: 2'>快照</li>
         <li style='--k: 3'>休眠</li>
       </ol>
-      <p class='aoa-sub'>一直开着太贵，需要时才从快照唤醒。Agent loop 不在这里，所以虚拟机可以随时重建、打补丁。</p>
+      <p class='aoa-sub'>
+        一直开着太贵，需要时才从快照唤醒。Agent loop 不在这里，所以虚拟机可以随时重建、打补丁。
+      </p>
     </section>
   </div>
+  <RevealBoot />
 </figure>
 
 <script>

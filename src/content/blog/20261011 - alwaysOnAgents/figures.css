@@ -147,14 +147,16 @@
 /* ---------- 进入视口时的出现动画（配合 reveal.ts） ---------- */
 
 .aoa-armed .aoa-rv {
-  /* visibility 让收起状态里的按钮既不能聚焦，也点不到 */
+  /* visibility 让收起状态里的按钮既不能聚焦，也点不到；播放时再和透明度一起过渡回来 */
   visibility: hidden;
   opacity: 0;
   transform: translateY(8px);
 }
 
 .aoa-play .aoa-rv {
+  visibility: visible;
   transition:
+    visibility 0.5s ease calc(var(--i, 0) * 140ms),
     opacity 0.5s ease calc(var(--i, 0) * 140ms),
     transform 0.6s var(--aoa-ease) calc(var(--i, 0) * 140ms);
 }
@@ -172,12 +174,21 @@
   position: absolute;
   width: 1px;
   height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+  border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .aoa-armed .aoa-rv {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
   .aoa-play .aoa-rv,
   .aoa-choice {
     transition: none;
