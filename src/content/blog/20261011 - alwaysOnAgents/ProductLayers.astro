@@ -2,103 +2,90 @@
 /**
  * ProductLayers.astro
  *
- * 常驻 Agent 那篇博文第八节的图：一个 Agent 产品的四层。
- * 补偿层（可删）→ 接口层（薄而稳）→ 模型（外部变量）→ 承载层（要加厚）。
+ * 常驻 Agent 那篇博文第八节的图：一个 Agent 产品由补偿层、接口层、承载层组成，
+ * 模型是外部变量。上半部分是三根并排的堆叠柱（今天的模型 / 下一代 / 再下一代），
+ * 不用点就能看出：每换一代，补偿层变薄，承载层变厚，接口层基本不变。
+ * 下半部分两列，分别列出补偿层里可以删的东西和承载层里要加厚的东西。
  *
- * 交互：上面三个按钮切换「今天的模型 / 下一代 / 再下一代」。每换一代，补偿层里的一部分
- * 被划掉，补偿层的条变短；承载层的条变长。哪一项先被删是示意，因产品而异。
- * 没有 JS 时停在「今天的模型」；prefers-reduced-motion 下取消过渡。
+ * 比例是示意，不是测量值。
+ * 动效：进入视口时三根柱子从左到右依次长出来；没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
  */
 import './figures.css'
 
-// gone：从第几代开始可以删掉（1 = 下一代，2 = 再下一代）
+// 每根柱子三段的相对高度（加起来是 100）
+const gens = [
+  { label: '今天的模型', comp: 58, iface: 10, base: 32 },
+  { label: '下一代', comp: 32, iface: 10, base: 58 },
+  { label: '再下一代', comp: 12, iface: 10, base: 78 }
+]
+
 const compensation = [
-  { label: '堆砌的 few-shot 示例', gone: 1 },
-  { label: '冗长、互相打架的规则', gone: 1 },
-  { label: '关键词意图路由', gone: 1 },
-  { label: '手写检索、RAG 分块', gone: 2 },
-  { label: '为单一任务做的专用小工具', gone: 2 },
-  { label: '向导、模式切换、模型选择器', gone: 2 }
+  '堆砌的 few-shot 示例',
+  '冗长、互相打架的规则',
+  '关键词意图路由',
+  '手写检索、RAG 分块',
+  '为单一任务做的专用小工具',
+  '向导、模式切换、模型选择器'
 ]
 
 const foundation = [
-  { name: '数据与记忆', desc: '用户画像、日志、可读的知识和语义层' },
-  { name: '评测与 trace', desc: '每个 bug 变成一条 eval，换模型先跑回归' },
-  { name: '集成与权限', desc: '账号、OAuth、支付；不可逆操作的审批和审计' },
+  { name: '数据与记忆', desc: '用户画像、日志、可读的知识' },
+  { name: '评测与 trace', desc: '每个 bug 变成一条 eval' },
+  { name: '集成与权限', desc: '账号、支付、不可逆操作的审批' },
   { name: '分发与用户关系', desc: '用户、社群、渠道' },
-  { name: '运行时', desc: '持久化、沙箱、缓存、成本上限、可观测性' }
-]
-
-const gens = [
-  { label: '今天的模型', comp: 92, base: 45 },
-  { label: '下一代', comp: 55, base: 68 },
-  { label: '再下一代', comp: 22, base: 90 }
+  { name: '运行时', desc: '持久化、沙箱、缓存、成本上限' }
 ]
 ---
 
-<figure class='aoa-fig aoa-layers not-prose' data-aoa-layers data-gen='0'>
+<figure class='aoa-fig aoa-stack not-prose' data-aoa-stack>
   <figcaption class='aoa-cap'>
-    <strong>图 8 · 哪一层该删，哪一层该加厚。</strong>切换模型代际，看补偿层怎么变薄、承载层怎么变厚。
+    <strong>图 8 · 每换一代模型，补偿层变薄，承载层变厚。</strong>中间那层很薄的接口层基本不变；模型本身是外面的变量，不在产品里。
   </figcaption>
 
-  <div class='aoa-choices' role='group' aria-label='选择模型代际'>
-    {
-      gens.map((g, i) => (
-        <button
-          type='button'
-          class='aoa-choice'
-          data-gen={i}
-          data-comp={g.comp}
-          data-base={g.base}
-          aria-pressed={i === 0 ? 'true' : 'false'}
-        >
-          {g.label}
-        </button>
-      ))
-    }
+  <div class='aoa-stack-chart'>
+    <ol class='aoa-stack-cols'>
+      {
+        gens.map((g, i) => (
+          <li
+            class='aoa-stack-col'
+            style={`--i: ${i}`}
+            aria-label={`${g.label}：补偿层约 ${g.comp}%，接口层约 ${g.iface}%，承载层约 ${g.base}%`}
+          >
+            <div class='aoa-stack-bar' aria-hidden='true'>
+              <span class='aoa-stack-seg aoa-stack-comp' style={`--h: ${g.comp}`}>
+                <span class='aoa-stack-name'>补偿层</span>
+              </span>
+              <span class='aoa-stack-seg aoa-stack-iface' style={`--h: ${g.iface}`}>
+                <span class='aoa-stack-name'>接口层</span>
+              </span>
+              <span class='aoa-stack-seg aoa-stack-base' style={`--h: ${g.base}`}>
+                <span class='aoa-stack-name'>承载层</span>
+              </span>
+            </div>
+            <span class='aoa-stack-label' aria-hidden='true'>{g.label}</span>
+          </li>
+        ))
+      }
+    </ol>
+    <p class='aoa-stack-axis' aria-hidden='true'>模型代际 →</p>
   </div>
 
-  <div class='aoa-layers-stack'>
-    <section class='aoa-card aoa-card-soft aoa-layers-comp'>
-      <div class='aoa-layers-head'>
-        <p class='aoa-title'>补偿层 <span class='aoa-layers-verb'>可删</span></p>
-        <span class='aoa-layers-meter' role='meter' aria-label='补偿层的分量' aria-valuemin='0' aria-valuemax='100' aria-valuenow={gens[0].comp} data-meter='comp'><span class='aoa-layers-fill' data-fill='comp' style={`--v: ${gens[0].comp}%`}></span></span>
-      </div>
-      <ul class='aoa-layers-chips'>
-        {
-          compensation.map((c) => (
-            <li data-gone={c.gone}>
-              {c.label}
-              <span class='aoa-sr aoa-layers-gone-sr'>（已删掉）</span>
-            </li>
-          ))
-        }
+  <div class='aoa-stack-lists'>
+    <section class='aoa-stack-list aoa-stack-list-comp'>
+      <p class='aoa-title'>补偿层：可以删</p>
+      <p class='aoa-sub'>因为模型还不够好，才替它做的事</p>
+      <ul class='aoa-list'>
+        {compensation.map((c) => <li>{c}</li>)}
       </ul>
     </section>
-
-    <section class='aoa-card aoa-layers-thin'>
-      <div class='aoa-layers-head'>
-        <p class='aoa-title'>接口层 <span class='aoa-layers-verb'>薄而稳</span></p>
-      </div>
-      <p class='aoa-sub'>一个对话入口 · 少量基础工具（shell、文件、搜索、发消息）· 按需加载的 skills</p>
-    </section>
-
-    <section class='aoa-layers-model'>
-      <p class='aoa-title'>模型 <span class='aoa-layers-verb'>外部变量</span></p>
-      <p class='aoa-sub'>每隔几个月换一代。用「换成强模型能多拿到多少提升」检验架构。</p>
-    </section>
-
-    <section class='aoa-card aoa-card-accent aoa-layers-base'>
-      <div class='aoa-layers-head'>
-        <p class='aoa-title'>承载层 <span class='aoa-layers-verb aoa-layers-verb-accent'>要加厚</span></p>
-        <span class='aoa-layers-meter' role='meter' aria-label='承载层的分量' aria-valuemin='0' aria-valuemax='100' aria-valuenow={gens[0].base} data-meter='base'><span class='aoa-layers-fill aoa-layers-fill-accent' data-fill='base' style={`--v: ${gens[0].base}%`}></span></span>
-      </div>
-      <ul class='aoa-layers-base-list'>
+    <section class='aoa-stack-list aoa-stack-list-base'>
+      <p class='aoa-title'>承载层：要加厚</p>
+      <p class='aoa-sub'>不管模型多强都需要的东西</p>
+      <ul class='aoa-list'>
         {
           foundation.map((f) => (
             <li>
-              <strong>{f.name}</strong>
-              <span>{f.desc}</span>
+              <strong>{f.name}</strong>：{f.desc}
             </li>
           ))
         }
@@ -106,189 +93,179 @@ const gens = [
     </section>
   </div>
 
-  <p class='aoa-sr' aria-live='polite' data-layers-live>
-    {gens[0].label}：补偿层 {gens[0].comp}%，承载层 {gens[0].base}%。
+  <p class='aoa-note'>
+    示意图，比例不是测量值。接口层指一个对话入口、少量基础工具和按需加载的 skills。哪一项先被删掉因产品而异，判断依据是评测。
   </p>
-  <p class='aoa-note'>示意图。哪一项先被删掉因产品而异，判断依据是评测，不是感觉。</p>
 </figure>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-aoa-layers]').forEach((fig) => {
-    const buttons = fig.querySelectorAll<HTMLButtonElement>('.aoa-choice')
-    const comp = fig.querySelector<HTMLElement>('[data-fill="comp"]')
-    const base = fig.querySelector<HTMLElement>('[data-fill="base"]')
-    const compMeter = fig.querySelector<HTMLElement>('[data-meter="comp"]')
-    const baseMeter = fig.querySelector<HTMLElement>('[data-meter="base"]')
-    const live = fig.querySelector<HTMLElement>('[data-layers-live]')
+  import { armReveal } from './reveal'
 
-    buttons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        buttons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'))
-        fig.dataset.gen = btn.dataset.gen ?? '0'
-        comp?.style.setProperty('--v', `${btn.dataset.comp}%`)
-        base?.style.setProperty('--v', `${btn.dataset.base}%`)
-        compMeter?.setAttribute('aria-valuenow', btn.dataset.comp ?? '')
-        baseMeter?.setAttribute('aria-valuenow', btn.dataset.base ?? '')
-        const total = fig.querySelectorAll('.aoa-layers-chips li').length
-        const struck = Array.from(fig.querySelectorAll<HTMLElement>('.aoa-layers-chips li')).filter(
-          (li) => Number(li.dataset.gone) <= Number(btn.dataset.gen) && Number(btn.dataset.gen) > 0
-        ).length
-        if (live)
-          live.textContent = `${btn.textContent?.trim()}：补偿层 ${btn.dataset.comp}%，承载层 ${btn.dataset.base}%，${total} 项补偿里删掉了 ${struck} 项。`
-      })
-    })
-  })
+  armReveal('[data-aoa-stack]')
 </script>
 
 <style>
-  .aoa-layers-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .aoa-layers-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .aoa-layers-verb {
-    margin-left: 6px;
-    padding: 0 7px;
+  .aoa-stack-chart {
+    padding: 14px 14px 8px;
     border: 1px solid hsl(var(--border));
-    border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 400;
-    color: hsl(var(--muted-foreground));
-    vertical-align: 1px;
-  }
-
-  .aoa-layers-verb-accent {
-    border-color: hsl(var(--primary) / 0.6);
-    color: hsl(var(--primary));
-  }
-
-  .aoa-layers-meter {
-    position: relative;
-    flex: 0 0 34%;
-    height: 6px;
-    border-radius: 6px;
-    background: hsl(var(--muted));
-    overflow: hidden;
-  }
-
-  .aoa-layers-fill {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: var(--v);
-    border-radius: inherit;
-    background: hsl(var(--muted-foreground) / 0.55);
-    transition: width 0.5s var(--aoa-ease);
-  }
-
-  .aoa-layers-fill-accent {
-    background: hsl(var(--primary));
-  }
-
-  .aoa-layers-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 10px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .aoa-layers-chips li {
-    padding: 2px 9px;
-    border: 1px solid hsl(var(--border));
-    border-radius: 6px;
-    background: hsl(var(--background) / 0.7);
-    font-size: 0.78rem;
-    line-height: 1.6;
-    color: hsl(var(--foreground) / 0.85);
-    transition:
-      opacity 0.35s ease,
-      color 0.35s ease;
-  }
-
-  /* 换代之后被删掉的补偿：划掉、变淡 */
-  .aoa-layers[data-gen='1'] .aoa-layers-chips li[data-gone='1'],
-  .aoa-layers[data-gen='2'] .aoa-layers-chips li {
-    opacity: 0.45;
-    text-decoration: line-through;
-    color: hsl(var(--muted-foreground));
-  }
-
-  /* 「已删掉」只在被划掉时读出来 */
-  .aoa-layers-gone-sr {
-    display: none;
-  }
-
-  .aoa-layers[data-gen='1'] li[data-gone='1'] .aoa-layers-gone-sr,
-  .aoa-layers[data-gen='2'] li .aoa-layers-gone-sr {
-    display: inline;
-  }
-
-  .aoa-layers-model {
-    padding: 8px 14px;
-    border: 1px dashed hsl(var(--muted-foreground) / 0.5);
     border-radius: 12px;
   }
 
-  .aoa-layers-base-list {
+  .aoa-stack-cols {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 8px 14px;
-    margin: 10px 0 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(12px, 4vw, 40px);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .aoa-layers-base-list li {
+  .aoa-stack-col {
     display: flex;
     flex-direction: column;
-    font-size: 0.78rem;
-    line-height: 1.55;
+    align-items: center;
+    gap: 8px;
   }
 
-  .aoa-layers-base-list strong {
-    font-size: 0.84rem;
-    font-weight: 600;
+  .aoa-stack-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: min(100%, 150px);
+    height: 230px;
   }
 
-  .aoa-layers-base-list span {
+  .aoa-stack-seg {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: var(--h) 1 0;
+    min-height: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: flex-grow 0.9s var(--aoa-ease) calc(var(--i, 0) * 160ms + 150ms);
+  }
+
+  .aoa-stack-comp {
+    border: 1.5px dashed hsl(var(--muted-foreground) / 0.55);
+    background: hsl(var(--muted-foreground) / 0.08);
+  }
+
+  .aoa-stack-iface {
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+  }
+
+  :global(.dark) .aoa-stack-iface {
+    background: hsl(var(--foreground) / 0.08);
+  }
+
+  .aoa-stack-base {
+    background: hsl(var(--primary) / 0.85);
+  }
+
+  .aoa-stack-name {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    white-space: nowrap;
     color: hsl(var(--muted-foreground));
   }
 
-  .aoa-layers-base {
-    transition: box-shadow 0.4s ease;
+  .aoa-stack-iface .aoa-stack-name {
+    font-size: 0.64rem;
   }
 
-  .aoa-layers[data-gen='1'] .aoa-layers-base {
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.18);
+  .aoa-stack-base .aoa-stack-name {
+    font-weight: 600;
+    color: hsl(var(--primary-foreground));
   }
 
-  .aoa-layers[data-gen='2'] .aoa-layers-base {
-    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.22);
+  .aoa-stack-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .aoa-stack-axis {
+    margin: 6px 0 0;
+    text-align: right;
+    font-size: 0.72rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* 收起状态：补偿层和接口层高度为 0，承载层先占满，展开时各自长到目标比例 */
+  .aoa-armed .aoa-stack-seg {
+    flex-grow: 0;
+  }
+
+  .aoa-armed .aoa-stack-base {
+    flex-grow: 1;
+  }
+
+  .aoa-armed .aoa-stack-name {
+    opacity: 0;
+  }
+
+  .aoa-play .aoa-stack-name {
+    transition: opacity 0.4s ease calc(var(--i, 0) * 160ms + 800ms);
+  }
+
+  /* ---------- 下面两列 ---------- */
+
+  .aoa-stack-lists {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .aoa-stack-list {
+    padding: 12px 14px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .aoa-stack-list-comp {
+    border-style: dashed;
+    border-color: hsl(var(--muted-foreground) / 0.45);
+  }
+
+  .aoa-stack-list-comp .aoa-list li {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-stack-list-base {
+    border-color: hsl(var(--primary) / 0.55);
+    background: hsl(var(--primary) / 0.06);
+  }
+
+  .aoa-stack-list-base strong {
+    font-weight: 600;
   }
 
   @media (max-width: 640px) {
-    .aoa-layers-head {
-      flex-wrap: wrap;
+    .aoa-stack-bar {
+      height: 200px;
     }
 
-    .aoa-layers-meter {
-      flex-basis: 100%;
+    .aoa-stack-lists {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media print {
+    .aoa-armed .aoa-stack-seg {
+      flex-grow: var(--h);
+    }
+
+    .aoa-armed .aoa-stack-name {
+      opacity: 1;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .aoa-layers-fill,
-    .aoa-layers-chips li,
-    .aoa-layers-base {
+    .aoa-stack-seg,
+    .aoa-play .aoa-stack-name {
       transition: none;
     }
   }
