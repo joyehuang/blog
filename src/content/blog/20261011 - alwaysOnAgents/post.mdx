@@ -43,11 +43,9 @@ import ProductLayers from './ProductLayers.astro'
 
 Lee 先回顾了我们是怎么走到今天的，他分了四个阶段。最早是复制粘贴：从 ChatGPT 里复制代码，再粘回编辑器。后来有了跑在终端里的 Harness，模型可以自己改文件、跑命令。再后来有了专门的 App，可以在云端同时跑很多个 Agent，但人成了瓶颈，每一条命令都要等你审批。现在是第四个阶段：常驻 Agent。
 
-我在 [Talks 第一期](/talks#talk-1)里也讲过类似的演进，当时引用的是 Karpathy 的三个阶段。划分的方法不一样，看到的是同一件事：人和模型之间的协作方式，每隔一段时间就会换一次。
+我在 [Talks 第二期](/talks#talk-2)里也讲过类似的演进，当时引用的是 Karpathy 的三层：第一层是网页版的 LLM，你打开网页提问，它是一台回答问题的机器；第二层是本地或 IDE 里的 Agent，比如 Claude Code、Cursor、Codex，它能直接操作你的文件；第三层是常驻的 Agent，有记忆，异步工作，可以多人接力。换句话说，LLM 从 response interface 变成了 delegation interface：你不再是问它，而是把工作委托给它。
 
-{/* TODO(joye)：确认一下 Talks 第一期里 Karpathy 三个阶段的具体说法，可以在这里点出名字 */}
-
-我自己习惯把现在的 Agent 产品分成三种形态：网页端的 Agent；装在电脑上的 coding agent，比如 Claude Code 和 Codex；以及跑在云端、在聊天软件里就能找到的 bot，我暂时把它们统称为 personal agent。Grok Bot 属于第三种。
+我自己划分 Agent 产品，也是按这三种形态：网页端的 Agent；装在电脑上的 coding agent；以及跑在云端、在聊天软件里就能找到的 bot，我暂时把它们统称为 personal agent。Grok Bot 属于第三种。
 
 第三种真正改变了我们使用 Agent 的方式。最早用 Agent，是我发一条，等它做完，才能发下一条。现在更像和同事一起工作：你可以随时插话，先说「去看一下这个帖子」，紧接着补一句「其实周四再做也行」，它能理解这两句话说的是同一件事；它在后台把事情做完，有重要的进展才回来找你。Lee 的原话是 "It knows when to be quiet."
 
