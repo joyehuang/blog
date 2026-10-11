@@ -1,0 +1,346 @@
+---
+/**
+ * CodingUiTimeline.astro
+ *
+ * 常驻 Agent 那篇博文第六节的图：AI 写代码工具界面的四个阶段。
+ * Tab 补全 → 选中几行弹出小对话框 → 侧边栏 + 各种模式 → 一个对话框。
+ * 每张卡片上半部分是界面的简笔示意，下面两条刻度：界面复杂度先升后降，模型能力一直上升。
+ *
+ * 动效：进入视口时卡片从左到右依次出现，刻度跟着长出来。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import './figures.css'
+
+const stages = [
+  { name: 'Tab 补全', desc: '按一下 Tab，补全这一行', ui: 1, model: 1 },
+  { name: '选中几行，弹出小对话框', desc: '只能改选中的这几行', ui: 2, model: 2 },
+  { name: '侧边栏 + 各种模式', desc: '先选 Ask、Plan 还是 Agent', ui: 4, model: 3 },
+  { name: '一个对话框', desc: '点进去直接说要做什么', ui: 1, model: 4 }
+]
+---
+
+<figure class='aoa-fig aoa-ui not-prose' data-aoa-ui>
+  <figcaption class='aoa-cap'>
+    <strong>图 5 · AI 写代码工具的界面：先变复杂，再回到一个对话框。</strong>模型能力一直在涨，界面却在最后一步变简单了。
+  </figcaption>
+
+  <ol class='aoa-ui-row'>
+    {
+      stages.map((s, i) => (
+        <li class='aoa-card aoa-ui-card aoa-rv' style={`--i: ${i}`}>
+          <div class={`aoa-ui-mock aoa-ui-mock-${i + 1}`} aria-hidden='true'>
+            {i === 0 && (
+              <>
+                <span class='aoa-ui-line' style='--w: 70%' />
+                <span class='aoa-ui-line' style='--w: 52%' />
+                <span class='aoa-ui-line aoa-ui-cursor' style='--w: 34%'>
+                  <span class='aoa-ui-ghost' />
+                </span>
+                <span class='aoa-ui-line' style='--w: 60%' />
+              </>
+            )}
+            {i === 1 && (
+              <>
+                <span class='aoa-ui-line' style='--w: 66%' />
+                <span class='aoa-ui-popup'>改成…</span>
+                <span class='aoa-ui-line aoa-ui-sel' style='--w: 58%' />
+                <span class='aoa-ui-line' style='--w: 44%' />
+              </>
+            )}
+            {i === 2 && (
+              <div class='aoa-ui-split'>
+                <div class='aoa-ui-editor'>
+                  <span class='aoa-ui-line' style='--w: 80%' />
+                  <span class='aoa-ui-line' style='--w: 60%' />
+                  <span class='aoa-ui-line' style='--w: 72%' />
+                  <span class='aoa-ui-line' style='--w: 50%' />
+                </div>
+                <div class='aoa-ui-side'>
+                  <span class='aoa-ui-mode aoa-ui-mode-on'>Agent</span>
+                  <span class='aoa-ui-mode'>Plan</span>
+                  <span class='aoa-ui-mode'>Ask</span>
+                  <span class='aoa-ui-input aoa-ui-input-sm' />
+                </div>
+              </div>
+            )}
+            {i === 3 && (
+              <div class='aoa-ui-center'>
+                <span class='aoa-ui-input'>要做什么？</span>
+              </div>
+            )}
+          </div>
+
+          <p class='aoa-ui-step'>{`0${i + 1}`}</p>
+          <p class='aoa-title'>{s.name}</p>
+          <p class='aoa-sub'>{s.desc}</p>
+
+          <dl class='aoa-ui-meters'>
+            <div>
+              <dt>界面复杂度</dt>
+              <dd>
+                <span class='aoa-ui-meter'>
+                  <span class='aoa-ui-fill aoa-ui-fill-ui' style={`--v: ${s.ui * 25}%`} />
+                </span>
+                <span class='aoa-sr'>{`${s.ui} / 4`}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>模型能力</dt>
+              <dd>
+                <span class='aoa-ui-meter'>
+                  <span class='aoa-ui-fill aoa-ui-fill-model' style={`--v: ${s.model * 25}%`} />
+                </span>
+                <span class='aoa-sr'>{`${s.model} / 4`}</span>
+              </dd>
+            </div>
+          </dl>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p class='aoa-note'>示意图。复杂度和能力是相对的比较，不是测量值。</p>
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  armReveal('[data-aoa-ui]')
+</script>
+
+<style>
+  .aoa-ui-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aoa-ui-card {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px 12px;
+  }
+
+  .aoa-ui-card:last-child {
+    border-color: hsl(var(--primary) / 0.55);
+  }
+
+  /* ---------- 界面简笔示意 ---------- */
+
+  .aoa-ui-mock {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    height: 84px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--background));
+    overflow: hidden;
+  }
+
+  .aoa-ui-line {
+    position: relative;
+    display: block;
+    width: var(--w);
+    height: 5px;
+    border-radius: 3px;
+    background: hsl(var(--muted-foreground) / 0.25);
+  }
+
+  /* Tab 补全：光标后面那段灰色的建议 */
+  .aoa-ui-ghost {
+    position: absolute;
+    left: calc(100% + 3px);
+    top: 0;
+    width: 70%;
+    height: 5px;
+    border-radius: 3px;
+    border: 1px dashed hsl(var(--primary) / 0.7);
+    box-sizing: border-box;
+  }
+
+  .aoa-ui-cursor::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -3px;
+    width: 1.5px;
+    height: 11px;
+    background: hsl(var(--primary));
+  }
+
+  /* 选中一行 + 小对话框 */
+  .aoa-ui-sel {
+    background: hsl(var(--primary) / 0.45);
+  }
+
+  .aoa-ui-popup {
+    align-self: flex-start;
+    margin-left: 10%;
+    padding: 1px 8px;
+    border: 1px solid hsl(var(--primary) / 0.6);
+    border-radius: 5px;
+    background: hsl(var(--card));
+    font-size: 0.66rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  :global(.dark) .aoa-ui-popup {
+    background: hsl(var(--muted));
+  }
+
+  /* 编辑器 + 侧边栏 */
+  .aoa-ui-split {
+    display: grid;
+    grid-template-columns: 1fr 44%;
+    gap: 6px;
+    height: 100%;
+  }
+
+  .aoa-ui-editor {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .aoa-ui-side {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-left: 6px;
+    border-left: 1px solid hsl(var(--border));
+  }
+
+  .aoa-ui-mode {
+    padding: 0 4px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 4px;
+    font-size: 0.58rem;
+    line-height: 1.45;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ui-mode-on {
+    border-color: hsl(var(--primary) / 0.7);
+    color: hsl(var(--primary));
+  }
+
+  /* 一个对话框 */
+  .aoa-ui-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .aoa-ui-input {
+    display: block;
+    width: 86%;
+    padding: 4px 8px;
+    border: 1px solid hsl(var(--primary) / 0.7);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ui-input-sm {
+    width: 100%;
+    height: 11px;
+    margin-top: auto;
+    padding: 0;
+    border-color: hsl(var(--border));
+  }
+
+  /* ---------- 文字和刻度 ---------- */
+
+  .aoa-ui-step {
+    margin: 0 0 2px;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ui-meters {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: auto 0 0;
+    padding-top: 10px;
+  }
+
+  .aoa-ui-meters div {
+    display: grid;
+    grid-template-columns: 4.6em minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+  }
+
+  .aoa-ui-meters dt {
+    font-size: 0.68rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .aoa-ui-meters dd {
+    margin: 0;
+  }
+
+  .aoa-ui-meter {
+    position: relative;
+    display: block;
+    height: 6px;
+    border-radius: 6px;
+    background: hsl(var(--muted));
+    overflow: hidden;
+  }
+
+  .aoa-ui-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--v);
+    border-radius: inherit;
+  }
+
+  .aoa-ui-fill-ui {
+    background: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .aoa-ui-fill-model {
+    background: hsl(var(--primary));
+  }
+
+  .aoa-armed .aoa-ui-fill {
+    width: 0;
+  }
+
+  .aoa-play .aoa-ui-fill {
+    transition: width 0.8s var(--aoa-ease) calc(var(--i, 0) * 140ms + 250ms);
+  }
+
+  @media print {
+    .aoa-armed .aoa-ui-fill {
+      width: var(--v);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .aoa-ui-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-play .aoa-ui-fill {
+      transition: none;
+    }
+  }
+</style>
