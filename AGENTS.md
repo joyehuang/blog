@@ -33,3 +33,11 @@ Review changes on the local server, not on Vercel. `main` deploys to production,
 All new commits must follow Conventional Commits: `type(optional-scope): imperative summary`. Prefer `feat`, `fix`, `docs`, `refactor`, `test`, `style`, `perf`, `build`, `ci`, and `chore`; for example, `fix(i18n): route unknown English pages to 404`. Keep each commit focused and mark breaking changes with `!` or a `BREAKING CHANGE:` footer.
 
 Pull requests should explain the problem and solution, link relevant issues, list validation commands, and include screenshots or recordings from the local server for visible UI changes. Note content, configuration, analytics, or deployment implications explicitly. Keep unrelated refactors out of the same PR.
+
+## Cursor Cloud specific instructions
+
+- The Cloud Agent install pins Bun 1.3.10 on `/usr/local/bin` (login shells skip `~/.bashrc`) and runs `bun install --frozen-lockfile` plus `bun install --cwd scripts/friend-links --frozen-lockfile`.
+- `start` runs `bun run dev -- --host 0.0.0.0 --port 4321`. On-demand routes such as `/api/search.json` need this dev server. `bun run preview:local` serves a production build on port 4323.
+- Jojo is optional. The site builds with the Jojo-off fallback when `joyehuang/jojo-friends` is not readable. `bun run jojo:pull` needs a GitHub login that can download that private release.
+- `WALINE_DATABASE_URL`, `DATABASE_URL`, and `GITHUB_TOKEN` are optional. Without them the homepage still renders, page views stay `—`, and `/api/github-contributions` returns 500.
+- `scripts/friend-links` merge tests spawn `git` and inherit global config. With `commit.gpgsign=true` they can exceed Bun's 5s timeout. Run them with commit signing off: `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=commit.gpgsign GIT_CONFIG_VALUE_0=false bun test scripts/friend-links`.
