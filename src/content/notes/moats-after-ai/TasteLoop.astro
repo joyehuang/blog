@@ -1,0 +1,204 @@
+---
+/**
+ * TasteLoop.astro
+ *
+ * 品味 → 反馈 → 信任，再回到下一轮品味。
+ * 进入视口时三张卡片错开出现，底部的弧线再画回来。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const steps = [
+  {
+    name: '品味',
+    desc: '决定做什么，也决定不做什么'
+  },
+  {
+    name: '反馈',
+    desc: '看人卡在哪，改下一次的判断'
+  },
+  {
+    name: '信任',
+    desc: '记录留下来，把事交给你变贵'
+  }
+]
+---
+
+<figure class='aoa-fig moat-loop not-prose' data-moat-loop>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · 品味、反馈、信任是一个环。</strong>
+    品味定方向，反馈改判断，信任攒下来，再决定下一轮做什么。
+  </figcaption>
+
+  <div class='moat-loop-board'>
+    <div class='moat-loop-row' role='list'>
+      {
+        steps.map((step, i) => (
+          <>
+            <div class='aoa-card aoa-card-accent aoa-rv' style={`--i: ${i}`} role='listitem'>
+              <p class='aoa-kicker'>0{i + 1}</p>
+              <p class='aoa-title'>{step.name}</p>
+              <p class='aoa-sub'>{step.desc}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <span class='moat-chev aoa-rv' style={`--i: ${i}`} aria-hidden='true'>
+                →
+              </span>
+            )}
+          </>
+        ))
+      }
+    </div>
+
+    <div class='moat-return' aria-hidden='true'>
+      <svg class='moat-return-svg' viewBox='0 0 640 72' fill='none'>
+        <path
+          class='moat-arc'
+          d='M560 10 C560 62 80 62 80 14'
+          stroke='currentColor'
+          stroke-width='1.75'
+          stroke-linecap='round'
+          pathLength='1'></path>
+      </svg>
+      <span class='moat-return-head'></span>
+      <span class='moat-return-label'>下一轮，方向更准</span>
+    </div>
+  </div>
+
+  <p class='aoa-note'>监管位置不在这个环上。执行速度能拉开一段距离，距离会过期，所以也不在。</p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-moat-loop]', undefined, 0.28)
+</script>
+
+<style>
+  .moat-loop-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .moat-loop-row .aoa-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .moat-chev {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1;
+    color: hsl(var(--primary));
+  }
+
+  .moat-return {
+    position: relative;
+    margin-top: 2px;
+    color: hsl(var(--primary));
+  }
+
+  .moat-return-svg {
+    display: block;
+    width: 100%;
+    height: 72px;
+  }
+
+  .moat-arc {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .moat-return-head {
+    position: absolute;
+    left: 11.2%;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    border-top: 1.75px solid currentColor;
+    border-right: 1.75px solid currentColor;
+    transform: rotate(-40deg);
+    opacity: 1;
+  }
+
+  .moat-return-label {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    padding: 0 8px;
+    background: hsl(var(--background));
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+
+  .aoa-armed .moat-arc {
+    stroke-dashoffset: 1;
+  }
+
+  .aoa-armed .moat-return-head {
+    opacity: 0;
+  }
+
+  .aoa-play .moat-arc {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s var(--aoa-ease) 0.5s;
+  }
+
+  .aoa-play .moat-return-head {
+    opacity: 1;
+    transition: opacity 0.35s ease 1.25s;
+  }
+
+  @media (max-width: 640px) {
+    .moat-loop-row {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+
+    .moat-chev {
+      transform: rotate(90deg);
+    }
+
+    .moat-return-label {
+      font-size: 0.7rem;
+    }
+  }
+
+  @media print {
+    .aoa-armed .moat-arc {
+      stroke-dashoffset: 0;
+    }
+
+    .aoa-armed .moat-return-head {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-armed .moat-arc {
+      stroke-dashoffset: 0;
+    }
+
+    .aoa-armed .moat-return-head {
+      opacity: 1;
+    }
+
+    .aoa-play .moat-arc,
+    .aoa-play .moat-return-head {
+      transition: none;
+    }
+  }
+</style>
