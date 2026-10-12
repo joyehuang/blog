@@ -23,7 +23,22 @@ const imagesGlob = import.meta.glob<{ default: ImageMetadata }>(
   '/src/content/blog/**/*.{jpeg,jpg,png,gif}' // add more image formats if needed
 )
 
-const renderContent = async (post: CollectionEntry<'blog' | 'notes'>, site: URL) => {
+function remarkDropMdxImports() {
+  return (tree: Root) => {
+    visit(tree, (node, index, parent) => {
+      if (node.type !== 'mdxjsEsm' || !parent || typeof index !== 'number') return
+      parent.children.splice(index, 1)
+      return index
+    })
+  }
+}
+
+const renderContent = async (
+  post: CollectionEntry<'blog' | 'notes'>,
+  site: URL,
+  options: { mdx?: boolean; dropImports?: boolean } = {}
+) => {
+  const mdx = options.mdx ?? true
   // Replace image links with the correct path
   function remarkReplaceImageLink() {
     /**
@@ -56,14 +71,17 @@ const renderContent = async (post: CollectionEntry<'blog' | 'notes'>, site: URL)
     }
   }
 
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkMdx)
+  // Markdown notes use comparisons like `<1000` and `</`. remark-mdx treats those as JSX
+  // and fails the feed. MDX notes still go through remark-mdx; blog posts stay on it too.
+  const processor = unified().use(remarkParse)
+  if (mdx) processor.use(remarkMdx)
+  if (options.dropImports) processor.use(remarkDropMdxImports)
+  const file = await processor
     .use(remarkCjkFriendly)
     .use(remarkReplaceImageLink)
     .use(remarkRehype)
     .use(rehypeStringify)
-    .process(post.body)
+    .process(post.body ?? '')
 
   return String(file)
 }
@@ -91,7 +109,10 @@ const GET = async (context: AstroGlobal) => {
           // Do not spread note frontmatter: `source` is an external URL, not the item link.
           return {
             ...fields,
-            content: await renderContent(item.entry, siteUrl)
+            content: await renderContent(item.entry, siteUrl, {
+              mdx: item.entry.filePath?.endsWith('.mdx') ?? false,
+              dropImports: true
+            })
           }
         }
 

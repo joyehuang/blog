@@ -33,12 +33,10 @@ export type RssEntry<P extends RssPost = RssPost, N extends RssNote = RssNote> =
 
 type Tagged<P extends RssPost, N extends RssNote> = RssEntry<P, N> & { sortDate: number }
 
-/** `updatedDate` wins, matching `sortMDByDate`; notes fall back to `date`, posts to `publishDate`. */
+/** Feed order follows the frontmatter date shown as `pubDate`, newest first. */
 function sortDate(entry: RssPost | RssNote) {
-  if ('publishDate' in entry.data) {
-    return new Date(entry.data.updatedDate ?? entry.data.publishDate).valueOf()
-  }
-  return new Date(entry.data.updatedDate ?? entry.data.date).valueOf()
+  if ('publishDate' in entry.data) return new Date(entry.data.publishDate).valueOf()
+  return new Date(entry.data.date).valueOf()
 }
 
 export function mergeRssEntries<P extends RssPost, N extends RssNote>(

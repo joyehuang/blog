@@ -80,13 +80,16 @@ describe('RSS notes', () => {
     expect(mergeRssEntries([], [draft], false).map((item) => item.entry.id)).toEqual(['secret'])
   })
 
-  test('updatedDate sorts a note ahead of an older publish date', () => {
+  test('frontmatter date orders the feed, not updatedDate or source', () => {
     const revised = note('revised', '2026-01-01T00:00:00.000Z', {
-      updatedDate: new Date('2026-12-01T00:00:00.000Z')
+      updatedDate: new Date('2026-12-01T00:00:00.000Z'),
+      source: 'https://example.com/revised'
     })
-    const links = mergeRssEntries([post('may', '2026-05-01T00:00:00.000Z')], [revised], true).map(
-      (item) => rssItemFields(item).link
+    const fields = mergeRssEntries([post('may', '2026-05-01T00:00:00.000Z')], [revised], true).map(
+      rssItemFields
     )
-    expect(links).toEqual(['/notes/revised', '/blog/may'])
+    expect(fields.map((item) => item.link)).toEqual(['/blog/may', '/notes/revised'])
+    expect(fields[1]?.pubDate).toEqual(revised.data.date)
+    expect(JSON.stringify(fields[1])).not.toContain('example.com')
   })
 })
