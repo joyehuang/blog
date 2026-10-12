@@ -11,8 +11,8 @@ import '../../blog/20261011 - alwaysOnAgents/figures.css'
 import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
 
 const stages = [
-  { name: '能跑', note: '先有行为', cost: 18 },
-  { name: '测试和可观测性兜住', note: '出事找得到，找得到就能再修', cost: 42 },
+  { name: '能跑', note: '先有行为', cost: 16 },
+  { name: '测试和可观测性兜住', note: '出事找得到，找得到就能再修', cost: 34 },
   { name: '同时保证三条', note: 'Good Code', cost: 100 }
 ]
 ---
@@ -24,7 +24,6 @@ const stages = [
   </figcaption>
 
   <div class='slop-cost-plot'>
-    <p class='slop-cost-axis' aria-hidden='true'>成本</p>
     <ol class='slop-cost-cols'>
       {
         stages.map((stage, i) => (
@@ -34,7 +33,7 @@ const stages = [
                 class:list={['slop-cost-bar', { 'slop-cost-bar-end': stage.cost === 100 }]}
                 style={`--h: ${stage.cost}`}
                 role='img'
-                aria-label={`${stage.name}：成本示意约 ${stage.cost}，${stage.note}`}
+                aria-label={`${stage.name}：${stage.note}`}
               />
             </div>
             <p class='slop-cost-name'>{stage.name}</p>
@@ -57,50 +56,54 @@ const stages = [
 
 <style>
   .slop-cost-plot {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 8px 10px;
-    align-items: end;
-    padding: 12px 12px 8px;
+    padding: 14px 14px 12px;
     border: 1px solid hsl(var(--border));
     border-radius: 12px;
-  }
-
-  .slop-cost-axis {
-    margin: 0;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    color: hsl(var(--muted-foreground));
   }
 
   .slop-cost-cols {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(8px, 3vw, 28px);
-    align-items: end;
+    align-items: start;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  .slop-cost-col {
+    min-width: 0;
+  }
+
   .slop-cost-well {
+    --well: 220px;
     display: flex;
     align-items: flex-end;
-    height: 180px;
+    height: var(--well);
     border-bottom: 1px solid hsl(var(--border));
   }
 
   .slop-cost-bar {
     width: 100%;
-    height: calc(var(--h) * 1.7px);
+    height: calc(var(--h) * 0.009 * var(--well));
     border-radius: 8px 8px 2px 2px;
-    background: hsl(var(--muted-foreground) / 0.28);
+    background: hsl(222 6% 42%);
+    box-shadow: inset 0 0 0 1px hsl(222 8% 24% / 0.35);
+  }
+
+  :global(.dark) .slop-cost-bar:not(.slop-cost-bar-end) {
+    background: hsl(220 7% 68%);
+    box-shadow: inset 0 0 0 1px hsl(0 0% 100% / 0.28);
   }
 
   .slop-cost-bar-end {
-    background: hsl(var(--primary) / 0.75);
+    background: hsl(var(--primary));
+    box-shadow: none;
+  }
+
+  .slop-cost-name,
+  .slop-cost-note {
+    overflow-wrap: break-word;
   }
 
   .slop-cost-name {
@@ -126,9 +129,27 @@ const stages = [
     transition: height 0.9s var(--aoa-ease) calc(var(--i, 0) * 140ms + 80ms);
   }
 
+  @media (max-width: 640px) {
+    .slop-cost-plot {
+      padding: 12px 10px 10px;
+    }
+
+    .slop-cost-name {
+      font-size: 0.78rem;
+    }
+
+    .slop-cost-note {
+      font-size: 0.7rem;
+    }
+
+    .slop-cost-well {
+      --well: 172px;
+    }
+  }
+
   @media print {
     .aoa-armed .slop-cost-bar {
-      height: calc(var(--h) * 1.7px);
+      height: calc(var(--h) * 0.009 * var(--well));
     }
   }
 

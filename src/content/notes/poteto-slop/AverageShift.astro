@@ -75,7 +75,7 @@ const rows = [
   .slop-shift-head,
   .slop-shift-row {
     display: grid;
-    grid-template-columns: 7.2em minmax(0, 1fr);
+    grid-template-columns: 9.2em minmax(0, 1fr);
     gap: 10px;
     align-items: center;
   }
@@ -83,9 +83,15 @@ const rows = [
   .slop-shift-scale {
     display: flex;
     justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
     font-size: 0.72rem;
     letter-spacing: 0.04em;
     color: hsl(var(--muted-foreground));
+  }
+
+  .slop-shift-scale span {
+    white-space: nowrap;
   }
 
   .slop-shift-scale span:last-child {
@@ -95,13 +101,16 @@ const rows = [
 
   .slop-shift-label {
     margin: 0;
+    min-width: 0;
     font-size: 0.84rem;
     font-weight: 600;
     line-height: 1.35;
+    white-space: nowrap;
   }
 
   .slop-shift-rail {
     position: relative;
+    min-width: 0;
     height: 22px;
     border-right: 2px solid hsl(var(--primary));
     border-bottom: 1px solid hsl(var(--border));
@@ -114,11 +123,15 @@ const rows = [
     width: var(--span);
     height: 16px;
     border-radius: 999px;
-    background: hsl(var(--muted-foreground) / 0.35);
+    background: hsl(222 6% 42%);
+  }
+
+  :global(.dark) .slop-shift-mass:not(.slop-shift-mass-agent) {
+    background: hsl(220 7% 68%);
   }
 
   .slop-shift-mass-agent {
-    background: hsl(var(--primary) / 0.75);
+    background: hsl(var(--primary));
   }
 
   @media (max-width: 640px) {
