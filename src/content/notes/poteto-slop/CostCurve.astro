@@ -1,0 +1,161 @@
+---
+/**
+ * Good Code 的成本曲线。横轴是「正确、没有 bug、跑得快且省钱」同时满足到什么程度，
+ * 柱高是为这份保证付出的成本。比例是示意，不是测量。
+ *
+ * 动效和常驻 Agent 那篇博文的图同一套：视口外先收起，滚进来柱子再从底部长高。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const stages = [
+  { name: '能跑', note: '先有行为', cost: 16 },
+  { name: '测试 + 可观测性', note: '出事找得到，找得到就能再修', cost: 34 },
+  { name: '同时保证三条', note: 'Good Code', cost: 100 }
+]
+---
+
+<figure class='aoa-fig slop-cost not-prose' data-slop-cost>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · 越接近 Good Code，保证的成本越陡。</strong>
+    横轴是三条同时满足的程度，柱高是这份保证的成本。
+  </figcaption>
+
+  <div class='slop-cost-plot'>
+    <ol class='slop-cost-cols'>
+      {
+        stages.map((stage, i) => (
+          <li class='slop-cost-col' style={`--i: ${i}`}>
+            <div class='slop-cost-well'>
+              <div
+                class:list={['slop-cost-bar', { 'slop-cost-bar-end': stage.cost === 100 }]}
+                style={`--h: ${stage.cost}`}
+                role='img'
+                aria-label={`${stage.name}：${stage.note}`}
+              />
+            </div>
+            <p class='slop-cost-name'>{stage.name}</p>
+            <p class='slop-cost-note'>{stage.note}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  <p class='aoa-note'>示意图，柱高不是测量值。尽头贵，是因为三条要同时被保证。</p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-slop-cost]')
+</script>
+
+<style>
+  .slop-cost-plot {
+    padding: 14px 14px 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .slop-cost-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(8px, 3vw, 28px);
+    align-items: start;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .slop-cost-col {
+    min-width: 0;
+  }
+
+  .slop-cost-well {
+    --well: 220px;
+    display: flex;
+    align-items: flex-end;
+    height: var(--well);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .slop-cost-bar {
+    width: 100%;
+    height: calc(var(--h) * 0.009 * var(--well));
+    border-radius: 8px 8px 2px 2px;
+    background: hsl(222 6% 42%);
+    box-shadow: inset 0 0 0 1px hsl(222 8% 24% / 0.35);
+  }
+
+  :global(.dark) .slop-cost-bar:not(.slop-cost-bar-end) {
+    background: hsl(220 7% 68%);
+    box-shadow: inset 0 0 0 1px hsl(0 0% 100% / 0.28);
+  }
+
+  .slop-cost-bar-end {
+    background: hsl(var(--primary));
+    box-shadow: none;
+  }
+
+  .slop-cost-name,
+  .slop-cost-note {
+    overflow-wrap: break-word;
+  }
+
+  .slop-cost-name {
+    margin: 8px 0 0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .slop-cost-note {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* 和 d0 那张图一样，用 height 而不是 scale，避免柱子里的圆角被压扁 */
+  .aoa-armed .slop-cost-bar {
+    height: 0;
+  }
+
+  .aoa-play .slop-cost-bar {
+    transition: height 0.9s var(--aoa-ease) calc(var(--i, 0) * 140ms + 80ms);
+  }
+
+  @media (max-width: 640px) {
+    .slop-cost-plot {
+      padding: 12px 10px 10px;
+    }
+
+    .slop-cost-name {
+      font-size: 0.78rem;
+    }
+
+    .slop-cost-note {
+      font-size: 0.7rem;
+    }
+
+    .slop-cost-well {
+      --well: 172px;
+    }
+  }
+
+  @media print {
+    .aoa-armed .slop-cost-bar {
+      height: calc(var(--h) * 0.009 * var(--well));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-play .slop-cost-bar {
+      transition: none;
+    }
+  }
+</style>
