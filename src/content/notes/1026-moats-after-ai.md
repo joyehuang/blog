@@ -14,7 +14,7 @@ draft: false
 
 ## 核心内容
 
-这张卡片记的是 2026 年 10 月 12 日 Nikita Bier 的一条帖，以及评论区把它拆开之后，**技术领先被抹平以后，还剩下什么可以称为护城河**。
+2026 年 10 月 12 日，Nikita Bier 发了一条帖。评论区把它拆开之后，争的是：**技术领先被抹平以后，还剩下什么可以称为护城河**。
 
 如果只看最短结论，可以先记一句：
 
@@ -57,7 +57,7 @@ AI 改变的是复制软件的速度。给定一个说法，agent 可以在一�
 
 [原帖](https://x.com/nikitabier/status/2109497987055640958)。翻译过来：技术护城河差不多结束了。想做能长久的东西，现在只剩专有数据、网络效应、实体部分。
 
-这句话有分量，和他的履历有关。他做过两个被收购的青少年社交 app，tbh（Meta 收购）和 Gas（Discord 收购），后来当过 X 的产品负责人。当天的简介是「unemployed. former head of product @x」。他在 [Lenny's Podcast](https://podcastnotes.org/lennys-podcast-with-lenny-rachitsky/nikita-bier-how-to-consistently-go-viral-the-playbook-for-winning-at-consumer-apps-lennys-podcast/) 上讲的也是社交图谱和增长测试。三项里有两项是消费级社交的老逻辑，清单带着这个出身。
+这句话有分量，和他的履历有关。他做过两个被收购的青少年社交 app，tbh（Meta 收购）和 Gas（Discord 收购），后来当过 X 的产品负责人。他现在的简介写着「unemployed. former head of product @x」。他在 [Lenny's Podcast](https://podcastnotes.org/lennys-podcast-with-lenny-rachitsky/nikita-bier-how-to-consistently-go-viral-the-playbook-for-winning-at-consumer-apps-lennys-podcast/) 上讲的也是社交图谱和增长测试。三项里有两项是消费级社交的老逻辑，清单带着这个出身。
 
 原帖把三项并列，好像它们是同一类耐久资产。下面要分开看：每一条在防什么，AI 之后为什么还成立，以及它在哪一步会失效。
 
@@ -214,9 +214,7 @@ Roy 写得很直：技术一直在商品化，新的是追赶速度。以前抄�
 
 「你既毫无防御，又随时能赢」比任何清单都更接近真实。levelsio 的个人软件是这句的另一面：在位者守不住的缺口，就是局外人进得来的地方。
 
-护城河不是你拥有的东西，是你每天在挖的东西。
-
-这句是我的概括，不是谁的原话。hxiao 那张梗图说的是同一件事。
+护城河不是你拥有的东西，是你每天在挖的东西。hxiao 那张梗图说的是同一件事。
 
 ## 对个人开发者的启发
 
