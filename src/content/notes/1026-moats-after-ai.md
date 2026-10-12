@@ -12,11 +12,9 @@ source: https://x.com/nikitabier/status/2109497987055640958
 draft: false
 ---
 
-> 参考：https://x.com/nikitabier/status/2109497987055640958
-
 ## 核心内容
 
-2026 年 10 月 12 日 15:14（墨尔本时间），Nikita Bier 发了一条很短的帖。截至 10 月 12 日，大约 1.25 万赞、970 次转发、344 条引用、6100 次收藏、66 万浏览，回复约 595 条。收藏和赞的比例很高，很多人是把它当创业检查清单存下来的。
+2026 年 10 月 12 日，Nikita Bier 发了一条很短的帖。这条帖子传播很广，收藏的人尤其多，不少人是把它当创业检查清单存下来的。
 
 > Technical moats are mostly over at this point. If you’re building something that is meant to be durable, the only moats now are:
 >
@@ -28,7 +26,7 @@ draft: false
 
 这句话有分量，和他的履历有关。他做过两个被收购的青少年社交 app，tbh（Meta 收购）和 Gas（Discord 收购），后来当过 X 的产品负责人。当天的简介是「unemployed. former head of product @x」。他上 [Lenny's Podcast](https://podcastnotes.org/lennys-podcast-with-lenny-rachitsky/nikita-bier-how-to-consistently-go-viral-the-playbook-for-winning-at-consumer-apps-lennys-podcast/) 讲的也是社交图谱和增长测试。三项里有两项是消费级社交的老逻辑，清单本身带着这个出身。
 
-原帖没有解释这三项。595 条回复和 344 条引用把清单拆开，争的是护城河到底是名词还是动词。
+原帖没有解释这三项。评论和引用把清单拆开，争的是护城河到底是名词还是动词。
 
 我的判断写在后面：Nikita 对了一半，Eno Reyes 对了另一半。消失的是技术领先的速度；专有数据、网络效应和实体部分也不会因为握在手里就自动生效。护城河要持续挖。
 
@@ -62,7 +60,7 @@ draft: false
 >
 > There is no moat. You are defenseless and also can win it at all at the same time. Act accordingly.
 
-[Eno Reyes 的引用帖](https://x.com/EnoReyes/status/2109540083284267356)。截至 10 月 12 日，424 赞、166 收藏，是引用里讨论最热的一条。
+[Eno Reyes 的引用帖](https://x.com/EnoReyes/status/2109540083284267356)。这是引用里讨论最热的一条。
 
 ### 评论区的三派
 
@@ -70,7 +68,7 @@ draft: false
 
 > Even Nikita says it
 
-[引用帖](https://x.com/levelsio/status/2109524844056543523)，截至 10 月 12 日有 880 多赞。同一天他回复：
+[引用帖](https://x.com/levelsio/status/2109524844056543523)。同一天他回复：
 
 > People feel threatened and they think my point is doom and I'm a doomer
 >
@@ -137,7 +135,7 @@ hxiao 的引用帖正文只有：
 
 > What's even left to build at this point lmao
 
-[latentfidelity 的回复](https://x.com/latentfidelity/status/2109498908854583296)。Nikita 回了一张购物车截图，拿来当黑色幽默，截至 10 月 12 日有 1000 多赞（[这条回复](https://x.com/nikitabier/status/2109502507961766123)）。这是他在讨论串里唯一的回复：他没有下场答 Eno，也没有改那张清单。
+[latentfidelity 的回复](https://x.com/latentfidelity/status/2109498908854583296)。Nikita 回了一张购物车截图，拿来当黑色幽默（[这条回复](https://x.com/nikitabier/status/2109502507961766123)）。这是他在讨论串里唯一的回复：他没有下场答 Eno，也没有改那张清单。
 
 ### 对得上的地方，和各自漏的地方
 
@@ -177,7 +175,6 @@ hxiao 的引用帖正文只有：
 
 ## 相关链接
 
-- [Nikita Bier 原帖](https://x.com/nikitabier/status/2109497987055640958)
 - [Lenny's Podcast 笔记：Nikita Bier 谈消费级 app 的增长](https://podcastnotes.org/lennys-podcast-with-lenny-rachitsky/nikita-bier-how-to-consistently-go-viral-the-playbook-for-winning-at-consumer-apps-lennys-podcast/)
 - [levelsio：Even Nikita says it](https://x.com/levelsio/status/2109524844056543523)
 - [levelsio：个人软件是创造力的爆发](https://x.com/levelsio/status/2109545183876616408)
