@@ -43,9 +43,11 @@ import ProductLayers from './ProductLayers.astro'
 
 Lee 先回顾了我们是怎么走到今天的，他分了四个阶段。最早是复制粘贴：从 ChatGPT 里复制代码，再粘回编辑器。后来有了跑在终端里的 Harness，模型可以自己改文件、跑命令。再后来有了专门的 App，可以在云端同时跑很多个 Agent，但人成了瓶颈，每一条命令都要等你审批。现在是第四个阶段：常驻 Agent。
 
-这篇文章采用的是 Lee 的四阶段。我自己也有一套四阶段的演进：网页版的 LM，本地的 coding agent，今年年初的初代云端 agent，再到 8 月底的 Grok Bot。
+这篇文章采用的是 Lee 的四阶段。
 
 我在 [Talks 第二期](/talks#talk-2)里也讲过类似的演进，当时引用的是 Karpathy 的三层：第一层是网页版的 LLM，你打开网页提问，它是一台回答问题的机器；第二层是本地或 IDE 里的 Agent，比如 Claude Code、Cursor、Codex，它能直接操作你的文件；第三层是常驻的 Agent，有记忆，异步工作，可以多人接力。换句话说，LLM 从 response interface 变成了 delegation interface：你不再是问它，而是把工作委托给它。
+
+我自己也有一套四阶段的演进，是在这三层的基础上，把云端 agent 拆成「初代云端 agent」和「Grok Bot 这类常驻 bot」两步：网页版的 LLM，本地的 coding agent，今年年初的初代云端 agent，再到 8 月底的 Grok Bot。
 
 我自己划分 Agent 产品，也是按这三种形态：网页端的 Agent；装在电脑上的 coding agent；以及跑在云端、在聊天软件里就能找到的 bot，我暂时把它们统称为 personal agent。Grok Bot 属于第三种。
 
