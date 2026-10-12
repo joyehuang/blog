@@ -88,17 +88,44 @@ const kept = [
 
   .moat-split-vs {
     display: flex;
+    align-self: center;
     align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
     margin: 0;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     color: hsl(var(--muted-foreground));
+    writing-mode: horizontal-tb;
   }
 
   .moat-split-vs span {
     padding: 6px 0;
     border-top: 1px solid hsl(var(--border));
     border-bottom: 1px solid hsl(var(--border));
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+  }
+
+  .moat-split-copy .aoa-title,
+  .moat-split-keep .aoa-title,
+  .moat-split .aoa-list li {
+    writing-mode: horizontal-tb;
+  }
+
+  :global(.dark) .moat-split-copy {
+    border-color: hsl(var(--muted-foreground) / 0.75);
+  }
+
+  :global(.dark) .moat-split-copy .aoa-list,
+  :global(.dark) .moat-split-copy .aoa-title,
+  :global(.dark) .moat-split-copy .aoa-kicker {
+    color: hsl(var(--foreground) / 0.86);
+  }
+
+  :global(.dark) .moat-split-keep {
+    border-color: hsl(var(--primary) / 0.8);
+    background: hsl(var(--primary) / 0.12);
   }
 
   @media (max-width: 640px) {
