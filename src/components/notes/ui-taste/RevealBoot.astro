@@ -1,0 +1,28 @@
+---
+// 放在 <figure> 末尾。内联脚本在解析到这张图时就执行（不等打包模块），
+// 视口外的图在首帧前收起；已经看得见的图保持终态，避免先塌再展开。
+---
+
+<script is:inline>
+  ;(() => {
+    const script = document.currentScript
+    const fig = script && script.closest && script.closest('figure')
+    if (!fig || fig.dataset.utBoot) return
+    fig.dataset.utBoot = '1'
+    let reduce = false
+    try {
+      reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    } catch {
+      reduce = false
+    }
+    if (reduce || !('IntersectionObserver' in window)) return
+    const rect = fig.getBoundingClientRect()
+    const laidOut = rect.width > 0 || rect.height > 0
+    const inView = laidOut && rect.bottom > 0 && rect.top < window.innerHeight
+    if (!laidOut || inView) return
+    fig.classList.add('ut-armed')
+    fig.querySelectorAll('.ut-rv').forEach((el) => {
+      el.inert = true
+    })
+  })()
+</script>

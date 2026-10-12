@@ -1,0 +1,53 @@
+---
+/**
+ * 审美笔记里的截图。和三级路径图共用同一套图注、边框和进入视口再出现的动效。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import './figures.css'
+
+import RevealBoot from './RevealBoot.astro'
+
+interface Props {
+  src: string
+  alt: string
+  width: number
+  height: number
+}
+
+const { src, alt, width, height } = Astro.props
+---
+
+<figure class='ut-fig ut-shot not-prose' data-ut-fig>
+  <figcaption class='ut-cap'>
+    <slot />
+  </figcaption>
+  <div class='ut-shot-frame ut-rv'>
+    <img src={src} alt={alt} width={width} height={height} loading='lazy' decoding='async' />
+  </div>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  armReveal('[data-ut-fig]')
+</script>
+
+<style>
+  .ut-shot-frame {
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: hsl(var(--card));
+  }
+
+  :global(.dark) .ut-shot-frame {
+    background: hsl(var(--foreground) / 0.04);
+  }
+
+  .ut-shot-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
