@@ -23,10 +23,10 @@ const rows = [
 
   <div class='slop-shift-plot'>
     <div class='slop-shift-head' aria-hidden='true'>
-      <span></span>
+      <span class='slop-shift-gap'></span>
       <span class='slop-shift-scale'>
-        <span>较差</span>
-        <span>Good Code</span>
+        <span class='slop-shift-low'>较差</span>
+        <span class='slop-shift-end'>Good Code</span>
       </span>
     </div>
     {
@@ -90,13 +90,17 @@ const rows = [
     color: hsl(var(--muted-foreground));
   }
 
-  .slop-shift-scale span {
+  .slop-shift-low,
+  .slop-shift-end {
     white-space: nowrap;
+    flex: 0 0 auto;
   }
 
-  .slop-shift-scale span:last-child {
+  .slop-shift-end {
+    margin-left: auto;
     color: hsl(var(--foreground));
     font-weight: 600;
+    text-align: right;
   }
 
   .slop-shift-label {
@@ -141,7 +145,7 @@ const rows = [
       gap: 4px;
     }
 
-    .slop-shift-head span:first-child {
+    .slop-shift-gap {
       display: none;
     }
   }
