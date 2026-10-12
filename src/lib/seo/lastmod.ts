@@ -1,40 +1,51 @@
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-/** Last source edit, not deployment time. Ignore shallow-boundary history. */
+/**
+ * Commit times of the edits made to a file after the commit that introduced it,
+ * newest first. The oldest commit in view is dropped because it is either the
+ * file's creation or, in a shallow clone, the boundary commit that git reports
+ * as "adding" every file that already existed there; neither is an edit.
+ * Returns [] without history (no repository, or untracked file).
+ */
+export function editCommitTimes(filePath: string): Date[] {
+  const sourcePath = resolve(filePath)
+  let log: string
+  try {
+    log = execFileSync('git', ['log', '--format=%cI', '--', sourcePath], {
+      cwd: dirname(sourcePath),
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    })
+  } catch {
+    return []
+  }
+  return log
+    .split('\n')
+    .map((line) => new Date(line.trim()))
+    .filter((date) => Number.isFinite(date.getTime()))
+    .slice(0, -1)
+}
+
+/**
+ * Pick the last-modified time: the frontmatter `updatedDate` when present,
+ * otherwise the last git edit, otherwise `published`. Never earlier than
+ * `published`. Pure, so it never depends on the build clock.
+ */
+export function resolveLastModified(published: Date, declared?: Date, edits: Date[] = []): string {
+  const source = [declared, edits[0]].find((date) => date && Number.isFinite(date.getTime()))
+  return new Date(Math.max(published.getTime(), source?.getTime() ?? 0)).toISOString()
+}
+
+/**
+ * ISO last-modified time for an article. Sourced from the frontmatter
+ * `updatedDate`, else the last git edit of the source file, else the publish date. Deterministic across rebuilds: it comes from
+ * the content and its history, never from build time.
+ */
 export function contentLastModified(
   filePath: string | undefined,
+  published: Date,
   declared?: Date
-): string | undefined {
-  const candidates = declared ? [declared.toISOString()] : []
-  if (filePath) {
-    const sourcePath = resolve(filePath)
-    try {
-      const git = (args: string[]) =>
-        execFileSync('git', args, {
-          cwd: dirname(sourcePath),
-          encoding: 'utf8',
-          stdio: ['ignore', 'pipe', 'ignore']
-        }).trim()
-      // Uncommitted source edits have no trustworthy commit timestamp yet.
-      if (git(['status', '--porcelain', '--', sourcePath])) return candidates[0]
-      const result = git(['log', '-1', '--format=%H %cI', '--', sourcePath])
-      const [commit, date] = result.split(' ')
-      let shallow: string[] = []
-      try {
-        shallow = readFileSync(
-          resolve(dirname(sourcePath), git(['rev-parse', '--git-path', 'shallow'])),
-          'utf8'
-        )
-          .trim()
-          .split('\n')
-      } catch {}
-      if (commit && date && !shallow.includes(commit) && Number.isFinite(Date.parse(date)))
-        candidates.push(new Date(date).toISOString())
-    } catch {
-      /* No repository/history: only explicit updatedDate is trustworthy. */
-    }
-  }
-  return candidates.sort().at(-1)
+): string {
+  return resolveLastModified(published, declared, filePath ? editCommitTimes(filePath) : [])
 }

@@ -11,9 +11,10 @@ import config from '@/site-config'
 
 type Props = SiteMeta & {
   noindex?: boolean
+  articleModified?: string
 }
 
-const { articleDate, noindex = false, ogImage } = Astro.props
+const { articleDate, articleModified, noindex = false, ogImage } = Astro.props
 const { title, description } = sectionMetadata(Astro.url.pathname) ?? Astro.props
 
 const siteTitle = `${title} ${config.titleDelimiter} ${config.title}`
@@ -137,6 +138,7 @@ const siteGraph = {
     <>
       <meta content={config.author} property='article:author' />
       <meta content={articleDate} property='article:published_time' />
+      {articleModified && <meta content={articleModified} property='article:modified_time' />}
     </>
   )
 }

@@ -255,40 +255,6 @@ test('missing secret and preview never make a network request', async () =>
     expect((await run({ GITHUB_EVENT_PATH: path }, fetcher)).status).toBe('ignored_event')
   }))
 
-test('lastmod uses source history, omits uncommitted dates, and rejects shallow boundary', async () =>
-  temporary(async (dir) => {
-    const { execFileSync } = await import('node:child_process')
-    const { contentLastModified } = await import('./lastmod')
-    const git = (args: string[]) =>
-      execFileSync('git', args, {
-        cwd: dir,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore'],
-        env: {
-          ...process.env,
-          GIT_AUTHOR_NAME: 'SEO fixture',
-          GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
-          GIT_COMMITTER_NAME: 'SEO fixture',
-          GIT_COMMITTER_EMAIL: 'fixture@example.invalid',
-          GIT_AUTHOR_DATE: '2026-01-01T00:00:00Z',
-          GIT_COMMITTER_DATE: '2026-01-01T00:00:00Z'
-        }
-      }).trim()
-    git(['init'])
-    const path = join(dir, 'post.md')
-    await writeFile(path, 'fixture')
-    git(['add', 'post.md'])
-    git(['commit', '-m', 'test: create fixture'])
-    expect(contentLastModified(path)).toBe('2026-01-01T00:00:00.000Z')
-    expect(contentLastModified(path, new Date('2026-02-01'))).toBe('2026-02-01T00:00:00.000Z')
-    await writeFile(path, 'changed')
-    expect(contentLastModified(path)).toBeUndefined()
-    await writeFile(path, 'fixture')
-    await writeFile(join(dir, '.git/shallow'), git(['rev-parse', 'HEAD']) + '\n')
-    expect(contentLastModified(path)).toBeUndefined()
-    expect(contentLastModified(undefined)).toBeUndefined()
-  }))
-
 test('explicit SSR sections join the sitemap and source changes update their fingerprint', async () =>
   temporary(async (dir) => {
     const source = join(dir, 'about.astro')

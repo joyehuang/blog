@@ -23,20 +23,33 @@ Bun-based.
 
 ## Dates and fingerprints
 
-`lastmod` follows each BlogPosting's verified source-edit timestamp: the latest
-commit date touching that entry's own file, or an explicit frontmatter
-`updatedDate`, whichever is later. Chinese and English files are independent.
-A shallow-boundary commit is not evidence of when an old file changed and is
-ignored. Uncommitted files and missing history use only explicit `updatedDate`;
-without that, the date is omitted. Publication time is never silently substituted
-for a modification time. The JSON-LD dateModified uses the same value.
+`dateModified` (JSON-LD, blog posts and notes in both languages), the
+`article:modified_time` meta tag and the sitemap `lastmod` all carry one value per
+article, resolved by `src/lib/seo/lastmod.ts`:
 
-No network fetch of history happens during build. With a shallow Vercel checkout,
-some old pages may omit lastmod until reliable history is available; that is
-preferable to stamping them all on the deployment date. Source edits include
-formatting/metadata edits, so this is a traceable source-modification date, not an
-editorial claim about how much the prose changed. Columns, tags, home, and decks
-omit lastmod because they have no audited aggregate-content modification rule.
+1. frontmatter `updatedDate`, if set;
+2. otherwise the committer time of the newest git commit that edited the entry's
+   own file (Chinese and English files are independent);
+3. otherwise `datePublished`.
+
+The result is never earlier than `datePublished`. The oldest commit touching a
+file is its creation (or, in a shallow clone, the boundary commit git reports as
+"adding" every file), so it is not counted as an edit: an article never changed
+after it was added reports `dateModified == datePublished`, even if it was
+committed days after its publish date. Nothing reads the build clock, file mtimes
+or the latest repository commit, so a full rebuild/redeploy leaves every value
+unchanged. `article:published_time` is `datePublished`.
+
+Vercel clones shallowly (only recent history is available at build time). That is
+safe: an article whose real edits are out of reach falls back to `updatedDate` or
+`datePublished` rather than a deployment date. The only cost is that a pre-clone
+edit made without bumping `updatedDate` is not visible, so bump `updatedDate` when
+an old article is substantially revised. No network fetch of history happens during
+the build. Source edits include formatting/metadata edits, so the git fallback is a
+traceable source-modification date, not an editorial claim about how much the prose
+changed. Columns, tags, home, and decks omit lastmod because they have no audited
+aggregate-content modification rule.
+
 There is no build-time “today” fallback and no global git commit date.
 
 The manifest fingerprint includes metadata, semantic main content (text, links,
