@@ -44,7 +44,8 @@ const { description, publishDate, title, updatedDate } = data
 // English mirrors (id ends in `.en`) reuse the Chinese post's generated OG image
 // unless a post provides a custom static social card.
 const socialImage = data.ogImage ?? `/og/blog/${id.replace(/\.en$/, '')}.png`
-const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
+const articleDate = publishDate.toISOString()
+const articleModified = contentLastModified(Astro.props.post.filePath, publishDate, updatedDate)
 const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-text-opacity))'
 const tocDepth = data.tocDepth ?? 3
 const tocLabels = data.tocLabels ?? {}
@@ -68,7 +69,7 @@ const articleLd = {
   description,
   inLanguage: lang === 'en' ? 'en' : 'zh-CN',
   datePublished: publishDate.toISOString(),
-  dateModified: contentLastModified(Astro.props.post.filePath, updatedDate),
+  dateModified: articleModified,
   image: new URL(socialImage, Astro.site).href,
   ...(data.tags.length ? { keywords: data.tags } : {}),
   author: { '@id': `${origin}/#person` },
@@ -97,7 +98,14 @@ const breadcrumbLd = {
 ---
 
 <PageLayout
-  meta={{ noindex: data.draft, articleDate, description, ogImage: socialImage, title }}
+  meta={{
+    noindex: data.draft,
+    articleDate,
+    articleModified,
+    description,
+    ogImage: socialImage,
+    title
+  }}
   highlightColor={primaryColor}
   back={back}
 >

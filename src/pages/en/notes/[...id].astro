@@ -49,10 +49,13 @@ const typeLabels: Record<string, string> = {
   reference: '📚 Reference'
 }
 
+const dateModified = contentLastModified(entry.filePath, date, updatedDate)
 const meta = {
   title,
   description: description || title,
-  noindex: entry.data.draft
+  noindex: entry.data.draft,
+  articleDate: date.toISOString(),
+  articleModified: dateModified
 }
 
 // Structured data: BlogPosting + breadcrumbs; author/publisher reference the
@@ -68,7 +71,7 @@ const noteLd = {
   ...(description ? { description } : {}),
   inLanguage: 'en',
   datePublished: date.toISOString(),
-  dateModified: contentLastModified(entry.filePath, updatedDate),
+  dateModified,
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },

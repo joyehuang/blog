@@ -23,13 +23,13 @@ import config from '@/site-config'
 import '@/assets/styles/app.css'
 
 interface Props {
-  meta: SiteMeta & { noindex?: boolean }
+  meta: SiteMeta & { noindex?: boolean; articleModified?: string }
   highlightColor?: string
   chrome?: boolean
 }
 
 const {
-  meta: { articleDate, description = config.description, noindex, ogImage, title },
+  meta: { articleDate, articleModified, description = config.description, noindex, ogImage, title },
   highlightColor,
   chrome = true,
   ...props
@@ -52,7 +52,7 @@ const jojoDockSvg = jojoLinks
 
 <html lang={htmlLang}>
   <head>
-    <BaseHead {articleDate} {description} {noindex} {ogImage} {title} />
+    <BaseHead {articleDate} {articleModified} {description} {noindex} {ogImage} {title} />
     <ThemeProvider />
     <JojoHead />
     <script

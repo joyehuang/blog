@@ -74,10 +74,13 @@ const typeLabels: Record<string, string> = {
   reference: '📚 Reference'
 }
 
+const dateModified = contentLastModified(entry.filePath, date, updatedDate)
 const meta = {
   title,
   description: description || title,
-  noindex: entry.data.draft
+  noindex: entry.data.draft,
+  articleDate: date.toISOString(),
+  articleModified: dateModified
 }
 
 // Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
@@ -92,7 +95,7 @@ const noteLd = {
   ...(description ? { description } : {}),
   inLanguage: 'zh-CN',
   datePublished: date.toISOString(),
-  dateModified: contentLastModified(entry.filePath, updatedDate),
+  dateModified,
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },

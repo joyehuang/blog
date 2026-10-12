@@ -52,7 +52,7 @@ const labLd = {
   description: blurb,
   inLanguage: 'zh-CN',
   datePublished: date.toISOString(),
-  dateModified: contentLastModified(entry.filePath, updatedDate),
+  dateModified: contentLastModified(entry.filePath, date, updatedDate),
   ...(tags.length ? { keywords: tags } : {}),
   author: { '@id': `${origin}/#person` },
   publisher: { '@id': `${origin}/#person` },
