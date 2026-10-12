@@ -1,0 +1,146 @@
+---
+/**
+ * OvernightCopy.astro
+ *
+ * 「能被隔夜复刻」和「还不能」两列。进入视口时左列先出现，右列随后。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const copied = ['代码和算法', '功能和界面', '提示词和模板', '「我们先做出来」']
+
+const kept = [
+  { name: '专有数据', desc: '没公开过的记录' },
+  { name: '网络效应', desc: '谁和谁在一起用' },
+  { name: '实体部分', desc: '工厂、设备、物流' },
+  { name: '品味、反馈、信任', desc: '人和关系，靠时间攒' }
+]
+---
+
+<figure class='aoa-fig moat-split not-prose' data-moat-split>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · 能被隔夜复刻的，和还不能的。</strong>
+    左边跟着「把软件再做一遍」一起变便宜。右边没有。
+  </figcaption>
+
+  <div class='moat-split-grid'>
+    <section class='aoa-card moat-split-copy aoa-rv' style='--i: 0'>
+      <p class='aoa-kicker'>能被隔夜复刻</p>
+      <p class='aoa-title'>说得清，就能再做一版</p>
+      <ul class='aoa-list'>
+        {copied.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <p class='moat-split-vs aoa-rv' style='--i: 1' aria-hidden='true'>
+      <span>一夜</span>
+    </p>
+
+    <section class='aoa-card aoa-card-accent moat-split-keep aoa-rv' style='--i: 2'>
+      <p class='aoa-kicker'>还不能</p>
+      <p class='aoa-title'>复制代码，复制不走这些</p>
+      <ul class='aoa-list'>
+        {
+          kept.map((item) => (
+            <li>
+              <strong>{item.name}</strong>：{item.desc}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+
+  <p class='aoa-note'>
+    示意图。原帖只点了右边的前三项。第四项是后面的讨论补上的，放在这里是因为它们同样不能隔夜复制。
+  </p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-moat-split]')
+</script>
+
+<style>
+  .moat-split-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .moat-split-copy {
+    border-style: dashed;
+    border-color: hsl(var(--muted-foreground) / 0.45);
+  }
+
+  .moat-split-copy .aoa-list {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .moat-split-keep strong {
+    font-weight: 600;
+  }
+
+  .moat-split-vs {
+    display: flex;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: hsl(var(--muted-foreground));
+    writing-mode: horizontal-tb;
+  }
+
+  .moat-split-vs span {
+    padding: 6px 0;
+    border-top: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+  }
+
+  .moat-split-copy .aoa-title,
+  .moat-split-keep .aoa-title,
+  .moat-split .aoa-list li {
+    writing-mode: horizontal-tb;
+  }
+
+  :global(.dark) .moat-split-copy {
+    border-color: hsl(var(--muted-foreground) / 0.75);
+  }
+
+  :global(.dark) .moat-split-copy .aoa-list,
+  :global(.dark) .moat-split-copy .aoa-title,
+  :global(.dark) .moat-split-copy .aoa-kicker {
+    color: hsl(var(--foreground) / 0.86);
+  }
+
+  :global(.dark) .moat-split-keep {
+    border-color: hsl(var(--primary) / 0.8);
+    background: hsl(var(--primary) / 0.12);
+  }
+
+  @media (max-width: 640px) {
+    .moat-split-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .moat-split-vs {
+      justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .moat-split-vs span {
+      transition: none;
+    }
+  }
+</style>
