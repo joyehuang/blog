@@ -38,6 +38,7 @@
 
 .ut-note {
   margin: 0.75rem 0 0;
+  padding-bottom: 0.35rem;
   font-size: 0.78rem;
   line-height: 1.6;
   color: hsl(var(--muted-foreground));
