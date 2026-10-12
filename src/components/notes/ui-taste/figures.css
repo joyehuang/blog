@@ -1,0 +1,79 @@
+/*
+ * 审美笔记里几张图共用的样式。全局 CSS，所以类名都带 ut- 前缀。
+ * 只用站点的语义 token，明暗主题自动跟随。
+ *
+ * 注意：类名不要写成 UnoCSS 能识别的工具类（比如 h-xl、p-4、flex），否则会被当成工具类套上样式。
+ */
+
+.ut-fig {
+  --ut-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  margin: 2rem 0;
+  color: hsl(var(--foreground));
+}
+
+.ut-cap {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+  /* 中文按标点断行，避免「进度」拆成行尾一个字；balance 不让最后一行只剩两三个字。 */
+  text-wrap: balance;
+  word-break: keep-all;
+  line-break: strict;
+  overflow-wrap: break-word;
+}
+
+.ut-cap strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.ut-note,
+.ut-levels-practice {
+  text-wrap: balance;
+  word-break: keep-all;
+  line-break: strict;
+  overflow-wrap: break-word;
+}
+
+.ut-note {
+  margin: 0.75rem 0 0;
+  padding-bottom: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+
+.ut-armed .ut-rv {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.ut-play .ut-rv {
+  visibility: visible;
+  transition:
+    visibility 0.5s ease calc(var(--i, 0) * 140ms),
+    opacity 0.5s ease calc(var(--i, 0) * 140ms),
+    transform 0.6s var(--ut-ease) calc(var(--i, 0) * 140ms);
+}
+
+@media print {
+  .ut-armed .ut-rv {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ut-armed .ut-rv {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .ut-play .ut-rv {
+    transition: none;
+  }
+}

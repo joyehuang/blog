@@ -1,0 +1,247 @@
+---
+/**
+ * TasteLevels.astro
+ *
+ * 审美笔记第一节的图：做出好的前端产品，从组件倒推到页面与 workflow，再到整体产品。
+ * 柱子越往右越高，表示越难速成。底下那一行是贯穿三级的同一个练法。
+ *
+ * 高度是示意，不是工时。
+ * 动效：进入视口时三根柱子从左到右长出来，底下一行随后出现。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import './figures.css'
+
+import RevealBoot from './RevealBoot.astro'
+
+const levels = [
+  {
+    n: '1',
+    title: '组件',
+    lines: ['认得出、叫得出'],
+    h: 48
+  },
+  {
+    n: '2',
+    title: '页面与 workflow',
+    lines: ['看成熟产品', '盯转化率'],
+    h: 72
+  },
+  {
+    n: '3',
+    title: '整体产品',
+    lines: ['从产品属性出发', '长期积累'],
+    h: 100,
+    accent: true
+  }
+]
+---
+
+<figure class='ut-fig ut-levels not-prose' data-ut-fig>
+  <figcaption class='ut-cap'>
+    <strong>图 1 · 从组件到产品。</strong>越往右越难速成，第三级没有捷径。
+  </figcaption>
+
+  <div class='ut-levels-chart'>
+    <ol class='ut-levels-cols'>
+      {
+        levels.map((level, i) => (
+          <li class='ut-levels-col' style={`--i: ${i}; --h: ${level.h}`}>
+            <div class:list={['ut-levels-card', level.accent && 'ut-levels-card-accent']}>
+              <p class='ut-levels-n'>{level.n}</p>
+              <p class='ut-levels-title'>{level.title}</p>
+              {level.lines.map((line) => (
+                <p class='ut-levels-desc'>{line}</p>
+              ))}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class='ut-levels-axis' aria-hidden='true'><span class='ut-levels-axis-line'></span></p>
+    <p class='ut-levels-practice ut-rv' style='--i: 3'>贯穿全程：AI 出多版 → 先选 → 再讲为什么</p>
+  </div>
+
+  <p class='ut-note'>示意图。柱子高度只表示这一级更难速成，不是要花的时间。</p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from './reveal'
+
+  armReveal('[data-ut-fig]')
+</script>
+
+<style>
+  .ut-levels-chart {
+    padding: 16px 14px 14px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .ut-levels-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(8px, 2.4vw, 16px);
+    align-items: end;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ut-levels-col {
+    display: flex;
+    align-items: flex-end;
+    height: 232px;
+    min-width: 0;
+  }
+
+  .ut-levels-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+    height: calc(var(--h) * 1%);
+    min-height: 0;
+    padding: 12px 12px 14px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: hsl(var(--card));
+    transform-origin: bottom;
+    transition:
+      transform 0.9s var(--ut-ease) calc(var(--i, 0) * 160ms),
+      opacity 0.45s ease calc(var(--i, 0) * 160ms);
+  }
+
+  :global(.dark) .ut-levels-card {
+    background: hsl(var(--foreground) / 0.04);
+  }
+
+  .ut-levels-card-accent {
+    border-color: hsl(var(--primary) / 0.55);
+    background: hsl(var(--primary) / 0.08);
+  }
+
+  :global(.dark) .ut-levels-card-accent {
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .ut-levels-n,
+  .ut-levels-title,
+  .ut-levels-desc {
+    margin: 0;
+  }
+
+  .ut-levels-title,
+  .ut-levels-desc {
+    word-break: keep-all;
+    line-break: strict;
+    overflow-wrap: break-word;
+  }
+
+  .ut-levels-n {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    /* 浅色强调底上，站点 primary 只有约 3.9:1。压暗后小字能过 4.5。 */
+    color: hsl(200 29% 38%);
+  }
+
+  :global(.dark) .ut-levels-n {
+    color: hsl(var(--primary));
+  }
+
+  .ut-levels-title {
+    margin-top: 4px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .ut-levels-desc {
+    margin-top: 2px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .ut-levels-axis {
+    margin: 12px 0 0;
+  }
+
+  .ut-levels-axis-line {
+    display: block;
+    position: relative;
+    height: 2px;
+    background: hsl(var(--primary));
+    transform-origin: left center;
+    transition: transform 0.8s var(--ut-ease) 0.55s;
+  }
+
+  .ut-levels-axis-line::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid hsl(var(--primary));
+    border-right: 2px solid hsl(var(--primary));
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .ut-levels-practice {
+    margin: 10px 0 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .ut-armed .ut-levels-card {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+
+  .ut-armed .ut-levels-axis-line {
+    transform: scaleX(0);
+  }
+
+  @media (max-width: 640px) {
+    .ut-levels-col {
+      height: 248px;
+    }
+
+    .ut-levels-card {
+      padding: 10px 8px 12px;
+    }
+
+    .ut-levels-title {
+      font-size: 0.82rem;
+    }
+
+    .ut-levels-desc {
+      font-size: 0.72rem;
+    }
+  }
+
+  @media print {
+    .ut-armed .ut-levels-card,
+    .ut-armed .ut-levels-axis-line {
+      transform: none;
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ut-levels-card,
+    .ut-levels-axis-line {
+      transition: none;
+    }
+
+    .ut-armed .ut-levels-card,
+    .ut-armed .ut-levels-axis-line {
+      transform: none;
+      opacity: 1;
+    }
+  }
+</style>
