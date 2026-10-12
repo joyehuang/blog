@@ -16,11 +16,24 @@
   font-size: 0.85rem;
   line-height: 1.6;
   color: hsl(var(--muted-foreground));
+  /* 中文按标点断行，避免「进度」拆成行尾一个字；balance 不让最后一行只剩两三个字。 */
+  text-wrap: balance;
+  word-break: keep-all;
+  line-break: strict;
+  overflow-wrap: break-word;
 }
 
 .ut-cap strong {
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+.ut-note,
+.ut-levels-practice {
+  text-wrap: balance;
+  word-break: keep-all;
+  line-break: strict;
+  overflow-wrap: break-word;
 }
 
 .ut-note {

@@ -131,11 +131,23 @@ const levels = [
     margin: 0;
   }
 
+  .ut-levels-title,
+  .ut-levels-desc {
+    word-break: keep-all;
+    line-break: strict;
+    overflow-wrap: break-word;
+  }
+
   .ut-levels-n {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.04em;
+    /* 浅色强调底上，站点 primary 只有约 3.9:1。压暗后小字能过 4.5。 */
+    color: hsl(200 29% 38%);
+  }
+
+  :global(.dark) .ut-levels-n {
     color: hsl(var(--primary));
   }
 
