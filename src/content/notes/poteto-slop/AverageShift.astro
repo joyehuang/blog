@@ -1,0 +1,141 @@
+---
+/**
+ * 质量分布的示意：人写的平均靠左，验证跟得上时 agent 的平均右移，
+ * 右侧的 Good Code 刻度不动。区间位置是示意，不是测量。
+ *
+ * 动效和常驻 Agent 那篇博文同一套：两条分布滚进视口再出现，尽头的刻度一直在。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const rows = [
+  { label: '人写', from: 6, span: 36 },
+  { label: 'agent + 验证', from: 22, span: 44, agent: true }
+]
+---
+
+<figure class='aoa-fig slop-shift not-prose' data-slop-shift>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · 平均可以右移，Good Code 仍在尽头外面。</strong>
+    色块是一大批改动落在哪一段。右端的刻度是三条同时成立的 Good Code。
+  </figcaption>
+
+  <div class='slop-shift-plot'>
+    <div class='slop-shift-head' aria-hidden='true'>
+      <span></span>
+      <span class='slop-shift-scale'>
+        <span>较差</span>
+        <span>Good Code</span>
+      </span>
+    </div>
+    {
+      rows.map((row, i) => (
+        <div class='slop-shift-row aoa-rv' style={`--i: ${i}`}>
+          <p class='slop-shift-label'>{row.label}</p>
+          <div class='slop-shift-rail'>
+            <span
+              class:list={['slop-shift-mass', { 'slop-shift-mass-agent': row.agent }]}
+              style={`--from: ${row.from}%; --span: ${row.span}%`}
+              role='img'
+              aria-label={`${row.label}的改动集中在轴上大约 ${row.from}% 到 ${row.from + row.span}% 的位置，还没到 Good Code`}
+            />
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <p class='aoa-note'>
+    示意图。第二行整体更靠右，右端仍空着一截。生成变快以后，较差的改动数量也可以同时变多。
+  </p>
+  <p class='aoa-sr'>
+    两条示意分布。人写的改动集中在偏左。agent 加上验证之后，分布中心右移，但仍然停在 Good Code
+    的刻度之前。
+  </p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-slop-shift]')
+</script>
+
+<style>
+  .slop-shift-plot {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .slop-shift-head,
+  .slop-shift-row {
+    display: grid;
+    grid-template-columns: 7.2em minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+  }
+
+  .slop-shift-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .slop-shift-scale span:last-child {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+
+  .slop-shift-label {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .slop-shift-rail {
+    position: relative;
+    height: 22px;
+    border-right: 2px solid hsl(var(--primary));
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .slop-shift-mass {
+    position: absolute;
+    left: var(--from);
+    bottom: 1px;
+    width: var(--span);
+    height: 16px;
+    border-radius: 999px;
+    background: hsl(var(--muted-foreground) / 0.35);
+  }
+
+  .slop-shift-mass-agent {
+    background: hsl(var(--primary) / 0.75);
+  }
+
+  @media (max-width: 640px) {
+    .slop-shift-head,
+    .slop-shift-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
+    }
+
+    .slop-shift-head span:first-child {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-play .aoa-rv {
+      transition: none;
+    }
+  }
+</style>
