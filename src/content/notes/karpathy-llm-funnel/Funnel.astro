@@ -93,7 +93,12 @@ const tiers = [
     transform-origin: center;
   }
 
-  .fn-bar-accent {
+  :global(.dark) .fn-bar {
+    background: hsl(var(--foreground) / 0.42);
+  }
+
+  .fn-bar-accent,
+  :global(.dark) .fn-bar-accent {
     background: hsl(var(--primary));
   }
 
@@ -111,13 +116,13 @@ const tiers = [
 
   @media (max-width: 640px) {
     .fn-tiers {
-      gap: 16px;
+      gap: 24px;
       padding: 14px 12px;
     }
 
     .fn-tier {
       grid-template-columns: minmax(0, 1fr);
-      gap: 6px;
+      gap: 4px;
     }
   }
 
