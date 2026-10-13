@@ -1,6 +1,6 @@
 ---
 version: alpha
-name: Joye Personal Blog
+name: Joye Blog
 description: A solo engineer's blog and portfolio (Astro). Calm, editorial, technical on the main reading surfaces — chrome stays quiet so writing and project work are the subject. A separate, deliberately playful terminal/dev-mode/mascot layer exists as an easter egg and does not follow these tokens (see Sub-themes).
 colors:
   background: 'hsl(210 33% 99%)'
