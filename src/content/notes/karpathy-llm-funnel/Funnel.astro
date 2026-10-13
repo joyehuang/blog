@@ -1,0 +1,137 @@
+---
+/**
+ * Karpathy 四层漏斗。宽度只表示越往下越窄，不按人数比例。
+ * 数字是原帖的餐巾纸估算。
+ *
+ * 动效和常驻 Agent 那篇博文的图同一套：视口外先收起，滚进来后条形从中间展开，文字错开出现。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const tiers = [
+  { n: '1', count: '约 60 亿', share: '~75%', see: '几乎没接触 LLM', w: 100 },
+  { n: '2', count: '约 10–20 亿', share: '~20%', see: '免费的聊天机器人', w: 72 },
+  { n: '3', count: '约 2000 万', share: '0.2%', see: '数学和代码里的前沿使用', w: 44 },
+  {
+    n: '4',
+    count: '约 5000',
+    share: '~0.00006%',
+    see: '内部的 agent 蜂群',
+    w: 22,
+    accent: true
+  }
+]
+---
+
+<figure class='aoa-fig fn-funnel not-prose' data-llm-funnel>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · 四层漏斗。</strong>
+    越往下人越少，看到的能力越极端。宽度不按人数比例。
+  </figcaption>
+
+  <ol class='fn-tiers'>
+    {
+      tiers.map((tier) => (
+        <li class='fn-tier' style={`--i: ${Number(tier.n) - 1}; --w: ${tier.w}`}>
+          <div class='fn-track' aria-hidden='true'>
+            <div class:list={['fn-bar', tier.accent && 'fn-bar-accent']} />
+          </div>
+          <div class='fn-copy aoa-rv'>
+            <p class='aoa-kicker'>
+              第 {tier.n} 层 · {tier.count} · {tier.share}
+            </p>
+            <p class='aoa-title'>{tier.see}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p class='aoa-note'>示意图。人数是原帖的餐巾纸估算，不是普查。</p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-llm-funnel]')
+</script>
+
+<style>
+  .fn-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 0;
+    padding: 16px 14px;
+    list-style: none;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+  }
+
+  .fn-tier {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 8px 14px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .fn-track {
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .fn-bar {
+    width: calc(var(--w) * 1%);
+    height: 14px;
+    border-radius: 999px;
+    background: hsl(var(--foreground) / 0.22);
+    transform-origin: center;
+  }
+
+  .fn-bar-accent {
+    background: hsl(var(--primary));
+  }
+
+  .fn-copy {
+    min-width: 0;
+  }
+
+  .aoa-armed .fn-bar {
+    transform: scaleX(0);
+  }
+
+  .aoa-play .fn-bar {
+    transition: transform 0.85s var(--aoa-ease) calc(var(--i, 0) * 150ms);
+  }
+
+  @media (max-width: 640px) {
+    .fn-tiers {
+      gap: 16px;
+      padding: 14px 12px;
+    }
+
+    .fn-tier {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 6px;
+    }
+  }
+
+  @media print {
+    .aoa-armed .fn-bar {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-armed .fn-bar,
+    .aoa-play .fn-bar {
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
