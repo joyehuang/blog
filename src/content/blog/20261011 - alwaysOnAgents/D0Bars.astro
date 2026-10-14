@@ -8,24 +8,26 @@
  */
 import './figures.css'
 
+import { d0Copy, type FigLocale } from './copy'
 import RevealBoot from './RevealBoot.astro'
 
-const metrics = [
-  { name: '平均耗时', unit: '秒', before: 274.8, after: 77.4, fmt: (v: number) => v.toFixed(1) },
-  { name: '平均 token', unit: 'k', before: 102, after: 61, fmt: (v: number) => `约 ${v}` },
-  { name: '平均步数', unit: '步', before: 12, after: 7, fmt: (v: number) => `约 ${v}` }
-]
+interface Props {
+  locale?: FigLocale
+}
+
+const { locale = 'zh' } = Astro.props
+const t = d0Copy(locale)
+const metrics = t.metrics
 ---
 
-<figure class='aoa-fig aoa-d0 not-prose' data-aoa-d0>
+<figure class='aoa-fig aoa-d0 not-prose' data-aoa-d0 data-locale={locale}>
   <figcaption class='aoa-cap'>
-    <strong>图 6 · Vercel d0：17 个工具删到 2 个。</strong>成功率从 80% 升到
-    100%，下面三项都明显下降。
+    <strong>{t.captionStrong}</strong>{t.captionRest}
   </figcaption>
 
   <div class='aoa-d0-legend' aria-hidden='true'>
-    <span><i class='aoa-d0-key aoa-d0-key-before'></i>旧架构（17 个工具）</span>
-    <span><i class='aoa-d0-key aoa-d0-key-after'></i>bash + SQL（2 个工具）</span>
+    <span><i class='aoa-d0-key aoa-d0-key-before'></i>{t.beforeName}</span>
+    <span><i class='aoa-d0-key aoa-d0-key-after'></i>{t.afterName}</span>
   </div>
 
   <dl class='aoa-d0-list'>
@@ -38,21 +40,17 @@ const metrics = [
               class='aoa-d0-bar aoa-d0-before'
               style='--len: 100%'
               role='img'
-              aria-label={`旧架构（17 个工具）：${m.fmt(m.before)} ${m.unit}`}
+              aria-label={m.beforeAria}
             >
-              <span class='aoa-d0-val'>
-                {m.fmt(m.before)} {m.unit}
-              </span>
+              <span class='aoa-d0-val'>{m.beforeText}</span>
             </span>
             <span
               class='aoa-d0-bar aoa-d0-after'
-              style={`--len: ${((m.after / m.before) * 100).toFixed(1)}%`}
+              style={`--len: ${m.afterLen}`}
               role='img'
-              aria-label={`bash + SQL（2 个工具）：${m.fmt(m.after)} ${m.unit}`}
+              aria-label={m.afterAria}
             >
-              <span class='aoa-d0-val'>
-                {m.fmt(m.after)} {m.unit}
-              </span>
+              <span class='aoa-d0-val'>{m.afterText}</span>
             </span>
           </dd>
         </div>
@@ -60,9 +58,7 @@ const metrics = [
     }
   </dl>
 
-  <p class='aoa-note'>
-    数据来自 Vercel 博客。样本只有 5 条代表性查询，应当看作很强的信号，而不是统计结论。
-  </p>
+  <p class='aoa-note'>{t.note}</p>
   <RevealBoot />
 </figure>
 
@@ -113,6 +109,10 @@ const metrics = [
     grid-template-columns: 6.5em minmax(0, 1fr);
     align-items: center;
     gap: 10px;
+  }
+
+  .aoa-d0[data-locale='en'] .aoa-d0-row {
+    grid-template-columns: 6.8em minmax(0, 1fr);
   }
 
   .aoa-d0-name {
@@ -189,6 +189,10 @@ const metrics = [
     /* 窄屏上给条右侧留出写数值的位置 */
     .aoa-d0-bars {
       padding-right: 5.5em;
+    }
+
+    .aoa-d0[data-locale='en'] .aoa-d0-bars {
+      padding-right: 6.4em;
     }
   }
 
