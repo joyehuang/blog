@@ -12,7 +12,7 @@
  */
 import './figures.css'
 
-import { layersCopy, type FigLocale } from './copy'
+import { layerItemHtml, layersCopy, type FigLocale } from './copy'
 import RevealBoot from './RevealBoot.astro'
 
 interface Props {
@@ -25,6 +25,7 @@ const gens = t.gens
 const compensation = t.compensation
 const foundation = t.foundation
 const colon = locale === 'en' ? ': ' : '：'
+const foundationItems = foundation.map((f) => layerItemHtml(f.name, f.desc, colon))
 ---
 
 <figure class='aoa-fig aoa-stack not-prose' data-aoa-stack data-locale={locale}>
@@ -70,15 +71,7 @@ const colon = locale === 'en' ? ': ' : '：'
       <p class='aoa-title'>{t.baseTitle}</p>
       <p class='aoa-sub'>{t.baseSub}</p>
       <ul class='aoa-list'>
-        {
-          foundation.map((f) => (
-            <li>
-              <strong>{f.name}</strong>
-              {colon}
-              {f.desc}
-            </li>
-          ))
-        }
+        {foundationItems.map((html) => <li set:html={html} />)}
       </ul>
     </section>
   </div>

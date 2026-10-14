@@ -6,15 +6,29 @@
 
 export type FigLocale = 'zh' | 'en'
 
+// English captions need a space after the title's period. Chinese fullwidth 。 does not.
+function captionRest(en: boolean, text: string) {
+  return en ? ` ${text}` : text
+}
+
+export function layerItemHtml(name: string, desc: string, colon: string) {
+  const esc = (s: string) =>
+    s.replace(/[&<>]/g, (c) => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'))
+  return `<strong>${esc(name)}</strong>${colon}${esc(desc)}`
+}
+
 export function archCopy(locale: FigLocale) {
   const en = locale === 'en'
   return {
     captionStrong: en
       ? 'Figure 1 · Three-part architecture of an always-on agent.'
       : '图 1 · 常驻 Agent 的三段式架构。',
-    captionRest: en
-      ? 'Click a trigger on the left to see how a message from that source is handled.'
-      : '左边的触发器可以点，看不同来源的消息会被怎么处理。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'Click a trigger on the left to see how a message from that source is handled.'
+        : '左边的触发器可以点，看不同来源的消息会被怎么处理。'
+    ),
     col1Label: en ? 'Triggers' : '触发器',
     col1Kicker: en ? '① Triggers' : '① 触发器',
     chooseLabel: en ? 'Choose a trigger' : '选择一个触发器',
@@ -135,9 +149,12 @@ export function thinCopy(locale: FigLocale) {
   const en = locale === 'en'
   return {
     captionStrong: en ? 'Figure 2 · Thin client, thick server.' : '图 2 · 薄客户端，厚服务器。',
-    captionRest: en
-      ? 'The only tool between the two ends is SendToUser. Every heavy tool lives on the server.'
-      : '两端之间只有 SendToUser 这一个工具，重工具全部在服务器上。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'The only tool between the two ends is SendToUser. Every heavy tool lives on the server.'
+        : '两端之间只有 SendToUser 这一个工具，重工具全部在服务器上。'
+    ),
     clientKicker: en ? 'Thin client' : '薄客户端',
     clientTitle: en ? 'Phone · desktop · email · Slack' : '手机 · 桌面 · 邮件 · Slack',
     clientSub: en
@@ -225,9 +242,12 @@ export function ladderCopy(locale: FigLocale) {
       ]
   return {
     captionStrong: en ? 'Figure 3 · The escalation ladder.' : '图 3 · 升级阶梯。',
-    captionRest: en
-      ? 'Click an example and watch the agent climb from level 1 until it can stop.'
-      : '点一个例子，看 Agent 会从第 1 级往上爬到哪一级。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'Click an example and watch the agent climb from level 1 until it can stop.'
+        : '点一个例子，看 Agent 会从第 1 级往上爬到哪一级。'
+    ),
     chooseLabel: en ? 'Choose a task' : '选择一个任务',
     skip: en ? 'Not enough' : '不够',
     hit: en ? 'Solved here' : '在这里解决',
@@ -249,9 +269,12 @@ export function codingCopy(locale: FigLocale) {
     captionStrong: en
       ? 'Figure 4 · AI coding UIs: they got more complicated, then came back to one dialog.'
       : '图 4 · AI 写代码工具的界面：先变复杂，再回到一个对话框。',
-    captionRest: en
-      ? 'Model capability keeps rising. The interface gets simpler at the last step.'
-      : '模型能力一直在涨，界面却在最后一步变简单了。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'Model capability keeps rising. The interface gets simpler at the last step.'
+        : '模型能力一直在涨，界面却在最后一步变简单了。'
+    ),
     popup: en ? 'Edit…' : '改成…',
     prompt: en ? 'What to do?' : '要做什么？',
     complexity: en ? 'UI complexity' : '界面复杂度',
@@ -315,11 +338,12 @@ export function lifeCopy(locale: FigLocale) {
           dot: { cx: 307, cy: 200 },
           labels: [
             {
-              x: 296,
-              y: 184,
+              // Sits in the open wedge right of the crossover (307, 200): below the
+              // rising model curve, above the zero line, clear of both strokes.
+              x: 324,
+              y: 176,
               text: '② Crossover: delete it',
               className: 'aoa-life-accent aoa-life-sm',
-              anchor: 'end',
               weight: '600'
             }
           ]
@@ -425,9 +449,12 @@ export function lifeCopy(locale: FigLocale) {
     captionStrong: en
       ? 'Figure 5 · The compensation layer rises, then falls.'
       : '图 5 · 补偿层的价值先升后降。',
-    captionRest: en
-      ? 'The horizontal axis is time, and also one model generation after another. Past the crossover, the compensation layer’s net value goes negative.'
-      : '横轴是时间，也是一代代的模型；补偿层的净价值在交叉点之后变成负数。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'The horizontal axis is time, and also one model generation after another. Past the crossover, the compensation layer’s net value goes negative.'
+        : '横轴是时间，也是一代代的模型；补偿层的净价值在交叉点之后变成负数。'
+    ),
     aria: en
       ? 'A sketch: model capability is a curve that keeps rising. The compensation layer’s net value rises first, while a weak model needs it to make the product usable, then falls, crosses zero, and becomes negative.'
       : '示意图：模型能力是一条持续上升的曲线；补偿层的净价值先上升，在模型较弱时让产品能用，之后下降，越过零线变成负数。',
@@ -465,9 +492,12 @@ export function d0Copy(locale: FigLocale) {
     captionStrong: en
       ? 'Figure 6 · Vercel d0: 17 tools cut down to 2.'
       : '图 6 · Vercel d0：17 个工具删到 2 个。',
-    captionRest: en
-      ? 'The success rate went from 80% to 100%, and the three measures below all dropped sharply.'
-      : '成功率从 80% 升到 100%，下面三项都明显下降。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'The success rate went from 80% to 100%, and the three measures below all dropped sharply.'
+        : '成功率从 80% 升到 100%，下面三项都明显下降。'
+    ),
     beforeName,
     afterName,
     note: en
@@ -504,9 +534,12 @@ export function layersCopy(locale: FigLocale) {
     captionStrong: en
       ? 'Figure 7 · Each new model generation thins the compensation layer and thickens the load-bearing layer.'
       : '图 7 · 每换一代模型，补偿层变薄，承载层变厚。',
-    captionRest: en
-      ? 'The thin interface layer in the middle barely changes. The model itself is an outside variable. It is not part of the product.'
-      : '中间那层很薄的接口层基本不变；模型本身是外面的变量，不在产品里。',
+    captionRest: captionRest(
+      en,
+      en
+        ? 'The thin interface layer in the middle barely changes. The model itself is an outside variable. It is not part of the product.'
+        : '中间那层很薄的接口层基本不变；模型本身是外面的变量，不在产品里。'
+    ),
     seg,
     axis: en ? 'Model generation →' : '模型代际 →',
     compTitle: en ? 'Compensation layer: safe to delete' : '补偿层：可以删',
