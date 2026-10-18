@@ -42,9 +42,9 @@ export const GET: APIRoute = async ({ url }) => {
   const username = url.searchParams.get('username') ?? 'joyehuang'
   const token = import.meta.env.GITHUB_TOKEN ?? process.env.GITHUB_TOKEN
 
-  if (!token) {
-    return json({ error: 'GITHUB_TOKEN not configured' }, 500)
-  }
+  // No token (local dev, previews) → fall back to the public calendar, which
+  // omits private contributions but keeps the component alive.
+  if (!token) return (await publicFallback(username)) ?? json({ error: 'GITHUB_TOKEN not configured' }, 500)
 
   let res: Response
   try {
@@ -58,11 +58,11 @@ export const GET: APIRoute = async ({ url }) => {
       body: JSON.stringify({ query: QUERY, variables: { login: username } })
     })
   } catch (err) {
-    return json({ error: 'fetch failed', detail: String(err) }, 502)
+    return (await publicFallback(username)) ?? json({ error: 'fetch failed', detail: String(err) }, 502)
   }
 
   if (!res.ok) {
-    return json({ error: `github api ${res.status}`, detail: await res.text() }, 502)
+    return (await publicFallback(username)) ?? json({ error: `github api ${res.status}`, detail: await res.text() }, 502)
   }
 
   const payload = (await res.json()) as {
@@ -113,6 +113,25 @@ export const GET: APIRoute = async ({ url }) => {
       'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600'
     }
   })
+}
+
+async function publicFallback(username: string): Promise<Response | null> {
+  try {
+    const res = await fetch(
+      `https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(username)}?y=last`
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as ApiShape
+    if (!data.contributions?.length) return null
+    return new Response(JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600'
+      }
+    })
+  } catch {
+    return null
+  }
 }
 
 function json(body: unknown, status = 200) {

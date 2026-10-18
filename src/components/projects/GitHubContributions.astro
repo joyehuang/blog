@@ -659,6 +659,17 @@ const formattedTotal = total.toLocaleString('en-US')
     refreshGrid(figure).catch(() => {})
   }
 
+  function scopeOf(el) {
+    return {
+      classes: Array.from(el.classList).filter((c) => c.startsWith('astro-')),
+      attrs: Array.from(el.attributes).filter((a) => a.name.startsWith('data-astro-cid-'))
+    }
+  }
+  function applyScope(el, scope) {
+    el.classList.add(...scope.classes)
+    for (const a of scope.attrs) el.setAttribute(a.name, a.value)
+  }
+
   async function refreshGrid(figure) {
     const card = figure.querySelector('.gh-contrib-card')
     const username = card?.dataset.username
@@ -717,9 +728,14 @@ const formattedTotal = total.toLocaleString('en-US')
     const brightLayer = figure.querySelector('.gh-contrib-bright')
     const buildLayer = (template, withData) => {
       const layer = template.cloneNode(false)
+      // Astro scopes this component's CSS with an astro-xxxx class (or a
+      // data-astro-cid-* attribute); spans created here must carry it or none
+      // of the .gh-cell rules match.
+      const scope = scopeOf(template)
       for (const week of weeks) {
         for (const cell of week) {
           const span = document.createElement('span')
+          applyScope(span, scope)
           span.className = cell ? 'gh-cell' : 'gh-cell gh-cell-pad'
           span.dataset.level = cell ? String(cell.level) : 'empty'
           if (cell && withData) {
@@ -739,10 +755,12 @@ const formattedTotal = total.toLocaleString('en-US')
     card.style.setProperty('--gh-weeks', String(weeks.length))
     const monthsContainer = figure.querySelector('.gh-contrib-months')
     if (monthsContainer) {
+      const monthScope = scopeOf(monthsContainer)
       monthsContainer.replaceChildren(
         ...monthLabels.map((m) => {
           const s = document.createElement('span')
           s.textContent = m
+          applyScope(s, monthScope)
           return s
         })
       )
