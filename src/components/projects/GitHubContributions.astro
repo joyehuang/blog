@@ -262,7 +262,7 @@ const formattedTotal = total.toLocaleString('en-US')
     line-height: 1;
     overflow: hidden;
   }
-  .gh-contrib-months span {
+  .gh-contrib-months :global(span) {
     grid-row: 1;
     white-space: nowrap;
   }
@@ -316,7 +316,12 @@ const formattedTotal = total.toLocaleString('en-US')
     opacity: 1;
   }
 
-  .gh-cell {
+  /* refreshGrid() rebuilds the cells and month labels with createElement, and
+     those nodes never get Astro's scope class (astro-pure sets
+     scopedStyleStrategy: 'where', so a scoped `.gh-cell` only matches
+     `.gh-cell:where(.astro-xxxx)`). Anything the client script creates is
+     therefore styled through :global() under a scoped container. */
+  .gh-contrib-layer :global(.gh-cell) {
     border-radius: 2px;
     background: var(--cell-base);
     transition: transform 0.18s ease;
@@ -325,29 +330,29 @@ const formattedTotal = total.toLocaleString('en-US')
      but render fully invisible (no fill, no shadow, no hit-target). Trailing
      future-day positions are simply skipped at the template level so the
      last visible cell is always today. */
-  .gh-cell-pad {
+  .gh-contrib-layer :global(.gh-cell-pad) {
     background: transparent !important;
     box-shadow: none !important;
     visibility: hidden;
     pointer-events: none;
   }
-  .gh-contrib-base .gh-cell { --cell-base: var(--gh-base-empty); }
-  .gh-contrib-base .gh-cell[data-level='1'] { --cell-base: var(--gh-base-1); }
-  .gh-contrib-base .gh-cell[data-level='2'] { --cell-base: var(--gh-base-2); }
-  .gh-contrib-base .gh-cell[data-level='3'] { --cell-base: var(--gh-base-3); }
-  .gh-contrib-base .gh-cell[data-level='4'] { --cell-base: var(--gh-base-4); }
+  .gh-contrib-base :global(.gh-cell) { --cell-base: var(--gh-base-empty); }
+  .gh-contrib-base :global(.gh-cell[data-level='1']) { --cell-base: var(--gh-base-1); }
+  .gh-contrib-base :global(.gh-cell[data-level='2']) { --cell-base: var(--gh-base-2); }
+  .gh-contrib-base :global(.gh-cell[data-level='3']) { --cell-base: var(--gh-base-3); }
+  .gh-contrib-base :global(.gh-cell[data-level='4']) { --cell-base: var(--gh-base-4); }
 
-  .gh-contrib-bright .gh-cell { --cell-base: var(--gh-bright-empty); }
-  .gh-contrib-bright .gh-cell[data-level='1'] { --cell-base: var(--gh-bright-1); }
-  .gh-contrib-bright .gh-cell[data-level='2'] { --cell-base: var(--gh-bright-2); }
-  .gh-contrib-bright .gh-cell[data-level='3'] { --cell-base: var(--gh-bright-3); }
-  .gh-contrib-bright .gh-cell[data-level='4'] {
+  .gh-contrib-bright :global(.gh-cell) { --cell-base: var(--gh-bright-empty); }
+  .gh-contrib-bright :global(.gh-cell[data-level='1']) { --cell-base: var(--gh-bright-1); }
+  .gh-contrib-bright :global(.gh-cell[data-level='2']) { --cell-base: var(--gh-bright-2); }
+  .gh-contrib-bright :global(.gh-cell[data-level='3']) { --cell-base: var(--gh-bright-3); }
+  .gh-contrib-bright :global(.gh-cell[data-level='4']) {
     --cell-base: var(--gh-bright-4);
     box-shadow: 0 0 8px var(--gh-bright-glow);
   }
 
   /* Lift the active cell a touch for HDR feel */
-  .gh-contrib-base .gh-cell[data-active='true'] {
+  .gh-contrib-base :global(.gh-cell[data-active='true']) {
     transform: scale(1.35);
     z-index: 2;
     position: relative;
@@ -482,7 +487,7 @@ const formattedTotal = total.toLocaleString('en-US')
 
   @media (prefers-reduced-motion: reduce) {
     .gh-odo-reel { transition: none; }
-    .gh-cell { transition: none; }
+    .gh-contrib-layer :global(.gh-cell) { transition: none; }
   }
 </style>
 
@@ -659,17 +664,6 @@ const formattedTotal = total.toLocaleString('en-US')
     refreshGrid(figure).catch(() => {})
   }
 
-  function scopeOf(el) {
-    return {
-      classes: Array.from(el.classList).filter((c) => c.startsWith('astro-')),
-      attrs: Array.from(el.attributes).filter((a) => a.name.startsWith('data-astro-cid-'))
-    }
-  }
-  function applyScope(el, scope) {
-    el.classList.add(...scope.classes)
-    for (const a of scope.attrs) el.setAttribute(a.name, a.value)
-  }
-
   async function refreshGrid(figure) {
     const card = figure.querySelector('.gh-contrib-card')
     const username = card?.dataset.username
@@ -727,15 +721,12 @@ const formattedTotal = total.toLocaleString('en-US')
     // Replace cell layers
     const brightLayer = figure.querySelector('.gh-contrib-bright')
     const buildLayer = (template, withData) => {
+      // Spans built here carry no Astro scope class; the .gh-cell rules are
+      // :global() under the (cloned, still scoped) layer, so they match anyway.
       const layer = template.cloneNode(false)
-      // Astro scopes this component's CSS with an astro-xxxx class (or a
-      // data-astro-cid-* attribute); spans created here must carry it or none
-      // of the .gh-cell rules match.
-      const scope = scopeOf(template)
       for (const week of weeks) {
         for (const cell of week) {
           const span = document.createElement('span')
-          applyScope(span, scope)
           span.className = cell ? 'gh-cell' : 'gh-cell gh-cell-pad'
           span.dataset.level = cell ? String(cell.level) : 'empty'
           if (cell && withData) {
@@ -755,12 +746,10 @@ const formattedTotal = total.toLocaleString('en-US')
     card.style.setProperty('--gh-weeks', String(weeks.length))
     const monthsContainer = figure.querySelector('.gh-contrib-months')
     if (monthsContainer) {
-      const monthScope = scopeOf(monthsContainer)
       monthsContainer.replaceChildren(
         ...monthLabels.map((m) => {
           const s = document.createElement('span')
           s.textContent = m
-          applyScope(s, monthScope)
           return s
         })
       )
