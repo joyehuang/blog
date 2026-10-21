@@ -1,0 +1,202 @@
+---
+/**
+ * Pt.2 的四步踩在 Pt.1 的验证地基上。
+ * 宽屏横排，窄屏改成一列，避免标签挤在一起。
+ * 动效沿用常驻 Agent 那篇：视口外先收起，滚进来再出现。
+ * 没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const steps = [
+  { name: '复述问题', desc: '用它自己的话' },
+  { name: '建模型', desc: 'teach、recall' },
+  { name: '原型或架构', desc: '多方案，拿证据' },
+  { name: '拆小 PR', desc: '每步都能验证' }
+]
+---
+
+<figure class='aoa-fig ps-flow not-prose' data-ps-flow>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · 四步都踩在验证地基上。</strong>
+    上面是做事的顺序。底下那一条一直在：原型和 PR 的结论都要回到这里拿证据。
+  </figcaption>
+
+  <div class='ps-flow-board'>
+    <div class='ps-flow-row' role='list'>
+      {
+        steps.map((step, i) => (
+          <>
+            <div class='aoa-card ps-step aoa-rv' style={`--i: ${i}`} role='listitem'>
+              <p class='aoa-kicker'>0{i + 1}</p>
+              <p class='aoa-title'>{step.name}</p>
+              <p class='aoa-sub'>{step.desc}</p>
+            </div>
+            {i < steps.length - 1 && (
+              <span class='ps-chev aoa-rv' style={`--i: ${i}`} aria-hidden='true'>
+                <span class='ps-chev-glyph'>→</span>
+              </span>
+            )}
+          </>
+        ))
+      }
+    </div>
+
+    <div class='ps-stem aoa-rv' style='--i: 4' aria-hidden='true'></div>
+
+    <div class='aoa-card aoa-card-accent ps-base aoa-rv' style='--i: 5'>
+      <p class='aoa-kicker'>地基</p>
+      <p class='aoa-title'>verification skill</p>
+      <div class='ps-base-grid'>
+        <p><strong>小 CLI</strong>打开、点击、截图、录 trace。输出机器能读的结果。</p>
+        <p><strong>Feature Map</strong>每个功能是什么、怎么走到、怎么驱动、有哪些坑。</p>
+      </div>
+    </div>
+  </div>
+
+  <p class='aoa-note'>
+    示意图。灰边是顺序，青色底是地基。颜色不是唯一的区分，卡片上写着步骤号和「地基」。
+  </p>
+  <p class='aoa-sr'>
+    四步从左到右：复述问题，建模型，原型或架构，拆成带验证的小 PR。四步下面是验证地基，由一个小 CLI
+    和一份 Feature Map 组成。
+  </p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-ps-flow]', undefined, 0.28)
+</script>
+
+<style>
+  .ps-flow {
+    container-type: inline-size;
+  }
+
+  .ps-flow-board {
+    min-width: 0;
+  }
+
+  .ps-flow-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(
+        0,
+        1fr
+      );
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .ps-step,
+  .ps-base {
+    min-width: 0;
+  }
+
+  .ps-step .aoa-title,
+  .ps-step .aoa-sub,
+  .ps-step .aoa-kicker,
+  .ps-base .aoa-title,
+  .ps-base .aoa-kicker,
+  .ps-base p {
+    overflow-wrap: anywhere;
+    writing-mode: horizontal-tb;
+  }
+
+  .ps-chev {
+    display: flex;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: hsl(var(--primary));
+  }
+
+  .ps-chev-glyph {
+    display: block;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .ps-stem {
+    width: 2px;
+    height: 16px;
+    margin: 8px auto;
+    background: hsl(var(--primary));
+    transform-origin: top center;
+  }
+
+  .ps-base-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 16px;
+    margin-top: 8px;
+  }
+
+  .ps-base-grid p {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: hsl(var(--foreground) / 0.82);
+  }
+
+  .ps-base-grid strong {
+    display: block;
+    margin-bottom: 2px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .aoa-armed .ps-stem {
+    transform: scaleY(0);
+  }
+
+  .aoa-play .ps-stem {
+    transform: scaleY(1);
+    transition: transform 0.6s var(--aoa-ease) 0.45s;
+  }
+
+  :global(.dark) .ps-base {
+    border-color: hsl(var(--primary) / 0.85);
+    background: hsl(var(--primary) / 0.14);
+  }
+
+  :global(.dark) .ps-step {
+    background: hsl(var(--foreground) / 0.04);
+  }
+
+  @container (max-width: 640px) {
+    .ps-flow-row {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+
+    .ps-step {
+      width: 100%;
+    }
+
+    .ps-chev-glyph {
+      transform: rotate(90deg);
+    }
+
+    .ps-base-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media print {
+    .aoa-armed .ps-stem {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aoa-armed .ps-stem,
+    .aoa-play .ps-stem {
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
