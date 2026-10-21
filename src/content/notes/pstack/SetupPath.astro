@@ -1,0 +1,138 @@
+---
+/**
+ * README 里的上手三步：装插件、选模型、把目标交给 /poteto-mode。
+ * 宽屏横排，窄屏改成一列。
+ * 动效沿用常驻 Agent 那篇。没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const steps = [
+  { name: '装上插件', cmd: '/add-plugin pstack', accent: false },
+  { name: '选模型和预算', cmd: '/setup-pstack', accent: false },
+  { name: '交目标，并说怎么算做完', cmd: '/poteto-mode', accent: true }
+]
+---
+
+<figure class='aoa-fig ps-setup not-prose' data-ps-setup>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · README 里的上手三步。</strong>
+    前两步是准备。第三步才开始做事。Claude Code 的安装命令写在图下面，不塞进这三张卡片。
+  </figcaption>
+
+  <div class='ps-setup-row' role='list'>
+    {
+      steps.map((step, i) => (
+        <>
+          <div
+            class:list={['aoa-card', 'ps-setup-card', 'aoa-rv', { 'aoa-card-accent': step.accent }]}
+            style={`--i: ${i}`}
+            role='listitem'
+          >
+            <p class='aoa-kicker'>0{i + 1}</p>
+            <p class='aoa-title'>{step.name}</p>
+            <p class='ps-cmd'>{step.cmd}</p>
+          </div>
+          {i < steps.length - 1 && (
+            <span class='ps-chev aoa-rv' style={`--i: ${i}`} aria-hidden='true'>
+              <span class='ps-chev-glyph'>→</span>
+            </span>
+          )}
+        </>
+      ))
+    }
+  </div>
+
+  <p class='aoa-note'>
+    示意图。三条命令都写在 pstack 的 README 里。第三张用青色，是因为工作从这里开始。
+  </p>
+  <p class='aoa-sr'>
+    三步：先在 Cursor 里运行 /add-plugin pstack，再运行 /setup-pstack 选择模型和推理预算，然后用
+    /poteto-mode 交出目标以及怎么算做完。
+  </p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-ps-setup]', undefined, 0.28)
+</script>
+
+<style>
+  .ps-setup {
+    container-type: inline-size;
+  }
+
+  .ps-setup-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .ps-setup-card {
+    min-width: 0;
+  }
+
+  .ps-setup-card .aoa-title,
+  .ps-setup-card .aoa-kicker,
+  .ps-cmd {
+    overflow-wrap: anywhere;
+    writing-mode: horizontal-tb;
+  }
+
+  .ps-cmd {
+    margin: 8px 0 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: hsl(var(--foreground) / 0.88);
+  }
+
+  .ps-chev {
+    display: flex;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: hsl(var(--primary));
+  }
+
+  .ps-chev-glyph {
+    display: block;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  :global(.dark) .ps-setup-card.aoa-card-accent {
+    border-color: hsl(var(--primary) / 0.85);
+    background: hsl(var(--primary) / 0.14);
+  }
+
+  :global(.dark) .ps-setup-card:not(.aoa-card-accent) {
+    background: hsl(var(--foreground) / 0.04);
+  }
+
+  @container (max-width: 560px) {
+    .ps-setup-row {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+
+    .ps-setup-card {
+      width: 100%;
+    }
+
+    .ps-chev-glyph {
+      transform: rotate(90deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ps-chev-glyph {
+      transition: none;
+    }
+  }
+</style>
