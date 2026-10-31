@@ -1,0 +1,49 @@
+---
+/**
+ * 裁判上线前后，舰队每天落地的改动数。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+import './figs.css'
+
+const rows = [
+  { name: '裁判上线前一周', n: 1000, mark: '约 1,000 / 天', accent: false },
+  { name: '10 月 10 日', n: 7250, mark: '7,250', accent: true }
+]
+const max = 7250
+---
+
+<figure class='aoa-fig apc-daily not-prose' data-apc-daily>
+  <figcaption class='aoa-cap'>
+    <strong>图 6 · 队列不再等人，每天的改动数跟着涨。</strong>
+    舰队每天落地的改动数，裁判上线前后。
+  </figcaption>
+
+  <ol class='apc-rows'>
+    {
+      rows.map((r, i) => (
+        <li class='apc-bar-row aoa-rv' style={`--i: ${i}`}>
+          <div>
+            <p class='apc-label'>{r.name}</p>
+            <p class='apc-val'>{r.mark}</p>
+          </div>
+          <div class='apc-track'>
+            <div
+              class:list={['apc-fill', { 'apc-fill-accent': r.accent }]}
+              style={`--w: ${(r.n / max) * 100}%; --i: ${i}`}
+            />
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-apc-daily]', undefined, 0.3)
+</script>

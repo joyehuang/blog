@@ -1,0 +1,64 @@
+---
+/**
+ * 每个 agent 都通知所有其他 agent：工作量随数量线性涨，沟通量按平方涨。
+ * 横向条形，每组两条，滚进视口再长出来。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+import './figs.css'
+
+const groups = [1, 2, 4, 8].map((n) => ({ n, work: n, talk: n * n }))
+const max = 64
+---
+
+<figure class='aoa-fig apc-comms not-prose' data-apc-comms>
+  <figcaption class='aoa-cap'>
+    <strong>图 3 · agent 翻倍，工作翻倍，消息变成四倍。</strong>
+    每个 agent 都通知其他所有 agent 时，消息条数跟着数量的平方走。
+  </figcaption>
+
+  <ol class='apc-rows'>
+    {
+      groups.map((g, i) => (
+        <li class='aoa-rv' style={`--i: ${i}`}>
+          <p class='apc-label'>{g.n} 个 agent</p>
+          <div class='apc-bar-row'>
+            <p class='apc-val'>工作量 ×{g.work}</p>
+            <div class='apc-track'>
+              <div class='apc-fill' style={`--w: ${(g.work / max) * 100}%; --i: ${i}`} />
+            </div>
+          </div>
+          <div class='apc-bar-row'>
+            <p class='apc-val'>沟通量 ×{g.talk}</p>
+            <div class='apc-track'>
+              <div
+                class='apc-fill apc-fill-accent'
+                style={`--w: ${(g.talk / max) * 100}%; --i: ${i}`}
+              />
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-apc-comms]', undefined, 0.2)
+</script>
+
+<style>
+  .apc-comms li {
+    display: grid;
+    gap: 4px;
+  }
+
+  .apc-comms .apc-label {
+    margin-bottom: 2px;
+  }
+</style>

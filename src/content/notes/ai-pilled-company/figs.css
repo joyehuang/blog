@@ -1,0 +1,103 @@
+/*
+ * 「最 AI-pilled 的公司」这篇笔记的图共用的样式。全局 CSS，类名带 apc- 前缀。
+ * 在常驻 Agent 那篇博文的 figures.css（aoa- 前缀）之上补横向条形和时间线。
+ * 视口外先收起，滚进来再生长；没有 JS、打印、prefers-reduced-motion 时直接以终态展示。
+ */
+
+.apc-rows {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.apc-bar-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 8.5rem) minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: center;
+}
+
+.apc-label {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.apc-track {
+  position: relative;
+  height: 26px;
+  border-radius: 6px;
+  background: hsl(var(--muted) / 0.6);
+  overflow: hidden;
+}
+
+.dark .apc-track {
+  background: hsl(var(--foreground) / 0.06);
+}
+
+.apc-fill {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: var(--w);
+  padding: 0 8px;
+  border-radius: 6px;
+  background: hsl(222 6% 42%);
+  color: hsl(0 0% 100%);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.dark .apc-fill {
+  background: hsl(220 7% 68%);
+  color: hsl(222 10% 12%);
+}
+
+.apc-fill-accent {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground, 0 0% 100%));
+}
+
+.dark .apc-fill-accent {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground, 0 0% 100%));
+}
+
+.apc-val {
+  margin: 0;
+  font-size: 0.74rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.aoa-armed .apc-fill {
+  width: 0;
+  padding: 0;
+}
+
+.aoa-play .apc-fill {
+  transition: width 0.9s var(--aoa-ease) calc(var(--i, 0) * 160ms + 80ms);
+}
+
+@media print {
+  .aoa-armed .apc-fill {
+    width: var(--w);
+    padding: 0 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aoa-play .apc-fill {
+    transition: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .apc-bar-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

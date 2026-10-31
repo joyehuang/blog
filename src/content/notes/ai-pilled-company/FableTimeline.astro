@@ -1,0 +1,126 @@
+---
+/**
+ * Fable 发布前后的几个日期。上面是时间线，下面一行写当天发生了什么。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const steps = [
+  { when: '此前两年', what: '模型太蠢，赌注没有回报', tone: 'flat' },
+  { when: '6 月 9 日', what: 'Fable 发布', tone: 'up' },
+  { when: '6 月 11 日', what: '一天落地 214 次改动', tone: 'up' },
+  { when: '6 月 12 日', what: '出口管制令暂停访问，归零', tone: 'down' },
+  { when: '7 月 1 日', what: '恢复访问', tone: 'up' }
+]
+---
+
+<figure class='aoa-fig apc-fable not-prose' data-apc-fable>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · 两年空转，一个模型，一次中断。</strong>
+    Spawn 的产出曲线在这几个日子上拐弯。
+  </figcaption>
+
+  <ol class='apc-tl'>
+    {
+      steps.map((step, i) => (
+        <li class='apc-tl-item aoa-rv' style={`--i: ${i}`}>
+          <span class:list={['apc-dot', `apc-dot-${step.tone}`]} aria-hidden='true' />
+          <p class='aoa-kicker'>{step.when}</p>
+          <p class='aoa-title'>{step.what}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-apc-fable]', undefined, 0.25)
+</script>
+
+<style>
+  .apc-tl {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 18px 0 0;
+    list-style: none;
+  }
+
+  .apc-tl::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: hsl(var(--border));
+  }
+
+  .apc-tl-item {
+    position: relative;
+    min-width: 0;
+  }
+
+  .apc-dot {
+    position: absolute;
+    top: -17px;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: hsl(222 6% 42%);
+  }
+
+  :global(.dark) .apc-dot {
+    background: hsl(220 7% 68%);
+  }
+
+  .apc-dot-up {
+    background: hsl(var(--primary));
+  }
+
+  :global(.dark) .apc-dot-up {
+    background: hsl(var(--primary));
+  }
+
+  .apc-dot-down {
+    background: hsl(0 70% 52%);
+  }
+
+  :global(.dark) .apc-dot-down {
+    background: hsl(0 75% 62%);
+  }
+
+  .apc-tl-item :global(.aoa-title) {
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 600px) {
+    .apc-tl {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+      padding: 0 0 0 22px;
+    }
+
+    .apc-tl::before {
+      top: 0;
+      bottom: 0;
+      left: 5px;
+      right: auto;
+      width: 2px;
+      height: auto;
+    }
+
+    .apc-dot {
+      top: 4px;
+      left: -22px;
+    }
+  }
+</style>
