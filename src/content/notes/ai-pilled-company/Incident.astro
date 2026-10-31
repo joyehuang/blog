@@ -1,0 +1,109 @@
+---
+/**
+ * 一次真实事故的时间轴：宽度按分钟数分配，最长的一段是发现之前的 8 分钟。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+import './figs.css'
+
+const segs = [
+  { name: '玩家受影响，没人发现', min: 8, mark: '8 分钟' },
+  { name: '宣布事故 → 定位原因', min: 1, mark: '1' },
+  { name: '定位 → 修复上线', min: 10, mark: '10 分钟' },
+  { name: '修复 → 稳定', min: 4, mark: '4 分钟' }
+]
+const total = segs.reduce((sum, s) => sum + s.min, 0)
+---
+
+<figure class='aoa-fig apc-inc not-prose' data-apc-inc>
+  <figcaption class='aoa-cap'>
+    <strong>图 4 · 一次事故，最长的一段在发现之前。</strong>
+    从玩家开始受影响算起，宽度按分钟数分配。
+  </figcaption>
+
+  <div class='apc-track apc-inc-track'>
+    {
+      segs.map((s, i) => (
+        <div
+          class:list={['apc-inc-seg', 'aoa-rv', { 'apc-inc-seg-accent': i === 0 }]}
+          style={`--grow: ${(s.min / total) * 100}; --i: ${i}`}
+        >
+          <span>{s.mark}</span>
+        </div>
+      ))
+    }
+  </div>
+  <ol class='apc-inc-legend'>
+    {
+      segs.map((s, i) => (
+        <li class='aoa-rv' style={`--i: ${i + 2}`}>
+          <p class='aoa-kicker'>{String(i + 1).padStart(2, '0')}</p>
+          <p class='aoa-sub'>{s.name}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-apc-inc]', undefined, 0.3)
+</script>
+
+<style>
+  .apc-inc-track {
+    display: flex;
+    gap: 2px;
+    height: 36px;
+    background: none;
+  }
+
+  .apc-inc-seg {
+    flex: var(--grow) 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: hsl(222 6% 42%);
+    color: hsl(0 0% 100%);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  :global(.dark) .apc-inc-seg {
+    background: hsl(220 7% 68%);
+    color: hsl(222 10% 12%);
+  }
+
+  .apc-inc-seg-accent {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground, 0 0% 100%));
+  }
+
+  :global(.dark) .apc-inc-seg-accent {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground, 0 0% 100%));
+  }
+
+  .apc-inc-legend {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (max-width: 560px) {
+    .apc-inc-legend {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
