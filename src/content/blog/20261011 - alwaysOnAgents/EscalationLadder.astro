@@ -11,34 +11,33 @@
  */
 import './figures.css'
 
-const rungs = [
-  { name: '已知上下文', en: 'Known context', desc: '对话历史里已经知道的东西' },
-  { name: '连接器 / API', en: 'Connector · MCP · API', desc: '例如通过 Plaid 拉取银行信息' },
-  { name: '网页搜索', en: 'Web search', desc: '公开、实时的信息' },
-  { name: '浏览器', en: 'Browser', desc: '在电脑上打开浏览器搜索、操作' },
-  { name: '整个桌面', en: 'Full desktop', desc: '在 Linux 电脑上跑脚本、跑命令、构建东西' },
-  { name: '询问用户', en: 'Ask the user', desc: '以上都不行，才来打扰你：输入、审批、2FA 验证码' }
-]
+import { ladderCopy, ladderLive, type FigLocale } from './copy'
 
-const tasks = [
-  { label: '我们刚才约的是周几？', stop: 1 },
-  { label: '这个月在外面吃饭花了多少？', stop: 2 },
-  { label: '昨晚小熊队的比分？', stop: 3 },
-  { label: '在一个没有 API 的网站上改预约', stop: 4 },
-  { label: '给新功能录一段演示视频', stop: 5 },
-  { label: '登录要输 2FA 验证码', stop: 6 }
-]
+interface Props {
+  locale?: FigLocale
+}
 
+const { locale = 'zh' } = Astro.props
+const t = ladderCopy(locale)
+const rungs = t.rungs
+const tasks = t.tasks
+const en = locale === 'en'
 const initialStop = tasks[0].stop
-const initialLive = `停在第 ${initialStop} 级：${rungs[initialStop - 1].name}`
+const initialName = en ? rungs[initialStop - 1].en : rungs[initialStop - 1].name
+const initialLive = ladderLive(t.liveTpl, initialStop, initialName)
 ---
 
-<figure class='aoa-fig aoa-ladder not-prose' data-aoa-ladder>
+<figure
+  class='aoa-fig aoa-ladder not-prose'
+  data-aoa-ladder
+  data-locale={locale}
+  data-live-tpl={t.liveTpl}
+>
   <figcaption class='aoa-cap'>
-    <strong>图 3 · 升级阶梯。</strong>点一个例子，看 Agent 会从第 1 级往上爬到哪一级。
+    <strong>{t.captionStrong}</strong>{t.captionRest}
   </figcaption>
 
-  <div class='aoa-choices' role='group' aria-label='选择一个任务'>
+  <div class='aoa-choices' role='group' aria-label={t.chooseLabel}>
     {
       tasks.map((t, i) => (
         <button
@@ -64,14 +63,14 @@ const initialLive = `停在第 ${initialStop} 级：${rungs[initialStop - 1].nam
           <span class='aoa-ladder-num'>{i + 1}</span>
           <span class='aoa-ladder-body'>
             <span class='aoa-ladder-name'>
-              {r.name}
-              <span class='aoa-ladder-en'>{r.en}</span>
+              <span class='aoa-ladder-label'>{en ? r.en : r.name}</span>
+              {!en && <span class='aoa-ladder-en'>{r.en}</span>}
             </span>
             <span class='aoa-ladder-desc'>{r.desc}</span>
           </span>
           <span class='aoa-ladder-status' aria-hidden='true'>
-            <span class='aoa-ladder-s-skip'>不够</span>
-            <span class='aoa-ladder-s-hit'>在这里解决</span>
+            <span class='aoa-ladder-s-skip'>{t.skip}</span>
+            <span class='aoa-ladder-s-hit'>{t.hit}</span>
           </span>
         </li>
       ))
@@ -79,9 +78,9 @@ const initialLive = `停在第 ${initialStop} 级：${rungs[initialStop - 1].nam
   </ol>
 
   <div class='aoa-ladder-axis' aria-hidden='true'>
-    <span>便宜 · 可靠 · 快</span>
+    <span>{t.axisLeft}</span>
     <span class='aoa-ladder-bar'></span>
-    <span>昂贵 · 打扰人</span>
+    <span>{t.axisRight}</span>
   </div>
   <p class='aoa-sr' aria-live='polite' data-ladder-live>{initialLive}</p>
 </figure>
@@ -109,9 +108,11 @@ const initialLive = `停在第 ${initialStop} 级：${rungs[initialStop - 1].nam
       timers.forEach((t) => window.clearTimeout(t))
       timers = []
       const names = rungs.map(
-        (r) => r.querySelector('.aoa-ladder-name')?.firstChild?.textContent?.trim() ?? ''
+        (r) => r.querySelector('.aoa-ladder-label')?.textContent?.trim() ?? ''
       )
-      if (live) live.textContent = `停在第 ${stop} 级：${names[stop - 1]}`
+      const tpl = fig.dataset.liveTpl ?? '停在第 {n} 级：{name}'
+      if (live)
+        live.textContent = tpl.replace('{n}', String(stop)).replace('{name}', names[stop - 1])
 
       // 每次点击都重新查。打开页面之后改了系统动画偏好，下一次点击就按新偏好走。
       if (reducedMotion.matches) {
@@ -287,6 +288,17 @@ const initialLive = `停在第 ${initialStop} 级：${rungs[initialStop - 1].nam
       grid-template-columns: 28px minmax(0, 1fr) auto;
       padding: 7px 10px;
     }
+
+    .aoa-ladder[data-locale='en'] .aoa-ladder-status {
+      white-space: normal;
+      max-width: 5.2em;
+      text-align: end;
+      line-height: 1.3;
+    }
+  }
+
+  .aoa-ladder[data-locale='en'] .aoa-ladder-axis {
+    flex-wrap: wrap;
   }
 
   @media (prefers-reduced-motion: reduce) {
