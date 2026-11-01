@@ -1,0 +1,116 @@
+---
+/**
+ * AI 裁判头 8 天返回的裁决：一条堆叠条看比例，下面三张卡写各自的意思。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+import './figs.css'
+
+const parts = [
+  {
+    name: '直接裁决',
+    n: 7296,
+    desc: '记录里有人答过类似的问题，裁判照着裁，并写明依据出处。',
+    accent: true
+  },
+  { name: '退回', n: 2213, desc: '问题本身没问对，还给提问的 agent。', accent: false },
+  { name: '留给人', n: 1863, desc: '没有先例，需要还没人给过的判断。', accent: false }
+]
+const total = parts.reduce((sum, p) => sum + p.n, 0)
+const fmt = (n: number) => n.toLocaleString('en-US')
+---
+
+<figure class='aoa-fig apc-judge not-prose' data-apc-judge>
+  <figcaption class='aoa-cap'>
+    <strong>图 5 · 裁判上线头 8 天的 1.1 万个裁决。</strong>
+    近三分之二直接解决，留给人的不到六分之一。
+  </figcaption>
+
+  <div
+    class='apc-stack'
+    role='img'
+    aria-label={`直接裁决 ${parts[0].n}，退回 ${parts[1].n}，留给人 ${parts[2].n}`}
+  >
+    {
+      parts.map((p, i) => (
+        <div
+          class:list={['apc-stack-seg', 'aoa-rv', { 'apc-stack-seg-accent': p.accent }]}
+          style={`--grow: ${(p.n / total) * 100}; --i: ${i}`}
+        >
+          <span>{fmt(p.n)}</span>
+        </div>
+      ))
+    }
+  </div>
+
+  <ol class='apc-judge-cards'>
+    {
+      parts.map((p, i) => (
+        <li
+          class:list={['aoa-card', 'aoa-rv', p.accent ? 'aoa-card-accent' : 'aoa-card-soft']}
+          style={`--i: ${i + 3}`}
+        >
+          <p class='aoa-title'>{p.name}</p>
+          <p class='aoa-sub'>{p.desc}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-apc-judge]', undefined, 0.3)
+</script>
+
+<style>
+  .apc-stack {
+    display: flex;
+    gap: 2px;
+    height: 38px;
+  }
+
+  .apc-stack-seg {
+    flex: var(--grow) 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: hsl(222 6% 42%);
+    color: hsl(0 0% 100%);
+    font-size: 0.76rem;
+    font-weight: 600;
+    overflow: hidden;
+  }
+
+  :global(.dark) .apc-stack-seg {
+    background: hsl(220 7% 68%);
+    color: hsl(222 10% 12%);
+  }
+
+  .apc-stack-seg-accent,
+  :global(.dark) .apc-stack-seg-accent {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground, 0 0% 100%));
+  }
+
+  .apc-judge-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (max-width: 560px) {
+    .apc-judge-cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

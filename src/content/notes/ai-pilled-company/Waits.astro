@@ -1,0 +1,88 @@
+---
+/**
+ * 文章里依次被拆掉的四个等待：左边是原来在等什么，右边是拆法。
+ * 动效沿用常驻 Agent 那篇：视口外先收起，滚进来再依次出现。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+import './figs.css'
+
+const rows = [
+  { wait: 'agent 等别的 agent 通知', fix: '取消 PR，改成每小时全局对齐一次，错了马上看得见' },
+  { wait: 'agent 等人转告线上出了什么错', fix: '直接读生产的错误、bug 报告和指标' },
+  { wait: '改动等一个合适的发布时机', fix: '每小时必发，一小时没发就算 SEV-0' },
+  { wait: 'agent 等创始人拍板口味', fix: 'AI 裁判按两年的记录先答，答不了的才留给人' }
+]
+---
+
+<figure class='aoa-fig apc-waits not-prose' data-apc-waits>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · 四个等待，按被拆掉的先后排。</strong>
+    每一节都是同一个动作：找出什么在等，把它拆掉。
+  </figcaption>
+
+  <ol class='apc-rows'>
+    {
+      rows.map((row, i) => (
+        <li class='apc-wait aoa-rv' style={`--i: ${i}`}>
+          <div class='aoa-card aoa-card-soft'>
+            <p class='aoa-kicker'>等什么</p>
+            <p class='aoa-title'>{row.wait}</p>
+          </div>
+          <span class='apc-arrow' aria-hidden='true'>
+            →
+          </span>
+          <div class='aoa-card aoa-card-accent'>
+            <p class='aoa-kicker'>怎么拆</p>
+            <p class='aoa-title'>{row.fix}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-apc-waits]', undefined, 0.2)
+</script>
+
+<style>
+  .apc-wait {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.25fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .apc-wait :global(.aoa-card) {
+    min-width: 0;
+  }
+
+  .apc-wait :global(.aoa-title) {
+    font-size: 0.86rem;
+    overflow-wrap: anywhere;
+  }
+
+  .apc-arrow {
+    align-self: center;
+    color: hsl(var(--primary));
+  }
+
+  @media (max-width: 560px) {
+    .apc-wait {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: stretch;
+      gap: 4px;
+    }
+
+    .apc-arrow {
+      justify-self: center;
+      transform: rotate(90deg);
+    }
+  }
+</style>
