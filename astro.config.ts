@@ -32,6 +32,7 @@ import {
 import config from './src/site.config.ts'
 
 const excludedSitemapPathPatterns = [
+  /^\/workshop\/?$/,
   /^\/(?:en\/)?404\/?$/,
   /^\/(?:en\/)?search\/?$/,
   /^\/api(?:\/|$)/,
