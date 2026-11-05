@@ -1,0 +1,1589 @@
+---
+import { Image } from 'astro:assets'
+import avatar from 'src/assets/avatar.png'
+
+import type { V4Counts, V4Item, V4Locale, V4Milestone, V4Repo } from './types'
+
+interface Props {
+  locale?: V4Locale
+  posts: V4Item[]
+  notes: V4Item[]
+  repos: V4Repo[]
+  milestones: V4Milestone[]
+  counts: V4Counts
+}
+
+const { locale = 'zh', posts, notes, repos, milestones, counts } = Astro.props
+const isEn = locale === 'en'
+
+/* ------------------------------------------------------------------ */
+/* copy — every claim is lifted from the blog                          */
+/* ------------------------------------------------------------------ */
+
+const copy = isEn
+  ? {
+      live: 'signal live',
+      eyebrow: ['Agent Engineering', 'University of Melbourne', 'Melbourne, AU'],
+      thesisPlain: 'The system is signal.',
+      thesisLead: 'The buzzwords are noise.',
+      lede: 'On 27 June 2025 I opened my first pull request. Everything after it — the interviews, the dead ends, the source I read, the rejections — I wrote down in public.',
+      ctaRead: 'Read what I write',
+      ctaAbout: 'Get to know me',
+      scroll: 'scroll',
+      motto: 'Build fast, learn faster.',
+
+      tickerNote: 'the nouns change faster than the models — scroll to speed them up',
+
+      statsKicker: '01 — the ledger',
+      statsTitle: 'Twelve months, counted',
+      statsNote:
+        'From a first pull request to sitting on the interviewer’s side of the table. Every number here is read live from the site’s own content.',
+
+      reelKicker: '02 — the run',
+      reelTitle: 'What actually happened',
+      reelNote: 'Keep scrolling — the year moves sideways.',
+      reelEnd: 'still running',
+
+      workKicker: '03 — the build',
+      workTitle: 'Things I made to break',
+      workNote: 'Start small enough to finish, then run it until it hurts.',
+
+      writingKicker: '04 — the record',
+      writingTitle: 'What I write',
+      essays: 'long-form',
+      research: 'research notes',
+      writingMore: 'All posts',
+      notesMore: 'All notes',
+
+      offKicker: '05 — off the clock',
+      offTitle: 'Not only engineering',
+      offBody:
+        'Piano and cello since primary school — both because my parents made me. Now, when debugging wears me out, I play for a while; it works better than coffee. I also build scale models, and photography is the new one. Weekends are St Kilda beach, or a whole day inside the State Library.',
+      offTags: ['piano', 'cello', 'scale models', 'photography', 'Melbourne'],
+
+      endLead: 'Rather than chase every noun,',
+      endTitle: 'build a system that keeps running.',
+      endNote: 'Open to internship and graduate roles in agent engineering.',
+      endLinks: [
+        { label: 'Blog', href: '/en/blog' },
+        { label: 'About', href: '/en/about' },
+        { label: 'Notes', href: '/en/notes' },
+        { label: 'GitHub', href: 'https://github.com/joyehuang' },
+        { label: 'Contact', href: '/en/contact' }
+      ],
+      langHref: '/v4',
+      langLabel: '中文',
+      navItems: [
+        { label: 'Blog', href: '/en/blog' },
+        { label: 'About', href: '/en/about' }
+      ],
+      builtWith: 'WebGL + GSAP, no 3D library'
+    }
+  : {
+      live: '信号在线',
+      eyebrow: ['Agent Engineering', '墨尔本大学在读', 'Melbourne, AU'],
+      thesisPlain: '系统才是信号。',
+      thesisLead: '名词只是噪音，',
+      lede: '2025 年 6 月 27 日，我提了人生中第一个 PR。之后的每一步——面试、踩的坑、读过的源码、被拒绝的时刻——我都公开写了下来。',
+      ctaRead: '读我写的',
+      ctaAbout: '认识我',
+      scroll: '往下',
+      motto: 'Build fast, learn faster.',
+
+      tickerNote: '名词换得比模型还快 —— 滚动会让它更快',
+
+      statsKicker: '01 — 账本',
+      statsTitle: '十二个月，全部可数',
+      statsNote: '从第一个 PR，到坐在面试官那一侧。这里每个数字都由站内内容实时读出，不是写死的。',
+
+      reelKicker: '02 — 这一年',
+      reelTitle: '具体发生了什么',
+      reelNote: '继续往下滚 —— 这一年会横着走。',
+      reelEnd: '仍在继续',
+
+      workKicker: '03 — 造的东西',
+      workTitle: '做出来，然后把它跑坏',
+      workNote: '先做个小到真能做完的东西，再一直跑到它出问题为止。',
+
+      writingKicker: '04 — 记录',
+      writingTitle: '写的东西',
+      essays: '长文',
+      research: '研究笔记',
+      writingMore: '全部文章',
+      notesMore: '全部笔记',
+
+      offKicker: '05 — 下班以后',
+      offTitle: '不只是工程',
+      offBody:
+        '从小学钢琴和大提琴，都是被父母「逼」着学的。现在 debug 累了会去弹一会，效果比咖啡还好。还喜欢组模型，摄影是新爱好。周末去 St Kilda 海滩散步，或者在 State Library 泡一整天。',
+      offTags: ['钢琴', '大提琴', '模型制作', '摄影', '墨尔本'],
+
+      endLead: '与其追每个名词，',
+      endTitle: '不如建一个能自己跑下去的系统。',
+      endNote: '开放实习 / 全职机会 · Agent 方向。',
+      endLinks: [
+        { label: '博客', href: '/blog' },
+        { label: '关于', href: '/about' },
+        { label: '笔记', href: '/notes' },
+        { label: 'GitHub', href: 'https://github.com/joyehuang' },
+        { label: '联系', href: '/contact' }
+      ],
+      langHref: '/en/v4',
+      langLabel: 'EN',
+      navItems: [
+        { label: 'Blog', href: '/blog' },
+        { label: 'About', href: '/about' }
+      ],
+      builtWith: 'WebGL + GSAP，没有用任何 3D 库'
+    }
+
+/* The noun relay, as motion rather than a diagram. */
+const tickerA = [
+  'PROMPT ENGINEERING',
+  'CONTEXT ENGINEERING',
+  'HARNESS ENGINEERING',
+  'LOOP ENGINEERING',
+  'AGENT ENGINEERING'
+]
+const tickerB = ['RAG', 'MCP', 'SKILLS', 'MEMORY', 'EVAL', 'SUB-AGENTS', 'PREFIX CACHE', 'HARNESS']
+
+const ledger = isEn
+  ? [
+      { value: counts.posts, suffix: '', label: 'long-form posts' },
+      { value: counts.notes, suffix: '', label: 'research notes' },
+      { value: 100, suffix: '+', label: 'agent interviews' },
+      { value: counts.stars, suffix: '', label: 'GitHub stars' },
+      { value: counts.talks, suffix: '', label: 'community talks' },
+      { value: counts.teams, suffix: '', label: 'Summer of Agents teams' }
+    ]
+  : [
+      { value: counts.posts, suffix: '', label: '篇长文' },
+      { value: counts.notes, suffix: '', label: '篇研究笔记' },
+      { value: 100, suffix: '+', label: '场 Agent 岗面试' },
+      { value: counts.stars, suffix: '', label: 'GitHub stars' },
+      { value: counts.talks, suffix: '', label: '期粉丝群分享会' },
+      { value: counts.teams, suffix: '', label: '支 Summer of Agents 队伍' }
+    ]
+---
+
+<v4-home class='stage' data-locale={locale}>
+  <canvas class='field' data-field aria-hidden='true'></canvas>
+  <div class='cursor' data-cursor aria-hidden='true'><i></i></div>
+
+  <header class='rail'>
+    <a class='rail__mark' href={isEn ? '/en/v4' : '/v4'} data-magnetic>
+      <span class='rail__pip' aria-hidden='true'></span>
+      Joye <span class='rail__ver'>v4</span>
+    </a>
+    <nav class='rail__nav' aria-label={isEn ? 'Quick links' : '快捷链接'}>
+      {
+        copy.navItems.map((item) => (
+          <a href={item.href} data-magnetic>
+            {item.label}
+          </a>
+        ))
+      }
+      <a class='rail__lang' href={copy.langHref} data-magnetic>{copy.langLabel}</a>
+    </nav>
+  </header>
+
+  <main>
+    {/* ------------------------------- hero ------------------------------ */}
+    <section class='hero' data-hero id='top'>
+      <div class='hero__inner' data-hero-inner>
+        <p class='pill' data-hero-fade>
+          <span class='pill__pip' aria-hidden='true'></span>
+          {copy.live}
+        </p>
+
+        <p class='hero__eyebrow' data-split='chars'>
+          {copy.eyebrow.join('  /  ')}
+        </p>
+
+        <h1 class='hero__name' data-name>
+          {
+            'JOYE'.split('').map((letter) => (
+              <span class='hero__letter'>
+                <i>{letter}</i>
+              </span>
+            ))
+          }
+        </h1>
+
+        <p class='hero__thesis'>
+          <span class='hero__lead' data-hero-fade>{copy.thesisLead}</span>
+          <span class='hero__signal' data-scramble={copy.thesisPlain}>{copy.thesisPlain}</span>
+        </p>
+
+        <p class='hero__lede' data-split='lines'>{copy.lede}</p>
+
+        <div class='hero__actions' data-hero-fade>
+          <a class='btn btn--primary' href={isEn ? '/en/blog' : '/blog'} data-magnetic>
+            <span>{copy.ctaRead}</span>
+            <svg viewBox='0 0 20 20' aria-hidden='true'><path d='M4 10h12M11 5l5 5-5 5'></path></svg
+            >
+          </a>
+          <a class='btn' href={isEn ? '/en/about' : '/about'} data-magnetic>
+            <span>{copy.ctaAbout}</span>
+          </a>
+        </div>
+
+        <p class='hero__motto' data-hero-fade>{copy.motto}</p>
+      </div>
+
+      <p class='hero__scroll' data-hero-fade aria-hidden='true'>
+        <span>{copy.scroll}</span>
+        <i></i>
+      </p>
+    </section>
+
+    {/* ------------------------------ ticker ----------------------------- */}
+    <section class='ticker' data-ticker aria-label={copy.tickerNote}>
+      <div class='ticker__row' data-ticker-row data-dir='1'>
+        <div class='ticker__set'>
+          {
+            tickerA.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i aria-hidden='true'>◆</i>
+              </span>
+            ))
+          }
+        </div>
+        <div class='ticker__set' aria-hidden='true'>
+          {
+            tickerA.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i>◆</i>
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <div class='ticker__row ticker__row--thin' data-ticker-row data-dir='-1'>
+        <div class='ticker__set'>
+          {
+            tickerB.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i aria-hidden='true'>/</i>
+              </span>
+            ))
+          }
+        </div>
+        <div class='ticker__set' aria-hidden='true'>
+          {
+            tickerB.map((word) => (
+              <span class='ticker__word'>
+                {word}
+                <i>/</i>
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <p class='ticker__note'>{copy.tickerNote}</p>
+    </section>
+
+    {/* ------------------------------ ledger ----------------------------- */}
+    <section class='band' id='ledger'>
+      <header class='band__head'>
+        <p class='kicker' data-reveal>{copy.statsKicker}</p>
+        <h2 class='band__title' data-split='lines'>{copy.statsTitle}</h2>
+        <p class='band__note' data-reveal>{copy.statsNote}</p>
+      </header>
+
+      <ul class='stats'>
+        {
+          ledger.map((row, i) => (
+            <li class='stat' data-tilt data-reveal style={`--i:${i}`}>
+              <span class='stat__value'>
+                <b data-count={row.value}>0</b>
+                {row.suffix}
+              </span>
+              <span class='stat__label'>{row.label}</span>
+              <span class='stat__glow' aria-hidden='true' />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    {/* ------------------------------- reel ------------------------------ */}
+    <section class='reel' data-reel>
+      <div class='reel__viewport'>
+        <div class='reel__track' data-reel-track>
+          <div class='reel__lead'>
+            <p class='kicker'>{copy.reelKicker}</p>
+            <h2 class='reel__title'>{copy.reelTitle}</h2>
+            <p class='band__note'>{copy.reelNote}</p>
+          </div>
+
+          {
+            milestones.map((milestone, i) => {
+              const Tag = milestone.href ? 'a' : 'div'
+              return (
+                <Tag class='card' href={milestone.href} data-reel-card data-tilt>
+                  <span class='card__index'>{String(i + 1).padStart(2, '0')}</span>
+                  <span class='card__date'>{milestone.date}</span>
+                  <span class='card__title'>{milestone.title}</span>
+                  <span class='card__note'>{milestone.note}</span>
+                  {milestone.href && (
+                    <span class='card__go' aria-hidden='true'>
+                      <svg viewBox='0 0 20 20'>
+                        <path d='M4 10h12M11 5l5 5-5 5' />
+                      </svg>
+                    </span>
+                  )}
+                  <span class='card__glow' aria-hidden='true' />
+                </Tag>
+              )
+            })
+          }
+
+          <div class='reel__tail' aria-hidden='true'>
+            <span class='reel__tailPip'></span>
+            <span>{copy.reelEnd}</span>
+          </div>
+        </div>
+      </div>
+      <div class='reel__progress' aria-hidden='true'><i data-reel-progress></i></div>
+    </section>
+
+    {/* ------------------------------- work ------------------------------ */}
+    <section class='band' id='work'>
+      <header class='band__head'>
+        <p class='kicker' data-reveal>{copy.workKicker}</p>
+        <h2 class='band__title' data-split='lines'>{copy.workTitle}</h2>
+        <p class='band__note' data-reveal>{copy.workNote}</p>
+      </header>
+
+      <ul class='work'>
+        {
+          repos.map((repo, i) => (
+            <li data-reveal style={`--i:${i}`}>
+              <a
+                class='card card--work'
+                href={repo.href}
+                target='_blank'
+                rel='noopener noreferrer'
+                data-tilt
+                data-analytics-event='github_link_click'
+                data-analytics-surface='v4_open_source'
+                data-analytics-target='repo'
+                data-analytics-repo={repo.name}
+              >
+                <span class='card__eyebrow'>{repo.eyebrow}</span>
+                <span class='card__title'>{repo.name}</span>
+                <span class='card__note'>{repo.description}</span>
+                <span class='card__stars'>
+                  <svg viewBox='0 0 24 24' aria-hidden='true'>
+                    <path d='M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5-5.9-3.1-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z' />
+                  </svg>
+                  {repo.stars}
+                </span>
+                <span class='card__glow' aria-hidden='true' />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    {/* ----------------------------- writing ----------------------------- */}
+    <section class='band' id='writing'>
+      <header class='band__head'>
+        <p class='kicker' data-reveal>{copy.writingKicker}</p>
+        <h2 class='band__title' data-split='lines'>{copy.writingTitle}</h2>
+      </header>
+
+      <div class='index'>
+        <div class='index__col'>
+          <p class='index__label' data-reveal>
+            <span>{copy.essays}</span>
+            <a href={isEn ? '/en/blog' : '/blog'} data-magnetic>{copy.writingMore} →</a>
+          </p>
+          <ul>
+            {
+              posts.map((post, i) => (
+                <li data-reveal style={`--i:${i}`}>
+                  <a href={post.href}>
+                    <span class='index__meta'>{post.meta}</span>
+                    <span class='index__title'>{post.title}</span>
+                    <span class='index__rule' aria-hidden='true' />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class='index__col'>
+          <p class='index__label' data-reveal>
+            <span>{copy.research}</span>
+            <a href={isEn ? '/en/notes' : '/notes'} data-magnetic>{copy.notesMore} →</a>
+          </p>
+          <ul>
+            {
+              notes.map((note, i) => (
+                <li data-reveal style={`--i:${i}`}>
+                  <a href={note.href}>
+                    <span class='index__meta'>{note.meta}</span>
+                    <span class='index__title'>{note.title}</span>
+                    <span class='index__rule' aria-hidden='true' />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {/* ------------------------------- off ------------------------------- */}
+    <section class='band' id='off'>
+      <div class='off' data-reveal>
+        <div class='off__portrait' data-tilt>
+          <Image src={avatar} alt='Joye' width={240} height={240} loading='lazy' />
+          <span class='card__glow' aria-hidden='true'></span>
+        </div>
+        <div class='off__copy'>
+          <p class='kicker'>{copy.offKicker}</p>
+          <h2 class='band__title'>{copy.offTitle}</h2>
+          <p class='off__body'>{copy.offBody}</p>
+          <ul class='off__tags'>
+            {copy.offTags.map((tag) => <li>{tag}</li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {/* ------------------------------- end ------------------------------- */}
+    <section class='end' id='end'>
+      <p class='end__lead' data-reveal>{copy.endLead}</p>
+      <h2 class='end__title' data-split='chars'>{copy.endTitle}</h2>
+      <p class='end__note' data-reveal>{copy.endNote}</p>
+      <ul class='end__links'>
+        {
+          copy.endLinks.map((link, i) => {
+            const external = link.href.startsWith('http')
+            return (
+              <li data-reveal style={`--i:${i}`}>
+                <a
+                  href={link.href}
+                  data-magnetic
+                  target={external ? '_blank' : undefined}
+                  rel={external ? 'noopener noreferrer' : undefined}
+                  data-analytics-event={external ? 'github_link_click' : undefined}
+                  data-analytics-surface={external ? 'v4_footer' : undefined}
+                  data-analytics-target={external ? 'profile' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            )
+          })
+        }
+      </ul>
+      <p class='end__foot'>
+        <span>© {new Date().getFullYear()} Joye</span>
+        <span class='dot' aria-hidden='true'></span>
+        <span>{copy.builtWith}</span>
+      </p>
+    </section>
+  </main>
+</v4-home>
+
+<script>
+  import './v4-engine'
+</script>
+
+<style is:global>
+  /* The engine hands SplitText its own wrappers; these need to be global
+     because SplitText injects the elements after scoping has been applied. */
+  .v4-split-line {
+    display: block;
+    overflow: hidden;
+  }
+  .v4-split-line > div {
+    display: block;
+    will-change: transform;
+  }
+  .v4-split-char {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+</style>
+
+<style>
+  /* ==================================================================== */
+  /* v4 — site tokens (DESIGN.md), motion by GSAP, backdrop by WebGL       */
+  /* ==================================================================== */
+
+  v4-home {
+    display: block;
+    position: relative;
+    min-height: 100vh;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .field {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  /* Fallback if WebGL is unavailable — still a live-ish backdrop. */
+  .field[data-fallback] {
+    background:
+      radial-gradient(60% 50% at 20% 15%, hsl(var(--primary) / 0.28), transparent 70%),
+      radial-gradient(55% 45% at 85% 30%, hsl(var(--primary) / 0.18), transparent 70%),
+      hsl(var(--background));
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+  }
+
+  v4-home :where(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .kicker {
+    margin: 0 0 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+  }
+
+  /* ------------------------------ cursor ------------------------------- */
+
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 90;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: difference;
+  }
+
+  .cursor i {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 1px solid hsl(0 0% 100%);
+    border-radius: 9999px;
+    transition:
+      transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1),
+      background-color 0.25s ease;
+  }
+
+  .cursor.is-hot i {
+    transform: scale(1.55);
+    background: hsl(0 0% 100% / 0.25);
+  }
+
+  /* ------------------------------- rail -------------------------------- */
+
+  .rail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .rail::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(hsl(var(--background) / 0.85), transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    mask-image: linear-gradient(#000 55%, transparent);
+    pointer-events: none;
+  }
+
+  .rail > * {
+    position: relative;
+  }
+
+  .rail__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .rail__ver {
+    color: hsl(var(--primary));
+  }
+
+  .rail__pip,
+  .pill__pip {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55);
+    animation: v4-pulse 2.6s ease-out infinite;
+  }
+
+  @keyframes v4-pulse {
+    70% {
+      box-shadow: 0 0 0 9px hsl(var(--primary) / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
+    }
+  }
+
+  .rail__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 1.75rem);
+  }
+
+  .rail__nav a {
+    position: relative;
+    transition: color 0.25s ease;
+  }
+
+  .rail__nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .rail__nav a:hover {
+    color: hsl(var(--foreground));
+  }
+
+  .rail__nav a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* -------------------------------- hero ------------------------------- */
+
+  .hero {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 100svh;
+    padding: 7rem 0 5rem;
+  }
+
+  /* The field runs at full strength here, so the copy gets a pocket of clean
+     background to sit in. It fades out fast, leaving the field visible around
+     the edges. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -10% -5%;
+    pointer-events: none;
+    background: radial-gradient(
+      70% 58% at 34% 52%,
+      hsl(var(--background) / 0.88),
+      hsl(var(--background) / 0.55) 45%,
+      hsl(var(--background) / 0) 78%
+    );
+  }
+
+  .hero__inner {
+    position: relative;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 1.75rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 9999px;
+    background: hsl(var(--card) / 0.6);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__name {
+    display: flex;
+    margin: 0;
+    font-size: clamp(4.5rem, 17vw, 15rem);
+    font-weight: 800;
+    line-height: 0.82;
+    letter-spacing: -0.055em;
+    perspective: 900px;
+  }
+
+  .hero__letter {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.06em;
+  }
+
+  .hero__letter i {
+    display: block;
+    font-style: normal;
+    transform-origin: 50% 100%;
+    will-change: transform;
+    background: linear-gradient(175deg, hsl(var(--foreground)) 30%, hsl(var(--primary)) 130%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero__thesis {
+    display: grid;
+    gap: 0.15rem;
+    margin: clamp(1.5rem, 3.5vw, 2.4rem) 0 1.4rem;
+    font-size: clamp(1.5rem, 3.6vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.24;
+    letter-spacing: -0.028em;
+  }
+
+  .hero__lead {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__signal {
+    color: hsl(var(--foreground));
+    text-shadow: 0 0 38px hsl(var(--primary) / 0.35);
+  }
+
+  .hero__lede {
+    max-width: 40rem;
+    margin: 0 0 2.25rem;
+    font-size: clamp(0.98rem, 1.5vw, 1.08rem);
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.8rem 1.4rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.5);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-size: 0.95rem;
+    font-weight: 500;
+    overflow: hidden;
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .btn > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.42s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .btn:hover {
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    box-shadow: 0 14px 38px hsl(var(--foreground) / 0.12);
+  }
+
+  .btn:hover::before {
+    transform: scaleY(1);
+  }
+
+  .btn--primary {
+    background: hsl(var(--foreground));
+    border-color: hsl(var(--foreground));
+    color: hsl(var(--background));
+  }
+
+  .btn svg {
+    width: 1.05em;
+    height: 1.05em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .btn:hover svg {
+    transform: translateX(4px);
+  }
+
+  .hero__motto {
+    margin: 0;
+    font-size: 0.88rem;
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: 2rem;
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hero__scroll i {
+    display: block;
+    width: 1px;
+    height: 42px;
+    background: linear-gradient(hsl(var(--primary)), transparent);
+    animation: v4-drop 2.2s ease-in-out infinite;
+  }
+
+  @keyframes v4-drop {
+    0%,
+    100% {
+      transform: scaleY(0.4);
+      transform-origin: top;
+      opacity: 0.4;
+    }
+    50% {
+      transform: scaleY(1);
+      transform-origin: top;
+      opacity: 1;
+    }
+  }
+
+  /* ------------------------------- ticker ------------------------------ */
+
+  .ticker {
+    position: relative;
+    padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(2rem, 4vw, 3rem);
+    border-block: 1px solid hsl(var(--border));
+    background: hsl(var(--background) / 0.72);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .ticker__row {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+  }
+
+  .ticker__set {
+    display: flex;
+    align-items: center;
+    flex: none;
+  }
+
+  .ticker__word {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(1.2rem, 3vw, 2.4rem);
+    padding-right: clamp(1.2rem, 3vw, 2.4rem);
+    font-size: clamp(2rem, 6.5vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 1px hsl(var(--foreground) / 0.45);
+  }
+
+  .ticker__word i {
+    font-style: normal;
+    font-size: 0.35em;
+    color: hsl(var(--primary));
+    -webkit-text-stroke: 0;
+  }
+
+  .ticker__row--thin .ticker__word {
+    font-size: clamp(1rem, 2.4vw, 1.8rem);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: hsl(var(--muted-foreground));
+    -webkit-text-stroke: 0;
+  }
+
+  .ticker__note {
+    margin: clamp(1.4rem, 3vw, 2rem) auto 0;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* -------------------------------- bands ------------------------------ */
+
+  .band {
+    position: relative;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
+    margin-inline: auto;
+    padding: clamp(5rem, 12vh, 9rem) 0;
+  }
+
+  .band__head {
+    max-width: 46rem;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .band__title {
+    margin: 0;
+    font-size: clamp(2rem, 5.2vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.038em;
+  }
+
+  .band__note {
+    margin: 1.2rem 0 0;
+    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* -------------------------------- stats ------------------------------ */
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: clamp(0.8rem, 1.6vw, 1.1rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stat {
+    position: relative;
+    padding: clamp(1.4rem, 3vw, 2rem);
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.55);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .stat__value {
+    display: block;
+    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat__value b {
+    font-weight: inherit;
+  }
+
+  .stat__label {
+    display: block;
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Cursor-tracked specular highlight, shared by every card surface. */
+  .stat__glow,
+  .card__glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    background: radial-gradient(
+      18rem 18rem at var(--mx, 50%) var(--my, 50%),
+      hsl(var(--primary) / 0.28),
+      transparent 65%
+    );
+  }
+
+  .stat:hover .stat__glow,
+  .card:hover .card__glow,
+  .off__portrait:hover .card__glow {
+    opacity: 1;
+  }
+
+  /* -------------------------------- reel ------------------------------- */
+
+  /* Pinned for the length of its own horizontal travel, so it has to own the
+     whole viewport while it scrubs. */
+  .reel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+  }
+
+  .reel__viewport {
+    overflow: hidden;
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+  }
+
+  .reel__track {
+    display: flex;
+    align-items: stretch;
+    gap: clamp(1rem, 2vw, 1.5rem);
+    width: max-content;
+    padding-inline: clamp(1rem, 4vw, 3rem);
+    will-change: transform;
+  }
+
+  .reel__lead {
+    flex: none;
+    align-self: center;
+    width: min(30rem, 78vw);
+    padding-right: clamp(1rem, 4vw, 3rem);
+  }
+
+  .reel__title {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.038em;
+  }
+
+  .reel__tail {
+    flex: none;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-inline: clamp(2rem, 6vw, 5rem);
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+
+  .reel__tailPip {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    animation: v4-pulse 2.6s ease-out infinite;
+  }
+
+  .reel__progress {
+    position: absolute;
+    left: clamp(1rem, 4vw, 3rem);
+    right: clamp(1rem, 4vw, 3rem);
+    bottom: clamp(1.5rem, 4vh, 2.5rem);
+    height: 1px;
+    background: hsl(var(--border));
+  }
+
+  .reel__progress i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  /* -------------------------------- cards ------------------------------ */
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: none;
+    width: min(21rem, 74vw);
+    min-height: min(22rem, 46svh);
+    padding: clamp(1.4rem, 2.6vw, 1.9rem);
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.62);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease;
+  }
+
+  .card:hover {
+    border-color: hsl(var(--primary) / 0.55);
+    box-shadow: 0 20px 50px hsl(var(--foreground) / 0.1);
+  }
+
+  .card > * {
+    position: relative;
+  }
+
+  .card__index {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: hsl(var(--primary));
+  }
+
+  .card__date,
+  .card__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .card__title {
+    margin-top: 0.25rem;
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+  }
+
+  .card__note {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .card__go {
+    margin-top: auto;
+    padding-top: 0.9rem;
+  }
+
+  .card__go svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    fill: none;
+    stroke: hsl(var(--primary));
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .card:hover .card__go svg {
+    transform: translateX(6px);
+  }
+
+  .card--work {
+    width: auto;
+    min-height: 15rem;
+  }
+
+  .card__stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--primary));
+  }
+
+  .card__stars svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    fill: currentColor;
+  }
+
+  .work {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: clamp(0.8rem, 1.6vw, 1.1rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* -------------------------------- index ------------------------------ */
+
+  .index {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+
+  .index__label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .index__label a {
+    color: hsl(var(--primary));
+    letter-spacing: 0.1em;
+  }
+
+  .index__col ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .index__col li a {
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    padding: 1rem 0.2rem;
+    transition: padding-left 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .index__col li a:hover {
+    padding-left: 1rem;
+  }
+
+  .index__rule {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: hsl(var(--border));
+  }
+
+  .index__rule::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary));
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .index__col li a:hover .index__rule::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .index__meta {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .index__title {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.55;
+  }
+
+  /* --------------------------------- off ------------------------------- */
+
+  .off {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(1.6rem, 4vw, 3.5rem);
+  }
+
+  .off__portrait {
+    position: relative;
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .off__portrait img {
+    display: block;
+    width: clamp(7rem, 15vw, 11rem);
+    height: auto;
+    filter: saturate(0.85);
+    transition: filter 0.5s ease;
+  }
+
+  .off__portrait:hover img {
+    filter: saturate(1.1);
+  }
+
+  .off__body {
+    max-width: 42rem;
+    margin: 1.2rem 0 1.6rem;
+    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+    line-height: 1.85;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .off__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .off__tags li {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    color: hsl(var(--muted-foreground));
+    transition:
+      border-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .off__tags li:hover {
+    border-color: hsl(var(--primary));
+    color: hsl(var(--foreground));
+  }
+
+  /* --------------------------------- end ------------------------------- */
+
+  .end {
+    position: relative;
+    width: min(72rem, 100% - clamp(2rem, 8vw, 6rem));
+    margin-inline: auto;
+    padding: clamp(6rem, 15vh, 11rem) 0 3rem;
+  }
+
+  /* The field comes back up for the closing frame; same trick as the hero so
+     the small print keeps its contrast. */
+  .end::before {
+    content: '';
+    position: absolute;
+    inset: 0 -12vw;
+    pointer-events: none;
+    background: radial-gradient(
+      64% 62% at 34% 45%,
+      hsl(var(--background) / 0.9),
+      hsl(var(--background) / 0.6) 48%,
+      hsl(var(--background) / 0) 82%
+    );
+  }
+
+  .end > * {
+    position: relative;
+  }
+
+  .end__lead {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .end__title {
+    max-width: 22ch;
+    margin: 0;
+    font-size: clamp(2.1rem, 6.4vw, 4.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.045em;
+  }
+
+  .end__note {
+    margin: 1.8rem 0 2.6rem;
+    font-size: 1rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .end__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0 0 4rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .end__links a {
+    position: relative;
+    display: inline-block;
+    padding: 0.7rem 1.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--card) / 0.5);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-size: 0.92rem;
+    overflow: hidden;
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .end__links a::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: hsl(var(--primary));
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+    z-index: -1;
+  }
+
+  .end__links a:hover {
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+  }
+
+  .end__links a:hover::before {
+    transform: scaleY(1);
+  }
+
+  .end__foot {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0;
+    padding-top: 1.6rem;
+    border-top: 1px solid hsl(var(--border));
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 9999px;
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* ------------------------------- reveal ------------------------------ */
+
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  /* --------------------------- responsive ------------------------------ */
+
+  @media (max-width: 768px) {
+    .off {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .reel__lead {
+      width: min(24rem, 84vw);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rail__nav a:not(.rail__lang) {
+      display: none;
+    }
+
+    .cursor {
+      display: none;
+    }
+
+    .hero__scroll {
+      left: 0;
+      transform: none;
+      justify-items: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    v4-home *,
+    v4-home *::before,
+    v4-home *::after {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+    }
+
+    .cursor {
+      display: none;
+    }
+  }
+</style>
