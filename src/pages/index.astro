@@ -10,6 +10,7 @@ import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import JiajiaMascot from '@/components/blog/JiajiaMascot.astro'
 import LinkCard from '@/components/home/LinkCard.astro'
 import Section from '@/components/home/Section.astro'
 import SiteStats from '@/components/home/SiteStats.astro'
@@ -32,6 +33,32 @@ const jojoSeatSvg = __JOJO__
       decorative: true
     })
   : ''
+
+const jiajiaStarterAnswers = [
+  {
+    title: '多 Agent 协作与分工应该怎么设计',
+    conclusion:
+      '按上下文边界、权限立场和物理隔离切分，把子 Agent 当受控工具调用，而非平级自由聊天。',
+    url: 'https://jiajia.fun/a/3f1234d6-48cc-488b-b49d-9aec22950181-%E5%A4%9Aagent%E5%8D%8F%E4%BD%9C%E4%B8%8E%E5%88%86%E5%B7%A5%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1'
+  },
+  {
+    title: '为何应让强模型自主决定写入记忆而非写死规则',
+    conclusion:
+      '预先写死记忆筛选规则反而压低强模型性能；解决不可靠靠的是拿原始 transcript 核对重写。',
+    url: 'https://jiajia.fun/a/200b404c-a49a-439b-9201-52314c3c59c6-%E4%B8%BA%E4%BD%95%E5%BA%94%E8%AE%A9%E5%BC%BA%E6%A8%A1%E5%9E%8B%E8%87%AA%E4%B8%BB%E5%86%B3%E5%AE%9A%E5%86%99%E5%85%A5%E8%AE%B0%E5%BF%86%E8%80%8C%E9%9D%9E%E5%86%99%E6%AD%BB%E8%A7%84%E5%88%99'
+  },
+  {
+    title: '长期编程任务如何管理 Agent 上下文',
+    conclusion: '以分层知识、可验证任务状态和按需历史检索重建上下文，而不是反复搬运完整聊天记录。',
+    url: 'https://jiajia.fun/a/a2ce6b7c-1b1f-4cb2-9320-3a6903d4c930-%E9%95%BF%E6%9C%9F%E7%BC%96%E7%A8%8B%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%AE%A1%E7%90%86agent%E4%B8%8A%E4%B8%8B%E6%96%87'
+  },
+  {
+    title: '如何把 Agent 评测包装进项目',
+    conclusion:
+      '从 20–50 条真实 badcase 起步，按任务集、判定器、可复现运行层和带 trace 报告分三层落地。',
+    url: 'https://jiajia.fun/a/b685e4d5-b261-4021-915c-dae70e72a1b1-%E5%A6%82%E4%BD%95%E6%8A%8Aagent%E8%AF%84%E6%B5%8B%E5%8C%85%E8%A3%85%E8%BF%9B%E9%A1%B9%E7%9B%AE'
+  }
+]
 
 const languages = ['TypeScript', 'JavaScript', 'Python', 'SQL']
 const frontend = ['React', 'Next.js', 'Tailwind CSS', 'Remotion', 'Vite']
@@ -179,7 +206,7 @@ const latestTalk = talks[0]
         </p>
         <Button title='More about me' class='w-fit self-end' href='/about' style='ahead' />
       </Section>
-      {/* 导流：另一个产品「面试手记」joyehuang.dev */}
+      {/* 导流：另一个产品「夹夹 · Agent 工程踩坑问答」jiajia.fun */}
       <section
         id='product'
         aria-labelledby='product-heading'
@@ -187,56 +214,160 @@ const latestTalk = talks[0]
         data-jojo-stop='product'
       >
         <h2 id='product-heading' class='sr-only'>Product</h2>
-        <a
-          href='https://joyehuang.dev'
-          target='_blank'
-          rel='noopener noreferrer'
-          class='hd interview-card group relative flex flex-col gap-3 p-5 no-underline sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:p-6'
-          data-hd-frame
-          data-analytics-event='project_link_click'
-          data-analytics-surface='home_interview'
-          data-analytics-section='interview'
-          data-analytics-project='interview-notes'
-          data-analytics-link-type='site'
-        >
-          {/* 手绘墨线边框：路径按卡片实际尺寸生成，进入视口时 draw-on */}
-          <svg class='hd-frame' aria-hidden='true' focusable='false'>
-            <path class='hd-frame-path' pathLength='1' d=''></path>
-          </svg>
+        <div class='jj jiajia-card relative flex flex-col gap-4 p-5 sm:p-6'>
+          <div class='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6'>
+            <div class='relative min-w-0 flex-1'>
+              <div class='flex flex-wrap items-center gap-1.5 text-xs'>
+                <span class='jj-status'>
+                  <span class='jj-coral-dot' aria-hidden='true'></span>
+                  <span>jiajia.fun · 290+ 条真实问答</span>
+                </span>
+                <span class='jj-chip jj-chip-method'>
+                  <span class='jj-chip-dot' aria-hidden='true'></span>上下文与记忆
+                </span>
+                <span class='jj-chip jj-chip-pick'>
+                  <span class='jj-chip-dot' aria-hidden='true'></span>工具与选型
+                </span>
+                <span class='jj-chip jj-chip-concept'>
+                  <span class='jj-chip-dot' aria-hidden='true'></span>架构与评测
+                </span>
+                <span class='jj-chip jj-chip-career'>
+                  <span class='jj-chip-dot' aria-hidden='true'></span>求职与面试
+                </span>
+              </div>
 
-          <div class='relative min-w-0'>
-            <div class='flex flex-wrap items-center gap-2 text-xs'>
-              <span class='hd-badge'>新企划 · 即将上线</span>
-              <span class='hd-sub'>joyehuang.dev · 现已开放预约</span>
+              <div class='mt-3 flex items-center gap-3.5'>
+                <JiajiaMascot id='home-filo' mood='happy' interactive size={50} />
+                <div class='min-w-0'>
+                  <a
+                    href='https://jiajia.fun'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    class='jj-title-link no-underline'
+                    data-analytics-event='project_link_click'
+                    data-analytics-surface='home_product'
+                    data-analytics-section='product'
+                    data-analytics-project='jiajia'
+                    data-analytics-link-type='site'
+                  >
+                    <h3 class='jj-heading text-xl font-bold sm:text-2xl'>
+                      夹夹 · Agent 工程踩坑问答
+                    </h3>
+                  </a>
+                  <p class='jj-kicker text-xs'>做 Agent 卡住了？先问问我。</p>
+                </div>
+              </div>
+
+              <p class='jj-body mt-2.5 text-sm leading-relaxed'>
+                群里做 AI Agent 的工程师问过、答过、纠正过的真实问题，整理成可搜索的答案与专题目录
+                —— 每一条结论都能直接回到原始讨论。
+              </p>
             </div>
-            <h3 class='hd-heading mt-2 text-2xl font-bold sm:text-3xl'>
-              <span class='hd-marker'>
-                面试手记
-                <svg
-                  class='hd-marker-svg'
-                  viewBox='0 0 200 18'
-                  preserveAspectRatio='none'
-                  aria-hidden='true'
-                  focusable='false'
-                >
-                  <path
-                    class='hd-marker-path'
-                    pathLength='1'
-                    d='M3 12 C 48 5, 116 16, 197 7'
-                    vector-effect='non-scaling-stroke'></path>
-                </svg>
-              </span>
-            </h3>
-            <p class='hd-body mt-2 text-sm leading-relaxed'>
-              158 道真题一字不删，连答砸的都有 —— 逐字稿回放，看一场面试真实的样子
-            </p>
+
+            <div class='jj-right relative flex shrink-0 flex-col items-start gap-2.5 sm:items-end'>
+              <div class='jj-folder-preview hidden sm:flex' aria-hidden='true'>
+                <span class='jj-md-card jj-md-card-1'>
+                  <span class='jj-md-tag jj-chip-pick'>● 选型</span>
+                  <span class='jj-md-code'>01.md</span>
+                </span>
+                <span class='jj-md-card jj-md-card-2'>
+                  <span class='jj-md-tag jj-chip-method'>● 记忆</span>
+                  <span class='jj-md-code'>02.md</span>
+                </span>
+              </div>
+              <a
+                href='https://jiajia.fun'
+                target='_blank'
+                rel='noopener noreferrer'
+                class='jj-cta text-sm no-underline'
+                data-analytics-event='project_link_click'
+                data-analytics-surface='home_product'
+                data-analytics-section='product'
+                data-analytics-project='jiajia'
+                data-analytics-link-type='site'
+              >
+                <span>去逛逛题库</span>
+                <span class='jj-cta-circle' aria-hidden='true'>↗</span>
+              </a>
+            </div>
           </div>
 
-          <span class='hd-cta relative shrink-0 self-start text-sm sm:self-center'>
-            去看看
-            <span class='hd-arrow' aria-hidden='true'>→</span>
-          </span>
-        </a>
+          <form
+            action='https://jiajia.fun/'
+            method='get'
+            target='_blank'
+            data-jj-ask-form
+            data-jj-surface='home_product'
+            class='jj-ask-inline'
+          >
+            <span class='jj-ask-spark' aria-hidden='true'>✦</span>
+            <input
+              type='text'
+              name='q'
+              maxlength='120'
+              autocomplete='off'
+              enterkeyhint='send'
+              placeholder='输入你的 Agent 问题（如：多 Agent 怎么分工 / 记忆怎么写），回车直达答案'
+              aria-label='在博客直接向夹夹提问'
+              class='jj-ask-input'
+              data-jj-ask-input
+            />
+            <button
+              type='submit'
+              class='jj-send-circle'
+              aria-label='直达夹夹答案或去问夹夹'
+              data-analytics-event='project_link_click'
+              data-analytics-surface='home_product'
+              data-analytics-section='product'
+              data-analytics-project='jiajia'
+              data-analytics-link-type='site'
+              data-analytics-target='ask_submit'
+            >
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                width='16'
+                height='16'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                stroke-width='2.5'
+                stroke-linecap='round'
+                stroke-linejoin='round'
+                aria-hidden='true'
+              >
+                <path d='m5 12 7-7 7 7'></path>
+                <path d='M12 19V5'></path>
+              </svg>
+            </button>
+          </form>
+
+          <div class='jj-matches-box' data-jj-matches hidden></div>
+
+          <div class='jj-starter-row' data-jj-default-starters>
+            <span class='jj-starter-label'>群友问过（点击直达答案）：</span>
+            {
+              jiajiaStarterAnswers.map((item) => (
+                <a
+                  href={item.url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  class='jj-starter-pill no-underline'
+                  title={item.conclusion}
+                  data-analytics-event='project_link_click'
+                  data-analytics-surface='home_product'
+                  data-analytics-section='product'
+                  data-analytics-project='jiajia'
+                  data-analytics-link-type='site'
+                >
+                  <span>{item.title}</span>
+                  <span class='jj-pill-arrow' aria-hidden='true'>
+                    ↗
+                  </span>
+                </a>
+              ))
+            }
+          </div>
+        </div>
       </section>
       {
         allPostsByDate.length > 0 && (
@@ -441,113 +572,26 @@ const latestTalk = talks[0]
   }
 
   {
-    /* 首访弹窗：面试手记推广，localStorage 记住，每位访客只弹一次。
-      Jojo 模式（审阅决定）：不弹大窗，免得和搭站开场连着叠遮罩；静态推广卡与左下 popout 保留。 */
+    /* 首访弹窗：夹夹（jiajia.fun）推广，localStorage 记住，每位访客弹一次。
+       内嵌可直接输入的提问框，回车或点示例问题直接带问题跳往 jiajia.fun。 */
   }
-  {
-    !__JOJO__ && (
-      <div
-        id='interview-promo'
-        class='interview-promo fixed inset-0 z-60 items-center justify-center p-4'
-        hidden
-      >
-        <div class='interview-promo-backdrop absolute inset-0' data-promo-dismiss />
-        <div
-          class='hd hd-sheet interview-promo-card relative w-full max-w-md p-6'
-          role='dialog'
-          aria-modal='true'
-          aria-labelledby='interview-promo-title'
-        >
-          <button
-            type='button'
-            data-promo-dismiss
-            class='hd-close absolute end-3 top-3 flex size-8 items-center justify-center'
-            aria-label='关闭弹窗'
-          >
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              width='16'
-              height='16'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              stroke-width='2.5'
-              stroke-linecap='round'
-              stroke-linejoin='round'
-              aria-hidden='true'
-            >
-              <path d='M18 6 6 18' />
-              <path d='m6 6 12 12' />
-            </svg>
-          </button>
-
-          <span class='hd-badge'>新企划 · 即将上线</span>
-          <h2 id='interview-promo-title' class='hd-heading mt-3 text-3xl font-bold'>
-            <span class='hd-marker'>
-              面试手记
-              <svg
-                class='hd-marker-svg'
-                viewBox='0 0 200 18'
-                preserveAspectRatio='none'
-                aria-hidden='true'
-                focusable='false'
-              >
-                <path
-                  class='hd-marker-path'
-                  pathLength='1'
-                  d='M3 12 C 48 5, 116 16, 197 7'
-                  vector-effect='non-scaling-stroke'
-                />
-              </svg>
-            </span>
-          </h2>
-          <p class='hd-body mt-3 text-sm leading-relaxed'>
-            158 道真实面试题，一字不删 —— 连当场答砸的那些也原样留着。
-          </p>
-          <p class='hd-body mt-1 text-sm leading-relaxed'>
-            逐字稿回放，看一场面试真实的样子，而不是事后美化过的复盘。
-          </p>
-
-          <div class='mt-5 flex flex-wrap items-center gap-3'>
-            <a
-              href='https://joyehuang.dev'
-              target='_blank'
-              rel='noopener noreferrer'
-              class='hd-cta text-sm no-underline'
-              data-promo-dismiss
-              data-analytics-event='project_link_click'
-              data-analytics-surface='home_popup'
-              data-analytics-section='interview'
-              data-analytics-project='interview-notes'
-              data-analytics-link-type='site'
-            >
-              去看看
-              <span class='hd-arrow' aria-hidden='true'>
-                →
-              </span>
-            </a>
-            <button type='button' data-promo-dismiss class='hd-quiet text-sm'>
-              先不看
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  {/* 左下角 popout：跟随原 SOA 的位置（右下角是 JoJo），关闭后 localStorage 记住 */}
-  <aside
-    id='interview-popout'
-    class='fixed bottom-4 start-4 z-50 w-[270px] max-w-[calc(100vw-2rem)] md:bottom-6 md:start-6'
-    aria-label='面试手记'
+  <div
+    id='jiajia-promo'
+    class='jiajia-promo fixed inset-0 z-60 items-center justify-center p-4'
     hidden
   >
-    <div data-popout-panel class='hd hd-sheet interview-popout-panel relative p-4'>
+    <div class='jiajia-promo-backdrop absolute inset-0' data-promo-dismiss></div>
+    <div
+      class='jj jj-sheet jiajia-promo-card relative w-full max-w-lg p-6'
+      role='dialog'
+      aria-modal='true'
+      aria-labelledby='jiajia-promo-title'
+    >
       <button
         type='button'
-        data-popout-close
-        class='hd-close absolute end-2 top-2 z-10 flex size-7 items-center justify-center'
-        aria-label='关闭面试手记弹窗'
+        data-promo-dismiss
+        class='jj-close absolute end-3 top-3 flex size-8 items-center justify-center'
+        aria-label='关闭弹窗'
       >
         <svg
           xmlns='http://www.w3.org/2000/svg'
@@ -566,63 +610,416 @@ const latestTalk = talks[0]
         </svg>
       </button>
 
-      <div class='pe-7'>
-        <span class='hd-badge'>即将上线</span>
-        <h2 class='hd-heading mt-2 text-lg font-bold'>面试手记</h2>
-        <p class='hd-body mt-1 text-xs leading-relaxed'>
-          158 道真题一字不删，连答砸的都有 —— 逐字稿回放。
-        </p>
+      <span class='jj-status'>
+        <span class='jj-coral-dot' aria-hidden='true'></span>
+        <span>新上线 · jiajia.fun · 290+ 条真实问答</span>
+      </span>
+
+      <div class='mt-3 flex items-center gap-3.5'>
+        <JiajiaMascot id='promo-filo' mood='happy' interactive size={58} />
+        <div>
+          <h2 id='jiajia-promo-title' class='jj-heading text-2xl font-bold'>
+            夹夹 · Agent 工程踩坑问答
+          </h2>
+          <p class='jj-kicker text-xs'>做 Agent 卡住了？直接在下面问我，回车跳转到 jiajia.fun</p>
+        </div>
+      </div>
+
+      <p class='jj-body mt-3 text-sm leading-relaxed'>
+        群里做 AI Agent 的工程师问过、答过、纠正过的真实问题，我都整理成了结构化答案 ——
+        上下文、记忆、评测、工具选型、求职面试，每一条都能回到原始讨论。
+      </p>
+
+      <form
+        action='https://jiajia.fun/'
+        method='get'
+        target='_blank'
+        data-jj-ask-form
+        data-jj-dismiss-promo
+        data-jj-surface='home_popup'
+        class='jj-ask-box mt-4'
+      >
+        <div class='jj-ask-box-top'>
+          <span class='jj-ask-spark' aria-hidden='true'>✦</span>
+          <input
+            type='text'
+            name='q'
+            maxlength='120'
+            autocomplete='off'
+            enterkeyhint='send'
+            placeholder='输入你的 Agent 问题（如：多 Agent 怎么分工 / 记忆怎么写）'
+            aria-label='向夹夹提问'
+            class='jj-ask-input'
+            data-jj-ask-input
+            data-promo-input
+          />
+        </div>
+        <div class='jj-ask-box-bottom'>
+          <span class='jj-ask-hint' data-jj-hint> 有群友问过会直接跳到那篇答案 · 回车直达 </span>
+          <button
+            type='submit'
+            class='jj-send-circle'
+            aria-label='直达夹夹答案或去问夹夹'
+            data-analytics-event='project_link_click'
+            data-analytics-surface='home_popup'
+            data-analytics-section='product'
+            data-analytics-project='jiajia'
+            data-analytics-link-type='site'
+            data-analytics-target='ask_submit'
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='17'
+              height='17'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2.5'
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              aria-hidden='true'
+            >
+              <path d='m5 12 7-7 7 7'></path>
+              <path d='M12 19V5'></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <div class='jj-matches-box mt-3' data-jj-matches hidden></div>
+
+      <div class='jj-starter-block mt-3' data-jj-default-starters>
+        <span class='jj-starter-label'>群友问过 · 点一下直达准确答案：</span>
+        <div class='jj-starter-cards mt-2'>
+          {
+            jiajiaStarterAnswers.map((item) => (
+              <a
+                href={item.url}
+                target='_blank'
+                rel='noopener noreferrer'
+                class='jj-answer-link no-underline'
+                data-promo-dismiss
+                data-analytics-event='project_link_click'
+                data-analytics-surface='home_popup'
+                data-analytics-section='product'
+                data-analytics-project='jiajia'
+                data-analytics-link-type='site'
+              >
+                <span class='jj-answer-link-head'>
+                  <span class='jj-answer-link-title'>{item.title}</span>
+                  <span class='jj-answer-link-badge'>直达答案 ↗</span>
+                </span>
+                <span class='jj-answer-link-desc'>{item.conclusion}</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class='mt-4 flex flex-wrap items-center justify-between gap-3'>
         <a
-          href='https://joyehuang.dev'
+          href='https://jiajia.fun'
           target='_blank'
           rel='noopener noreferrer'
-          class='hd-cta mt-3 text-xs no-underline'
+          class='jj-direct-link text-xs no-underline'
+          data-promo-dismiss
           data-analytics-event='project_link_click'
-          data-analytics-surface='home_popout'
-          data-analytics-section='interview'
-          data-analytics-project='interview-notes'
+          data-analytics-surface='home_popup'
+          data-analytics-section='product'
+          data-analytics-project='jiajia'
           data-analytics-link-type='site'
         >
-          去看看
-          <span class='hd-arrow' aria-hidden='true'>→</span>
+          <span>直接去 jiajia.fun 问夹夹 ↗</span>
         </a>
+        <button type='button' data-promo-dismiss class='jj-quiet text-sm'>先不看</button>
+      </div>
+    </div>
+  </div>
+
+  {/* 左下角 popout：跟随原 SOA 的位置（右下角是 JoJo），关闭后 localStorage 记住 */}
+  <aside
+    id='jiajia-popout'
+    class='fixed bottom-4 start-4 z-50 w-[300px] max-w-[calc(100vw-2rem)] md:bottom-6 md:start-6'
+    aria-label='夹夹 · Agent 工程踩坑问答'
+    hidden
+  >
+    <div data-popout-panel class='jj jj-sheet jiajia-popout-panel relative p-4'>
+      <button
+        type='button'
+        data-popout-close
+        class='jj-close absolute end-2 top-2 z-10 flex size-7 items-center justify-center'
+        aria-label='关闭夹夹弹窗'
+      >
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          width='16'
+          height='16'
+          viewBox='0 0 24 24'
+          fill='none'
+          stroke='currentColor'
+          stroke-width='2.5'
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          aria-hidden='true'
+        >
+          <path d='M18 6 6 18'></path>
+          <path d='m6 6 12 12'></path>
+        </svg>
+      </button>
+
+      <div>
+        <div class='flex items-center gap-2.5 pe-6'>
+          <JiajiaMascot id='popout-filo' mood='happy' interactive size={38} />
+          <div class='min-w-0'>
+            <span class='jj-status'>
+              <span class='jj-coral-dot' aria-hidden='true'></span>
+              <span>jiajia.fun · 工程问答</span>
+            </span>
+            <h2 class='jj-heading mt-1 text-base font-bold'>夹夹 · Agent 工程踩坑问答</h2>
+          </div>
+        </div>
+        <p class='jj-body mt-1.5 text-xs leading-relaxed'>
+          输入问题回车直达群友问过的准确答案，或直接去问夹夹：
+        </p>
+
+        <form
+          action='https://jiajia.fun/'
+          method='get'
+          target='_blank'
+          data-jj-ask-form
+          data-jj-surface='home_popout'
+          class='jj-ask-inline jj-ask-inline-sm mt-2.5'
+        >
+          <span class='jj-ask-spark' aria-hidden='true'>✦</span>
+          <input
+            type='text'
+            name='q'
+            maxlength='120'
+            autocomplete='off'
+            enterkeyhint='send'
+            placeholder='比如：多 Agent 怎么分工 / 记忆怎么写'
+            aria-label='在左下角向夹夹提问'
+            class='jj-ask-input'
+            data-jj-ask-input
+          />
+          <button
+            type='submit'
+            class='jj-send-circle jj-send-circle-sm'
+            aria-label='直达夹夹答案或去问夹夹'
+            data-analytics-event='project_link_click'
+            data-analytics-surface='home_popout'
+            data-analytics-section='product'
+            data-analytics-project='jiajia'
+            data-analytics-link-type='site'
+            data-analytics-target='ask_submit'
+          >
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              width='14'
+              height='14'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              stroke-width='2.5'
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              aria-hidden='true'
+            >
+              <path d='m5 12 7-7 7 7'></path>
+              <path d='M12 19V5'></path>
+            </svg>
+          </button>
+        </form>
+
+        <div class='jj-matches-box mt-2' data-jj-matches hidden></div>
+
+        <div class='mt-2.5 flex items-center justify-between'>
+          <a
+            href='https://jiajia.fun'
+            target='_blank'
+            rel='noopener noreferrer'
+            class='jj-direct-link text-xs no-underline'
+            data-analytics-event='project_link_click'
+            data-analytics-surface='home_popout'
+            data-analytics-section='product'
+            data-analytics-project='jiajia'
+            data-analytics-link-type='site'
+          >
+            <span>直接去问夹夹 (290+ 条问答) ↗</span>
+          </a>
+        </div>
       </div>
     </div>
   </aside>
 
   <script is:inline>
     ;(() => {
-      // Jojo mode renders no promo modal (only the popout), so promo may be null.
-      const promo = document.getElementById('interview-promo')
-      const popout = document.getElementById('interview-popout')
+      const promo = document.getElementById('jiajia-promo')
+      const popout = document.getElementById('jiajia-popout')
       if (!popout) return
 
       const panel = popout.querySelector('[data-popout-panel]')
-      const promoKey = 'joye-interview-promo-seen'
-      const popoutKey = 'joye-interview-popout-state'
+      const promoKey = 'joye-jiajia-promo-v3'
+      const popoutKey = 'joye-jiajia-popout-state'
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       let nudgeTimer = 0
       let nudgeInterval = 0
 
+      // 内置精选答案兜底 + 异步拉取全量 297+ 条答案目录，保证输入匹配与回车跳转同步零延迟。
+      let answerCatalog = [
+        {
+          id: '3f1234d6-48cc-488b-b49d-9aec22950181',
+          title: '多 Agent 协作与分工应该怎么设计',
+          conclusion:
+            '不要模仿人类职位或让多个 Agent 平级自由协作，应按上下文边界、权限立场和物理隔离切分，把子 Agent 当受控工具调用。',
+          url: 'https://jiajia.fun/a/3f1234d6-48cc-488b-b49d-9aec22950181-%E5%A4%9Aagent%E5%8D%8F%E4%BD%9C%E4%B8%8E%E5%88%86%E5%B7%A5%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1'
+        },
+        {
+          id: '200b404c-a49a-439b-9201-52314c3c59c6',
+          title: '为何应让强模型自主决定写入记忆而非写死规则',
+          conclusion:
+            '对强模型预先写死记忆筛选规则反而压低性能；解决不可靠靠的是拿原始 transcript 核对重写，而非静态规则限制。',
+          url: 'https://jiajia.fun/a/200b404c-a49a-439b-9201-52314c3c59c6-%E4%B8%BA%E4%BD%95%E5%BA%94%E8%AE%A9%E5%BC%BA%E6%A8%A1%E5%9E%8B%E8%87%AA%E4%B8%BB%E5%86%B3%E5%AE%9A%E5%86%99%E5%85%A5%E8%AE%B0%E5%BF%86%E8%80%8C%E9%9D%9E%E5%86%99%E6%AD%BB%E8%A7%84%E5%88%99'
+        },
+        {
+          id: 'a2ce6b7c-1b1f-4cb2-9320-3a6903d4c930',
+          title: '长期编程任务如何管理 Agent 上下文',
+          conclusion:
+            '以分层知识、可验证任务状态和按需历史检索重建上下文，让新会话低成本恢复工作，而不是反复搬运完整聊天记录。',
+          url: 'https://jiajia.fun/a/a2ce6b7c-1b1f-4cb2-9320-3a6903d4c930-%E9%95%BF%E6%9C%9F%E7%BC%96%E7%A8%8B%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%AE%A1%E7%90%86agent%E4%B8%8A%E4%B8%8B%E6%96%87'
+        },
+        {
+          id: 'b685e4d5-b261-4021-915c-dae70e72a1b1',
+          title: '如何把 Agent 评测包装进项目',
+          conclusion:
+            '从 20–50 条真实 badcase 起步，按任务集、判定器、可复现运行层和带 trace 的报告四要素分三层落地。',
+          url: 'https://jiajia.fun/a/b685e4d5-b261-4021-915c-dae70e72a1b1-%E5%A6%82%E4%BD%95%E6%8A%8Aagent%E8%AF%84%E6%B5%8B%E5%8C%85%E8%A3%85%E8%BF%9B%E9%A1%B9%E7%9B%AE'
+        },
+        {
+          id: '7acb496a-11b2-4150-b04b-1adbe3d834d3',
+          title: 'Agent 的记忆模块怎么做',
+          conclusion:
+            '按会话上下文、近期问答带入、检索式长期记忆、群聊历史、顶层规则五层设计，核心是原文落盘加索引指针。',
+          url: 'https://jiajia.fun/a/7acb496a-11b2-4150-b04b-1adbe3d834d3-agent%E7%9A%84%E8%AE%B0%E5%BF%86%E6%A8%A1%E5%9D%97%E6%80%8E%E4%B9%88%E5%81%9A'
+        },
+        {
+          id: 'd49fe50e-dfd1-4968-b92f-5ed9078aee26',
+          title: 'Skill 的定义、构建步骤与多 Agent 协调机制',
+          conclusion:
+            'Skill 是将做事流程文件化的经验资产；多 Agent 协调在工程上应采用“主从 + 文件契约”而非自由聊天。',
+          url: 'https://jiajia.fun/a/d49fe50e-dfd1-4968-b92f-5ed9078aee26-skill%E7%9A%84%E5%AE%9A%E4%B9%89-%E6%9E%84%E5%BB%BA%E6%AD%A5%E9%AA%A4%E4%B8%8E%E5%A4%9Aagent%E5%8D%8F%E8%B0%83%E6%9C%BA%E5%88%B6'
+        }
+      ]
+
+      let catalogLoaded = false
+      const ensureCatalog = () => {
+        if (catalogLoaded) return
+        catalogLoaded = true
+        fetch('/api/jiajia.json')
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data) => {
+            if (Array.isArray(data?.items) && data.items.length > 0) {
+              answerCatalog = data.items
+            }
+          })
+          .catch(() => {})
+      }
+
+      const STOP_TOKENS = new Set([
+        '怎么',
+        '如何',
+        '什么',
+        '哪些',
+        '是否',
+        '为何',
+        '为什么',
+        '是不是',
+        '应该',
+        '可以',
+        '时候',
+        '一个',
+        '还是',
+        '关于',
+        '请问'
+      ])
+
+      const extractTokens = (text) => {
+        const clean = text
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, ' ')
+          .trim()
+        const words = clean.split(/\s+/).filter(Boolean)
+        const tokens = new Set()
+        for (const w of words) {
+          if (/^[a-z0-9]+$/.test(w)) {
+            if (w.length >= 2) tokens.add(w)
+          } else {
+            const latin = w.match(/[a-z0-9]{2,}/g) || []
+            latin.forEach((t) => tokens.add(t))
+            const cjk = w.replace(/[a-z0-9]+/g, '')
+            if (cjk.length === 1) tokens.add(cjk)
+            for (let i = 0; i < cjk.length - 1; i++) {
+              tokens.add(cjk.slice(i, i + 2))
+            }
+          }
+        }
+        return [...tokens]
+      }
+
+      const matchLocalAnswers = (query) => {
+        const q = query.trim().toLowerCase()
+        if (!q) return []
+        const tokens = extractTokens(q)
+        const scored = []
+        for (const item of answerCatalog) {
+          const title = (item.title || '').toLowerCase()
+          const conclusion = (item.conclusion || '').toLowerCase()
+          const topic = (item.topic || '').toLowerCase()
+          let score = 0
+          if (title.includes(q)) score += 45
+          if (conclusion.includes(q)) score += 16
+          for (const t of tokens) {
+            const isStop = STOP_TOKENS.has(t)
+            if (title.includes(t)) score += isStop ? 1 : t.length >= 3 ? 11 : 7
+            if (conclusion.includes(t)) score += isStop ? 0.5 : 2.5
+            if (topic.includes(t)) score += isStop ? 0 : 3
+          }
+          if (score >= 6) scored.push({ item, score })
+        }
+        return scored
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+          .map((s) => s.item)
+      }
+
+      const escapeHtml = (str) =>
+        String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+
       const read = (key) => {
         try {
           return window.localStorage.getItem(key)
-        } catch (e) {
+        } catch {
           return null
         }
       }
       const write = (key, value) => {
         try {
           window.localStorage.setItem(key, value)
-        } catch (e) {}
+        } catch {
+          // ignore storage errors
+        }
       }
 
       const nudge = () => {
-        if (reduceMotion || popout.hidden || !panel) return
-        panel.classList.remove('interview-popout-nudge')
+        if (reduceMotion || popout.hidden || !panel || popout.matches(':focus-within')) return
+        panel.classList.remove('jiajia-popout-nudge')
         void panel.offsetWidth
-        panel.classList.add('interview-popout-nudge')
-        window.setTimeout(() => panel.classList.remove('interview-popout-nudge'), 1600)
+        panel.classList.add('jiajia-popout-nudge')
+        window.setTimeout(() => panel.classList.remove('jiajia-popout-nudge'), 1600)
       }
 
       const scheduleNudge = () => {
@@ -636,9 +1033,9 @@ const latestTalk = talks[0]
       }
 
       const openPopout = () => {
-        // 关过就永久不再弹（localStorage），不因刷新复活。
         if (read(popoutKey) === 'closed') return
         popout.hidden = false
+        ensureCatalog()
         scheduleNudge()
       }
 
@@ -660,8 +1057,14 @@ const latestTalk = talks[0]
       const openPromo = () => {
         if (!promo) return openPopout()
         promo.hidden = false
+        ensureCatalog()
         document.documentElement.style.overflow = 'hidden'
-        promo.querySelector('[data-promo-dismiss]')?.focus()
+        const input = promo.querySelector('[data-promo-input]')
+        if (input instanceof HTMLElement && window.matchMedia('(min-width: 640px)').matches) {
+          input.focus()
+        } else {
+          promo.querySelector('[data-promo-dismiss]')?.focus()
+        }
       }
 
       promo?.querySelectorAll('[data-promo-dismiss]').forEach((el) => {
@@ -670,6 +1073,117 @@ const latestTalk = talks[0]
       popout.querySelector('[data-popout-close]')?.addEventListener('click', closePopout)
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closePromo()
+      })
+
+      // 提问框与实时答案匹配：有匹配的群友问题时直接跳到该篇准确答案（/a/... 或 /qa/...），无匹配时跳去首页问夹夹。
+      document.querySelectorAll('[data-jj-ask-form]').forEach((form) => {
+        if (!(form instanceof HTMLFormElement)) return
+        const input = form.querySelector('[data-jj-ask-input]')
+        const host = form.closest('.jj')
+        const matchesBox = host?.querySelector('[data-jj-matches]')
+        const defaultStarters = host?.querySelector('[data-jj-default-starters]')
+        const hintEl = form.querySelector('[data-jj-hint]')
+        const surface = form.getAttribute('data-jj-surface') || 'home_popup'
+        const dismissOnPick = form.hasAttribute('data-jj-dismiss-promo')
+        let debounceId = 0
+
+        const renderMatches = (query, items) => {
+          const top = items[0]
+          if (top?.url) {
+            form.dataset.bestAnswerUrl = top.url
+          } else {
+            delete form.dataset.bestAnswerUrl
+          }
+
+          if (hintEl) {
+            hintEl.textContent = top
+              ? `已匹配到现成答案 · 按回车直达「${top.title.slice(0, 18)}…」`
+              : query
+                ? '还没有现成条目 · 按回车去 jiajia.fun 直接问夹夹'
+                : '有群友问过会直接跳到那篇答案 · 回车直达'
+          }
+
+          if (!(matchesBox instanceof HTMLElement)) return
+          if (!query) {
+            matchesBox.hidden = true
+            matchesBox.innerHTML = ''
+            if (defaultStarters instanceof HTMLElement) defaultStarters.hidden = false
+            return
+          }
+
+          if (defaultStarters instanceof HTMLElement) defaultStarters.hidden = true
+          matchesBox.hidden = false
+
+          const directAskUrl = `https://jiajia.fun/?${new URLSearchParams({ q: query }).toString()}`
+          if (!items.length) {
+            matchesBox.innerHTML = `<div class="jj-matches-empty"><a href="${escapeHtml(directAskUrl)}" target="_blank" rel="noopener noreferrer" class="jj-answer-link no-underline" data-jj-match-link data-analytics-event="project_link_click" data-analytics-surface="${escapeHtml(surface)}" data-analytics-section="product" data-analytics-project="jiajia" data-analytics-link-type="site"><span class="jj-answer-link-head"><span class="jj-answer-link-title">去 jiajia.fun 直接问夹夹：「${escapeHtml(query.slice(0, 28))}」</span><span class="jj-answer-link-badge">直接提问 ↗</span></span><span class="jj-answer-link-desc">夹夹会先翻群里公开讨论，再带着出处回答你</span></a></div>`
+          } else {
+            const rows = items
+              .slice(0, surface === 'home_popout' ? 2 : 3)
+              .map(
+                (item, idx) =>
+                  `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="jj-answer-link ${idx === 0 ? 'jj-answer-link-primary' : ''} no-underline" data-jj-match-link data-analytics-event="project_link_click" data-analytics-surface="${escapeHtml(surface)}" data-analytics-section="product" data-analytics-project="jiajia" data-analytics-link-type="site"><span class="jj-answer-link-head"><span class="jj-answer-link-title">${escapeHtml(item.title)}</span><span class="jj-answer-link-badge">${idx === 0 ? '回车直达答案 ↗' : '直达答案 ↗'}</span></span>${item.conclusion && surface !== 'home_popout' ? `<span class="jj-answer-link-desc">${escapeHtml(item.conclusion)}</span>` : ''}</a>`
+              )
+              .join('')
+            matchesBox.innerHTML = `<div class="jj-matches-head">匹配到群友问过的准确答案：</div><div class="jj-starter-cards">${rows}</div>`
+          }
+
+          if (dismissOnPick) {
+            matchesBox.querySelectorAll('[data-jj-match-link]').forEach((link) => {
+              link.addEventListener('click', closePromo)
+            })
+          }
+        }
+
+        if (input instanceof HTMLInputElement && host instanceof HTMLElement) {
+          input.addEventListener('focus', ensureCatalog)
+          input.addEventListener('input', () => {
+            ensureCatalog()
+            const q = input.value.trim().slice(0, 120)
+            if (q) host.setAttribute('data-jj-typing', 'true')
+            else host.removeAttribute('data-jj-typing')
+
+            const localHits = matchLocalAnswers(q)
+            renderMatches(q, localHits)
+
+            window.clearTimeout(debounceId)
+            if (q.length >= 2) {
+              debounceId = window.setTimeout(() => {
+                fetch(`/api/jiajia.json?${new URLSearchParams({ q }).toString()}`)
+                  .then((r) => (r.ok ? r.json() : null))
+                  .then((data) => {
+                    if (input.value.trim().slice(0, 120) !== q) return
+                    const remote = Array.isArray(data?.items) ? data.items : []
+                    const merged = [...localHits]
+                    const seen = new Set(merged.map((x) => x.url))
+                    for (const item of remote) {
+                      if (item?.url && !seen.has(item.url)) {
+                        seen.add(item.url)
+                        merged.push(item)
+                      }
+                    }
+                    renderMatches(q, merged.slice(0, 3))
+                  })
+                  .catch(() => {})
+              }, 140)
+            }
+          })
+        }
+
+        form.addEventListener('submit', (event) => {
+          event.preventDefault()
+          const q = input instanceof HTMLInputElement ? input.value.trim().slice(0, 120) : ''
+          const bestUrl = form.dataset.bestAnswerUrl || matchLocalAnswers(q)[0]?.url
+          const targetUrl = bestUrl
+            ? bestUrl
+            : q
+              ? `https://jiajia.fun/?${new URLSearchParams({ q }).toString()}`
+              : 'https://jiajia.fun/'
+          window.open(targetUrl, '_blank', 'noopener,noreferrer')
+          if (dismissOnPick) {
+            closePromo()
+          }
+        })
       })
 
       // 入场动画还在放的时候不要抢镜：等 Jojo 的开场放完再开始。
@@ -693,315 +1207,593 @@ const latestTalk = talks[0]
           else openPromo()
         }, 900)
       })
-
-      // ---- 手绘墨线边框：按卡片实际尺寸生成路径，进入视口时画出来 ----
-      const card = document.querySelector('[data-hd-frame]')
-      if (!card) return
-      const svg = card.querySelector('.hd-frame')
-      const path = svg && svg.querySelector('.hd-frame-path')
-      if (!svg || !path) return
-
-      // 手绘感的圆角矩形：四角半径不等（呼应 sk-1 的 255/15/225/15 走势），
-      // 直边中点带 1.5px 抖动，看起来像一笔画歪的框。
-      const framePath = (w, h) => {
-        const inset = 1
-        const x0 = inset
-        const y0 = inset
-        const x1 = w - inset
-        const y1 = h - inset
-        const cap = Math.max(6, Math.min(28, (Math.min(w, h) - 2 * inset) / 2.2))
-        const tl = cap
-        const tr = Math.max(6, cap * 0.3)
-        const br = cap * 0.85
-        const bl = Math.max(6, cap * 0.3)
-        const wob = 1.5
-        return [
-          `M ${x0 + tl} ${y0}`,
-          `Q ${(x0 + x1) / 2} ${y0 - wob} ${x1 - tr} ${y0}`,
-          `Q ${x1} ${y0} ${x1} ${y0 + tr}`,
-          `Q ${x1 + wob} ${(y0 + y1) / 2} ${x1} ${y1 - br}`,
-          `Q ${x1} ${y1} ${x1 - br} ${y1}`,
-          `Q ${(x0 + x1) / 2} ${y1 + wob} ${x0 + bl} ${y1}`,
-          `Q ${x0} ${y1} ${x0} ${y1 - bl}`,
-          `Q ${x0 - wob} ${(y0 + y1) / 2} ${x0} ${y0 + tl}`,
-          `Q ${x0} ${y0} ${x0 + tl} ${y0}`,
-          'Z'
-        ].join(' ')
-      }
-
-      const drawFrame = () => {
-        const rect = card.getBoundingClientRect()
-        const w = Math.round(rect.width)
-        const h = Math.round(rect.height)
-        if (!w || !h) return
-        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h)
-        path.setAttribute('d', framePath(w, h))
-      }
-
-      drawFrame()
-      if (window.ResizeObserver) new ResizeObserver(drawFrame).observe(card)
-      else window.addEventListener('resize', drawFrame)
-
-      if (window.IntersectionObserver) {
-        const io = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (!entry.isIntersecting) return
-              card.classList.add('is-drawn')
-              io.disconnect()
-            })
-          },
-          { threshold: 0.25 }
-        )
-        io.observe(card)
-      } else {
-        card.classList.add('is-drawn')
-      }
     })()
   </script>
 </PageLayout>
 
 <style>
-  /* 手绘推广层：joyehuang.dev 的设计语言（handdrawn-ui skill），
+  /* 夹夹（jiajia.fun · Filo）推广层：复刻 jiajia.fun 自身的配色与文件夹卡片视觉语言，
      只作用于这三个推广面（横幅卡 / 首访弹窗 / 左下 popout），
-     用局部 --hd-* token，不碰站点的语义 token —— 页面其余部分保持原样。
-     该设计系统只有亮色版，所以这三张「纸」在暗色下依然是纸。 */
-  .hd {
-    --hd-paper: #fffdf8;
-    --hd-ink: #3a3a3a;
-    --hd-sub: #5a564c;
-    --hd-weak: #8d887c;
-    --hd-hairline: #d8d2c2;
-    --hd-yellow: #ffe08a;
-    --hd-yellow2: #fff3b0;
-    --hd-shadow: rgba(58, 58, 58, 0.18);
-    --hd-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
-    color: var(--hd-ink);
-    background-color: var(--hd-paper);
-    /* 点阵纸面，低强度 */
-    background-image: radial-gradient(circle, rgba(30, 30, 30, 0.05) 1.1px, transparent 1.1px);
-    background-size: 22px 22px;
+     用局部 --jj-* token，同时支持亮色（暖羊皮纸 + 深海蓝墨 + 天空蓝）与暗色（深岩灰 + 暖白 + 天空蓝）。 */
+  .jj {
+    --jj-bg: #fbf7ef;
+    --jj-card: #ffffff;
+    --jj-surface: #f7f3ea;
+    --jj-ink: #252d6e;
+    --jj-sub: #62678f;
+    --jj-border: #e6decf;
+    --jj-input-border: #252d6e;
+    --jj-sky: #89c3f2;
+    --jj-sky-soft: #e3f0fb;
+    --jj-cream: #f6e9d4;
+    --jj-dot: #fe6544;
+    --jj-send-bg: #fe6544;
+    --jj-send-fg: #ffffff;
+    --jj-cta-bg: #252d6e;
+    --jj-cta-fg: #fbf7ef;
+    --jj-cta-circle-bg: rgba(251, 247, 239, 0.16);
+    --jj-chip-method-bg: #d3e8fc;
+    --jj-chip-method-fg: #1b5690;
+    --jj-chip-pick-bg: #ffd3c6;
+    --jj-chip-pick-fg: #a2321a;
+    --jj-chip-concept-bg: #fbe3b8;
+    --jj-chip-concept-fg: #7d4f0c;
+    --jj-chip-career-bg: #cdeedb;
+    --jj-chip-career-fg: #1f6a43;
+    --jj-shadow: 0 14px 36px rgba(37, 45, 110, 0.07);
+    --jj-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+    color: var(--jj-ink);
+    background-color: var(--jj-card);
   }
 
-  :global(.dark) .hd {
-    /* 暗色下保持亮卡，只把硬阴影压深，让纸片从暗背景里立起来 */
-    --hd-shadow: rgba(0, 0, 0, 0.55);
+  :global(.dark) .jj {
+    --jj-bg: #15161c;
+    --jj-card: #1d1f28;
+    --jj-surface: #23252f;
+    --jj-ink: #f1eadc;
+    --jj-sub: #a9acc4;
+    --jj-border: #2e3040;
+    --jj-input-border: #fe6544;
+    --jj-sky: #89c3f2;
+    --jj-sky-soft: #22324a;
+    --jj-cream: #f6e9d4;
+    --jj-dot: #fe6544;
+    --jj-send-bg: #fe6544;
+    --jj-send-fg: #15161c;
+    --jj-cta-bg: #89c3f2;
+    --jj-cta-fg: #15161c;
+    --jj-cta-circle-bg: rgba(21, 22, 28, 0.15);
+    --jj-chip-method-bg: #1d3b5c;
+    --jj-chip-method-fg: #a9d3fb;
+    --jj-chip-pick-bg: #55261b;
+    --jj-chip-pick-fg: #ffb6a1;
+    --jj-chip-concept-bg: #4a3714;
+    --jj-chip-concept-fg: #f6d38f;
+    --jj-chip-career-bg: #173f2c;
+    --jj-chip-career-fg: #9fe0bb;
+    --jj-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
   }
 
-  /* ---------- 横幅卡：SVG 墨线边框 + draw-on ---------- */
-  .interview-card {
+  /* ---------- 横幅卡：jiajia.fun 20px 圆角 + 天空蓝 hover 边框 + 微缩 .md 文件夹叠卡 ---------- */
+  .jiajia-card {
     isolation: isolate;
-    border-radius: 28px 8px 24px 8px;
-    box-shadow: 3px 3px 0 var(--hd-shadow);
+    border-radius: 22px;
+    border: 1px solid var(--jj-border);
+    background-image: radial-gradient(
+      ellipse at 88% 15%,
+      rgba(137, 195, 242, 0.16),
+      transparent 48%
+    );
+    box-shadow: var(--jj-shadow);
     transition:
-      transform 0.13s var(--hd-ease),
-      box-shadow 0.13s var(--hd-ease);
+      transform 0.18s var(--jj-ease),
+      border-color 0.18s var(--jj-ease),
+      box-shadow 0.18s var(--jj-ease);
   }
 
-  .interview-card:hover,
-  .interview-card:focus-visible {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--hd-shadow);
+  .jiajia-card:hover,
+  .jiajia-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--jj-sky);
   }
 
-  .hd-frame {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    pointer-events: none;
+  /* ---------- 弹窗 / popout 容器 ---------- */
+  .jj-sheet {
+    border: 1px solid var(--jj-border);
+    background-image: radial-gradient(
+      ellipse at 90% 10%,
+      rgba(137, 195, 242, 0.15),
+      transparent 46%
+    );
+    box-shadow: var(--jj-shadow);
   }
 
-  .hd-frame-path {
-    fill: none;
-    stroke: var(--hd-ink);
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
+  .jiajia-promo-card {
+    border-radius: 22px;
+    animation: jj-rise 0.38s var(--jj-ease) both;
   }
 
-  .interview-card.is-drawn .hd-frame-path {
-    animation: hd-draw 0.9s var(--hd-ease) both;
-  }
-
-  /* ---------- 弹窗 / popout 的纸片 ---------- */
-  .hd-sheet {
-    border: 2px solid var(--hd-ink);
-    box-shadow: 3px 3px 0 var(--hd-shadow);
-  }
-
-  .interview-promo-card {
-    /* sk-2 的不规则圆角 */
-    border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
-    animation: hd-rise 0.4s var(--hd-ease) both;
-  }
-
-  .interview-popout-panel {
-    /* sk-3 的不规则圆角 + 便利贴式微旋转 */
-    border-radius: 225px 15px 255px 15px / 15px 255px 15px 225px;
-    transform: rotate(-1deg);
+  .jiajia-popout-panel {
+    border-radius: 20px;
     transform-origin: bottom left;
-    animation: hd-rise 0.5s var(--hd-ease) both;
+    animation: jj-rise 0.45s var(--jj-ease) both;
+    transition: border-color 0.18s var(--jj-ease);
   }
 
-  /* ---------- 排版原语 ---------- */
-  .hd-heading {
-    color: var(--hd-ink);
+  .jiajia-popout-panel:hover {
+    border-color: var(--jj-sky);
+  }
+
+  /* ---------- 排版与语义标签芯片（复刻 jiajia.fun 分类标签） ---------- */
+  .jj-heading {
+    color: var(--jj-ink);
     line-height: 1.25;
+    letter-spacing: 0.01em;
   }
 
-  .hd-body {
-    color: var(--hd-sub);
+  .jj-kicker {
+    margin-top: 0.12rem;
+    color: var(--jj-sub);
+    font-weight: 500;
   }
 
-  .hd-sub {
-    color: var(--hd-weak);
+  .jj-body {
+    color: var(--jj-sub);
   }
 
-  .hd-badge {
-    display: inline-block;
-    border: 2px solid var(--hd-ink);
-    border-radius: 9999px;
-    background-color: var(--hd-yellow);
-    padding: 0.1rem 0.6rem;
-    color: var(--hd-ink);
-    font-size: 0.75rem;
-    font-weight: 600;
-    transform: rotate(-1.5deg);
-  }
-
-  /* 马克笔下划线：粗黄笔压在文字底层 */
-  .hd-marker {
-    position: relative;
-    isolation: isolate;
-    display: inline-block;
-  }
-
-  .hd-marker-svg {
-    position: absolute;
-    inset-inline: -0.35rem;
-    bottom: 0.05em;
-    z-index: -1;
-    width: calc(100% + 0.7rem);
-    height: 0.55em;
-    overflow: visible;
-  }
-
-  .hd-marker-path {
-    fill: none;
-    stroke: var(--hd-yellow);
-    stroke-width: 15;
-    stroke-linecap: round;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    mix-blend-mode: multiply;
-    animation: hd-draw 0.7s 0.35s ease-out both;
-  }
-
-  .interview-card .hd-marker-path {
-    animation: none;
-  }
-
-  .interview-card.is-drawn .hd-marker-path {
-    animation: hd-draw 0.7s 0.45s ease-out both;
-  }
-
-  /* ---------- 按钮 ---------- */
-  .hd-cta {
+  .jj-status {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    border: 2px solid var(--hd-ink);
+    gap: 0.35rem;
+    border: 1px solid var(--jj-border);
     border-radius: 9999px;
-    background-color: var(--hd-paper);
-    box-shadow: 3px 3px 0 var(--hd-shadow);
-    padding: 0.4rem 0.9rem;
-    color: var(--hd-ink);
+    background-color: var(--jj-surface);
+    padding: 0.15rem 0.6rem;
+    color: var(--jj-ink);
+    font-size: 0.74rem;
     font-weight: 600;
-    transition:
-      transform 0.13s var(--hd-ease),
-      box-shadow 0.13s var(--hd-ease),
-      background-color 0.13s var(--hd-ease);
   }
 
-  .interview-card:hover .hd-cta,
-  .interview-card:focus-visible .hd-cta,
-  .hd-cta:hover {
-    background-color: var(--hd-yellow2);
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--hd-shadow);
-  }
-
-  .hd-cta:active {
-    transform: translate(1px, 1px);
-    box-shadow: 1px 1px 0 var(--hd-shadow);
-  }
-
-  .hd-arrow {
-    transition: transform 0.13s var(--hd-ease);
-  }
-
-  .interview-card:hover .hd-arrow,
-  .interview-card:focus-visible .hd-arrow,
-  .hd-cta:hover .hd-arrow {
-    transform: translateX(3px);
-  }
-
-  .hd-close {
+  .jj-coral-dot {
+    width: 7px;
+    height: 7px;
     border-radius: 9999px;
-    color: var(--hd-weak);
-    transition: color 0.13s var(--hd-ease);
+    background-color: var(--jj-dot);
+    flex-shrink: 0;
   }
 
-  .hd-close:hover {
-    color: var(--hd-ink);
+  .jj-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    border-radius: 9999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 600;
   }
 
-  .hd-quiet {
-    color: var(--hd-weak);
+  .jj-chip-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 9999px;
+    background-color: currentColor;
+    opacity: 0.85;
+  }
+
+  .jj-chip-method {
+    background-color: var(--jj-chip-method-bg);
+    color: var(--jj-chip-method-fg);
+  }
+
+  .jj-chip-pick {
+    background-color: var(--jj-chip-pick-bg);
+    color: var(--jj-chip-pick-fg);
+  }
+
+  .jj-chip-concept {
+    background-color: var(--jj-chip-concept-bg);
+    color: var(--jj-chip-concept-fg);
+  }
+
+  .jj-chip-career {
+    background-color: var(--jj-chip-career-bg);
+    color: var(--jj-chip-career-fg);
+  }
+
+  .jj-title-link:hover .jj-heading {
     text-decoration: underline;
-    text-decoration-style: dashed;
+    text-decoration-color: var(--jj-sky);
     text-underline-offset: 4px;
   }
 
-  .hd-quiet:hover {
-    color: var(--hd-ink);
+  /* ---------- 右侧微缩 .md 叠卡预览（呼应 jiajia.fun「按专题看」文件夹） ---------- */
+  .jj-folder-preview {
+    align-items: center;
+    gap: 0.35rem;
   }
 
-  /* ---------- 首访弹窗容器（遮罩保持原来的语义 token 写法） ---------- */
-  .interview-promo {
+  .jj-md-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 10px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-surface);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.68rem;
+    transition: transform 0.2s var(--jj-ease);
+  }
+
+  .jj-md-card-1 {
+    transform: rotate(-2deg);
+  }
+
+  .jj-md-card-2 {
+    transform: rotate(1.5deg);
+  }
+
+  .jiajia-card:hover .jj-md-card-1 {
+    transform: translateY(-2px) rotate(-3.5deg);
+  }
+
+  .jiajia-card:hover .jj-md-card-2 {
+    transform: translateY(-2px) rotate(3deg);
+  }
+
+  .jj-md-tag {
+    border-radius: 9999px;
+    padding: 0.06rem 0.38rem;
+    font-weight: 600;
+  }
+
+  .jj-md-code {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--jj-sub);
+  }
+
+  /* ---------- 可直接输入提问的对话框（复刻 jiajia.fun AskHome 提问框） ---------- */
+  .jj-ask-box {
     display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    border-radius: 22px;
+    border: 1.5px solid var(--jj-input-border);
+    background-color: var(--jj-surface);
+    padding: 0.75rem 0.75rem 0.6rem 0.95rem;
+    box-shadow: 0 18px 36px -28px rgba(37, 45, 110, 0.55);
+    transition:
+      box-shadow 0.18s var(--jj-ease),
+      border-color 0.18s var(--jj-ease);
   }
 
-  .interview-promo[hidden] {
+  .jj-ask-box:focus-within {
+    box-shadow: 0 0 0 4px rgba(137, 195, 242, 0.36);
+  }
+
+  .jj-ask-box-top {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .jj-ask-box-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-top: 0.15rem;
+  }
+
+  .jj-ask-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 18px;
+    border: 1.5px solid var(--jj-input-border);
+    background-color: var(--jj-surface);
+    padding: 0.4rem 0.45rem 0.4rem 0.85rem;
+    transition:
+      box-shadow 0.18s var(--jj-ease),
+      border-color 0.18s var(--jj-ease);
+  }
+
+  .jj-ask-inline:focus-within {
+    box-shadow: 0 0 0 3px rgba(137, 195, 242, 0.34);
+  }
+
+  .jj-ask-inline-sm {
+    border-radius: 14px;
+    padding: 0.32rem 0.35rem 0.32rem 0.65rem;
+  }
+
+  .jj-ask-spark {
+    color: var(--jj-dot);
+    font-size: 0.9rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .jj-ask-input {
+    min-width: 0;
+    width: 100%;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: var(--jj-ink);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    outline: none;
+  }
+
+  .jj-ask-inline-sm .jj-ask-input {
+    font-size: 0.78rem;
+  }
+
+  .jj-ask-input::placeholder {
+    color: var(--jj-sub);
+    opacity: 0.78;
+  }
+
+  .jj-ask-hint {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    color: var(--jj-sub);
+  }
+
+  .jj-send-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 9999px;
+    background-color: var(--jj-send-bg);
+    color: var(--jj-send-fg);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+      transform 0.16s var(--jj-ease),
+      opacity 0.16s var(--jj-ease);
+  }
+
+  .jj-send-circle-sm {
+    width: 28px;
+    height: 28px;
+  }
+
+  .jj-send-circle:hover {
+    transform: translateY(-1px) scale(1.04);
+    opacity: 0.94;
+  }
+
+  /* ---------- 推荐示例问题芯片与直达答案卡片（复刻 jiajia.fun「群友问过」） ---------- */
+  .jj-starter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .jj-starter-row[hidden],
+  .jj-starter-block[hidden],
+  .jj-matches-box[hidden] {
     display: none;
   }
 
-  .interview-promo-backdrop {
+  .jj-starter-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .jj-starter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .jj-starter-label,
+  .jj :global(.jj-matches-head) {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--jj-sub);
+    margin-bottom: 0.35rem;
+  }
+
+  .jj-starter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    border-radius: 12px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-surface);
+    padding: 0.28rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--jj-ink);
+    transition:
+      border-color 0.16s var(--jj-ease),
+      background-color 0.16s var(--jj-ease),
+      transform 0.16s var(--jj-ease);
+  }
+
+  .jj-starter-pill:hover {
+    border-color: var(--jj-sky);
+    background-color: var(--jj-sky-soft);
+    transform: translateY(-1px);
+  }
+
+  .jj-pill-arrow {
+    font-size: 0.68rem;
+    color: var(--jj-sub);
+  }
+
+  .jj :global(.jj-starter-cards) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+    gap: 0.45rem;
+  }
+
+  .jj :global(.jj-answer-link) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    border-radius: 14px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-surface);
+    padding: 0.52rem 0.7rem;
+    color: var(--jj-ink);
+    text-decoration: none;
+    transition:
+      border-color 0.16s var(--jj-ease),
+      background-color 0.16s var(--jj-ease),
+      transform 0.16s var(--jj-ease);
+  }
+
+  .jj :global(.jj-answer-link:hover),
+  .jj :global(.jj-answer-link-primary) {
+    border-color: var(--jj-sky);
+    background-color: var(--jj-sky-soft);
+  }
+
+  .jj :global(.jj-answer-link:hover) {
+    transform: translateY(-1px);
+  }
+
+  .jj :global(.jj-answer-link-head) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.45rem;
+  }
+
+  .jj :global(.jj-answer-link-title) {
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--jj-ink);
+  }
+
+  .jj :global(.jj-answer-link-badge) {
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background-color: var(--jj-chip-method-bg);
+    color: var(--jj-chip-method-fg);
+    padding: 0.08rem 0.45rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .jj :global(.jj-answer-link-desc) {
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--jj-sub);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .jj-direct-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 600;
+    color: var(--jj-sub);
+    transition: color 0.16s var(--jj-ease);
+  }
+
+  .jj-direct-link:hover {
+    color: var(--jj-ink);
+  }
+
+  /* ---------- 按钮 ---------- */
+  .jj-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 12px;
+    background-color: var(--jj-cta-bg);
+    padding: 0.5rem 0.95rem;
+    color: var(--jj-cta-fg);
+    font-weight: 700;
+    transition:
+      transform 0.16s var(--jj-ease),
+      opacity 0.16s var(--jj-ease);
+  }
+
+  .jiajia-card:hover .jj-cta,
+  .jiajia-card:focus-visible .jj-cta,
+  .jj-cta:hover {
+    transform: translateY(-1px);
+    opacity: 0.94;
+  }
+
+  .jj-cta-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 9999px;
+    background-color: var(--jj-cta-circle-bg);
+    font-size: 0.74rem;
+    line-height: 1;
+    transition: transform 0.16s var(--jj-ease);
+  }
+
+  .jiajia-card:hover .jj-cta-circle,
+  .jiajia-card:focus-visible .jj-cta-circle,
+  .jj-cta:hover .jj-cta-circle {
+    transform: translate(1px, -1px);
+  }
+
+  .jj-close {
+    border-radius: 9999px;
+    color: var(--jj-sub);
+    transition: color 0.15s var(--jj-ease);
+  }
+
+  .jj-close:hover {
+    color: var(--jj-ink);
+  }
+
+  .jj-quiet {
+    color: var(--jj-sub);
+    text-decoration: underline;
+    text-decoration-color: var(--jj-border);
+    text-underline-offset: 4px;
+  }
+
+  .jj-quiet:hover {
+    color: var(--jj-ink);
+  }
+
+  /* ---------- 首访弹窗遮罩与动效 ---------- */
+  .jiajia-promo {
+    display: flex;
+  }
+
+  .jiajia-promo[hidden] {
+    display: none;
+  }
+
+  .jiajia-promo-backdrop {
     background-color: hsl(var(--background) / 0.72);
     background-image: linear-gradient(hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0.12));
     backdrop-filter: blur(6px);
-    animation: hd-fade-in 0.25s ease both;
+    animation: jj-fade-in 0.25s ease both;
   }
 
-  .interview-popout-nudge {
-    animation: hd-nudge 1400ms var(--hd-ease);
+  .jiajia-popout-nudge {
+    animation: jj-nudge 1400ms var(--jj-ease);
   }
 
-  @keyframes hd-draw {
-    from {
-      stroke-dashoffset: 1;
-    }
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-
-  @keyframes hd-rise {
+  @keyframes jj-rise {
     from {
       opacity: 0;
       transform: translateY(14px);
@@ -1012,7 +1804,7 @@ const latestTalk = talks[0]
     }
   }
 
-  @keyframes hd-fade-in {
+  @keyframes jj-fade-in {
     from {
       opacity: 0;
     }
@@ -1021,74 +1813,56 @@ const latestTalk = talks[0]
     }
   }
 
-  @keyframes hd-nudge {
+  @keyframes jj-nudge {
     0%,
     100% {
-      transform: rotate(-1deg) translateY(0);
+      transform: translateY(0);
     }
     22% {
-      transform: rotate(-1deg) translateY(7px);
+      transform: translateY(6px);
     }
     48% {
-      transform: rotate(-1deg) translateY(-11px);
+      transform: translateY(-10px);
     }
     72% {
-      transform: rotate(-1deg) translateY(4px);
+      transform: translateY(3px);
     }
     88% {
-      transform: rotate(-1deg) translateY(-2px);
-    }
-  }
-
-  /* popout 自带 rotate，入场动画要连同 rotate 一起做，否则会先正过来再转回去 */
-  .interview-popout-panel {
-    animation-name: hd-rise-tilt;
-  }
-
-  @keyframes hd-rise-tilt {
-    from {
-      opacity: 0;
-      transform: rotate(-1deg) translateY(14px);
-    }
-    to {
-      opacity: 1;
-      transform: rotate(-1deg) translateY(0);
+      transform: translateY(-2px);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .interview-promo-backdrop,
-    .interview-promo-card,
-    .interview-popout-panel,
-    .interview-popout-nudge {
+    .jiajia-promo-backdrop,
+    .jiajia-promo-card,
+    .jiajia-popout-panel,
+    .jiajia-popout-nudge {
       animation: none;
     }
 
-    .hd-frame-path,
-    .hd-marker-path,
-    .interview-card.is-drawn .hd-frame-path,
-    .interview-card.is-drawn .hd-marker-path {
-      animation: none;
-      stroke-dashoffset: 0;
-    }
-
-    .interview-card,
-    .hd-cta,
-    .hd-arrow,
-    .hd-close {
+    .jiajia-card,
+    .jj-md-card,
+    .jj-ask-box,
+    .jj-ask-inline,
+    .jj-send-circle,
+    .jj-starter-pill,
+    .jj-direct-link,
+    .jj-cta,
+    .jj-cta-circle,
+    .jj-close {
       transition: none;
     }
 
-    .interview-card:hover,
-    .interview-card:focus-visible,
-    .hd-cta:hover,
-    .interview-card:hover .hd-cta {
-      transform: none;
-    }
-
-    .interview-card:hover .hd-arrow,
-    .interview-card:focus-visible .hd-arrow,
-    .hd-cta:hover .hd-arrow {
+    .jiajia-card:hover,
+    .jiajia-card:focus-visible,
+    .jj-send-circle:hover,
+    .jj-starter-pill:hover,
+    .jj-cta:hover,
+    .jiajia-card:hover .jj-cta,
+    .jiajia-card:hover .jj-md-card-1,
+    .jiajia-card:hover .jj-md-card-2,
+    .jiajia-card:hover .jj-cta-circle,
+    .jj-cta:hover .jj-cta-circle {
       transform: none;
     }
   }

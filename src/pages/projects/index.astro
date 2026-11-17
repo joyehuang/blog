@@ -1,5 +1,4 @@
 ---
-export const prerender = true
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import GitHubContributions from '@/components/projects/GitHubContributions.astro'
@@ -8,6 +7,8 @@ import Sponsors from '@/components/projects/Sponsors.astro'
 import Sponsorship from '@/components/projects/Sponsorship.astro'
 import alipay from '@/assets/alipay-qrcode.jpg'
 import wechat from '@/assets/wechat-qrcode.jpg'
+
+export const prerender = true
 
 const agentHackathonLink =
   'https://my.feishu.cn/wiki/LHJiw36mxietv4kKZjacOIbznhe?from=from_copylink'
@@ -36,19 +37,14 @@ const headings = [
       {
         id: 'learn_open_harness',
         name: 'Learn-Open-Harness',
-        description:
-          'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent。',
-        links: [
-          { type: 'github', href: 'https://github.com/joyehuang/Learn-Open-Harness' }
-        ]
+        description: 'OpenHarness 零基础交互式教程 — Agent Loop、Tools、Memory、Multi-Agent。',
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/Learn-Open-Harness' }]
       },
       {
         id: 'minimind_notes',
         name: 'minimind-notes',
         description: '从零构建 LLM — Transformer、Pretraining、SFT 的原理与对照实验。',
-        links: [
-          { type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }
-        ]
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/minimind-notes' }]
       }
     ]}
   />
@@ -57,6 +53,13 @@ const headings = [
   <ProjectSection
     analyticsSection='programs'
     project={[
+      {
+        id: 'jiajia',
+        name: '夹夹 · Agent 工程踩坑问答',
+        description:
+          '做 AI Agent 的工程师真实踩过的坑：上下文、记忆、评测、工具选型、面试，整理成可搜索的答案，每条都能回到原始讨论。',
+        links: [{ type: 'site', href: 'https://jiajia.fun' }]
+      },
       {
         id: 'agent_competition',
         analyticsEvent: 'agent_competition_click',
@@ -70,19 +73,14 @@ const headings = [
       {
         id: 'atypica',
         name: 'Atypica',
-        description:
-          'AI消费者研究平台，负责开发Interview Agent进行AI Persona访谈调研。',
-        links: [
-          { type: 'site', href: 'https://atypica.ai' }
-        ]
+        description: 'AI消费者研究平台，负责开发Interview Agent进行AI Persona访谈调研。',
+        links: [{ type: 'site', href: 'https://atypica.ai' }]
       },
       {
         id: 'aixcut',
         name: 'AIXCut',
         description: 'AI 视频剪辑 Agent，参与设计与工程化落地。',
-        links: [
-          { type: 'site', href: 'https://aixcut.cn/' }
-        ]
+        links: [{ type: 'site', href: 'https://aixcut.cn/' }]
       },
       {
         id: 'prepwise',
@@ -97,11 +95,8 @@ const headings = [
       {
         id: 'qq_bot',
         name: 'QQ Bot',
-        description:
-          'QQ群打卡机器人，自动管理群内打卡记录和提醒。',
-        links: [
-          { type: 'github', href: 'https://github.com/joyehuang/qq-bot' }
-        ]
+        description: 'QQ群打卡机器人，自动管理群内打卡记录和提醒。',
+        links: [{ type: 'github', href: 'https://github.com/joyehuang/qq-bot' }]
       }
     ]}
   />
@@ -176,7 +171,7 @@ const headings = [
     ]}
   />
 -->
-<!--
+  <!--
   
 -->
   <!-- sponsorship -->

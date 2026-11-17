@@ -36,7 +36,7 @@ family). This site shows it in three ways that are designed to work together.
   your situation (with links), what Notes are and what Lab is (Lab has no
   home section, so Notes introduces it), what each product actually is (from
   the products' own sites, each with a link), the live streams that replaced
-  the weekly talks. Stops: 面试手记, Blog, Notes (+ Lab), 直播 (Talks),
+  the weekly talks. Stops: 夹夹, Blog, Notes (+ Lab), 直播 (Talks),
   Experience — Open Source, Education and Skills are skipped, and Blog leaves
   out the OpenHarness post and the early Transformer series. The closing
   bubble links to

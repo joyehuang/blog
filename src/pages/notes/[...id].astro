@@ -5,6 +5,7 @@ import { contentLastModified } from '@/lib/seo/lastmod'
 
 import { Button, Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/ContentLayout.astro'
+import JiajiaCallout from '@/components/blog/JiajiaCallout.astro'
 import PageInfo from '@/components/comment/PageInfo.astro'
 import JsonLd from '@/components/JsonLd.astro'
 
@@ -75,6 +76,7 @@ const typeLabels: Record<string, string> = {
 }
 
 const dateModified = contentLastModified(entry.filePath, date, updatedDate)
+const showJiajiaCallout = tags.some((tag) => /agent|harness|llm|ai|rag|prompt|memory/i.test(tag))
 const meta = {
   title,
   description: description || title,
@@ -191,6 +193,7 @@ const breadcrumbLd = {
   </article>
 
   <div slot='bottom' class='animate mt-8 border-t border-border pt-6'>
+    {showJiajiaCallout && <JiajiaCallout surface='note_callout' markId='note-end-filo' />}
     {
       (relatedBlogPosts.length > 0 || relatedNoteEntries.length > 0) && (
         <>
