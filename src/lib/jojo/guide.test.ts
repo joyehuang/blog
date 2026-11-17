@@ -27,6 +27,11 @@ describe('guide stops', () => {
   })
 
   it('introduces every product by name, each with a link to it', () => {
+    const product = guideStops(['product'], 'zh')[0]
+    expect(product.title).toBe('夹夹')
+    expect(product.bubbles[0].text).toContain('夹夹')
+    expect(product.bubbles.some((b) => b.link?.href === 'https://jiajia.fun')).toBe(true)
+
     for (const lang of ['zh', 'en'] as const) {
       const exp = guideStops(['experience'], lang)[0].bubbles
       const names = ['Playyy.ai', 'atypica', 'AIXCut', 'fAIshion.ai']

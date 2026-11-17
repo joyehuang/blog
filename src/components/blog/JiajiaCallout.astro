@@ -1,0 +1,525 @@
+---
+import JiajiaMascot from '@/components/blog/JiajiaMascot.astro'
+
+interface Props {
+  surface?: 'article_callout' | 'note_callout'
+  markId?: string
+}
+
+const { surface = 'article_callout', markId = 'callout-filo' } = Astro.props
+
+const starterAnswers = [
+  {
+    title: '多 Agent 协作与分工应该怎么设计',
+    url: 'https://jiajia.fun/a/3f1234d6-48cc-488b-b49d-9aec22950181-%E5%A4%9Aagent%E5%8D%8F%E4%BD%9C%E4%B8%8E%E5%88%86%E5%B7%A5%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1'
+  },
+  {
+    title: '为何应让强模型自主决定写入记忆而非写死规则',
+    url: 'https://jiajia.fun/a/200b404c-a49a-439b-9201-52314c3c59c6-%E4%B8%BA%E4%BD%95%E5%BA%94%E8%AE%A9%E5%BC%BA%E6%A8%A1%E5%9E%8B%E8%87%AA%E4%B8%BB%E5%86%B3%E5%AE%9A%E5%86%99%E5%85%A5%E8%AE%B0%E5%BF%86%E8%80%8C%E9%9D%9E%E5%86%99%E6%AD%BB%E8%A7%84%E5%88%99'
+  },
+  {
+    title: '如何把 Agent 评测包装进项目',
+    url: 'https://jiajia.fun/a/b685e4d5-b261-4021-915c-dae70e72a1b1-%E5%A6%82%E4%BD%95%E6%8A%8Aagent%E8%AF%84%E6%B5%8B%E5%8C%85%E8%A3%85%E8%BF%9B%E9%A1%B9%E7%9B%AE'
+  }
+]
+---
+
+<aside class='jj jiajia-callout not-prose' aria-label='夹夹 · Agent 工程踩坑问答'>
+  <div class='jj-callout-inner'>
+    <div class='jj-callout-main'>
+      <div class='jj-meta-row'>
+        <span class='jj-status-pill'>
+          <span class='jj-coral-dot' aria-hidden='true'></span>
+          <span>jiajia.fun · 290+ 条真实问答</span>
+        </span>
+        <span class='jj-chip jj-chip-method'>
+          <span class='jj-chip-dot' aria-hidden='true'></span>上下文与记忆
+        </span>
+        <span class='jj-chip jj-chip-pick'>
+          <span class='jj-chip-dot' aria-hidden='true'></span>工具与选型
+        </span>
+        <span class='jj-chip jj-chip-concept'>
+          <span class='jj-chip-dot' aria-hidden='true'></span>架构与评测
+        </span>
+        <span class='jj-chip jj-chip-career'>
+          <span class='jj-chip-dot' aria-hidden='true'></span>求职与面试
+        </span>
+      </div>
+
+      <div class='jj-title-row'>
+        <JiajiaMascot id={markId} mood='happy' interactive size={46} />
+        <div>
+          <h2 class='jj-heading'>做 Agent 卡住了？先去问问夹夹。</h2>
+          <p class='jj-subline'>夹夹 · Agent 工程踩坑问答</p>
+        </div>
+      </div>
+
+      <p class='jj-body'>
+        群里做 AI Agent 的工程师问过、答过、纠正过的真实问题，夹夹整理成了可搜索的答案与专题目录 ——
+        每一条结论都能直接回到原始讨论。
+      </p>
+
+      <form
+        action='https://jiajia.fun/'
+        method='get'
+        target='_blank'
+        class='jj-callout-ask'
+        data-jj-callout-form
+      >
+        <span class='jj-callout-spark' aria-hidden='true'>✦</span>
+        <input
+          type='text'
+          name='q'
+          maxlength='120'
+          autocomplete='off'
+          enterkeyhint='send'
+          placeholder='输入你的 Agent 问题（如：多 Agent 怎么分工 / 记忆怎么写），回车直达答案'
+          aria-label='向夹夹提问'
+          class='jj-callout-input'
+          data-jj-callout-input
+        />
+        <button
+          type='submit'
+          class='jj-callout-submit'
+          aria-label='直达夹夹答案或去问夹夹'
+          data-analytics-event='project_link_click'
+          data-analytics-surface={surface}
+          data-analytics-section='product'
+          data-analytics-project='jiajia'
+          data-analytics-link-type='site'
+        >
+          <span>问夹夹</span>
+          <span class='jj-cta-circle' aria-hidden='true'>↗</span>
+        </button>
+      </form>
+
+      <div class='jj-callout-starters'>
+        <span class='jj-callout-starter-label'>群友问过（直达答案）：</span>
+        {
+          starterAnswers.map((item) => (
+            <a
+              href={item.url}
+              target='_blank'
+              rel='noopener noreferrer'
+              class='jj-callout-starter-pill'
+              data-analytics-event='project_link_click'
+              data-analytics-surface={surface}
+              data-analytics-section='product'
+              data-analytics-project='jiajia'
+              data-analytics-link-type='site'
+            >
+              <span>{item.title}</span>
+              <span aria-hidden='true'>↗</span>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class='jj-actions'>
+        <a
+          href='https://jiajia.fun'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='jj-secondary-link'
+          data-analytics-event='project_link_click'
+          data-analytics-surface={surface}
+          data-analytics-section='product'
+          data-analytics-project='jiajia'
+          data-analytics-link-type='site'
+        >
+          <span>直接去 jiajia.fun 问夹夹 →</span>
+        </a>
+        <a
+          href='https://jiajia.fun/topics'
+          target='_blank'
+          rel='noopener noreferrer'
+          class='jj-secondary-link'
+          data-analytics-event='project_link_click'
+          data-analytics-surface={surface}
+          data-analytics-section='product'
+          data-analytics-project='jiajia'
+          data-analytics-link-type='doc'
+        >
+          <span class='jj-mono'>agent-engineering/</span>
+          <span>按专题文件夹看 →</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script is:inline>
+  ;(() => {
+    document.querySelectorAll('[data-jj-callout-form]').forEach((form) => {
+      if (!(form instanceof HTMLFormElement) || form.dataset.jjBound === '1') return
+      form.dataset.jjBound = '1'
+      const input = form.querySelector('[data-jj-callout-input]')
+      let debounceId = 0
+
+      if (input instanceof HTMLInputElement) {
+        input.addEventListener('input', () => {
+          const q = input.value.trim().slice(0, 120)
+          delete form.dataset.bestAnswerUrl
+          window.clearTimeout(debounceId)
+          if (q.length >= 2) {
+            debounceId = window.setTimeout(() => {
+              fetch(`/api/jiajia.json?${new URLSearchParams({ q }).toString()}`)
+                .then((r) => (r.ok ? r.json() : null))
+                .then((data) => {
+                  const top = Array.isArray(data?.items) ? data.items[0] : null
+                  if (top?.url && input.value.trim().slice(0, 120) === q) {
+                    form.dataset.bestAnswerUrl = top.url
+                  }
+                })
+                .catch(() => {})
+            }, 120)
+          }
+        })
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault()
+        const q = input instanceof HTMLInputElement ? input.value.trim().slice(0, 120) : ''
+        const bestUrl = form.dataset.bestAnswerUrl
+        const targetUrl = bestUrl
+          ? bestUrl
+          : q
+            ? `https://jiajia.fun/?${new URLSearchParams({ q }).toString()}`
+            : 'https://jiajia.fun/'
+        window.open(targetUrl, '_blank', 'noopener,noreferrer')
+      })
+    })
+  })()
+</script>
+
+<style>
+  /* 复刻 jiajia.fun（夹夹 · Filo）的亮/暗双主题视觉 token */
+  .jj {
+    --jj-bg: #fbf7ef;
+    --jj-card: #ffffff;
+    --jj-surface: #f7f3ea;
+    --jj-ink: #252d6e;
+    --jj-sub: #62678f;
+    --jj-border: #e6decf;
+    --jj-input-border: #252d6e;
+    --jj-sky: #89c3f2;
+    --jj-sky-soft: #e3f0fb;
+    --jj-cream: #f6e9d4;
+    --jj-dot: #fe6544;
+    --jj-cta-bg: #fe6544;
+    --jj-cta-fg: #ffffff;
+    --jj-cta-circle-bg: rgba(255, 255, 255, 0.22);
+    --jj-chip-method-bg: #d3e8fc;
+    --jj-chip-method-fg: #1b5690;
+    --jj-chip-pick-bg: #ffd3c6;
+    --jj-chip-pick-fg: #a2321a;
+    --jj-chip-concept-bg: #fbe3b8;
+    --jj-chip-concept-fg: #7d4f0c;
+    --jj-chip-career-bg: #cdeedb;
+    --jj-chip-career-fg: #1f6a43;
+    --jj-shadow: 0 14px 36px rgba(37, 45, 110, 0.06);
+  }
+
+  :global(.dark) .jj {
+    --jj-bg: #15161c;
+    --jj-card: #1d1f28;
+    --jj-surface: #23252f;
+    --jj-ink: #f1eadc;
+    --jj-sub: #a9acc4;
+    --jj-border: #2e3040;
+    --jj-input-border: #fe6544;
+    --jj-sky: #89c3f2;
+    --jj-sky-soft: #22324a;
+    --jj-cream: #f6e9d4;
+    --jj-dot: #fe6544;
+    --jj-cta-bg: #fe6544;
+    --jj-cta-fg: #15161c;
+    --jj-cta-circle-bg: rgba(21, 22, 28, 0.16);
+    --jj-chip-method-bg: #1d3b5c;
+    --jj-chip-method-fg: #a9d3fb;
+    --jj-chip-pick-bg: #55261b;
+    --jj-chip-pick-fg: #ffb6a1;
+    --jj-chip-concept-bg: #4a3714;
+    --jj-chip-concept-fg: #f6d38f;
+    --jj-chip-career-bg: #173f2c;
+    --jj-chip-career-fg: #9fe0bb;
+    --jj-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+  }
+
+  .jiajia-callout {
+    position: relative;
+    margin: 1.75rem 0 1.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-card);
+    background-image: radial-gradient(
+      ellipse at 92% 12%,
+      rgba(137, 195, 242, 0.14),
+      transparent 48%
+    );
+    padding: 1.25rem 1.35rem;
+    color: var(--jj-ink);
+    box-shadow: var(--jj-shadow);
+    transition: border-color 0.2s ease;
+  }
+
+  .jiajia-callout:hover {
+    border-color: var(--jj-sky);
+  }
+
+  .jj-callout-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .jj-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .jj-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    border-radius: 9999px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-surface);
+    padding: 0.18rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--jj-ink);
+  }
+
+  .jj-coral-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background-color: var(--jj-dot);
+    flex-shrink: 0;
+  }
+
+  .jj-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 9999px;
+    padding: 0.16rem 0.58rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .jj-chip-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 9999px;
+    background-color: currentColor;
+    opacity: 0.85;
+  }
+
+  .jj-chip-method {
+    background-color: var(--jj-chip-method-bg);
+    color: var(--jj-chip-method-fg);
+  }
+
+  .jj-chip-pick {
+    background-color: var(--jj-chip-pick-bg);
+    color: var(--jj-chip-pick-fg);
+  }
+
+  .jj-chip-concept {
+    background-color: var(--jj-chip-concept-bg);
+    color: var(--jj-chip-concept-fg);
+  }
+
+  .jj-chip-career {
+    background-color: var(--jj-chip-career-bg);
+    color: var(--jj-chip-career-fg);
+  }
+
+  .jj-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.1rem;
+  }
+
+  .jj-heading {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.28;
+    color: var(--jj-ink);
+  }
+
+  .jj-subline {
+    margin: 0.1rem 0 0;
+    font-size: 0.78rem;
+    color: var(--jj-sub);
+  }
+
+  .jj-body {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--jj-sub);
+  }
+
+  .jj-callout-ask {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 16px;
+    border: 1.5px solid var(--jj-input-border);
+    background-color: var(--jj-surface);
+    padding: 0.35rem 0.4rem 0.35rem 0.75rem;
+    transition: box-shadow 0.16s ease;
+  }
+
+  .jj-callout-ask:focus-within {
+    box-shadow: 0 0 0 3px rgba(137, 195, 242, 0.35);
+  }
+
+  .jj-callout-spark {
+    color: var(--jj-dot);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .jj-callout-input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    font-size: 0.85rem;
+    color: var(--jj-ink);
+    outline: none;
+  }
+
+  .jj-callout-input::placeholder {
+    color: var(--jj-sub);
+    opacity: 0.78;
+  }
+
+  .jj-callout-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    border: 0;
+    border-radius: 11px;
+    background-color: var(--jj-cta-bg);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--jj-cta-fg);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.16s ease;
+  }
+
+  .jj-callout-submit:hover {
+    opacity: 0.92;
+  }
+
+  .jj-callout-starters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .jj-callout-starter-label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--jj-sub);
+  }
+
+  .jj-callout-starter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 10px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-surface);
+    padding: 0.22rem 0.55rem;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--jj-ink);
+    text-decoration: none;
+    transition:
+      border-color 0.16s ease,
+      background-color 0.16s ease;
+  }
+
+  .jj-callout-starter-pill:hover {
+    border-color: var(--jj-sky);
+    background-color: var(--jj-sky-soft);
+  }
+
+  .jj-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1.1rem;
+    margin-top: 0.1rem;
+  }
+
+  .jj-cta-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background-color: var(--jj-cta-circle-bg);
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+
+  .jj-secondary-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--jj-sub);
+    text-decoration: none;
+    transition: color 0.16s ease;
+  }
+
+  .jj-secondary-link:hover {
+    color: var(--jj-ink);
+  }
+
+  .jj-mono {
+    border-radius: 6px;
+    border: 1px solid var(--jj-border);
+    background-color: var(--jj-surface);
+    padding: 0.1rem 0.42rem;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+    color: var(--jj-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .jiajia-callout,
+    .jj-callout-submit,
+    .jj-callout-starter-pill,
+    .jj-secondary-link {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .jiajia-callout {
+      padding: 1rem;
+    }
+
+    .jj-heading {
+      font-size: 1.08rem;
+    }
+  }
+</style>

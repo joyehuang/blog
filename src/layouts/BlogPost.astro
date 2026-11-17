@@ -13,6 +13,7 @@ import { ArticleBottom, Copyright, Hero } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/ContentLayout.astro'
 import CopyrightEn from '@/components/blog/CopyrightEn.astro'
 import HeroEn from '@/components/blog/HeroEn.astro'
+import JiajiaCallout from '@/components/blog/JiajiaCallout.astro'
 import Comment from '@/components/comment/Comment.astro'
 import JojoArticleEnd from '@/components/jojo/JojoArticleEnd.astro'
 import JsonLd from '@/components/JsonLd.astro'
@@ -58,6 +59,8 @@ const tocHeadings = headings
 
 // Structured data：BlogPosting + 面包屑；author/publisher 引用 BaseHead 里全站输出的 Person
 const lang = getLangFromUrl(Astro.url)
+const showJiajiaCallout =
+  lang === 'zh' && data.tags.some((tag) => /agent|harness|llm|ai|面试|求职/i.test(tag))
 const origin = Astro.site!.origin
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href
 const articleLd = {
@@ -123,6 +126,7 @@ const breadcrumbLd = {
   <slot />
 
   <Fragment slot='bottom'>
+    {showJiajiaCallout && <JiajiaCallout surface='article_callout' markId='blog-end-filo' />}
     {/* Copyright */}
     {lang === 'en' ? <CopyrightEn {data} /> : <Copyright {data} />}
     {/* Jojo: end-of-post card (static, one short reaction) */}

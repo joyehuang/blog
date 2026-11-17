@@ -48,19 +48,19 @@ type Copy = Omit<Stop, 'id' | 'mood'>
 const COPY: Record<'zh' | 'en', Partial<Record<StopId, Copy>>> = {
   zh: {
     product: {
-      title: '面试手记',
+      title: '夹夹',
       bubbles: [
         {
-          text: '先说 Joye 正在做的新东西「面试手记」。2026 年求职季面了 100 多家 Agent 岗位，Joye 挑出其中几场，把整场对话整理成逐字稿公开。'
+          text: '先看 Joye 新上线的产品「夹夹」（jiajia.fun）—— 做 Agent 卡住的时候，可以先去那里搜搜看有没有人踩过同样的坑。'
         },
         {
-          text: '它和普通面经不一样：面试官怎么追问、哪里卡壳、哪里答砸了，都原样留着。每场配完整 JD 和一份 5 分钟精华，也能按 Agent 架构、场景题、项目深挖这些主题刷。',
+          text: '里面的内容来自做 Agent 的工程师在群里的真实讨论：上下文管理、记忆机制、评测、工具选型和求职面试，夹夹都整理成了结构化答案。',
           mood: 'laugh'
         },
         {
-          text: '还没上线，免费，可以先留邮箱预约。你要是也面过 Agent 岗，上线后能投稿，署你的名。',
+          text: '不仅能直接搜问题、按专题文件夹从头读，还有群友不同观点的正反对比，而且每一条答案都能直接回到群里的原始讨论。',
           mood: 'happy',
-          link: site('https://joyehuang.dev', '去预约')
+          link: site('https://jiajia.fun', '去问问夹夹')
         }
       ]
     },

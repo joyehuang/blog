@@ -82,7 +82,7 @@ input, comment text, search text, or free-form user input.
 | `command`          | Terminal command name only.                            | `help`, `open`, `mail`, `connect`                                          |
 | `command_result`   | Safe terminal outcome bucket.                          | `success`, `unknown_command`, `navigation`, `external_open`, `mailto_open` |
 | `repo`             | Repository name for GitHub clicks.                     | `Learn-Open-Harness`, `interview-prep`                                     |
-| `project`          | Project identifier for project clicks.                 | `atypica`, `aixcut`, `prepwise`                                            |
+| `project`          | Project identifier for project clicks.                 | `jiajia`, `atypica`, `aixcut`, `prepwise`                                  |
 | `team`             | Agent competition team identifier.                     | `game-agent`, `rss-agent`                                                  |
 | `link_type`        | Project link type.                                     | `site`, `github`, `doc`, `release`                                         |
 | `method_name`      | Contact or payment method.                             | `wechat`, `qq_group`, `wechat_pay`, `alipay`                               |
@@ -412,15 +412,15 @@ Fire once per method per pageview.
 ### `project_link_click`
 
 User clicks a project destination from the Projects page, a homepage product
-section (Experience, Interview), or a homepage product promo surface (first-visit
-popup, corner popout).
+section (Experience, Product), a homepage product promo surface (first-visit
+popup, corner popout), or an end-of-article / note product callout.
 
 Required properties:
 
 - `locale`: `zh` | `en`
 - `page`: current pathname
-- `surface`: `home_experience` | `home_interview` | `home_popup` | `home_popout` | `projects`
-- `section`: `experience` | `open_source` | `programs` | `learnings` | `theme` | `interview`
+- `surface`: `home_experience` | `home_product` | `home_interview` | `home_popup` | `home_popout` | `projects` | `article_callout` | `note_callout`
+- `section`: `experience` | `open_source` | `programs` | `learnings` | `theme` | `product` | `interview`
 - `project`: stable project identifier
 - `link_type`: `site` | `github` | `doc` | `release`
 - `href`: destination URL
