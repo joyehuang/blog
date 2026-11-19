@@ -7,8 +7,19 @@ const { lang = 'zh' } = Astro.props
 
 const copy = {
   zh: {
-    summary: '版本更新日志（当前 v1.2）',
+    summary: '版本更新日志（当前 v1.3）',
     releases: [
+      {
+        heading: 'v1.3 — 2026-11-18',
+        items: [
+          '重构 2.3“协议与打包层”并联动更新 5.3：补上 MCP 7 月底的无状态化改版与 Tasks 异步原语、Agent Skills 捐入 AAIF（agentskills.io）及 goose 创世捐赠细节；新增传统 MCP“上下文税”向 Code Mode 与 Skills Over MCP 的演进，以及 Plugin（Skills + MCP + Subagents + Hooks + Rules）一体化打包形态。',
+          '修正 5.5“安全”末尾的 Hugging Face 7 月事件归因：由初步通报视角的“外部攻击者武器”更正为 OpenAI 内部安全评测（ExploitGym）模型发生的真实沙箱逃逸事件，并强化请求级权限隔离、沙箱与网络白名单、生命周期 Hooks 等硬边界。',
+          '补强 2.2 与 1.3 的基础设施视角：2.2 新增“执行沙箱与元 Harness”（E2B、OpenSandbox、OpenEnv、Omnigent）；1.3 补充模型变强后 Harness 内部“补丁变薄、协作机制变厚”的分化；开篇补上 9 月两篇 Harness 专题延伸阅读。',
+          '升级 5.9“多 Agent”辨析：保留新人首作不乱拆的建议，新增“角色扮演式拆分（反模式）”与“为了上下文隔离（Context Isolation）及 Git Worktree 异构模型分工而委派 Subagent（生产正模式）”的区分。',
+          '更新至 2026 年 11 月模型与工具生态：2.1 同步至 Claude 5.5 / Fable 5.2、GPT-6（Astra / Sol / Terra / Luna）、Gemini 4（Carbon / Argon / Hydrogen）及 Qwen4-Max、DeepSeek V4.1-Flash、Kimi K3.1 Pro、GLM-5.3、MiniMax M3.1-Flash / H3，补充“固定档位 + 推理强度（effort）旋钮”路由思路；4.1 / 4.2 补齐 Cursor 与 Google Antigravity 入口；5.6 修正各厂商缓存留存窗口（5 分钟至 24 小时）差异；5.8 补充推理模型固定 effort 的裁判规范。',
+          '阅读时间随篇幅更新为约 65–70 分钟（全文约 2.1 万中文字）。'
+        ]
+      },
       {
         heading: 'v1.2 — 2026-07-25',
         items: [
@@ -42,8 +53,19 @@ const copy = {
     archiveSuffix: '。'
   },
   en: {
-    summary: 'Version changelog (current: v1.2)',
+    summary: 'Version changelog (current: v1.3)',
     releases: [
+      {
+        heading: 'v1.3 — 2026-11-18',
+        items: [
+          'Reworked Section 2.3 ("Protocol and packaging layer") alongside Section 5.3: added the late-July stateless MCP spec overhaul and native Tasks primitives, the donation of Agent Skills (agentskills.io) to AAIF (plus Block\'s founding goose donation), the shift from raw MCP "context tax" toward Code Mode and Skills Over MCP, and unified Plugin bundles (Skills + MCP + Subagents + Hooks + Rules).',
+          'Corrected the attribution of the July 2026 Hugging Face incident in Section 5.5: updated from an assumed external threat-actor campaign to the confirmed OpenAI internal cybersecurity evaluation (ExploitGym) sandbox escape, and strengthened request-scoped permissions, sandbox/egress isolation, and lifecycle Hooks.',
+          'Expanded infrastructure coverage in Sections 2.2 and 1.3: added execution sandboxes and meta-harnesses (E2B, OpenSandbox, OpenEnv, Omnigent), noted how stronger models thin out compensatory prompt patches while thickening collaboration harnesses, and linked two September Harness deep-dives in the author bio.',
+          'Refined Section 5.9 ("Multi-agent"): kept the "don\'t split your first project" advice while distinguishing role-play pipelines (anti-pattern) from subagent delegation for context isolation, Git worktree parallelism, and heterogeneous model routing (production pattern).',
+          'Refreshed models and tooling through November 2026: updated Section 2.1 to Claude 5.5 / Fable 5.2, GPT-6 (Astra / Sol / Terra / Luna), Gemini 4 (Carbon / Argon / Hydrogen), Qwen4-Max, DeepSeek V4.1-Flash, Kimi K3.1 Pro, GLM-5.3, and MiniMax M3.1-Flash / H3, plus fixed-tier and reasoning-effort routing; added Cursor and Google Antigravity in Sections 4.1–4.2; corrected vendor prompt-cache TTL differences (5m to 24h) in Section 5.6 and reasoning-judge pinning in Section 5.8.',
+          'Updated estimated reading time to roughly 65–70 minutes (~21,000 Chinese characters in the original).'
+        ]
+      },
       {
         heading: 'v1.2 — 2026-07-25',
         items: [
