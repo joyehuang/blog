@@ -27,6 +27,7 @@ colors:
   term-ok: 'hsl(142 50% 40%)'
   code-bg: 'hsl(220 14% 93%)'
   code-fg: 'hsl(220 13% 18%)'
+  selection: 'hsl(200 40% 48%)'
 # colorsDark is a non-normative extension (not part of the base design.md
 # spec): the site is dual-theme, and we keep both themes in one file rather
 # than splitting into a second design.dark.md. Same keys as `colors` above,
@@ -56,6 +57,7 @@ colorsDark:
   term-ok: 'hsl(142 60% 65%)'
   code-bg: 'hsl(240 5.9% 12%)'
   code-fg: 'hsl(0 0% 92%)'
+  selection: 'hsl(198 60% 45%)'
 typography:
   body:
     fontFamily: Satoshi
@@ -123,6 +125,7 @@ with an alpha channel: `hsl(var(--primary) / 0.25)`.
 | `border` / `input` / `ring`                | `240 5.9% 88%` / `90%` / `10%`     | `240 3.7% 19.9%` / `15.9%` / `4.9% 83.9%`    | Structural lines, focus      |
 | `term-surface` / `term-chrome` / `term-ok` | terminal sub-theme (see below)     |                                              | Terminal widget              |
 | `code-bg` / `code-fg`                      | `220 14% 93%` / `220 13% 18%`      | `240 5.9% 12%` / `0 0% 92%`                  | Code blocks                  |
+| `selection`                                | `200 40% 48%` (24% alpha)          | `198 60% 45%` (36% alpha)                    | Text selection highlight     |
 
 `--primary` is not held constant across themes — it flips from a muted
 mid-tone in light mode to a bright near-foreground tone in dark mode, rather
