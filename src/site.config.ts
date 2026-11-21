@@ -128,12 +128,7 @@ export const integ: IntegrationUserConfig = {
       { date: "2026-10-06", content: "添加 <a href=\"https://sanduanhuang.dpdns.org/\" target=\"_blank\" rel=\"noopener noreferrer\">三段荒</a>。" },
       { date: "2026-10-06", content: "添加 <a href=\"https://lloydkai.cn/\" target=\"_blank\" rel=\"noopener noreferrer\">Lloyd的个人博客</a>。" },
       { date: "2026-10-21", content: "添加 <a href=\"https://mjzy.tech\" target=\"_blank\" rel=\"noopener noreferrer\">Dusty</a>。" },
-      { date: "2026-10-27", content: "添加 <a href=\"https://clerimia.github.io/\" target=\"_blank\" rel=\"noopener noreferrer\">clerimia</a>。" },
-      {
-        date: '2026-11-22',
-        content: '添加 <a href="https://innei.in/" target="_blank">Innei</a>。'
-      }
-
+      { date: "2026-10-27", content: "添加 <a href=\"https://clerimia.github.io/\" target=\"_blank\" rel=\"noopener noreferrer\">clerimia</a>。" }
     ],
     // Yourself link info
     applyTip: [

@@ -230,15 +230,6 @@
           "since": "2026-10-27",
           "met": "互换友链",
           "note": "通过友链申请添加。"
-        },
-        {
-          "name": "Innei",
-          "intro": "Innei's personal blog — TypeScript, React, Next.js, AI engineering, indie hacking and life.",
-          "link": "https://innei.in",
-          "avatar": "https://github.com/innei.png",
-          "since": "2026-11-22",
-          "met": "互换友链",
-          "note": "Shiroi 与 mx-space 的作者，前端与全栈老手，做独立开发也写 AI 工程。"
         }
       ]
     },
