@@ -1,0 +1,305 @@
+---
+title: 'Personal Agents: Stronger Models, Less Product'
+description: 'Lee Robinson on Grok Bot: a personal agent becomes a coworker. Delete the product: complex UI patches a weak model. Remove that; thicken what carries the work.'
+publishDate: 2026-10-11 00:00:00
+language: en
+translationKey: '20261011---alwaysonagents/post'
+tags: ['Agent', 'Personal Agent', 'Harness', 'Agent products', 'AI engineering']
+---
+
+import QQGroupReveal from '@/components/blog/QQGroupReveal.astro'
+import TldrCard from '@/components/blog/TldrCard.astro'
+
+import AgentArchitecture from './AgentArchitecture.astro'
+import CodingUiTimeline from './CodingUiTimeline.astro'
+import D0Bars from './D0Bars.astro'
+import EscalationLadder from './EscalationLadder.astro'
+import ProductLayers from './ProductLayers.astro'
+import ScaffoldLifecycle from './ScaffoldLifecycle.astro'
+import ThinClient from './ThinClient.astro'
+
+A few days ago I watched a lecture Lee Robinson gave in Stanford's CS146S ([the post announcing it](https://x.com/leerob/status/2108650243365736855)). The subject was how always-on, proactive agents actually work. Lee used to lead developer experience at Vercel, then built agent products at Cursor, and now works on Grok Bot at SpaceX. The lecture is about how a product like Grok Bot is put together.
+
+It hit me, because it describes the place where the way I use agents changed the most this year. My main agent runs on a Mac mini at home, and I can reach it from Telegram whenever I want. It no longer feels much like a tool. It feels like a coworker. The bot team in my follower group is now mostly handed to Grok Bot.
+
+Near the end of the lecture, Lee stated a principle. He spent less than a minute on it: delete the product. When I went back over the architecture he had just walked through, almost every design choice could be explained by that principle.
+
+So this post is in two halves. The first half uses the lecture to talk about this kind of agent product: how it differs from the coding agents we use day to day, why I think everyone should go and actually use one, how Grok Bot is built, and why this work is not simply handed to Codex or Claude Code. The second half is about "delete the product": what gets deleted, why deleting it makes the product better, and what must not be deleted. [The previous post on harnesses](/blog/20260912---codexharnessevolution/post) (Chinese) is about which pieces the model will learn away. This one starts from a concrete product shape and looks at how the act of deleting itself should be done.
+
+<TldrCard>
+  <ul>
+    <li>
+      A personal agent turns an agent from a "send one, wait for one" tool into a coworker you can
+      work alongside for a long time. It is worth a few days of actually using one.
+    </li>
+    <li>
+      If you only have one task at a time, Codex or Claude Code is enough. At 5 or 10 in parallel,
+      you need a main agent to orchestrate them, and you only face that one.
+    </li>
+    <li>
+      How complicated a UI is often measures how much it is compensating for a model that is not
+      smart enough. AI coding tools went from Tab completion back to a single dialog. That is not a
+      return to chat. It is the UI no longer limiting the model.
+    </li>
+    <li>
+      The part of a harness built to cover a model's weaknesses is obsolete in three to six months.
+      Data, evals, permissions, integrations, and distribution have to keep getting thicker.
+    </li>
+    <li>
+      Whether a piece should be deleted depends on evals, and on whether your product gets better
+      for free when the model gets stronger.
+    </li>
+  </ul>
+</TldrCard>
+
+## 1. From "send one, wait for one" to a coworker
+
+Lee started by looking back at how we got here. He split it into four stages. The earliest was copy and paste: copy code out of ChatGPT and paste it back into the editor. Then came a harness that runs in the terminal, so the model can edit files and run commands itself. After that came dedicated apps that can run many agents in the cloud at once, but the human became the bottleneck, because every command waited on your approval. Now is the fourth stage: the always-on agent.
+
+This post uses Lee's four stages.
+
+I talked through a similar progression in [Talks, episode 2](/talks#talk-2). What I cited then was Karpathy's three layers. The first is the LLM on a web page: you open the page, ask a question, and it is a machine that answers. The second is an agent on your machine or in an IDE, such as Claude Code, Cursor, or Codex. It can operate on your files directly. The third is an always-on agent, with memory, working asynchronously, that several people can hand work to in turn. In other words, an LLM went from a response interface to a delegation interface. You no longer ask it. You delegate the work to it.
+
+I have my own four-stage version too. It takes those three layers and splits the cloud agent into two steps: the first generation of cloud agents, and an always-on bot like Grok Bot. A web LLM, a local coding agent, the first cloud agents early this year, and then Grok Bot at the end of August.
+
+When I sort agent products myself, I also use three shapes: an agent in the browser; a coding agent installed on a computer; and a bot that runs in the cloud and can be reached inside a chat app. For now I call that third shape a personal agent. Grok Bot is the third kind.
+
+The third kind really did change how we use agents. At the beginning, I sent one message and had to wait for it to finish before I could send the next. Now it is closer to working with a coworker. You can interrupt at any time. You can say "go look at this post," and immediately add "actually, Thursday is fine too," and it understands that both sentences are about the same thing. It finishes the work in the background and comes back only when something important has happened. Lee's line was "It knows when to be quiet."
+
+It no longer feels like a junior waiting for orders. It feels like a partner you can actually work with for a long time. Compared with a coding agent, the differences are mostly these:
+
+- **It stays online.** You close your laptop, it restarts itself, it crashes in the middle of something. None of that stops it from continuing the work.
+- **It has its own computer.** A machine in the cloud, with a desktop, files, and a browser.
+- **You are not the only thing that wakes it.** Someone @-mentions you in Slack, an email arrives, a scheduled job comes due. Any of those can call it up.
+- **It has to work continuously for a long time.** Not a few hours. Days, weeks, even months.
+- **An agent and a bot are not the same thing.** An agent is one-shot, scoped to an issue. A bot has a fixed role and long-term memory, and it reports only when something matters.
+
+Most products in this category are shaped as bots. Lee's explanation is simple: everyone knows how to send a text. He also said something in passing that this post keeps coming back to: **the stronger the model, the simpler the interface.**
+
+### Try one for real
+
+When OpenClaw first took off, a lot of people's first reaction was: couldn't Codex or Claude Code do these things too? It cooled off quickly. It burned tokens, its permissions were too broad, and it was not safe.
+
+I answer that question in section 4. Before that, I really do suggest spending some time, a week or a few days, actually using this kind of product. I believe it is the single thing most likely to change how you think. You can start with these:
+
+- **Today**: a China version and an international version. The China version works directly. If you can, I would rather you use the international version. It has more features, and the models are better.
+- **Cue** (Manus)
+- **Muse** (Meta): a higher bar to get in.
+- **Dots** (OpenAI): only Pro accounts can use it for now.
+- **Grok Bot**: I am including it here, though it already leans toward work, and it is also building team and enterprise features. There is no free path to it right now.
+
+I have used all of these except Muse. My own daily driver is a personal agent built on top of pi, an open-source minimal agent runtime. I call it Jojo. The "Vice Principal" bot (副校长) that answers questions in my follower group is also built on pi. I call all of these bots. Jojo is still on the Mac mini at home. The follower group's bot team is now carried by Grok Bot.
+
+## 2. How Grok Bot is put together
+
+What follows is Grok Bot's architecture. The kernel is still that minimal agent: a model calling tools inside a loop. The changes are all in the ring around it. Lee splits it into three parts. Triggers on the left, the server in the middle, and the agent's own computer on the right.
+
+<AgentArchitecture locale='en' />
+
+Messages come in from different sources and pass through a router first. It dedupes them, sets priority by source, merges several messages that arrived in a row into one turn, and then decides whether this is something that should bother the user. That is a lot like a real coworker. A coworker who comes to report every small bit of progress gets annoying. For most tasks, one status update a day is enough. The most important priority rule is that **a message you send it directly outranks everything else**. The moment you speak, it puts down what it was doing.
+
+On the right is the agent's own computer, a cloud virtual machine that starts on demand. It boots when it is needed, then snapshots and sleeps when it is done. Leaving it on all the time is too expensive, and the world does not have enough computers for everyone to keep one running. You can connect in at any time and see what it is doing, and take over yourself if you need to.
+
+One design choice is worth calling out. The agent loop does not live on that computer. It lives on the server, and the state lives on the server too. The computer can then be rebuilt at any time. If an urgent security hole shows up, you rebuild every virtual machine and patch it, and the agent does not have to stop. Long tasks are also broken into durable workflows that are persisted step by step. If it crashes in the middle, it continues from the checkpoint instead of starting over.
+
+## 3. One tool between the client and the server
+
+Grok Bot has another design that makes the point clearly. There is only one tool between the client and the server. It is called SendToUser.
+
+<ThinClient locale='en' />
+
+Whether you are on the phone app, the desktop app, email, or Slack, the client and the server pass messages through that one tool. The client is just "texting" the server. After the client receives a message, it decides how to present it. If a login is needed, it pops a login form. An irreversible action such as sending email gets a draft for you to confirm first. When no reply is needed, a reaction is enough. Adding a new channel does not require changing anything about the agent. It is just one more client that can send and receive messages.
+
+The tools all live on the server, and they are used as cheaply as possible. Each time the model is called, it only receives tool names. When it decides to use one, it then goes and reads that tool's full description. Faced with a task, it tries an escalation ladder: **start with the cheapest, most reliable method, and climb one level at a time if that is not enough**. Only when nothing else works does it ask you. You can click each example below and see which level it stops on.
+
+<EscalationLadder locale='en' />
+
+A reliable coworker works the same way. Try everything you can try yourself, and only then come ask.
+
+Context is spent just as carefully. Every time the agent adds a message, it basically resends the whole conversation to the model. The earlier part is identical to the previous call, so it hits the cache, and the price is much lower. That is why Lee says **a cache miss is basically a bug in the system**. For an always-on agent that is running all the time, the cache hit rate directly decides whether you can afford to keep it.
+
+Security follows the same idea. Before each command runs, another model reviews it. Mail in the inbox is untrusted input and must not be treated as your instructions. I went into this in more detail in [the post on permission isolation](/blog/20260912---agentpermissionisolation/post) (Chinese), so I will not expand on it here.
+
+## 4. Why not just hand it to Codex or Claude Code
+
+Back to the earlier question. Why not just hand this work to Codex or Claude Code?
+
+In the lecture, Lee described the design of the main agent. Your conversation with the main agent gets long, and the replies have to be fast, so the main agent stays "sparse." It manages the todo list, checks progress, and sends messages to helpers. The work that actually costs time and tokens is handed to sub-agents, each with a fresh context, and only the result comes back.
+
+I have been saying this for a while, and it is also my answer to that question. **If you only have one task at a time, handing it straight to Codex or Claude Code is completely fine.** Your context and your attention are on that one task. You watch it until it is done.
+
+But what happens when that number becomes 5, or 10? That is not an exaggeration. Two situations are common: several worktrees inside one project, or several projects, each carrying its own context. The bottleneck becomes you. Every time you switch tasks, you have to recall where it got to, what the context was, and what you should say next. The more tasks run in parallel, the higher the cost of switching context and attention.
+
+Someone will ask: Claude Code already has subagents, so isn't that enough? A subagent is good for pushing the heavy part of one task out, then bringing the result back. Five to ten tasks need a different layer: a bot with a fixed role, that remembers where each thread got to, and that reports only when something matters. A subagent cannot fill that role.
+
+That is why you need a main agent, or an orchestration layer, to carry this part for you. That is what my Jojo does. I hand it the task. It opens an independent workspace in herdr for each one, starts Claude Code or Codex to do the work, and itself watches progress and checks the result. By default I only hear two kinds of messages: "it's done," and the things that need me to decide. I turned this into a skill, [herdr-workflow in joyehuang/skills](https://github.com/joyehuang/skills/tree/master/personal/herdr-workflow).
+
+The follower group's bot team is a different setup, running on Grok Bot. I told the main bot I wanted a few new teammates. It hired four of them itself, pulled a group together, and onboarded the new ones. After that, each of them opens a cloud agent and gets to work.
+
+Another benefit is that the cost of getting started drops a lot. There can be many agents in the background, but you do not have to face them directly. You face one. The mental load and the operational load both get much smaller because of that. There is a very practical benefit too: the environment lives in the cloud, so your computer does not have to stay on 24 hours a day.
+
+This does have a premise. The strongest models have to actually be good at multi-agent collaboration. From what I have seen, that ability took a large step up only in the second half of this year. In the first half, Claude shipped agent teams, and the community had quite a few similar products. In my own use, the cost of an agent team in the first half far outweighed the gain. A single agent with a long context, plus Skills, was better. In the second half, spending the tokens shows a gain in quality. It feels a bit like the aha moment around DeepSeek R1. For something lighter, people have also had models from different companies play Werewolf together. The results there have been mediocre too.
+
+## 5. Delete the product
+
+In the second half of the lecture, Lee talked about how the Grok Bot team makes the product and the model improve together. Every error in the product becomes an eval. They fix the harness first. Then, on a regular cadence, they use those failures to train a new model. Only a team that trains models can do that second step. For most people building agent products, a new model generation is an external variable. That will matter later.
+
+Right after that, Lee stated the principle. He said it is a principle they followed at Cursor and follow now at SpaceX: delete the product. It means you have to actually accept an assumption: today's models are the worst they will ever be ("the models today are the worst they'll ever be"). So six months from now, you may have to rebuild the entire UI. The better strategy is to build for the next generation of models. Build as little as possible. Build only a very simple interface, and let the model do the thinking and the acting for you.
+
+The first time I read that, I did not actually see how the two sentences were connected. Why does "today's models are the worst they will ever be" mean you have to rebuild the UI six months later? The interface changes in AI coding tools over the last few years make it clear.
+
+### From Tab completion back to a single dialog
+
+The earliest AI coding tools were autocomplete. The cursor sat somewhere, you pressed Tab, and it completed that line. It could not even complete a whole block.
+
+Next, you selected a line in the file and a very small dialog popped up above it. You could only ask it to change that line, or a few lines above and below.
+
+Later, a sidebar appeared on the right side of VS Code, with modes like Ask, Plan, and Agent, and you had to pick one before you could use it. Through that stretch of last year, Cursor was updating some interface detail about twice a week, adding a mode, tuning an interaction, patching constantly.
+
+This year, take Codex as the example. You open it and there is a dialog. The old modes are basically gone. Next to the input there is only a permission setting, and most people just leave it on the highest permission. A lot of AI products, whether WorkBuddy or Z Code from GLM, are moving their interfaces toward Codex, because that shape of interface really is done well.
+
+<CodingUiTimeline locale='en' />
+
+Why did that period need so much extra interface? Because the model was not capable enough. It completed only one line because completing more was likely to be wrong. It was only allowed to edit the few lines you had selected because, left open, it might mess the file up. You had to pick a mode first because the model itself could not yet tell whether this should be a question, a plan, or just doing the work. **How complicated the UI is often measures the places where it is compensating for a model that is not smart enough.** Once the model is strong enough, those interfaces can come off.
+
+On the surface, the product has returned to the dialog from when ChatGPT first appeared. But this return is not because the model can only chat. It is because the model is already strong enough that we should stop limiting it with extra UI.
+
+And today's dialog is not only a dialog. Models after Opus 4.6 can reliably emit complex JSON. The product prepares a set of components, the model emits JSON, and that renders directly as forms, cards, and charts. That is generative UI. The Grok Bot client, rendering a login form, a payment, or a draft confirmation according to the content, is the same idea. The interface is no longer a stack of menus written out in advance. It appears when the model needs it.
+
+Look back at the architecture and almost every design is a consequence of this principle. The interface is just texting. There is one tool between the client and the server. Tools are given as names only. Heavy work goes to sub-agents, and the main agent stays sparse. When Lee introduced Grok Bot on X, he also mentioned that it has no model picker and does not stream the reply. His summary was "The best UI is none at all." Grok Bot can be what it is "primarily because of everything we didn't have to build" ([the post](https://x.com/leerob/status/2089169319099777364)).
+
+### Today's models are the worst they will ever be
+
+The hardest part of this principle, for me, is actually internalizing "today's models are the worst they will ever be."
+
+Section 4 said that multi-agent in the first half of this year was still bad. It forgot things. By the second half, it was suddenly different. What surprised me is that people seem to treat this as natural and obvious. We have gone a bit numb to how fast models improve. But if you really accept the assumption, it means you have to be ready at any time to overturn the thing you just got used to. The shelf life of a product shape is about half a year. Lee himself said that if this lecture had been given six months or a year earlier, the content would have been very different.
+
+For people building agents, this should be an explicit belief: **the part of the harness you are building right now to cover a model's weaknesses will be obsolete in three months, or in six.** It is not that someone did the work badly. It is the underlying logic of this field. The model changes generation every few months. What you add today to fill in for the model will eventually be learned by the model itself. Seeing that clearly is what keeps you from treating a scaffold that is destined to come down as a moat, and from being unable to let go of it when it is time to take it down.
+
+This is easy to say and hard to do. Lately I talk about AI with my dad a lot. He is older, and what he does is not related to code. He uses very few tokens. But I can clearly feel that he has gotten better in this era. People often say that once someone older has used a way of working for ten or twenty years, they are unwilling to change. What I see in him is not that. Turning it around: part of why I can accept AI this quickly is that I do not have a decade of old habits to put down. Once I am fully used to AI, if something entirely new shows up, I am not sure I will have the courage to accept it either.
+
+So deleting the product starts with deleting the way of working you have already gotten used to.
+
+### The compensation layer and the load-bearing layer
+
+"Delete the product" is easy to misread as: the less the product does, the better. That is not how I understand it.
+
+I split an agent product into two layers. One is the **compensation layer**: the things you do for the model only because it is not good enough yet. Flows and buttons that judge on its behalf, intent routing, a long list of rules, hand-written retrieval, small tools built for one kind of task. The other is the **load-bearing layer**: the things you need no matter how strong the model is. Data, permissions, integrations, evals, distribution, and cost.
+
+An analogy: the same piece of work, given to an intern, and you have to write out step one, step two, step three. Given to a senior engineer, you only have to tell them the goal. The compensation layer is the step-by-step instructions written for the intern. The model is looking more and more like that senior engineer. Handing it a detailed procedure is limiting it.
+
+"Delete the product" deletes the compensation layer. That layer should be as thin as possible, and ready to throw away at any time. The load-bearing layer must not be deleted. It has to keep getting thicker.
+
+The value of the compensation layer rises first, then falls, as the model gets stronger:
+
+<ScaffoldLifecycle locale='en' />
+
+While the model is weak, the compensation layer is what makes the product usable. Once the model catches up, it is useless. After that, it becomes a burden: it limits the model, it conflicts with the model's judgment, it occupies context, and someone has to keep maintaining it. The hard part is where the crossover is. It is very difficult to know in advance.
+
+## 6. Why keeping the compensation layer hurts
+
+If the compensation layer merely became useless, leaving it there would not matter. The problem is that it actively drags a stronger model down. There are four main reasons.
+
+**First, what it hard-codes is an assumption that has already expired.** Every special-purpose tool, every pre-filter, every piece of hand-written retrieval sits on an assumption that "the model cannot do X." When Vercel looked back at their data agent, d0, they wrote: "We were doing the model's thinking for it." They used to have 17 special-purpose tools, for looking up the schema, validation, error recovery, and planning. They later deleted them down to two: a bash in a sandbox, and a tool that executes SQL. The result looked like this:
+
+<D0Bars locale='en' />
+
+This result has a premise, and Vercel states it clearly themselves. Their semantic layer was already a very good document. If the data layer is a mess, handing the filesystem to the model will not save it. You will just get the wrong query faster.
+
+**Second, extra constraints hurt a strong model.** When Anthropic's Thariq described deleting more than eighty percent of Claude Code's system prompt ([the post](https://x.com/trq212/status/2080710971228918066)), he listed a few typical kinds of damage. Instructions in the system prompt, in skills, and in the user request contradict each other, and the model has to spend effort reconciling them first. The examples you give pin the model inside a fixed range. A strong rule written to prevent the worst case is simply wrong on a different kind of task. On the day Opus 5 shipped, Every's Dan Shipper ran into the same thing. Skills accumulated for the old model fit the new model badly. They deleted all the skills and started over, and Opus 5 got clearly better ([the post](https://x.com/danshipper/status/2080700057892815114)).
+
+**Third, every model change means recalibrating.** Vercel's line was "every model update meant re-calibrating our constraints." They spent more time maintaining the scaffold than improving the agent itself. Box's Aaron Levie has also said that building agents means accepting that, for the next few years, you will write a large amount of code that gets thrown away ([the post](https://x.com/levie/status/1997152030507556962)). The compensation layer has a maintenance cost, and that cost follows the model's release cadence.
+
+**Fourth, the interface keeps users in the old way of working.** Amp's Thorsten Ball put it directly: "If a feature teaches you to start using agents the old way, we need to remove it." ([the post](https://x.com/thorstenball/status/2052047198796337562)) When Lee shipped Cursor 3, he also admitted that constantly moving the UI in Cursor 2 annoyed users, but the agent was taking over more and more of the work, and it no longer fit inside an IDE's interface.
+
+Beyond these four, there is a human reason. Former OpenAI researcher Hyung Won Chung said in Stanford's CS25 that structure gets added because there is not enough compute, and that it should be deleted afterward. People are good at adding structure and bad at deleting it ([the CS25 video](https://www.youtube.com/watch?v=orDKvo8h71o)).
+
+So as I see it, deleting the product is not an aesthetic preference. It is an expected-value calculation. The model's capability grows far faster than the gain a handwritten patch can bring. Anything that hard-codes a person's judgment is a bet against that speed.
+
+"Delete the product" is not something Lee invented alone. You can trace it back to Rich Sutton's 2019 [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html): over the long run, general methods that can exploit compute win, and the knowledge people add helps in the short term and becomes an obstacle in the long term. Applied to agent products, several companies have said the same thing over the past two years. Anthropic's [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents) recommends starting from the simplest solution and adding complexity only when you can show that it helps. Manus rewrote its framework four times in a year, and said to be a boat that rises with the tide rather than a post planted in the seabed ([the blog](https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus)). On a YC show, Boris Cherny said Anthropic builds for the model six months out ([the post](https://x.com/ycombinator/status/2026787362693591205)).
+
+Brought down to a specific product, the question to ask is really one question: **when the model gets stronger, can your product get better for free?** The most direct test is a metric from Manus's Peak Ji ([the post](https://x.com/peakji/status/1948060791636410404)). Inside the same model family, swap the weak model for the strong one. How much of a gain does your architecture pick up? The larger the difference, the more the architecture improves along with the model. A very small difference means the compensation layer is dragging. Separately, the gap in performance across different model families should be as small as possible. That means you have not over-fit one particular model.
+
+## 7. What you cannot delete, and should thicken
+
+If you stopped here, it would be easy to conclude "do nothing, and wait for the next model." That is also the easiest way to misuse the principle. When Lee shipped Cursor 3, he added a line himself: deleting the product does not mean throwing away every good idea. Letting existing users adapt smoothly matters just as much ([the post](https://x.com/leerob/status/2039771986180649010)).
+
+Put the compensation layer and the load-bearing layer from above together with a very thin interface layer in the middle, and it looks like this. The things you cannot delete are all in the load-bearing layer at the bottom:
+
+<ProductLayers locale='en' />
+
+Going through what sits in the load-bearing layer:
+
+**Evals.** An eval is the only thing that can tell you "this piece can be deleted now." Claude Code could delete eighty percent of the system prompt because coding evals showed "no measurable loss." Without evals, deleting is a gamble. The Grok Bot team's practice in the lecture is the same idea. Every error becomes an eval first, and the fix is verified in the eval before anything else.
+
+**Reliability.** The model being able to do something does not mean it does it right every time. Cognition once wanted Sonnet 4.5 to write its own notes and replace the memory system they had built. The result got worse, because the model does not know what it does not know ([the blog](https://cognition.com/blog/devin-sonnet-4-5-lessons-and-challenges)). Lee also mentioned this in the lecture: a lot of things can be done with a shell, but if the model is using the shell to do the same thing 90% of the time, it is worth making that a special-purpose tool. Execution is more efficient, and it is easier for a person to review. That kind of structure is for stability and reviewability. It is not compensating for the model.
+
+**Permissions and irreversible actions.** Confirm the draft before sending email. Review every command before it runs. Untrusted input cannot count as an instruction. These are not compensating for the model. They draw the boundary of responsibility. However strong the model gets, they still have to be there.
+
+**Cost and cache.** Manus treats the KV-cache hit rate as the single most important metric for an agent in production. The price with a cache and without one can differ by about ten times. The cache from section 3 does not go out of date because the model gets stronger. It gets more important as usage grows.
+
+**An interface a person can check quickly.** Karpathy has said that the value of a diff view is that it borrows a person's visual system and shortens the time it takes to check ([the post](https://x.com/karpathy/status/1930326685918081077)). Lee said that when Cursor had deleted as far as it could, 2% of the editor was left that could not be deleted, and that part is what is left for a person to check and to tweak. Hamel Husain praising Devin for now giving a video as proof of the work ([the post](https://x.com/HamelHusain/status/2050363550020055290)) is the same kind of thing.
+
+**Data a person can read.** The Vercel example above already shows it. Deleting tools worked because the investment moved onto documentation, naming, and the shape of the data.
+
+At the end of the lecture, Lee listed a string of new primitives: durable workflows, sandboxes, cloud computers, memory, skills, connectors, voice, payments, identity, evals, observability. He said there is a lot of venture capital behind each one, and about twenty startups working on each. Set that list next to the diagram above and you find that almost all of them land in the load-bearing layer.
+
+There is also an objection worth taking seriously. Anthropic can build for the model six months out because they can see the model roadmap. Most startup teams cannot ([the post](https://x.com/sikt_int/status/2027020232460570874)). I agree. I wrote the same thing in [the previous post](/blog/20260912---codexharnessevolution/post) (Chinese): a model lab can choose "don't do this yet, wait for the next model." We cannot. Users have things to finish today. So a patch that should be applied today still gets applied. "Delete the product" does not mean don't build it beforehand. It means don't cling to it afterward. Aaron Levie put it more bluntly: you have to accept that some of the work you did will be thrown away ([the post](https://x.com/levie/status/2040999580188160023)).
+
+I should also say where I think this needs to be discounted.
+
+A lot of what Lee describes sits on a large team that has its own model and a complete infrastructure. Warming the cache as soon as the user starts typing, making every turn a durable workflow, waking an entire virtual machine on demand: those are reasonable for a big company. Copied by an individual or a small team, the cost and the maintenance will not hold. Memory is the same. The layered memory and compression strategy in the lecture is too high a bar for an individual. A lot of the time, handing it to the mechanism that already comes with a tool like Claude Code is enough. I also think "The best UI is none at all" is said too ideally. Not every product can be left with a single dialog. Where a person needs to check and to tweak, the interface still has to be built.
+
+So when I read a talk like this, I first separate which parts are principles and which parts are practices that come from scale. "Delete the compensation layer, thicken the load-bearing layer" is a principle. It applies to everyone. How thick to make it depends on your own scale.
+
+## 8. What I actually do
+
+The Vice Principal bot mentioned above answers questions in a QQ follower group of about 800 people. One line from the lecture stayed with me. There is almost no training data for how a bot should behave in a group chat. It is a new problem. And a good always-on agent "knows when to be quiet." That is exactly the hardest part of a group-chat bot.
+
+Looking back at this bot through "keep the compensation layer thin, keep the load-bearing layer thick," I would split it like this:
+
+- **One entrance, and it is a message.** An @, a reply, a direct message, a scheduled job, a group event: all of them become the same kind of message and enter the same agent loop. I no longer write a separate logic for each entrance, and I do not use keywords or a command menu to route intent.
+- **Whether to speak is the model's judgment, with a deterministic cap outside it.** It can choose not to reply, or to reply with only a reaction. But a cap on how many messages per minute, a cooldown for the same person, and quiet hours late at night are enforced by the program.
+- **Keep the persona short.** A short description of who it is, plus a few typical examples. In-jokes and the phrases the group actually uses go in files, looked up when needed, instead of dozens of rules and examples piled into the prompt.
+- **Memory in files, and layered.** Group rules and core facts stay resident. What is going on with a member, and the record by date, are looked up when needed. Scratch notes expire on their own.
+- **Thicken governance.** Admin actions go through an allowlist and a second confirmation. Every group message is treated as untrusted input. Every action is logged. This part is already laid out in [the post on permission isolation](/blog/20260912---agentpermissionisolation/post) (Chinese).
+
+The follower group's bot team from section 4 is the matching example on my side. Hiring, pulling a group together, onboarding: I did not write that out as a procedure. I told the main bot I wanted a few new teammates. It hired four itself, pulled a group together, onboarded the new ones, and after that each of them opened a cloud agent and got to work.
+
+For an agent product in general, I keep to these:
+
+1. **Start from the strongest model, the shortest prompt, and the fewest tools.** Get it working first, then add things against real failures.
+2. **Write an expiry condition for every piece of the compensation layer.** Which weakness of the model it is compensating for, and which eval can prove it is no longer needed. This is the same thing I said in the previous post: when you add a patch, also leave a failure case that can be rerun.
+3. **When a new model ships, run it bare.** The same evals, once with the full configuration, once with only the persona and the most basic tools. Rules and skills that the bare run does not lose get deleted. While you are there, look at Peak Ji's metric and see how large the gain from the stronger model is.
+4. **Few tools, and basic ones.** Send a message, search, read and write files, a shell. If one kind of call dominates, then make it a special-purpose tool.
+5. **Spend the effort on the load-bearing layer.** For my bot, that is the knowledge and member memory accumulated in the group, the integration with the QQ ecosystem and the governance around it, and an eval set distilled from real group chats. None of that gets washed away by the next model.
+
+## Closing
+
+Looking back, every design in Grok Bot, SendToUser, the escalation ladder, the main agent orchestrating, holding the cache, is doing the same thing. Keep everything outside the model as thin as possible, and as stable as possible, so that when the model gets stronger the whole product gets better on its own.
+
+"Delete the product" is the reminder about the other half. Tell apart which things are compensating for today's model, and which things the next model cannot wash away. Be ready to delete the first at any time. Thicken the second every day.
+
+One of Lee's closing suggestions for engineers is to go and build one yourself. I agree. Before building, though, I would rather suggest something simpler: spend a few days actually using a personal agent, and hand it one thing you usually have to watch yourself. Come back to this post after you have used one. A lot of it will be easier to understand.
+
+Look at the substance. Don't chase marketing accounts. When 2025 was being called year one of multi-agent, a lot of the concepts had already been hyped once. What I am building next is an agent factory: a web software factory based on Grok Bot, so the repetitive parts of development and operations can run themselves 7×24. Once it has a clear result, I will write that up on its own and lay the details out.
+
+If you are using or building a personal agent too, or if you have deleted something and the product got better because of it, come talk about it in the QQ follower group: <QQGroupReveal lang='en' />
+
+---
+
+## References
+
+- Lee Robinson, Stanford CS146S lecture, How do always-on, proactive agents work?: [the announcement](https://x.com/leerob/status/2108650243365736855)
+- Lee Robinson on the Grok Bot architecture: [link](https://x.com/leerob/status/2089169319099777364). On Cursor 3 and "delete the product": [link](https://x.com/leerob/status/2039771986180649010)
+- Vercel: [We removed 80% of our agent's tools](https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools)
+- Thariq (Anthropic): [the long post on deleting eighty percent of Claude Code's system prompt](https://x.com/trq212/status/2080710971228918066)
+- Manus: [Context Engineering for AI Agents: Lessons from Building Manus](https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus)
+- Cognition: [Rebuilding Devin for Claude Sonnet 4.5](https://cognition.com/blog/devin-sonnet-4-5-lessons-and-challenges)
+- Amp: [The Coding Agent Is Dead](https://ampcode.com/news/the-coding-agent-is-dead)
+- Anthropic: [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents), [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+- Rich Sutton: [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html)
+- Hyung Won Chung, Stanford CS25: [video](https://www.youtube.com/watch?v=orDKvo8h71o)
+- Hamel Husain: [Your AI Product Needs Evals](https://hamel.dev/blog/posts/evals/)
+
+Quotations from the lecture are paraphrases of what was said. The English quotations are short excerpts from the transcript or from the original text.
