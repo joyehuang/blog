@@ -1,15 +1,38 @@
 ---
+import type { ImageMetadata } from 'astro'
+
 import { socialLinks, type iconsType } from 'astro-pure/types'
 import { Icon } from 'astro-pure/user'
 
 interface SubstatsItem {
   platform: string
-  icon: (typeof socialLinks)[number] | string  // Allow custom icon URLs
+  icon: (typeof socialLinks)[number] | ImageMetadata | string // Allow custom icon images or URLs
   color?: string
   link?: string
   text: string
   api?: string
   count?: number
+}
+
+function isImageMetadata(icon: SubstatsItem['icon']): icon is ImageMetadata {
+  return typeof icon === 'object' && icon !== null && 'src' in icon
+}
+
+function isCustomIconUrl(icon: SubstatsItem['icon']): icon is string {
+  return (
+    typeof icon === 'string' &&
+    (icon.startsWith('http') ||
+      icon.startsWith('/') ||
+      icon.endsWith('.png') ||
+      icon.endsWith('.jpg') ||
+      icon.endsWith('.svg'))
+  )
+}
+
+function getCustomIconSrc(icon: SubstatsItem['icon']): string | undefined {
+  if (isImageMetadata(icon)) return icon.src
+  if (isCustomIconUrl(icon)) return icon
+  return undefined
 }
 
 type Props = {
@@ -90,41 +113,50 @@ async function fetchCount(item: SubstatsItem) {
 await Promise.all(stats.map(fetchCount))
 ---
 
-<div class='grid grid-cols-1 gap-3 rounded-xl border p-2 sm:grid-cols-2 sm:p-3'>
+<div class='not-prose grid grid-cols-1 gap-3 rounded-xl border p-2 sm:grid-cols-2 sm:p-3'>
   {
-    stats.map(({ link, platform, icon, color, count, text }) => (
-      <a
-        class='group text-muted-foreground no-underline'
-        href={link}
-        target='_blank'
-        rel='noopener noreferrer'
-        data-analytics-event={platform === 'GitHub' ? 'github_link_click' : undefined}
-        data-analytics-surface={platform === 'GitHub' ? 'about_social' : undefined}
-        data-analytics-target={platform === 'GitHub' ? 'profile' : undefined}
-      >
-        <div class='flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 transition-all hover:border-border hover:bg-muted'>
-          {icon && (
-            // Check if icon is a URL (custom image) or standard icon name
-            typeof icon === 'string' && (icon.startsWith('http') || icon.startsWith('/') || icon.endsWith('.png') || icon.endsWith('.jpg') || icon.endsWith('.svg')) ? (
-              <img src={icon} alt={`${platform} icon`} class='h-5 w-5 object-contain' />
-            ) : (
-              <Icon name={icon as iconsType} color={color} />
-            )
-          )}
-          <div class='flex-1 text-foreground transition-colors group-hover:text-primary'>
-            {platform}
-          </div>
-          {count ? (
-            <div class='flex items-center gap-1.5'>
-              <samp>{count}</samp>
-              <span class='text-sm font-normal'>{text}</span>
+    stats.map(({ link, platform, icon, color, count, text }) => {
+      const customIconSrc = icon ? getCustomIconSrc(icon) : undefined
+      return (
+        <a
+          class='group text-muted-foreground no-underline'
+          href={link}
+          target='_blank'
+          rel='noopener noreferrer'
+          data-analytics-event={platform === 'GitHub' ? 'github_link_click' : undefined}
+          data-analytics-surface={platform === 'GitHub' ? 'about_social' : undefined}
+          data-analytics-target={platform === 'GitHub' ? 'profile' : undefined}
+        >
+          <div class='flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 transition-all hover:border-border hover:bg-muted'>
+            {icon &&
+              (customIconSrc ? (
+                <img
+                  src={customIconSrc}
+                  alt={`${platform} icon`}
+                  width='24'
+                  height='24'
+                  decoding='async'
+                  loading='lazy'
+                  class='size-6 shrink-0 object-contain'
+                />
+              ) : (
+                <Icon name={icon as iconsType} color={color} />
+              ))}
+            <div class='flex-1 text-foreground transition-colors group-hover:text-primary'>
+              {platform}
             </div>
-          ) : (
-            'null'
-          )}
-        </div>
-      </a>
-    ))
+            {count ? (
+              <div class='flex items-center gap-1.5'>
+                <samp>{count}</samp>
+                <span class='text-sm font-normal'>{text}</span>
+              </div>
+            ) : (
+              'null'
+            )}
+          </div>
+        </a>
+      )
+    })
   }
 </div>
 <div class='mt-2 text-right text-sm'>

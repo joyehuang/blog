@@ -5,6 +5,7 @@ import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
 import Comment from '@/components/comment/Comment.astro'
 import JojoAbout from '@/components/jojo/JojoAbout.astro'
+import xiaohongshuIcon from '@/assets/icons/xiaohongshu.png'
 import hermesIcon from '@/assets/tools/hermes.png'
 import pencilIcon from '@/assets/tools/pencil.png'
 
@@ -116,14 +117,14 @@ const headings = [
       {
         platform: 'Bilibili',
         icon: 'bilibili',
-        color: '#e71f19',
+        color: '#00aeec',
         link: 'https://space.bilibili.com/3546914882587480?spm_id_from=333.1007.0.0',
         text: 'followers',
         api: 'bilibili/3546914882587480'
       },
       {
         platform: 'Xiaohongshu',
-        icon: '/src/assets/icons/xiaohongshu.png',
+        icon: xiaohongshuIcon,
         color: '#fe2c55',
         link: 'https://www.xiaohongshu.com/user/profile/65a14d170000000022017286?xsec_token=YBPKP2bQlVpuT_aLOsY5GdFkn_DdrD6hHVzbyZjzFcMTg=&xsec_source=app_share&xhsshare=CopyLink&appuid=65a14d170000000022017286&apptime=1752108974&share_id=2fdaa435651f421f80142ff6608a1d64',
         text: 'followers',
@@ -132,7 +133,7 @@ const headings = [
       {
         platform: 'X (Twitter)',
         icon: 'x',
-        color: '#000000',
+        color: 'hsl(var(--foreground))',
         link: 'https://x.com/deshiou0604',
         text: 'followers',
         count: 75
