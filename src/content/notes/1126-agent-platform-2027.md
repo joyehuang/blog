@@ -113,20 +113,6 @@ Zach Lloyd（[@zachlloydtweets](https://x.com/zachlloydtweets)，Warp 创始人�
 - Matt Pocock 在打磨一个「理想 TypeScript 代码库」skill，和给非开发者用的 `/vector` 工作流。都还在早期，等可以公开安装再看。
 - poteto 又在推 pstack 的仓库清理，和前几期重复。同站已有 [pstack](/notes/1026-pstack)。
 
-## 和 Joye 相关
-
-John 的拆法对到正在做的 team-chat。
-
-Notion 里最近的 qqbot 日报只到 11-17、11-18，而且都只有 Watch 的运维记录，11-19 之后没有新页。产品方向仍然是迁到 team-chat，已知还缺定时任务和 bot 叫醒 bot。John 把现在的 Grok Bot、Muse、Instinct 直接归到「其实只支持 cron」这一档，并把 Listener 写成 Grok Bot 的未来功能。team-chat 最该先补的很可能就是这一层：让某个 bot 监听邮件、PR、告警或群消息，按租户规则翻译成信号，再叫醒另一个 bot，而不是只靠早上 8:51 这种定时任务。
-
-收件箱那一层，对上日报里反复出现的「要 Joye 拍板」清单。拍板不该散落在各条对话里，而该汇到一个审批入口。对话和 session 拆开，则是在提醒：不要把 cloud agent 的工具轨迹当成用户主界面。
-
-不必一次把八块都做完。可以先拿这张清单给 team-chat 对账：哪些已经有了（对话、多 bot、权限），哪些明确没有（Listener、审批收件箱、定义/实例/会话分离）。Harrison 的三根柱子可以当成验收标准：光把 bot 跑起来只是运行时；没有观测和评测，自我改进就是在黑箱里改；没有网关式的治理，权限和花费会在进化中被冲掉。
-
-Dex 那条对到这些 bot。这些 bot 会从邮件、GitHub、Notion、群消息里拉大量原始返回。如果某项例行巡扫已经慢、已经贵，先对一下是不是把整包 JSON 喂进了上下文。按 Dex 的做法，让 agent 先写一段过滤脚本，只把做决策要用的字段带回来。harness 的分界可以用在 co-context 和 team-chat 的仓库规则里：编排、权限、记忆、hook 自己管；核心 loop 和工具定义不要随手改到和模型训练时的形状完全不同。
-
-Zach 那条对到正在做的 agent 工厂，以及 team-chat 里的多 bot 协作。很容易默认再加一个专门的子 agent。对照这条，更稳妥的顺序是：先用更简单的编排跑通，再对有争议的阶段做一次像这样的对照。
-
 ## 相关链接
 
 - Harrison Chase 的引用：<https://x.com/hwchase17/status/2124654748104302930>
