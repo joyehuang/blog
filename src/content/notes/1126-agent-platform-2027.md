@@ -19,29 +19,33 @@ relatedNote:
 draft: false
 ---
 
-> 参考：<https://x.com/john_ssuh/status/2124336124172935336>
-
 ## 核心内容
 
-John Suh（[@john_ssuh](https://x.com/john_ssuh)）2026-11-22 的长帖《Agent platform of 2027》，把 2027 年的 agent 平台收成花园的土壤：用户种下自己的种子，界面只留对话和审批收件箱，运行时、电脑、文件系统和事件监听拆开，而不是把编码 agent 的 session 直接摊给用户。平台要支持多种 agent 配置，并把定义、实例、会话分开。Harrison Chase 和 Elvis 接上同一句：运行时只是三根柱子里的一根，还缺评测和治理。
+2026 年 11 月 22 日，John Suh（@john_ssuh）发了长帖《Agent platform of 2027》。他把 2027 年的 agent 平台收成花园的土壤：用户种下自己的种子，界面只留对话和审批收件箱，运行时、电脑、文件系统和事件监听拆开，而不是把编码 agent 的 session 直接摊给用户。平台要支持多种 agent 配置，并把定义、实例、会话分开。Harrison Chase 和 Elvis 接上同一句：运行时只是三根柱子里的一根，还缺评测和治理。
 
-同一天，Factory 的 Dex 用 code mode 做了一次真实的每日 Linear 巡扫，不是实验室估算。245,000 token、7 分钟，改成程序先过滤之后是 23,000 token、36 秒。Warp 的 Zach Lloyd 在自己的工厂上测：各阶段各带子 agent，比更简单的做法贵 40%，质量没有明显提升。帖子没有逐项分数，视频大约 6 分 47 秒。
+2026 年 11 月 23 日，Factory 的 Dex 用 code mode 做了一次真实的每日 Linear 巡扫，不是实验室估算。245,000 token、7 分钟，改成程序先过滤之后是 23,000 token、36 秒。同一天，Warp 的 Zach Lloyd 在自己的工厂上测：各阶段各带子 agent，比更简单的做法贵 40%，质量没有明显提升。帖子没有逐项分数，视频大约 6 分 47 秒。
+
+这篇顺着这几条往下记：
+
+- 花园的土壤，以及蓝图里的八块
+- Harrison 补上的观测、评测和治理
+- 程序先过滤，再把字段交回模型
+- 各阶段配子 agent：贵 40%，质量没有明显提升
+- 旁边四条：代码浏览、训练课程、还早的 skill，和又一次的 pstack
 
 ## 要点整理
 
 ### 1. 2027 agent 平台：花园的土壤
 
-原文是 John Suh 2026-11-22 的长帖，原标题「Agent platform of 2027」。正文后面 4 张图才是完整蓝图。Elvis、Mario 和 Harrison Chase 先后引用了它。
-
-一句话摘要：把 agent 平台做成花园的土壤，让用户种下自己的种子。用户界面是对话和审批收件箱。运行时、电脑、文件系统和事件监听要拆开，而不是把编码 agent 的 session 直接暴露给用户。
+长帖后面 4 张图才是完整蓝图。[Elvis](https://x.com/omarsar0/status/2124506354324840953)、[Mario](https://x.com/badlogicgames/status/2124577986988916931) 和 [Harrison Chase](https://x.com/hwchase17/status/2124654748104302930) 先后引用了它。
 
 他认为 ChatGPT 和 Claude 应用层的终局，是一个让百万 agent 蜂群在上面工作的「agent 操作系统」，其它软件会退化成这个层的数据库。大多数 ADE、「企业 agent 平台」和垂直 SaaS 都看得太窄。花园的土壤是：用户种下自己的种子，由 agent、人和业务传感器里的信号一起养护，而不是再做一个「工厂的工厂」。
 
 ### 2. 蓝图拆开的几块
 
-4 张图收成下面几块。八块原语是这张表。
+那 4 张图里的八块是这张表。
 
-| 一块             | 示意图上的一句            |
+| 一块             | 在说什么                  |
 | ---------------- | ------------------------- |
 | 对话             | 不是把 session 直接给用户 |
 | 审批收件箱       | 只放批准和提问            |
@@ -74,7 +78,7 @@ Elvis 强调多种 agent 配置，以及定义、实例和会话要分开，点�
 
 ### 4. code mode：程序先过滤，再把字段交回模型
 
-Dex（[@dexhorthy](https://x.com/dexhorthy)，在 Factory 做 MTS）2026-11-23 发帖。原标题是 “holy shit i just implemented a weird code mode hack…”。有人问节省主要来自不再把所有 Linear issue 拉进上下文，还是先用代码过滤和批量调用，他答主要是让模型只看到对决策有用的 Linear 字段，而不是通常会吐出来的大块 JSON。
+Dex（@dexhorthy，在 Factory 做 MTS）2026 年 11 月 23 日发了[《holy shit i just implemented a weird code mode hack…》](https://x.com/dexhorthy/status/2124624191563698426)。有人问节省主要来自不再把所有 Linear issue 拉进上下文，还是先用代码过滤和批量调用，他答主要是让模型只看到对决策有用的 Linear 字段，而不是通常会吐出来的大块 JSON。
 
 问题是普通 agent loop。模型每调一次工具，原始返回就会追加进上下文。像每日扫一遍 Linear 这种活，字段又多又长，上下文会被 JSON 撑满，既贵又慢。
 
@@ -88,15 +92,15 @@ Dex（[@dexhorthy](https://x.com/dexhorthy)，在 Factory 做 MTS）2026-11-23 �
 
 大约只剩原来的十分之一 token，时间大约是原来的十二分之一。
 
-Factory 在 10 月 29 日的 [Droid 1.0 博文](https://factory.com/news/frontier-harness)里写过同一套思路。PTC 是默认机制。模型写一段在沙箱里跑的 JavaScript，他们叫 Script tool。原始工具输出留在程序变量里，模型只拿到程序的输出。一次程序里可以跑许多次互不依赖的调用。检查和循环由代码确定性地执行，而不是指望模型每一步都不偷懒。
+Factory 在 2026 年 10 月 29 日的 [Droid 1.0 博文](https://factory.com/news/frontier-harness)里写过同一套思路。PTC 是默认机制。模型写一段在沙箱里跑的 JavaScript，他们叫 Script tool。原始工具输出留在程序变量里，模型只拿到程序的输出。一次程序里可以跑许多次互不依赖的调用。检查和循环由代码确定性地执行，而不是指望模型每一步都不偷懒。
 
-同一天稍早，他还写了一条 harness 该自己做多少的长帖。有人把立场改成用模型厂的 harness，但要能随时换。Dex 的拆法更细：不要因为是实验室做的就盲目整份照搬。但工具定义和系统提示是他们做强化学习时的一部分，改掉这些，就基本上是在靠自己了。编排、背压、正向压力、工具集、hook 实现、记忆和上下文，这些应该自己拥有。真正核心的 agent loop，除非有很强的反证，他会尽量对齐前沿实验室的 harness。
+同一天稍早，他还写了一条 [harness 该自己做多少](https://x.com/dexhorthy/status/2124613833050472826) 的长帖。有人把立场改成用模型厂的 harness，但要能随时换。Dex 的拆法更细：不要因为是实验室做的就盲目整份照搬。但工具定义和系统提示是他们做强化学习时的一部分，改掉这些，就基本上是在靠自己了。编排、背压、正向压力、工具集、hook 实现、记忆和上下文，这些应该自己拥有。真正核心的 agent loop，除非有很强的反证，他会尽量对齐前沿实验室的 harness。
 
 PTC 把「模型一步步看原始输出」换成「代码先做完确定的过滤和批量调用」，省下的不只是钱，还有轮次。harness 那条给了一个可执行的分界，避免在「全自建」和「全托管」两极之间摆动。
 
 ### 5. 各阶段配子 agent：贵 40%，质量没有明显提升
 
-Zach Lloyd（[@zachlloydtweets](https://x.com/zachlloydtweets)，Warp 创始人）2026-11-23 发帖。原标题是 “I benchmarked whether it was more or less effective and efficient to have different factory stages use their own subagents.” 附了一段约 6 分 47 秒的视频。说明在 [warp.dev/factories](https://warp.dev/factories)。
+Zach Lloyd（@zachlloydtweets，Warp 创始人）2026 年 11 月 23 日发了[《I benchmarked whether it was more or less effective and efficient to have different factory stages use their own subagents.》](https://x.com/zachlloydtweets/status/2124592480674779605)。附了一段约 6 分 47 秒的视频。说明在 [warp.dev/factories](https://warp.dev/factories)。
 
 给工厂的不同阶段各自配一套子 agent，听起来像是更「agent 原生」的拆法，也是现在线上很常见的叙事。他想用自己的设置验证：这样到底更有效，还是只是更贵。
 
@@ -106,23 +110,9 @@ Zach Lloyd（[@zachlloydtweets](https://x.com/zachlloydtweets)，Warp 创始人�
 
 可以借鉴的做法：挑一个已经在跑、而且看起来该拆成子 agent 的流程（比如巡检、评测、写日报），做一次小对照。同一批任务，带专职子 agent 和不带，各跑一轮，只看成本和错误率。如果贵了却没有质量收益，就保持简单。
 
-### 6. 另外几条
+### 6. 旁边的四条
 
-- Aiden Bai（[@aidenybai](https://x.com/aidenybai)）做了一个本地、120 FPS 的 GitHub 代码浏览页：把任意仓库 URL 里的 github.com 换成 egithub.com 即可打开。可以马上试，但不是 agent 工程方法。
+- [Aiden Bai](https://x.com/aidenybai/status/2124550726882136542)（@aidenybai）做了一个本地、120 FPS 的 GitHub 代码浏览页：把任意仓库 URL 里的 github.com 换成 egithub.com 即可打开。可以马上试，但不是 agent 工程方法。
 - Elvis 推荐了 Google 的 [BuggyMLE](https://arxiv.org/abs/2611.25088)。向 222 个能跑的机器学习仓库注入受控 bug 来升高难度。最强模型在最容易一档的解决率是 95%，最难一档掉到 9%。用这份课程训练的 Qwen3.5-9B 能把 SWE-bench Lite 从 24% 拉到 33%。方法清楚，也有真实数字，但主要是给模型训练做课程，不是明天就能装上的评测卡口。
 - Matt Pocock 在打磨一个「理想 TypeScript 代码库」skill，和给非开发者用的 `/vector` 工作流。都还在早期，等可以公开安装再看。
 - poteto 又在推 pstack 的仓库清理，和前几期重复。同站已有 [pstack](/notes/1026-pstack)。
-
-## 相关链接
-
-- Harrison Chase 的引用：<https://x.com/hwchase17/status/2124654748104302930>
-- Elvis 的推荐：<https://x.com/omarsar0/status/2124506354324840953>
-- Mario 的引用：<https://x.com/badlogicgames/status/2124577986988916931>
-- Dex 的 code mode 帖：<https://x.com/dexhorthy/status/2124624191563698426>
-- Dex 的 harness 分界帖：<https://x.com/dexhorthy/status/2124613833050472826>
-- Factory Droid 1.0：<https://factory.com/news/frontier-harness>
-- Zach Lloyd 的对照帖：<https://x.com/zachlloydtweets/status/2124592480674779605>
-- Warp factories：<https://warp.dev/factories>
-- Aiden Bai：<https://x.com/aidenybai/status/2124550726882136542>
-- BuggyMLE：<https://arxiv.org/abs/2611.25088>
-- 同站：[Super-agent](/notes/1126-deepseek-super-agent)、[Harness Engineering 与 Codex 生产实践](/notes/0326-harness-engineering-codex-production-practice)、[Agent Routing 与多智能体成本控制](/notes/0426-agent-routing-multi-agent-cost-control)、[pstack](/notes/1026-pstack)
