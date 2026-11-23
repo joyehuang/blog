@@ -23,23 +23,15 @@ draft: false
 
 ## 核心内容
 
-2026-11-23 的 X 精选页留了 3 条主选，覆盖 11-22 19:00 到 11-23 13:20（墨尔本时间）。主条是 John Suh 的《Agent platform of 2027》。另外两条是 Factory 的 Dex 用 code mode 做每日 Linear 巡扫，以及 Warp 的 Zach Lloyd 给工厂各阶段配子 agent 的对照。这篇按那一页改写，数字和取舍以该页所记为准。
+John Suh（[@john_ssuh](https://x.com/john_ssuh)）2026-11-22 的长帖《Agent platform of 2027》，把 2027 年的 agent 平台收成花园的土壤：用户种下自己的种子，界面只留对话和审批收件箱，运行时、电脑、文件系统和事件监听拆开，而不是把编码 agent 的 session 直接摊给用户。平台要支持多种 agent 配置，并把定义、实例、会话分开。Harrison Chase 和 Elvis 接上同一句：运行时只是三根柱子里的一根，还缺评测和治理。
 
-旁边的笔记材料不是这一页。[Super-agent](/notes/1126-deepseek-super-agent) 是 11-02 那期精选，[Harness Engineering](/notes/0326-harness-engineering-codex-production-practice) 记的是 Codex 的生产实践，[Agent Routing](/notes/0426-agent-routing-multi-agent-cost-control) 记的是通用调度和成本。并进去会把三件不同的事搅在一篇里，所以单独记。
-
-页面上两张图是带动画的 SVG，markdown 里放不进去。八块原语和 PTC 前后的数字改成表。图是按 John Suh 的附图整理的示意图，不是他的原图。Harrison 认为这张示意图还缺观测/评测和治理这两层。
-
-John Suh 的拆法：用户看到的应该是「对话」和「审批收件箱」，不是把 agent session 里的工具调用直接摊开。平台要支持多种 agent 配置，并把「定义、实例、会话」分开。Harrison Chase 和 Elvis 补了同一句：运行时只是三根柱子里的一根，还缺评测和治理。
-
-Dex 的数字来自一次真实的每日巡扫，不是实验室估算。245,000 token、7 分钟，改成程序先过滤之后是 23,000 token、36 秒。Zach Lloyd 在 Warp 自己的工厂上测：各阶段各带子 agent，比更简单的做法贵 40%，质量没有明显提升。帖子没有逐项分数。视频大约 6 分 47 秒，页面没有逐句转写，这里不加视频里的额外数字。
-
-看过但没放进主选的，页面自己写了原因。Aiden Bai 的 egithub.com、Elvis 推荐的 BuggyMLE、Matt Pocock 还在打磨的 skill，以及 poteto 又一次推 pstack。
+同一天，Factory 的 Dex 用 code mode 做了一次真实的每日 Linear 巡扫，不是实验室估算。245,000 token、7 分钟，改成程序先过滤之后是 23,000 token、36 秒。Warp 的 Zach Lloyd 在自己的工厂上测：各阶段各带子 agent，比更简单的做法贵 40%，质量没有明显提升。帖子没有逐项分数，视频大约 6 分 47 秒。
 
 ## 要点整理
 
 ### 1. 2027 agent 平台：花园的土壤
 
-原文是 John Suh（[@john_ssuh](https://x.com/john_ssuh)，页面记 6,544 粉）11-22 13:56（墨尔本时间）的长帖，原标题「Agent platform of 2027」。正文后面 4 张图才是完整蓝图。这条落在前一天那期的时间窗口里，作者不在日常名单上，当时也还没有名单里的人转引，所以前一天没收。今天 Elvis（[@omarsar0](https://x.com/omarsar0/status/2124506354324840953)，33.1 万粉，149 赞、243 收藏）、Mario（[@badlogicgames](https://x.com/badlogicgames/status/2124577986988916931)，8.1 万粉，144 赞、258 收藏）和 Harrison Chase（[@hwchase17](https://x.com/hwchase17/status/2124654748104302930)，14.3 万粉，80 赞、107 收藏）先后引用。原帖是这几天名单里数据最好的一条：6,447 赞、18,947 收藏、约 123.8 万浏览，收藏几乎是赞的三倍。
+原文是 John Suh 2026-11-22 的长帖，原标题「Agent platform of 2027」。正文后面 4 张图才是完整蓝图。Elvis、Mario 和 Harrison Chase 先后引用了它。
 
 一句话摘要：把 agent 平台做成花园的土壤，让用户种下自己的种子。用户界面是对话和审批收件箱。运行时、电脑、文件系统和事件监听要拆开，而不是把编码 agent 的 session 直接暴露给用户。
 
@@ -47,7 +39,7 @@ Dex 的数字来自一次真实的每日巡扫，不是实验室估算。245,000
 
 ### 2. 蓝图拆开的几块
 
-页面把 4 张图收成下面几块。示意图上的八格，静态下来是这张表。
+4 张图收成下面几块。八块原语是这张表。
 
 | 一块             | 示意图上的一句            |
 | ---------------- | ------------------------- |
@@ -74,19 +66,15 @@ Dex 的数字来自一次真实的每日巡扫，不是实验室估算。245,000
 
 ### 3. Harrison 的三根柱子
 
-Harrison 的引用写的是：这是一份很好的「未来 agent 运行时」愿景，但运行时只是平台的一部分，有两个明显缺口。自我改进的 agent 需要三根柱子。
+Harrison Chase 认为这是一份很好的未来 agent 运行时愿景，接近他们在 LangSmith 里做的 agent server、沙箱和 deepagents harness，但运行时装的是打算让 agent 怎么做，agent 并不会总按打算去做，所以自我改进还要观测和评测（实际发生了什么、调用了哪些工具、在哪些场景下表现如何，进化之后它多半还会给自己写测试），以及用 LLM 网关和工具网关强制执行的治理（以谁的身份调用工具、怎么用这些工具、能花多少钱）。
 
-1. 运行时。John 写准了，也接近他们在 LangSmith 里做的 agent server、沙箱和 deepagents harness。运行时装的是「打算让 agent 怎么做」，agent 并不会总按打算的去做。
-2. 观测和评测。也就是「实际发生了什么」、调用了哪些工具、在哪些场景下表现如何。agent 一旦开始进化，更需要盯着它，它多半还会给自己写测试。
-3. 治理。无论它怎么进化，有些事必须被强制执行，比如它以谁的身份调用工具、怎么用这些工具、能花多少钱。他认为最好通过 LLM 网关和工具网关来做。
+Elvis 强调多种 agent 配置，以及定义、实例和会话要分开，点名了文中的 Pi Durable、Eve 和 Grok Bot，并建议加上 DeepSeek Harness、Exo、记忆和知识（Harrison 前一天写的知识工厂），再加一层评测，因为不能测量就不能优化。
 
-Elvis 的推荐补了同一方向。他特别强调「多种 agent 配置」以及「定义、实例、会话要分开」。他点名了文中的 Pi Durable、Eve 和 Grok Bot，并建议加上 DeepSeek Harness、Exo，以及记忆和知识（页面说就是前一天 Harrison 写的「知识工厂」），再加一层评测。「不能测量，就不能优化。」知识工厂这一页没有展开，这里不补。
-
-页面认为它有效，是因为它不是又一篇「agent 会取代软件」的空话，而是把平台拆成可以逐项对照的原语，并且用 Anthropic 自己的研究项目当反例，说明「口头上的超级 agent」和「实际给每个 agent 的工具」不是一回事。收藏远高于点赞。页面把这种长文看成可以拿去当设计清单。
+它有效，是因为它不是又一篇「agent 会取代软件」的空话，而是把平台拆成可以逐项对照的原语，并且用 Anthropic 自己的研究项目当反例，说明口头上的超级 agent 和实际给每个 agent 的工具不是一回事。这种长文可以拿去当设计清单。
 
 ### 4. code mode：程序先过滤，再把字段交回模型
 
-Dex（[@dexhorthy](https://x.com/dexhorthy)，5.7 万粉，在 Factory 做 MTS）11-23 09:00（墨尔本时间）发帖。原标题是 “holy shit i just implemented a weird code mode hack…”。206 赞、173 收藏、约 1.5 万浏览。有人追问节省主要来自「不再把所有 Linear issue 拉进上下文」，还是「先用代码过滤和批量调用」。他的回复是：主要是确保模型只看到对决策有用的 Linear 字段，而不是通常会吐出来的大块 JSON。
+Dex（[@dexhorthy](https://x.com/dexhorthy)，在 Factory 做 MTS）2026-11-23 发帖。原标题是 “holy shit i just implemented a weird code mode hack…”。有人问节省主要来自不再把所有 Linear issue 拉进上下文，还是先用代码过滤和批量调用，他答主要是让模型只看到对决策有用的 Linear 字段，而不是通常会吐出来的大块 JSON。
 
 问题是普通 agent loop。模型每调一次工具，原始返回就会追加进上下文。像每日扫一遍 Linear 这种活，字段又多又长，上下文会被 JSON 撑满，既贵又慢。
 
@@ -102,50 +90,45 @@ Dex（[@dexhorthy](https://x.com/dexhorthy)，5.7 万粉，在 Factory 做 MTS�
 
 Factory 在 10 月 29 日的 [Droid 1.0 博文](https://factory.com/news/frontier-harness)里写过同一套思路。PTC 是默认机制。模型写一段在沙箱里跑的 JavaScript，他们叫 Script tool。原始工具输出留在程序变量里，模型只拿到程序的输出。一次程序里可以跑许多次互不依赖的调用。检查和循环由代码确定性地执行，而不是指望模型每一步都不偷懒。
 
-同一天稍早，他还写了一条 [harness 该自己做多少](https://x.com/dexhorthy/status/2124613833050472826) 的长帖，93 赞、66 收藏。有人说「以前觉得要自建 harness 才有最好表现，现在改成用模型厂的 harness，但要能随时换」。Dex 的拆法更细：不要因为是实验室做的就盲目整份照搬。但工具定义和系统提示是他们做强化学习时的一部分，改掉这些，就基本上是在靠自己了。编排、背压、正向压力、工具集、hook 实现、记忆和上下文，这些应该自己拥有。真正核心的 agent loop，除非有很强的反证，他会尽量对齐前沿实验室的 harness。
+同一天稍早，他还写了一条 harness 该自己做多少的长帖。有人把立场改成用模型厂的 harness，但要能随时换。Dex 的拆法更细：不要因为是实验室做的就盲目整份照搬。但工具定义和系统提示是他们做强化学习时的一部分，改掉这些，就基本上是在靠自己了。编排、背压、正向压力、工具集、hook 实现、记忆和上下文，这些应该自己拥有。真正核心的 agent loop，除非有很强的反证，他会尽量对齐前沿实验室的 harness。
 
-页面的判断：PTC 把「模型一步步看原始输出」换成「代码先做完确定的过滤和批量调用」，省下的不只是钱，还有轮次。harness 那条给了一个可执行的分界，避免在「全自建」和「全托管」两极之间摆动。
+PTC 把「模型一步步看原始输出」换成「代码先做完确定的过滤和批量调用」，省下的不只是钱，还有轮次。harness 那条给了一个可执行的分界，避免在「全自建」和「全托管」两极之间摆动。
 
 ### 5. 各阶段配子 agent：贵 40%，质量没有明显提升
 
-Zach Lloyd（[@zachlloydtweets](https://x.com/zachlloydtweets)，3.0 万粉，Warp 创始人）11-23 06:54（墨尔本时间）发帖。原标题是 “I benchmarked whether it was more or less effective and efficient to have different factory stages use their own subagents.” 50 赞、61 收藏，收藏比赞多。附了一段约 6 分 47 秒的视频。说明在 [warp.dev/factories](https://warp.dev/factories)。
+Zach Lloyd（[@zachlloydtweets](https://x.com/zachlloydtweets)，Warp 创始人）2026-11-23 发帖。原标题是 “I benchmarked whether it was more or less effective and efficient to have different factory stages use their own subagents.” 附了一段约 6 分 47 秒的视频。说明在 [warp.dev/factories](https://warp.dev/factories)。
 
 给工厂的不同阶段各自配一套子 agent，听起来像是更「agent 原生」的拆法，也是现在线上很常见的叙事。他想用自己的设置验证：这样到底更有效，还是只是更贵。
 
 公开写出来的结论只有这一句：子 agent 方案比更简单的做法贵 40%，质量没有明显提升。他说这和网上关于子 agent 的叙事相符，但仍然值得用自己的数据证明一遍。帖子本身没有再列出各阶段的逐项分数。
 
-页面把它当成一个具体的门槛：先证明拆出去的子 agent 在质量和成本上值得，再拆。它也和第 1 条对上。平台可以支持很多种 agent 配置，不等于每个阶段都要变成一个独立的 agent。这不是外部评测，而是工厂的建造者在自己的流水线上测出来的。
+这是一个具体的门槛：先证明拆出去的子 agent 在质量和成本上值得，再拆。它也和第 1 条对上。平台可以支持很多种 agent 配置，不等于每个阶段都要变成一个独立的 agent。这不是外部评测，而是工厂的建造者在自己的流水线上测出来的。
 
-页面写的借鉴：挑一个已经在跑、而且看起来「该拆成子 agent」的流程（比如巡检、评测、写日报），做一次小对照。同一批任务，带专职子 agent 和不带，各跑一轮，只看成本和错误率。如果贵了却没有质量收益，就保持简单。
+可以借鉴的做法：挑一个已经在跑、而且看起来该拆成子 agent 的流程（比如巡检、评测、写日报），做一次小对照。同一批任务，带专职子 agent 和不带，各跑一轮，只看成本和错误率。如果贵了却没有质量收益，就保持简单。
 
-### 6. 这期没选的
+### 6. 另外几条
 
-- Aiden Bai（[@aidenybai](https://x.com/aidenybai/status/2124550726882136542)，7.1 万粉，452 赞、299 收藏）做了一个本地、120 FPS 的 GitHub 代码浏览页：把任意仓库 URL 里的 github.com 换成 egithub.com 即可打开。可以马上试，但不是 agent 工程方法，所以没放进主选。
+- Aiden Bai（[@aidenybai](https://x.com/aidenybai)）做了一个本地、120 FPS 的 GitHub 代码浏览页：把任意仓库 URL 里的 github.com 换成 egithub.com 即可打开。可以马上试，但不是 agent 工程方法。
 - Elvis 推荐了 Google 的 [BuggyMLE](https://arxiv.org/abs/2611.25088)。向 222 个能跑的机器学习仓库注入受控 bug 来升高难度。最强模型在最容易一档的解决率是 95%，最难一档掉到 9%。用这份课程训练的 Qwen3.5-9B 能把 SWE-bench Lite 从 24% 拉到 33%。方法清楚，也有真实数字，但主要是给模型训练做课程，不是明天就能装上的评测卡口。
-- Matt Pocock 在打磨一个「理想 TypeScript 代码库」skill，和给非开发者用的 `/vector` 工作流。都还在早期，等可以公开安装再看。页面没有给出帖子链接。
-- poteto 又在推 pstack 的仓库清理，和前几期重复，没收。同站已有 [pstack](/notes/1026-pstack)。
+- Matt Pocock 在打磨一个「理想 TypeScript 代码库」skill，和给非开发者用的 `/vector` 工作流。都还在早期，等可以公开安装再看。
+- poteto 又在推 pstack 的仓库清理，和前几期重复。同站已有 [pstack](/notes/1026-pstack)。
 
 ## 和 Joye 相关
 
-页面把 John 的拆法对到 Joye 正在做的 team-chat。
+John 的拆法对到正在做的 team-chat。
 
-Notion 里最近的 qqbot 日报只到 11-17、11-18，而且都只有 Watch 的运维记录，11-19 之后没有新页。产品方向仍然是迁到 team-chat，已知还缺定时任务和 bot 叫醒 bot。John 把现在的 Grok Bot、Muse、Instinct 直接归到「其实只支持 cron」这一档，并把 Listener 写成 Grok Bot 的未来功能。页面对下来的判断是，team-chat 最该先补的很可能就是这一层：让某个 bot 监听邮件、PR、告警或群消息，按租户规则翻译成信号，再叫醒另一个 bot，而不是只靠早上 8:51 这种定时任务。
+Notion 里最近的 qqbot 日报只到 11-17、11-18，而且都只有 Watch 的运维记录，11-19 之后没有新页。产品方向仍然是迁到 team-chat，已知还缺定时任务和 bot 叫醒 bot。John 把现在的 Grok Bot、Muse、Instinct 直接归到「其实只支持 cron」这一档，并把 Listener 写成 Grok Bot 的未来功能。team-chat 最该先补的很可能就是这一层：让某个 bot 监听邮件、PR、告警或群消息，按租户规则翻译成信号，再叫醒另一个 bot，而不是只靠早上 8:51 这种定时任务。
 
 收件箱那一层，对上日报里反复出现的「要 Joye 拍板」清单。拍板不该散落在各条对话里，而该汇到一个审批入口。对话和 session 拆开，则是在提醒：不要把 cloud agent 的工具轨迹当成用户主界面。
 
-页面说不必一次把八块都做完。可以先拿这张清单给 team-chat 对账：哪些已经有了（对话、多 bot、权限），哪些明确没有（Listener、审批收件箱、定义/实例/会话分离）。Harrison 的三根柱子可以当成验收标准：光把 bot 跑起来只是运行时；没有观测和评测，自我改进就是在黑箱里改；没有网关式的治理，权限和花费会在进化中被冲掉。
+不必一次把八块都做完。可以先拿这张清单给 team-chat 对账：哪些已经有了（对话、多 bot、权限），哪些明确没有（Listener、审批收件箱、定义/实例/会话分离）。Harrison 的三根柱子可以当成验收标准：光把 bot 跑起来只是运行时；没有观测和评测，自我改进就是在黑箱里改；没有网关式的治理，权限和花费会在进化中被冲掉。
 
-Dex 那条对到 Joye 的 bot。这些 bot 会从邮件、GitHub、Notion、群消息里拉大量原始返回。如果某项例行巡扫已经慢、已经贵，先对一下是不是把整包 JSON 喂进了上下文。按 Dex 的做法，让 agent 先写一段过滤脚本，只把做决策要用的字段带回来。harness 的分界则被页面用在 co-context 和 team-chat 的仓库规则里：编排、权限、记忆、hook 自己管；核心 loop 和工具定义不要随手改到和模型训练时的形状完全不同。
+Dex 那条对到这些 bot。这些 bot 会从邮件、GitHub、Notion、群消息里拉大量原始返回。如果某项例行巡扫已经慢、已经贵，先对一下是不是把整包 JSON 喂进了上下文。按 Dex 的做法，让 agent 先写一段过滤脚本，只把做决策要用的字段带回来。harness 的分界可以用在 co-context 和 team-chat 的仓库规则里：编排、权限、记忆、hook 自己管；核心 loop 和工具定义不要随手改到和模型训练时的形状完全不同。
 
-Zach 那条对到 Joye 在做的 agent 工厂，以及 team-chat 里的多 bot 协作。页面认为很容易默认「再加一个专门的子 agent」。对照这条，更稳妥的顺序是：先用更简单的编排跑通，再对有争议的阶段做一次像这样的对照。
-
-页面标了适合写博客、适合做视频的开口：用「Grok Bot 现在还只会 cron」做开头，逐项对照这张蓝图，讲 team-chat 已经有什么、缺什么、下一块打算补 Listener 还是收件箱。页面认为这比单独介绍一份概念图更有对照性，也接得上前一天 Harrison 的知识工厂，以及更早 Zach Lloyd「工厂本身要被测量」的问题。后两句这一页没有展开，这里不补。
-
-页面最后留给 Joye 的问题：如果按 John 的拆法来补 team-chat，先做 Listener（用事件叫醒 bot，而不只靠定时任务），还是先做审批收件箱，把要 Joye 拍板的事从各条对话里收拢到一处。
+Zach 那条对到正在做的 agent 工厂，以及 team-chat 里的多 bot 协作。很容易默认再加一个专门的子 agent。对照这条，更稳妥的顺序是：先用更简单的编排跑通，再对有争议的阶段做一次像这样的对照。
 
 ## 相关链接
 
-- John Suh 的长帖：<https://x.com/john_ssuh/status/2124336124172935336>
 - Harrison Chase 的引用：<https://x.com/hwchase17/status/2124654748104302930>
 - Elvis 的推荐：<https://x.com/omarsar0/status/2124506354324840953>
 - Mario 的引用：<https://x.com/badlogicgames/status/2124577986988916931>
@@ -156,5 +139,4 @@ Zach 那条对到 Joye 在做的 agent 工厂，以及 team-chat 里的多 bot �
 - Warp factories：<https://warp.dev/factories>
 - Aiden Bai：<https://x.com/aidenybai/status/2124550726882136542>
 - BuggyMLE：<https://arxiv.org/abs/2611.25088>
-- 本篇改写的精选页：<https://files.joyehuang.dev/notes/x-picks-20261123.html>
 - 同站：[Super-agent](/notes/1126-deepseek-super-agent)、[Harness Engineering 与 Codex 生产实践](/notes/0326-harness-engineering-codex-production-practice)、[Agent Routing 与多智能体成本控制](/notes/0426-agent-routing-multi-agent-cost-control)、[pstack](/notes/1026-pstack)
