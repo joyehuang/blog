@@ -1,0 +1,314 @@
+---
+/**
+ * 交互选型图：把 Antigravity 的五种多 Agent 方式放在同一张面板里切换对比。
+ * 顶部 5 个按钮切换模式，下方展示定位、触发条件、典型耗时、机制和类比。
+ * 无 JS 时默认展示 /swarm。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const modes = [
+  {
+    id: 'subagent',
+    label: 'Subagent',
+    axis: '顺手外包小支线',
+    trigger: '模型按需自动调用',
+    horizon: '秒级 ~ 分钟级',
+    plan: '所有套餐',
+    mechanism: '主对话临时派一个子会话去查代码、跑测试或开浏览器，拿回结果继续聊。',
+    verify: '由主会话自己看结果',
+    analogy: '干活时顺手喊旁边同事帮忙查份资料，查完递给你就行。',
+    when: '单个独立支线任务，不想把主对话上下文弄脏，也不需要多人来回沟通。'
+  },
+  {
+    id: 'workflow',
+    label: 'run-workflow',
+    axis: '固定步骤批量跑',
+    trigger: '模型按需调用，或直接让它写 workflow',
+    horizon: '分钟级',
+    plan: '所有套餐',
+    mechanism:
+      '写一段短 Python 脚本，用 parallel / pipeline 并发调度多个会话，按 JSON Schema 收口。',
+    verify: '代码按 Schema 强校验输出',
+    analogy: '写一条批处理流水线，把 30 个文件同时丢进去跑完再汇总。',
+    when: '步骤固定、输入输出清晰（批量 code review、扫全库 bug、固定三阶段汇总），最稳最省 token。'
+  },
+  {
+    id: 'boost',
+    label: '/boost',
+    axis: '纵向打深（难，拆不开）',
+    trigger: '必须手动输入 /boost',
+    horizon: '分钟级 ~ 小时级',
+    plan: '付费套餐',
+    mechanism: '多轮接力挑刺：实现 → 独立找茬推翻 → 修复 → 再验证，反复把边界磨透。',
+    verify: '每轮独立对抗式验证',
+    analogy: '请几位资深专家轮流做 code review，专门找上一版方案的漏洞。',
+    when: '任务不一定大但特别绕：偶发死锁、竞态条件、底层算法优化、紧耦合重构。'
+  },
+  {
+    id: 'swarm',
+    label: '/swarm',
+    axis: '横向铺开（宽，拆得开）',
+    trigger: '必须手动输入 /swarm',
+    horizon: '分钟级 ~ 小时级',
+    plan: '所有套餐（Preview）',
+    mechanism: 'Coordinator + 命名 Worker + 共享留言板，用 @ 唤醒协作，立刻开工，可随时插话。',
+    verify: '独立 @verifier 查 diff、跑测试',
+    analogy: '拉一个小群，把活拆成几张卡大家同时领，再配一位测试同学统一验收。',
+    when: '任务面广但边界清晰（同时改 5 个模块、并行补测试、多路调研），需要边做边配合。'
+  },
+  {
+    id: 'teamwork',
+    label: '/teamwork',
+    axis: '长期推进（大，周期长）',
+    trigger: '必须手动输入 /teamwork',
+    horizon: '小时级 ~ 天级',
+    plan: '付费套餐',
+    mechanism: '先做需求访谈定计划，再在独立项目目录里由专业角色团队按里程碑分阶段推进。',
+    verify: 'Critic / Challenger / Auditor 多重关卡审计',
+    analogy: '正式立项拉项目组，先签需求文档和排期，每个里程碑过评审再进下一阶段。',
+    when: '仓库级框架迁移、大型子系统从零搭建、长期研究或仿真这类容易中途跑偏的大工程。'
+  }
+]
+
+const initial = modes[3]
+---
+
+<figure class='aoa-fig swm-spec not-prose' data-swm-spec>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · Antigravity 五种多 Agent 方式选型地图。</strong>
+    点上面的按钮切换查看：从轻量外包到长期项目组，它们解决的是不同维度的问题。
+  </figcaption>
+
+  <div class='aoa-choices aoa-rv' style='--i: 0' role='group' aria-label='选择多 Agent 模式'>
+    {
+      modes.map((m) => (
+        <button
+          type='button'
+          class='aoa-choice'
+          data-swm-mode={m.id}
+          aria-pressed={m.id === initial.id ? 'true' : 'false'}
+        >
+          {m.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class='aoa-card aoa-card-accent swm-spec-card aoa-rv' style='--i: 1'>
+    <div class='swm-spec-head'>
+      <div>
+        <p class='aoa-kicker' data-swm-axis>{initial.axis}</p>
+        <p class='aoa-title swm-spec-title' data-swm-label>{initial.label}</p>
+      </div>
+      <span class='swm-spec-pill' data-swm-horizon>{initial.horizon}</span>
+    </div>
+
+    <div class='swm-spec-grid'>
+      <div class='swm-spec-block'>
+        <p class='swm-spec-key'>什么时候选它</p>
+        <p class='swm-spec-val' data-swm-when>{initial.when}</p>
+        <p class='swm-spec-key swm-spec-gap'>怎么协作</p>
+        <p class='swm-spec-val' data-swm-mechanism>{initial.mechanism}</p>
+      </div>
+      <dl class='swm-spec-meta'>
+        <div class='swm-spec-row'>
+          <dt>触发方式</dt>
+          <dd data-swm-trigger>{initial.trigger}</dd>
+        </div>
+        <div class='swm-spec-row'>
+          <dt>怎么验收</dt>
+          <dd data-swm-verify>{initial.verify}</dd>
+        </div>
+        <div class='swm-spec-row'>
+          <dt>套餐要求</dt>
+          <dd data-swm-plan>{initial.plan}</dd>
+        </div>
+        <div class='swm-spec-row'>
+          <dt>直观类比</dt>
+          <dd data-swm-analogy>{initial.analogy}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <p class='aoa-note'>
+    说明：左侧两个（Subagent、run-workflow）模型平时会按需主动调用；右侧三个（/boost、/swarm、/teamwork）消耗更高，必须你显式触发。
+  </p>
+  <p class='aoa-sr'>
+    五种方式对比：Subagent 用于顺手外包小支线；run-workflow 用 Python 脚本固定批量编排；/boost
+    用于纵向打深解决难题；/swarm 用于横向铺开并行分工；/teamwork 用于小时到天级的里程碑大项目。
+  </p>
+  <script is:inline type='application/json' data-swm-spec-data set:html={JSON.stringify(modes)} />
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-swm-spec]', undefined, 0.22)
+
+  interface ModeInfo {
+    id: string
+    label: string
+    axis: string
+    trigger: string
+    horizon: string
+    plan: string
+    mechanism: string
+    verify: string
+    analogy: string
+    when: string
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-swm-spec]').forEach((root) => {
+    const raw = root.querySelector<HTMLScriptElement>('[data-swm-spec-data]')?.textContent
+    if (!raw) return
+    const modes = JSON.parse(raw) as ModeInfo[]
+    const byId = new Map(modes.map((m) => [m.id, m]))
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-swm-mode]')
+    const set = (sel: string, val: string) => {
+      const el = root.querySelector<HTMLElement>(sel)
+      if (el) el.textContent = val
+    }
+
+    const apply = (id: string) => {
+      const m = byId.get(id)
+      if (!m) return
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.swmMode === id)))
+      set('[data-swm-axis]', m.axis)
+      set('[data-swm-label]', m.label)
+      set('[data-swm-horizon]', m.horizon)
+      set('[data-swm-when]', m.when)
+      set('[data-swm-mechanism]', m.mechanism)
+      set('[data-swm-trigger]', m.trigger)
+      set('[data-swm-verify]', m.verify)
+      set('[data-swm-plan]', m.plan)
+      set('[data-swm-analogy]', m.analogy)
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.swmMode
+        if (id) apply(id)
+      })
+    })
+  })
+</script>
+
+<style>
+  .swm-spec {
+    container-type: inline-size;
+  }
+
+  .swm-spec-card {
+    padding: 14px 16px;
+  }
+
+  :global(.dark) .swm-spec-card {
+    border-color: hsl(var(--primary) / 0.8);
+    background: hsl(var(--primary) / 0.12);
+  }
+
+  .swm-spec-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .swm-spec-title {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 1rem;
+  }
+
+  .swm-spec-pill {
+    padding: 2px 9px;
+    border: 1px solid hsl(var(--primary) / 0.5);
+    border-radius: 999px;
+    background: hsl(var(--background));
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: hsl(var(--foreground));
+  }
+
+  :global(.dark) .swm-spec-pill {
+    background: hsl(var(--background) / 0.65);
+  }
+
+  .swm-spec-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 14px 18px;
+    margin-top: 12px;
+  }
+
+  .swm-spec-block,
+  .swm-spec-meta {
+    min-width: 0;
+  }
+
+  .swm-spec-key {
+    margin: 0 0 3px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-spec-gap {
+    margin-top: 10px;
+  }
+
+  .swm-spec-val {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: hsl(var(--foreground) / 0.92);
+  }
+
+  .swm-spec-meta {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--background) / 0.82);
+  }
+
+  :global(.dark) .swm-spec-meta {
+    background: hsl(var(--background) / 0.55);
+  }
+
+  .swm-spec-row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 8px;
+    align-items: baseline;
+  }
+
+  .swm-spec-row dt {
+    margin: 0;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-spec-row dd {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: hsl(var(--foreground) / 0.9);
+  }
+
+  @container (max-width: 620px) {
+    .swm-spec-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

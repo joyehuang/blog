@@ -1,6 +1,6 @@
 ---
-title: Antigravity Swarm 底层拆解：留言板、@ 唤醒和只读看板
-description: 拆解 Antigravity 内置 Swarm 模式的底层做法：Coordinator 和 Worker 怎么分工，共享留言板和 @mention 怎么避免刷屏烧 token，多 Worker 改代码如何隔离目录，以及长任务卡死、额度耗尽时的兜底机制。
+title: Antigravity 多 Agent 入门：从 Boost、Swarm 到 Teamwork，顺手拆解 Swarm 底层
+description: 一篇偏科普的 Antigravity 多 Agent 入门指南：理清普通 Subagent、run-workflow、/boost、/swarm 和 /teamwork 五种方式的区别和选型，再拆开看最常用的 /swarm 底层是怎么靠留言板、@ 唤醒和只读看板跑起来的。
 date: 2026-11-26
 tags:
   - ai
@@ -20,24 +20,63 @@ draft: false
 ---
 
 import MentionWakeup from './antigravity-swarm/MentionWakeup.astro'
+import MultiAgentSpectrum from './antigravity-swarm/MultiAgentSpectrum.astro'
 import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
 
 ## 核心内容
 
-平时用 Antigravity 干大活时，经常会开 `/swarm` 让好几个 agent 一起上，但一直只停留在会用，没细看过里面是怎么搭的。最近把本机自带的 Swarm 编排规范和插件源码翻了一遍，整理成这篇偏科普的拆解。
+刚用 Antigravity 的人，很容易在多 Agent 这块犯迷糊：平时聊着聊着，模型自己就会派 Subagent 出去干活；斜杠命令里又并排摆着 `/boost`、`/swarm`、`/teamwork`；内置 Skill 里还藏着一个 `run-workflow`。光看一句话介绍，感觉全都在说「多拉几个 agent 一起上」。
 
-先统一全文会反复用到的两个名字，免得读着绕：
+这篇整理成两半，按科普向技术文的思路往下讲：
+
+- **上半篇讲选型**：把 Antigravity 里的五种多 Agent 方式放在同一张地图里，说清哪些模型会主动帮你用、哪些必须你手动敲命令，以及 `/boost`、`/swarm`、`/teamwork` 到底差在哪。
+- **下半篇拆底层**：挑大家最常用的 `/swarm`，对照本机自带的编排规范和插件代码，看看多会话协作在底层是怎么落地的。
+
+动笔前先统一全文会反复出现的两个名字，免得读着绕：
 
 - **Coordinator（协调者）**：你正在直接对话的那个主会话。它只管拆任务、派活、看结果和向你汇报，不自己埋头干活。
-- **Worker（工作节点）**：Coordinator 派出去干活的成员。大家平时也会叫它 sub-agent 或子 agent；在 Antigravity 里，**每个 Worker 都是一个完全独立的 agent 会话**，有自己的上下文窗口、模型和工作目录。下文统一叫 **Worker**（专职验收的 Verifier，以及负责巡检和写总览的 Monitor、Narrator，底层也都是 Worker）。
+- **Worker（工作节点）**：Coordinator 派出去干活的成员。大家平时也会叫它 sub-agent 或子 agent；在 Antigravity Swarm 的底层，**每个 Worker 都是一个完全独立的 agent 会话**，有自己的上下文窗口、模型和工作目录。下文统一叫 **Worker**（专职验收的 Verifier，以及负责巡检和写总览的 Monitor、Narrator，底层也都是 Worker）。
 
-拆完看下来，Swarm 并没有什么玄学，核心就是五个很实在的工程设计：一块落盘的共享留言板、靠 `@` 叫醒的休眠机制、各自隔离的本地工作目录、长任务的兜底机制，以及一个只看不改的右侧看板。
+---
 
-如果你也在看多 Agent 架构，这篇可以和之前记的 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent)（常驻在线的异步系统）以及 [Agent Routing](/notes/0426-agent-routing-multi-agent-cost-control)（路由与成本控制）对照着读。
+## 上半篇：Antigravity 的五种多 Agent 方式怎么选
 
-## 要点整理
+### 1. 先分清：模型会主动开什么，不会主动开什么
 
-### 1. 总体结构：Coordinator 和 Worker 靠一块留言板沟通
+很多人用了一阵子会纳闷：我交代了一个挺大的任务，为什么 Agent 没有自己给我开 `/swarm`？
+
+答案很简单——**它被明确要求不要擅自开**。在 Antigravity 里，多 Agent 分成「自动档」和「手动档」两层：
+
+- **自动档（Subagent、`run-workflow`）**：平时你正常提需求，遇到独立的支线活（去代码库翻资料、开浏览器验收、跑一轮测试），Agent 会自己拉一个普通 **Subagent** 去跑；遇到能写成循环和并发的批量活，也可以走 **`run-workflow`** 写段 Python 脚本来调度。
+- **手动档（`/boost`、`/swarm`、`/teamwork`）**：这类重型协作模式会同时跑多个独立会话，额度（quota）消耗比单对话快得多，所以 Agent **不会未经你同意主动启动**。只有你明确敲了 `/swarm`、`/boost`、`/teamwork`，或者当前会话里已经有一个正在跑的 Swarm，它才会动用。
+
+### 2. `/boost`、`/swarm`、`/teamwork` 听起来像，其实在解三个完全不同的问题
+
+这三个命令读起来很像，是因为它们都在做同一件事：**不靠单个 agent 一口气写完，而是拆出多个会话并引入独立验证**。但你只要按问题的形状来看，三者一点都不重叠（参考官方文档：[Boost](https://antigravity.google/docs/boost)、[Swarm](https://antigravity.google/docs/swarm)、[Teamwork](https://antigravity.google/docs/teamwork)）：
+
+- **`/boost` = 纵向打深（难，拆不开）**。任务不一定大，但特别棘手——比如偶发死锁、竞态条件、底层算法优化、紧耦合的重构。这类问题没法简单拆成五份并行写，只能靠**多轮接力挑刺**（实现 → 独立找茬推翻 → 修复 → 再实测）把边界磨透，就像请几位资深专家轮流给同一段代码做 code review。
+- **`/swarm` = 横向铺开（宽，拆得开）**。任务面广但边界清楚，可以干净地拆成互不打架的几块同时干——比如同时改五个独立模块、并行补测试、多方向调研。输入命令后**立刻开工**，大家在共享留言板上用 `@` 协作，外加 `@verifier` 验收，你随时能围观或插话纠偏。
+- **`/teamwork` = 长期推进（大，周期长）**。耗时小时到天级的大型工程——比如整个仓库的框架迁移、大型子系统从零搭建、深度仿真或研究。周期长最怕一开始就跑偏，所以它不会上来就写代码，而是先跟你做一轮**需求访谈（Scoping Interview）**对齐计划，再在独立项目目录里按里程碑推进，每一关都有 Critic、Challenger、Auditor 多重审核把关。
+
+再加上更轻量的 **Subagent** 和确定性脚本编排 **`run-workflow`**，点下面的按钮可以逐个对比五种模式：
+
+<MultiAgentSpectrum />
+
+记不住细节的话，直接背一句选型口诀就行：
+
+- 顺手外包一个小支线 → **不用敲命令，让模型自己拉 Subagent**
+- 步骤固定、批量处理几十个文件 → **`run-workflow`**（写段 Python 脚本更稳也更省 token）
+- 问题很绕、单次容易漏边界 → **`/boost`**
+- 工作量大、能拆成几块同时干 → **`/swarm`**
+- 项目很大、需要分阶段长时间推进 → **`/teamwork`**
+
+---
+
+## 下半篇：顺手拆开 `/swarm`，看底层是怎么跑起来的
+
+在三个手动命令里，`/swarm` 门槛最低（全套餐可用、立刻开工），也是日常最容易用顺手的一个。下面顺着本机自带的编排规范和插件代码，看看它底层是怎么运转的。
+
+### 3. 总体结构：Coordinator 和 Worker 靠一块留言板沟通
 
 在 Swarm 里，Worker 从不直接跟用户说话，彼此之间也不私聊传大段文字。Coordinator 和所有 Worker 共同读写一块存在主会话目录下的共享留言板（`.system_generated/swarm/`）：
 
@@ -48,7 +87,7 @@ import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
 - **`board.jsonl` 只追加不修改，每条消息都有递增编号（`#1`、`#2`…）**。Worker 之间交接时只报编号（比如 `@verifier 检查 #4 和 #6`、`@parser 对齐 #8 的接口`），不把前一个 Worker 的长报告复制粘贴进下一条消息。这样窗口不会越滚越胖，谁需要细节，按编号去翻就行。
 - **每个 Worker 的任务说明（`brief`）公开贴在留言板上**。`swarm add` 新建一个 Worker 时，会同步把它的任务要求以 `@worker <brief>` 发到板上，并作为第一条消息交给它。之后不管是谁来验收，还是 Coordinator 经历过上下文压缩，往上翻留言板就能看清当初怎么分的工。
 
-### 2. Coordinator 不亲自干活，全靠四个工具调度
+### 4. Coordinator 不亲自干活，全靠四个工具调度
 
 Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不写代码、不跑长命令、不做重调研。原因很现实——一旦 Coordinator 自己钻进某个 bug 里改半小时代码，就没人给闲着的 Worker 派活、也没人及时回你的消息，整个团队会悄悄停下来。这和 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 坚持让 Router 只派活、不执行任务是同一个道理。
 
@@ -63,7 +102,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 这里面 **`swarm_wait` 是省钱的关键**。没活干的 Worker 不是在后台傻傻轮询 `read_board`，而是直接休眠挂起——**休眠期间零 token 消耗**。所以规范里特意提醒，别把 `kill` 当暂停用：闲置的 Worker 放着不花钱，只有确定再也用不上、或者它陷入死循环时，才把它永久关掉。
 
-### 3. `@mention` 是门铃，不是抄送
+### 5. `@mention` 是门铃，不是抄送
 
 很多人担心多 Agent 建群会互相回复、很快把 token 烧光。Swarm 的办法很直接：**默认谁也不搭理谁，大家都在留言板上睡觉，只有被点名才会醒。**
 
@@ -74,7 +113,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 <MentionWakeup />
 
-### 4. 新 Worker 怎么接上下文，多人改代码怎么防冲突
+### 6. 新 Worker 怎么接上下文，多人改代码怎么防冲突
 
 让多个 Worker 并发改同一个代码库，最容易踩两个坑：新拉出来的 Worker 什么背景都不知道，容易靠猜瞎写；两个 Worker 同时改同一个文件，互相把代码冲掉。Swarm 在 `swarm add` 里直接给了两个参数：
 
@@ -90,7 +129,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 改代码的 Worker 都在各自目录里提交改动，验完后再合并或 cherry-pick 回主目录。注意一定要**先合并再 `kill`**——因为 `kill` 会顺手删掉它的独立工作目录，没合进去的代码会跟着一起没掉。
 
-### 5. 长任务的三个兜底：切模型、防卡死、写总览
+### 7. 长任务的三个兜底：切模型、防卡死、写总览
 
 团队跑久了，总会碰到三种烦心事：某个模型额度用光了、全员不知怎么突然安静卡死了，或者留言板刷了几十条人已经看不过来。Swarm 准备了三个兜底机制：
 
@@ -98,7 +137,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 2. **Monitor（防卡死哨兵）**。除了干活和验收的 Worker，Swarm 还会挂一个专职巡检的系统 Worker 叫 `monitor`。它靠后台定时器定期看全员动态：一旦发现大家集体安静、或者有人卡在报错步骤半天没动静，就往留言板发一条 `@coordinator [stall]` 并附上相关消息编号，把 Coordinator 叫醒救场。这和 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 在主循环外面挂 Watchdog 是一样的想法。
 3. **Narrator（替你看全局的总览员）**。另一类系统 Worker 叫 `narrator`，不参与业务讨论，专门盯着留言板，把零散进展整理成总览文件（`view.json` / `view.html`）给右侧看板展示，你对看板提的意见也会转给它来调整。
 
-### 6. 右侧看板：一个只看不改的独立进程
+### 8. 右侧看板：一个只看不改的独立进程
 
 你在 Antigravity 右侧看到的 Swarm 实时看板，并不是主程序硬写死的状态同步，而是由内置插件拉起的一个独立 **Node.js 后台进程（Sidecar）**，代码就在本机 `~/.gemini/antigravity/builtin/plugins/swarm/sidecars/swarm_board/`。
 
@@ -108,15 +147,11 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 - **自动标异常**：除了花名册本身的状态，看板还会看每个 Worker 的日志有没有长时间停滞（超过 10 分钟没动静标成 `stuck`）、最后一步报错是不是停留超过 60 秒，并用正则识别 429 额度报错直接亮在界面上。
 - **预留了远程看板**：如果目录下只有 `swarm.json` 锚点而不是本地 `board.jsonl`，看板会切到 CLI 查看模式，把多台机器上的远程 Swarm 状态聚到同一个界面里看。
 
-### 7. 什么时候该开 Swarm，什么时候没必要
+### 9. 放到更大的版图里看
 
-Antigravity 自己其实内置了两种多 Agent 做法：一种是这篇拆的 **Swarm**，另一种是用 Python 脚本编排的 **`run-workflow`**。再把前面提过的 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 放进同一张表，三者的分工就很清楚了：
+把 Antigravity 这套多 Agent 工具，和之前记过的 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 以及 [Agent Routing](/notes/0426-agent-routing-multi-agent-cost-control) 放一块看，边界会更清楚：
 
-| 维度          | Antigravity Swarm                          | Antigravity `run-workflow`                       | DeepSeek Super-agent                           |
-| :------------ | :----------------------------------------- | :----------------------------------------------- | :--------------------------------------------- |
-| 定位          | 围绕单个复杂任务临时拉起的多 Worker 团队   | 用 Python 写好的固定编排（并行、流水线、分阶段） | 长期在线、接外部消息流的常驻 agent 系统        |
-| 怎么调度      | Coordinator 在留言板上靠 `@mention` 派活   | 代码控制循环和并发，按 JSON Schema 收口结果      | Router 接新事件，已有话题由代码直达对应 Worker |
-| Worker 间沟通 | 共用 `board.jsonl`，可以互相交接、分频道   | Worker 彼此看不见，全靠脚本传参和返回值串联      | 同一个 PR 或话题共享事件流，跨任务找 Router    |
-| 适合什么活    | 边做边查、需求还在变、需要作者和验收来回改 | 批量扫文件、固定三阶段流水线、结构化汇总         | 常驻盯着 IM、GitHub、CI、邮件自动干活          |
+- **Antigravity 的五种方式**，解决的都是**人主动发起的一次任务**——从随手查资料（Subagent）、固定批量跑（`run-workflow`）、啃硬骨头（`/boost`）、并行铺开（`/swarm`）到多阶段大项目（`/teamwork`）。
+- **DeepSeek Super-agent** 瞄准的是另一头：**人不在电脑前时，24 小时盯着 IM、GitHub、CI 和邮件的常驻系统**（在 Antigravity 里最接近这个方向的，是配合定时 Sidecar 跑的 `/automation`）。
 
-实际用下来的体会很直接：**流程本来就能写成固定步骤的**（比如批量审查 30 个文件、跑固定的三阶段流水线），没必要开 Swarm，用 `run-workflow` 写段脚本更稳也更省 token；**只有当任务一边做一边还在变、需要几个独立上下文互相配合、互相验收时**，开一个带留言板的 Swarm 才划算。
+实际用下来的体会很简单：**先想清楚手头的活是「固定流水线」「单个难题」「能拆开的并行活」还是「长周期项目」**。选对了档位，既不用花大价钱杀鸡用牛刀，也不至于让单个对话上下文撑爆。
