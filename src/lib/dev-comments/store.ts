@@ -176,6 +176,35 @@ export function createFileStore(filePath: string) {
       const removed = all.length - kept.length
       if (removed > 0) writeAll(kept)
       return removed
+    },
+    replaceAll(rawComments: unknown): DevComment[] {
+      if (!Array.isArray(rawComments)) {
+        throw new Error('Comments snapshot must be an array')
+      }
+      const sanitized: DevComment[] = []
+      for (const item of rawComments) {
+        if (!item || typeof item !== 'object') continue
+        const obj = item as Record<string, unknown>
+        if (typeof obj.id !== 'string' || !obj.id.trim()) continue
+        const kindRaw = typeof obj.kind === 'string' ? (obj.kind as CommentKind) : 'rewrite'
+        const statusRaw = typeof obj.status === 'string' ? (obj.status as CommentStatus) : 'open'
+        const now = new Date().toISOString()
+        sanitized.push({
+          id: obj.id.trim().slice(0, 64),
+          path: normalizePath(typeof obj.path === 'string' ? obj.path : '/'),
+          quote: clampString(obj.quote, 2000),
+          prefix: clampString(obj.prefix, 120),
+          suffix: clampString(obj.suffix, 120),
+          heading: clampString(obj.heading, 240),
+          body: clampString(obj.body, 8000),
+          kind: VALID_KINDS.has(kindRaw) ? kindRaw : 'rewrite',
+          status: VALID_STATUSES.has(statusRaw) ? statusRaw : 'open',
+          createdAt: typeof obj.createdAt === 'string' ? obj.createdAt : now,
+          updatedAt: typeof obj.updatedAt === 'string' ? obj.updatedAt : now
+        })
+      }
+      writeAll(sanitized)
+      return sanitized
     }
   }
 }

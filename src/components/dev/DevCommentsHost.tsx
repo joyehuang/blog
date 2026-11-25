@@ -23,6 +23,20 @@ import './dev-comments.css'
 type ScopeFilter = 'page' | 'all'
 type StatusFilter = 'open' | 'resolved' | 'all'
 
+interface HistoryEntry {
+  comments: DevComment[]
+  label: string
+}
+
+const MAX_HISTORY = 50
+
+function isEditableElement(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+}
+
 function formatTime(iso: string): string {
   try {
     const d = new Date(iso)
@@ -43,7 +57,9 @@ export default function DevCommentsHost() {
   const [scope, setScope] = useState<ScopeFilter>('page')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('open')
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; canUndo?: boolean } | null>(null)
+  const [undoCount, setUndoCount] = useState(0)
+  const [redoCount, setRedoCount] = useState(0)
 
   // Selection popover & floating composer state
   const [selectionAnchor, setSelectionAnchor] = useState<SelectionAnchor | null>(null)
@@ -67,12 +83,101 @@ export default function DevCommentsHost() {
 
   const toastTimerRef = useRef<number | null>(null)
   const floatingInputRef = useRef<HTMLTextAreaElement | null>(null)
+  const allCommentsRef = useRef<DevComment[]>([])
+  const undoStackRef = useRef<HistoryEntry[]>([])
+  const redoStackRef = useRef<HistoryEntry[]>([])
+  const historyBusyRef = useRef(false)
 
-  const showToast = useCallback((message: string) => {
-    setToast(message)
+  useEffect(() => {
+    allCommentsRef.current = allComments
+  }, [allComments])
+
+  const showToast = useCallback((message: string, canUndo = false) => {
+    setToast({ message, canUndo })
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
-    toastTimerRef.current = window.setTimeout(() => setToast(null), 2200)
+    toastTimerRef.current = window.setTimeout(() => setToast(null), canUndo ? 3600 : 2200)
   }, [])
+
+  const pushUndoSnapshot = useCallback((label: string) => {
+    const snapshot = allCommentsRef.current.map((c) => ({ ...c }))
+    undoStackRef.current = [
+      ...undoStackRef.current.slice(-(MAX_HISTORY - 1)),
+      { comments: snapshot, label }
+    ]
+    redoStackRef.current = []
+    setUndoCount(undoStackRef.current.length)
+    setRedoCount(0)
+  }, [])
+
+  const restoreSnapshot = useCallback(
+    async (comments: DevComment[]): Promise<DevComment[] | null> => {
+      const res = await fetch('/__dev/comments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments })
+      })
+      if (!res.ok) return null
+      const data = (await res.json()) as { comments?: DevComment[] }
+      return Array.isArray(data.comments) ? data.comments : comments
+    },
+    []
+  )
+
+  const handleUndo = useCallback(async () => {
+    if (historyBusyRef.current) return
+    const entry = undoStackRef.current[undoStackRef.current.length - 1]
+    if (!entry) return
+    historyBusyRef.current = true
+    try {
+      const currentSnapshot = allCommentsRef.current.map((c) => ({ ...c }))
+      const restored = await restoreSnapshot(entry.comments)
+      if (!restored) {
+        showToast('撤销失败，请检查本地 dev 服务')
+        return
+      }
+      undoStackRef.current = undoStackRef.current.slice(0, -1)
+      redoStackRef.current = [
+        ...redoStackRef.current.slice(-(MAX_HISTORY - 1)),
+        { comments: currentSnapshot, label: entry.label }
+      ]
+      setUndoCount(undoStackRef.current.length)
+      setRedoCount(redoStackRef.current.length)
+      setAllComments(restored)
+      setEditingId(null)
+      setActiveId((prev) => (prev && restored.some((c) => c.id === prev) ? prev : null))
+      showToast(`已撤销：${entry.label}`)
+    } finally {
+      historyBusyRef.current = false
+    }
+  }, [restoreSnapshot, showToast])
+
+  const handleRedo = useCallback(async () => {
+    if (historyBusyRef.current) return
+    const entry = redoStackRef.current[redoStackRef.current.length - 1]
+    if (!entry) return
+    historyBusyRef.current = true
+    try {
+      const currentSnapshot = allCommentsRef.current.map((c) => ({ ...c }))
+      const restored = await restoreSnapshot(entry.comments)
+      if (!restored) {
+        showToast('重做失败，请检查本地 dev 服务')
+        return
+      }
+      redoStackRef.current = redoStackRef.current.slice(0, -1)
+      undoStackRef.current = [
+        ...undoStackRef.current.slice(-(MAX_HISTORY - 1)),
+        { comments: currentSnapshot, label: entry.label }
+      ]
+      setUndoCount(undoStackRef.current.length)
+      setRedoCount(redoStackRef.current.length)
+      setAllComments(restored)
+      setEditingId(null)
+      setActiveId((prev) => (prev && restored.some((c) => c.id === prev) ? prev : null))
+      showToast(`已重做：${entry.label}`)
+    } finally {
+      historyBusyRef.current = false
+    }
+  }, [restoreSnapshot, showToast])
 
   const fetchComments = useCallback(async () => {
     try {
@@ -189,10 +294,16 @@ export default function DevCommentsHost() {
     }
   }, [floatingComposerOpen])
 
-  // Keyboard shortcut: Cmd/Ctrl + Shift + M -> annotate selection or toggle drawer
+  // Keyboard shortcuts:
+  // - Cmd/Ctrl + Shift + M -> annotate selection or toggle drawer
+  // - Cmd/Ctrl + Z -> undo last comment mutation (outside text inputs)
+  // - Cmd/Ctrl + Shift + Z / Ctrl + Y -> redo (outside text inputs)
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'm') {
+      const mod = event.metaKey || event.ctrlKey
+      const key = event.key.toLowerCase()
+
+      if (mod && event.shiftKey && key === 'm') {
         event.preventDefault()
         const root = getAnnotationRoot()
         const anchor = captureSelectionAnchor(root, window.getSelection())
@@ -203,7 +314,27 @@ export default function DevCommentsHost() {
         } else {
           setDrawerOpen((open) => !open)
         }
-      } else if (event.key === 'Escape') {
+        return
+      }
+
+      if (mod && !event.altKey && !isEditableElement(event.target)) {
+        if (key === 'z' && !event.shiftKey) {
+          if (undoStackRef.current.length > 0) {
+            event.preventDefault()
+            void handleUndo()
+          }
+          return
+        }
+        if ((key === 'z' && event.shiftKey) || (key === 'y' && event.ctrlKey && !event.metaKey)) {
+          if (redoStackRef.current.length > 0) {
+            event.preventDefault()
+            void handleRedo()
+          }
+          return
+        }
+      }
+
+      if (event.key === 'Escape') {
         if (floatingComposerOpen) {
           setFloatingComposerOpen(false)
           setSelectionAnchor(null)
@@ -216,7 +347,7 @@ export default function DevCommentsHost() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [drawerOpen, editingId, floatingComposerOpen])
+  }, [drawerOpen, editingId, floatingComposerOpen, handleRedo, handleUndo])
 
   const openFloatingComposer = (kind: CommentKind = 'rewrite') => {
     setDraftKind(kind)
@@ -248,12 +379,13 @@ export default function DevCommentsHost() {
         return null
       }
       const data = (await res.json()) as { comment: DevComment }
+      const actionLabel = payload.kind === 'cut' && !trimmed ? '标为删减' : '添加批注'
+      pushUndoSnapshot(actionLabel)
       setAllComments((prev) => [...prev, data.comment])
       setActiveId(data.comment.id)
       showToast(
-        payload.kind === 'cut' && !trimmed
-          ? '已标为删减（点击删除线可补充说明或撤销）'
-          : '已保存到 .dev-comments.json'
+        payload.kind === 'cut' && !trimmed ? '已标为删减' : '已保存到 .dev-comments.json',
+        true
       )
       return data.comment
     } finally {
@@ -325,6 +457,7 @@ export default function DevCommentsHost() {
       return
     }
     const data = (await res.json()) as { comment: DevComment }
+    pushUndoSnapshot(patch.status ? '切换状态' : '编辑批注')
     setAllComments((prev) => prev.map((c) => (c.id === id ? data.comment : c)))
     if (editingId === id) setEditingId(null)
   }
@@ -337,10 +470,11 @@ export default function DevCommentsHost() {
       showToast('删除失败')
       return
     }
+    pushUndoSnapshot('删除批注')
     setAllComments((prev) => prev.filter((c) => c.id !== id))
     if (activeId === id) setActiveId(null)
     if (editingId === id) setEditingId(null)
-    showToast('已删除批注')
+    showToast('已删除批注', true)
   }
 
   const handleClearResolved = async () => {
@@ -348,12 +482,20 @@ export default function DevCommentsHost() {
       scope === 'page'
         ? `?path=${encodeURIComponent(pathname)}&status=resolved`
         : '?status=resolved'
+    const prevSnapshot = allCommentsRef.current.map((c) => ({ ...c }))
     const res = await fetch(`/__dev/comments${query}`, { method: 'DELETE' })
     if (!res.ok) return
     const data = (await res.json()) as { removed: number }
     if (data.removed > 0) {
+      undoStackRef.current = [
+        ...undoStackRef.current.slice(-(MAX_HISTORY - 1)),
+        { comments: prevSnapshot, label: '清理已解决' }
+      ]
+      redoStackRef.current = []
+      setUndoCount(undoStackRef.current.length)
+      setRedoCount(0)
       await fetchComments()
-      showToast(`已清理 ${data.removed} 条已解决批注`)
+      showToast(`已清理 ${data.removed} 条已解决批注`, true)
     }
   }
 
@@ -364,13 +506,21 @@ export default function DevCommentsHost() {
       return
     }
     setConfirmClearPage(false)
+    const prevSnapshot = allCommentsRef.current.map((c) => ({ ...c }))
     const res = await fetch(`/__dev/comments?path=${encodeURIComponent(pathname)}`, {
       method: 'DELETE'
     })
     if (!res.ok) return
+    undoStackRef.current = [
+      ...undoStackRef.current.slice(-(MAX_HISTORY - 1)),
+      { comments: prevSnapshot, label: '清空本页' }
+    ]
+    redoStackRef.current = []
+    setUndoCount(undoStackRef.current.length)
+    setRedoCount(0)
     await fetchComments()
     setActiveId(null)
-    showToast('已清空当前页所有批注')
+    showToast('已清空当前页所有批注', true)
   }
 
   const handleCopyForAgent = async () => {
@@ -415,11 +565,11 @@ export default function DevCommentsHost() {
 
   const composerPos = useMemo(() => {
     if (!selectionAnchor) return null
-    const width = Math.min(360, window.innerWidth - 24)
+    const width = Math.min(320, window.innerWidth - 24)
     const left = Math.min(Math.max(selectionAnchor.rect.left, 12), window.innerWidth - width - 12)
-    const belowTop = selectionAnchor.rect.bottom + 10
-    const fitsBelow = belowTop + 260 < window.innerHeight
-    const top = fitsBelow ? belowTop : Math.max(16, selectionAnchor.rect.top - 250)
+    const belowTop = selectionAnchor.rect.bottom + 8
+    const fitsBelow = belowTop + 135 < window.innerHeight
+    const top = fitsBelow ? belowTop : Math.max(16, selectionAnchor.rect.top - 130)
     return { left, top }
   }, [selectionAnchor])
 
@@ -481,37 +631,19 @@ export default function DevCommentsHost() {
         </div>
       )}
 
-      {/* Floating composer anchored near selected text */}
+      {/* Minimal floating input box anchored right next to the highlighted text */}
       {selectionAnchor && floatingComposerOpen && composerPos && (
         <div className='devc-composer-float' style={composerPos}>
-          {selectionAnchor.heading && (
-            <p className='devc-heading-hint'>位于：{selectionAnchor.heading}</p>
-          )}
-          <blockquote className='devc-quote'>{selectionAnchor.quote}</blockquote>
-
-          <div className='devc-kinds' role='group' aria-label='批注类型'>
-            {COMMENT_KINDS.map((k) => (
-              <button
-                key={k.value}
-                type='button'
-                className='devc-kind-pill'
-                data-selected={draftKind === k.value}
-                title={k.hint}
-                onClick={() => setDraftKind(k.value)}
-              >
-                {k.label}
-              </button>
-            ))}
-          </div>
-
           <textarea
             ref={floatingInputRef}
-            className='devc-textarea'
-            placeholder='写下修改意见（留空也可直接标记）… ⌘/Ctrl + Enter 保存'
+            className='devc-textarea devc-textarea-compact'
+            rows={2}
+            placeholder={`${COMMENT_KIND_LABELS[draftKind]}：输入批注（Enter 保存，Shift+Enter 换行）`}
             value={draftBody}
             onChange={(e) => setDraftBody(e.target.value)}
             onKeyDown={(e) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              if (e.nativeEvent.isComposing) return
+              if (e.key === 'Enter' && (!e.shiftKey || e.metaKey || e.ctrlKey)) {
                 e.preventDefault()
                 void handleSaveSelectionComment()
               }
@@ -519,11 +651,13 @@ export default function DevCommentsHost() {
           />
 
           <div className='devc-form-foot'>
-            <span className='devc-hint'>留空也可保存</span>
+            <span className='devc-tag' data-kind={draftKind}>
+              {COMMENT_KIND_LABELS[draftKind]}
+            </span>
             <div className='devc-footer-actions'>
               <button
                 type='button'
-                className='devc-btn'
+                className='devc-btn devc-btn-ghost'
                 onClick={() => {
                   setFloatingComposerOpen(false)
                   setSelectionAnchor(null)
@@ -537,7 +671,7 @@ export default function DevCommentsHost() {
                 disabled={submitting}
                 onClick={() => void handleSaveSelectionComment()}
               >
-                保存批注
+                保存
               </button>
             </div>
           </div>
@@ -555,10 +689,30 @@ export default function DevCommentsHost() {
             <div className='devc-header-actions'>
               <button
                 type='button'
+                className='devc-btn devc-btn-ghost'
+                disabled={undoCount === 0}
+                title='撤销（⌘Z / Ctrl+Z）'
+                aria-label='撤销'
+                onClick={() => void handleUndo()}
+              >
+                ↩
+              </button>
+              <button
+                type='button'
+                className='devc-btn devc-btn-ghost'
+                disabled={redoCount === 0}
+                title='重做（⌘⇧Z / Ctrl+Y）'
+                aria-label='重做'
+                onClick={() => void handleRedo()}
+              >
+                ↪
+              </button>
+              <button
+                type='button'
                 className='devc-btn'
                 onClick={() => setPageComposerOpen((v) => !v)}
               >
-                + 整页批注
+                + 整页
               </button>
               <button
                 type='button'
@@ -873,7 +1027,12 @@ export default function DevCommentsHost() {
 
       {toast && (
         <div className='devc-toast' role='status' aria-live='polite'>
-          {toast}
+          <span>{toast.message}</span>
+          {toast.canUndo && undoCount > 0 && (
+            <button type='button' className='devc-toast-undo' onClick={() => void handleUndo()}>
+              撤销 ⌘Z
+            </button>
+          )}
         </div>
       )}
     </div>

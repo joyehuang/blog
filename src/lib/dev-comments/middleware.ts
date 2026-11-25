@@ -101,6 +101,13 @@ export function devCommentsIntegration(filename = '.dev-comments.json'): AstroIn
               return
             }
 
+            if (method === 'PUT' && !id) {
+              const body = (await readJsonBody(req)) as { comments?: unknown }
+              const comments = store.replaceAll(body?.comments)
+              sendJson(res, 200, { comments })
+              return
+            }
+
             if (method === 'DELETE' && !id) {
               const removed = store.clear({ path: pathParam, status })
               sendJson(res, 200, { removed })

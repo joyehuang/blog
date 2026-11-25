@@ -85,6 +85,21 @@ describe('dev-comments store', () => {
     expect(store.list().map((item) => item.id)).toEqual([c.id])
   })
 
+  test('replaceAll restores exact snapshots for undo and redo', () => {
+    const store = createFileStore(filePath)
+    const first = store.create({ path: '/notes/a', quote: '删掉这句', body: '', kind: 'cut' })
+    const snapshot = store.list()
+
+    store.remove(first.id)
+    expect(store.list()).toEqual([])
+
+    const restored = store.replaceAll(snapshot)
+    expect(restored).toHaveLength(1)
+    expect(restored[0]!.id).toBe(first.id)
+    expect(restored[0]!.createdAt).toBe(first.createdAt)
+    expect(createFileStore(filePath).list()).toEqual(snapshot)
+  })
+
   test('validates invalid create and update inputs', () => {
     expect(() => validateCreateInput({ path: '/notes/a', body: '   ' })).toThrow()
     // Quoted annotations (e.g. one-click cut) may omit body

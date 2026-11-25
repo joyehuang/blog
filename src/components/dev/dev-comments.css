@@ -198,13 +198,19 @@ mark.devc-mark.devc-mark-draft {
 .devc-composer-float {
   position: fixed;
   z-index: 85;
-  width: min(360px, calc(100vw - 24px));
-  padding: 0.85rem;
+  width: min(320px, calc(100vw - 24px));
+  padding: 0.55rem;
   border: 1px solid hsl(var(--border));
-  border-radius: 12px;
-  background: hsl(var(--card));
+  border-radius: 10px;
+  background: hsl(var(--card) / 0.98);
+  backdrop-filter: blur(10px);
   color: hsl(var(--foreground));
-  box-shadow: 0 14px 36px hsl(240 10% 4% / 0.22);
+  box-shadow: 0 12px 30px hsl(240 10% 4% / 0.18);
+}
+
+.devc-textarea-compact {
+  min-height: 52px;
+  padding: 0.42rem 0.55rem;
 }
 
 /* Right-side drawer */
@@ -623,6 +629,9 @@ mark.devc-mark.devc-mark-draft {
   left: 50%;
   transform: translateX(-50%);
   z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   padding: 0.42rem 0.9rem;
   border: 1px solid hsl(var(--border));
   border-radius: 999px;
@@ -630,6 +639,23 @@ mark.devc-mark.devc-mark-draft {
   color: hsl(var(--foreground));
   font-size: 0.78rem;
   box-shadow: 0 8px 24px hsl(240 10% 4% / 0.18);
+}
+
+.devc-toast-undo {
+  padding: 0.12rem 0.48rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--muted) / 0.7);
+  color: hsl(var(--primary));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.devc-toast-undo:hover {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.12);
 }
 
 @media print {
