@@ -44,8 +44,8 @@ const bottomNodes = [
 
 <figure class='aoa-fig swm-arch not-prose' data-swm-arch>
   <figcaption class='aoa-cap'>
-    <strong>图 1 · Antigravity Native Swarm 的三层结构。</strong>
-    Coordinator 和所有 Worker 通过磁盘上的共享留言板解耦；右侧看板只是旁路只读进程，不介入调度。
+    <strong>图 1 · Antigravity Swarm 的三层结构。</strong>
+    Coordinator 和所有 Worker 靠磁盘上的共享留言板配合；右侧看板只负责读文件画界面，不参与调度。
   </figcaption>
 
   <div class='swm-arch-stack'>
@@ -121,8 +121,8 @@ const bottomNodes = [
   </div>
 
   <p class='aoa-note'>
-    示意图。青色边框标出调度主路径（Coordinator 与共享留言板）；下方三栏各自独立，Sidecar
-    挂掉也不会影响 Swarm 继续跑。
+    示意图。青色边框是调度主线（Coordinator
+    和共享留言板）；下方三栏彼此独立，右侧看板就算重启也不会影响 Swarm 继续跑。
   </p>
   <p class='aoa-sr'>
     顶层用户只与 Coordinator 对话；Coordinator 通过 swarm、post_message、read_board、swarm_wait
