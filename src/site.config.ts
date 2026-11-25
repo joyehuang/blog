@@ -171,7 +171,10 @@ export const integ: IntegrationUserConfig = {
     // database writes. Letting the widget count too would double every query.
     additionalConfigs: {
       pageview: false,
-      comment: false
+      comment: false,
+      // Cloudflare Turnstile site key (public). The Waline server holds the
+      // matching TURNSTILE_SECRET and rejects anonymous comments without a token.
+      turnstileKey: '0x4AAAAAAGRb2-1aiTgRETXD'
     }
   }
 }
