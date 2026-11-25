@@ -1,0 +1,283 @@
+---
+/**
+ * 交互示意图：不同格式的留言板消息，分别唤醒哪些角色、哪些继续零消耗休眠。
+ * 点击上方按钮切换消息类型；无 JS 时默认展示第一条场景。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const members = [
+  { id: 'coordinator', name: 'coordinator', meta: '全频道可见' },
+  { id: 'parser', name: 'parser', meta: 'Worker · #parser' },
+  { id: 'verifier', name: 'verifier', meta: 'Worker · #parser' },
+  { id: 'ui', name: 'ui', meta: 'Worker · #ui' }
+]
+
+const scenarios = [
+  {
+    id: 'single',
+    label: '@parser 点名',
+    channel: '#parser',
+    seq: '#11',
+    text: '@parser 修复 #4 里的边界报错，跑完单测后发 [done] 交回验收',
+    awake: ['parser'],
+    summary: '只唤醒被点名的 parser；其余三个会话留在 waiting 状态，不消耗 token。'
+  },
+  {
+    id: 'channel',
+    label: '@#parser 叫频道',
+    channel: '#ui',
+    seq: '#14',
+    text: '@#parser AST 节点字段稳定了吗？前端渲染层准备接这个结构',
+    awake: ['coordinator', 'parser', 'verifier'],
+    summary:
+      '跨频道呼叫 #parser：订阅该频道的 Worker 与全频道可见的 coordinator 醒来，#ui 频道的 ui 继续睡。'
+  },
+  {
+    id: 'done',
+    label: '@coordinator 交差',
+    channel: '#parser',
+    seq: '#18',
+    text: '@coordinator [done] #11 和 #15 全部验收通过，分支已合入就绪',
+    awake: ['coordinator'],
+    summary: '交付节点只 @coordinator，避免把已经收工的 Worker 再次吵醒跑一轮空推理。'
+  },
+  {
+    id: 'all',
+    label: '@all 广播',
+    channel: 'main',
+    seq: '#9',
+    text: '@all 公共 schema 已冻结，所有人后续实现以 #9 为准',
+    awake: ['coordinator', 'parser', 'verifier', 'ui'],
+    summary: '唤醒全部休眠成员，成本最高——只适合发全员规则或接口冻结，不拿来做日常同步。'
+  }
+]
+
+const initial = scenarios[0]
+---
+
+<figure class='aoa-fig swm-wakeup not-prose' data-swm-wakeup>
+  <figcaption class='aoa-cap'>
+    <strong>图 2 · <code>@mention</code> 是唤醒门铃，不是抄送。</strong>
+    点下面的消息模式，看哪些会话会被真正叫醒、哪些继续留在 <code>waiting</code> 零消耗休眠。
+  </figcaption>
+
+  <div class='aoa-choices aoa-rv' style='--i: 0' role='group' aria-label='选择留言板消息类型'>
+    {
+      scenarios.map((s, i) => (
+        <button
+          type='button'
+          class='aoa-choice'
+          data-swm-choice={s.id}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+        >
+          {s.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class='aoa-card swm-msg aoa-rv' style='--i: 1'>
+    <div class='swm-msg-meta'>
+      <span class='swm-msg-seq' data-swm-seq>{initial.seq}</span>
+      <span class='swm-msg-ch' data-swm-ch>{initial.channel}</span>
+    </div>
+    <p class='swm-msg-text' data-swm-text>{initial.text}</p>
+  </div>
+
+  <div class='swm-roster aoa-rv' style='--i: 2' role='list'>
+    {
+      members.map((m) => {
+        const isAwake = initial.awake.includes(m.id)
+        return (
+          <div
+            class:list={['aoa-card', 'swm-member', isAwake ? 'swm-awake' : 'swm-asleep']}
+            data-swm-member={m.id}
+            role='listitem'
+          >
+            <div class='swm-member-head'>
+              <p class='aoa-title swm-member-name'>{m.name}</p>
+              <span class='swm-state' data-swm-state>
+                {isAwake ? '唤醒 · 跑一轮' : 'waiting · 0 token'}
+              </span>
+            </div>
+            <p class='aoa-sub'>{m.meta}</p>
+          </div>
+        )
+      })
+    }
+  </div>
+
+  <p class='aoa-note' data-swm-summary>{initial.summary}</p>
+  <p class='aoa-sr'>
+    四种寻址对比：@parser 只唤醒 parser；@#parser 唤醒订阅该频道的 parser、verifier 以及全频道可见的
+    coordinator；@coordinator 只唤醒协调者；@all 唤醒全部成员。
+  </p>
+  <script is:inline type='application/json' data-swm-data set:html={JSON.stringify(scenarios)} />
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-swm-wakeup]', undefined, 0.25)
+
+  interface Scenario {
+    id: string
+    channel: string
+    seq: string
+    text: string
+    awake: string[]
+    summary: string
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-swm-wakeup]').forEach((root) => {
+    const raw = root.querySelector<HTMLScriptElement>('[data-swm-data]')?.textContent
+    if (!raw) return
+    const scenarios = JSON.parse(raw) as Scenario[]
+    const byId = new Map(scenarios.map((s) => [s.id, s]))
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-swm-choice]')
+    const seqEl = root.querySelector<HTMLElement>('[data-swm-seq]')
+    const chEl = root.querySelector<HTMLElement>('[data-swm-ch]')
+    const textEl = root.querySelector<HTMLElement>('[data-swm-text]')
+    const summaryEl = root.querySelector<HTMLElement>('[data-swm-summary]')
+    const cards = root.querySelectorAll<HTMLElement>('[data-swm-member]')
+
+    const apply = (id: string) => {
+      const s = byId.get(id)
+      if (!s) return
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.swmChoice === id)))
+      if (seqEl) seqEl.textContent = s.seq
+      if (chEl) chEl.textContent = s.channel
+      if (textEl) textEl.textContent = s.text
+      if (summaryEl) summaryEl.textContent = s.summary
+      cards.forEach((card) => {
+        const awake = s.awake.includes(card.dataset.swmMember ?? '')
+        card.classList.toggle('swm-awake', awake)
+        card.classList.toggle('swm-asleep', !awake)
+        const stateEl = card.querySelector<HTMLElement>('[data-swm-state]')
+        if (stateEl) stateEl.textContent = awake ? '唤醒 · 跑一轮' : 'waiting · 0 token'
+      })
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.swmChoice
+        if (id) apply(id)
+      })
+    })
+  })
+</script>
+
+<style>
+  .swm-wakeup {
+    container-type: inline-size;
+  }
+
+  .swm-msg {
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    background: hsl(var(--muted) / 0.45);
+  }
+
+  :global(.dark) .swm-msg {
+    background: hsl(var(--foreground) / 0.04);
+  }
+
+  .swm-msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-msg-seq {
+    font-weight: 600;
+    color: hsl(var(--primary));
+  }
+
+  .swm-msg-text {
+    margin: 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: hsl(var(--foreground));
+    overflow-wrap: anywhere;
+  }
+
+  .swm-roster {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .swm-member {
+    min-width: 0;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .swm-member-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .swm-member-name {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.84rem;
+  }
+
+  .swm-state {
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
+
+  .swm-awake {
+    border-color: hsl(var(--primary) / 0.75);
+    background: hsl(var(--primary) / 0.08);
+  }
+
+  :global(.dark) .swm-awake {
+    border-color: hsl(var(--primary) / 0.85);
+    background: hsl(var(--primary) / 0.14);
+  }
+
+  .swm-awake .swm-state {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground, 0 0% 100%));
+  }
+
+  .swm-asleep {
+    opacity: 0.68;
+  }
+
+  .swm-asleep .swm-state {
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--background));
+    color: hsl(var(--muted-foreground));
+  }
+
+  @container (max-width: 520px) {
+    .swm-roster {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .swm-member {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,340 @@
+---
+/**
+ * Swarm 的三层结构：顶层 Coordinator 对接用户，中层共享留言板落盘，
+ * 底层三类消费者（Worker、系统观测 Worker、只读 Sidecar 看板）各自独立运行。
+ * 宽屏三列，窄屏改单列；动效沿用常驻 Agent 那篇，没有 JS / 打印 / 减少动效时直接以终态展示。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const bottomNodes = [
+  {
+    kicker: '执行层',
+    title: 'Workers（工作节点）',
+    badge: '@mention 唤醒',
+    items: [
+      '每个 Worker 都是独立会话与独立上下文',
+      '休眠挂在板上不烧 token，被点名才醒',
+      '改代码时走 share / branch 独立工作区'
+    ]
+  },
+  {
+    kicker: '观测层',
+    title: 'Monitor 与 Narrator',
+    badge: '系统 Worker',
+    items: [
+      'Monitor 定时巡检僵局，发 @coordinator [stall]',
+      'Narrator 把留言板提炼成 view.json / view.html',
+      '两者都不参与业务代码，也不接普通任务'
+    ]
+  },
+  {
+    kicker: '展示层',
+    title: 'swarm_board Sidecar',
+    badge: '只读进程',
+    items: [
+      '按 mtime/size/inode 缓存只读监听磁盘文件',
+      '不写任何状态，也不直接给 Agent 发消息',
+      '渲染右侧看板：总览、消息流与 @mention 图谱'
+    ]
+  }
+]
+---
+
+<figure class='aoa-fig swm-arch not-prose' data-swm-arch>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · Antigravity Native Swarm 的三层结构。</strong>
+    Coordinator 和所有 Worker 通过磁盘上的共享留言板解耦；右侧看板只是旁路只读进程，不介入调度。
+  </figcaption>
+
+  <div class='swm-arch-stack'>
+    <div class='swm-arch-top aoa-rv' style='--i: 0'>
+      <div class='aoa-card aoa-card-soft swm-user'>
+        <p class='aoa-kicker'>唯一入口</p>
+        <p class='aoa-title'>用户</p>
+        <p class='aoa-sub'>只和 Coordinator 对话</p>
+      </div>
+      <span class='swm-link-h' aria-hidden='true'>↔</span>
+      <div class='aoa-card aoa-card-accent swm-coord'>
+        <p class='aoa-kicker'>调度层 · 主会话</p>
+        <p class='aoa-title'>Coordinator（协调者）</p>
+        <p class='aoa-sub'>拆任务、派活、验收、对人汇报；自己不写代码，不跑长命令。</p>
+      </div>
+    </div>
+
+    <div class='swm-connector aoa-rv' style='--i: 1' aria-hidden='true'>
+      <span class='swm-connector-line'></span>
+      <span class='swm-connector-pill'>swarm / post_message / read_board / swarm_wait</span>
+      <span class='swm-connector-line'></span>
+    </div>
+
+    <div class='aoa-card aoa-card-accent swm-board aoa-rv' style='--i: 2'>
+      <div class='swm-board-head'>
+        <p class='aoa-kicker'>持久化枢纽</p>
+        <code class='swm-path'>.system_generated/swarm/</code>
+      </div>
+      <p class='aoa-title'>共享留言板（Shared Message Board）</p>
+      <div class='swm-board-files'>
+        <div class='swm-file-box'>
+          <p class='swm-file-name'><code>board.jsonl</code></p>
+          <p class='aoa-sub'>
+            只追加的有序消息流，每条带递增序号 <code>#seq</code>，交接靠引用序号而非复制全文。
+          </p>
+        </div>
+        <div class='swm-file-box'>
+          <p class='swm-file-name'><code>members.json</code></p>
+          <p class='aoa-sub'>
+            花名册：记录每个 Worker 的名字、角色、<code>conversation_id</code>、频道与工作区。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class='swm-branch-bar aoa-rv' style='--i: 3' aria-hidden='true'>
+      <span class='swm-branch-stem'></span>
+      <span class='swm-branch-fork'>
+        <span class='swm-branch-drop'></span>
+        <span class='swm-branch-drop'></span>
+        <span class='swm-branch-drop'></span>
+      </span>
+    </div>
+
+    <div class='swm-bottom-grid' role='list'>
+      {
+        bottomNodes.map((node, i) => (
+          <div class='aoa-card swm-node aoa-rv' style={`--i: ${i + 4}`} role='listitem'>
+            <div class='swm-node-top'>
+              <p class='aoa-kicker'>{node.kicker}</p>
+              <span class='swm-badge'>{node.badge}</span>
+            </div>
+            <p class='aoa-title'>{node.title}</p>
+            <ul class='aoa-list'>
+              {node.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <p class='aoa-note'>
+    示意图。青色边框标出调度主路径（Coordinator 与共享留言板）；下方三栏各自独立，Sidecar
+    挂掉也不会影响 Swarm 继续跑。
+  </p>
+  <p class='aoa-sr'>
+    顶层用户只与 Coordinator 对话；Coordinator 通过 swarm、post_message、read_board、swarm_wait
+    四个工具读写中层的共享留言板，包含 board.jsonl 和 members.json 两个文件；底层分为三栏：按
+    @mention 唤醒的 Workers，负责防卡死和总览的 Monitor 与 Narrator，以及只读监听磁盘渲染右侧看板的
+    swarm_board Sidecar。
+  </p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-swm-arch]', undefined, 0.2)
+</script>
+
+<style>
+  .swm-arch {
+    container-type: inline-size;
+  }
+
+  .swm-arch-stack {
+    min-width: 0;
+  }
+
+  .swm-arch-top {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.34fr) auto minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .swm-user,
+  .swm-coord,
+  .swm-board,
+  .swm-node {
+    min-width: 0;
+  }
+
+  .swm-link-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: hsl(var(--primary));
+  }
+
+  .swm-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 6px 0;
+  }
+
+  .swm-connector-line {
+    width: 2px;
+    height: 12px;
+    background: hsl(var(--primary) / 0.75);
+  }
+
+  .swm-connector-pill {
+    padding: 3px 10px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    background: hsl(var(--muted) / 0.6);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: hsl(var(--foreground) / 0.85);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .swm-board-head,
+  .swm-node-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .swm-board-head .aoa-kicker,
+  .swm-node-top .aoa-kicker {
+    margin: 0;
+  }
+
+  .swm-path,
+  .swm-badge {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-badge {
+    padding: 1px 7px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    background: hsl(var(--background));
+  }
+
+  .swm-board-files {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .swm-file-box {
+    padding: 9px 11px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: hsl(var(--background) / 0.85);
+  }
+
+  .swm-file-name {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .swm-file-box code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+  }
+
+  .swm-branch-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 4px 0 6px;
+  }
+
+  .swm-branch-stem {
+    width: 2px;
+    height: 12px;
+    background: hsl(var(--primary) / 0.75);
+  }
+
+  .swm-branch-fork {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    height: 12px;
+  }
+
+  .swm-branch-fork::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(100% / 6);
+    right: calc(100% / 6);
+    height: 2px;
+    background: hsl(var(--primary) / 0.75);
+  }
+
+  .swm-branch-drop {
+    justify-self: center;
+    width: 2px;
+    height: 12px;
+    background: hsl(var(--primary) / 0.75);
+  }
+
+  .swm-bottom-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .swm-node .aoa-list {
+    font-size: 0.77rem;
+  }
+
+  :global(.dark) .swm-coord,
+  :global(.dark) .swm-board {
+    border-color: hsl(var(--primary) / 0.78);
+    background: hsl(var(--primary) / 0.12);
+  }
+
+  :global(.dark) .swm-file-box {
+    background: hsl(var(--background) / 0.55);
+  }
+
+  :global(.dark) .swm-connector-pill,
+  :global(.dark) .swm-badge {
+    background: hsl(var(--foreground) / 0.06);
+  }
+
+  @container (max-width: 660px) {
+    .swm-arch-top {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 6px;
+    }
+
+    .swm-link-h {
+      transform: rotate(90deg);
+    }
+
+    .swm-board-files,
+    .swm-bottom-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .swm-branch-fork {
+      display: none;
+    }
+  }
+</style>

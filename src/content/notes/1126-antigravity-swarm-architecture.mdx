@@ -1,0 +1,123 @@
+---
+title: Antigravity Native Swarm 拆解：共享留言板、门铃唤醒与只读 Sidecar
+description: 拆解 Antigravity 原生 Swarm 模式的底层实现：Coordinator 与 Worker 的分工、append-only 共享留言板、@mention 事件唤醒与零消耗休眠、worktree 级工作区隔离、热切模型与 Monitor 防卡死，以及完全只读的 Sidecar 看板。
+date: 2026-11-26
+tags:
+  - ai
+  - agent
+  - multi-agent
+  - orchestration
+  - workflow
+  - software engineering
+type: research
+status: ready
+relatedNote:
+  - 1126-deepseek-super-agent
+  - 0426-agent-routing-multi-agent-cost-control
+  - 0326-harness-engineering-codex-production-practice
+  - 1026-ai-pilled-company
+draft: false
+---
+
+import MentionWakeup from './antigravity-swarm/MentionWakeup.astro'
+import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
+
+## 核心内容
+
+平时重度用 Antigravity 的 `/swarm` 模式，一直把它当黑盒。这次顺着它内置的编排规范与本地插件代码拆了一遍，发现底层设计比想象中克制，也比「多个角色在同一个上下文里轮流扮演」扎实得多。
+
+动笔之前先把全篇的两个核心名词统一下，避免越读越乱：
+
+- **Coordinator（协调者）**：用户正在对话的那个主会话，负责拆任务、派活、验收和对人汇报。
+- **Worker（工作节点）**：Coordinator 分发出去干活的执行者——平时大家也会叫它 sub-agent 或子 agent；在 Antigravity Swarm 的底层，**每一个 Worker 就是一个独立的 agent 会话**，拥有各自的上下文窗口、模型和可选工作区。下文统一称作 **Worker**（其中专职验收的 Verifier，以及负责防卡死和总览的系统角色 Monitor、Narrator，底层形态也都是 Worker）。
+
+一句话概括整套实现：**Antigravity Swarm 是一套「Coordinator + 多个 Worker + 磁盘持久化共享留言板 + `@mention` 事件唤醒 + worktree 工作区隔离 + 只读 Sidecar 看板」的本地多 Agent 运行时。**
+
+它和旁边几篇多 Agent 笔记正好能串成一组对照：[DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 拆的是常驻在线的两层 Router/Worker 系统，[Agent Routing](/notes/0426-agent-routing-multi-agent-cost-control) 记的是调度和成本控制，而 Antigravity Swarm 则是把「人发起的一场复杂协作任务」做成了本地可观测、可容错的多会话团队。
+
+## 要点整理
+
+### 1. 总体结构：Coordinator 与 Worker 靠共享留言板解耦
+
+在 Swarm 里，Worker 从不直接对用户说话，彼此之间也不做点对点传大段正文。Coordinator 和所有 Worker 共同读写一块持久化在主会话目录下的共享留言板（`.system_generated/swarm/`）：
+
+<SwarmArchitecture />
+
+两个看似朴素、实际很省上下文的细节：
+
+- **`board.jsonl` 是只追加、带全局递增序号 `#seq` 的日志**。Worker 之间交接时直接引用序号（例如 `@verifier 检查 #4 和 #6`、`@parser 对齐 #8 里的签名`），严禁把前一个 Worker 的长报告复制粘贴进下一条消息。这和 DeepSeek 笔记里「正文留在外头、窗口里只放引用指针」的 Spill 思路本质一致。
+- **每个 Worker 的 `brief` 公开落在留言板上**。`swarm add` 拉起一个新 Worker 时，会把任务说明以 `@worker <brief>` 的形式同时发到板上，并作为第一条消息交给该 Worker。这样负责验收的 Worker（Verifier）和压缩上下文后的 Coordinator 都能直接回溯每个人的边界，不必重复问「你当时领了什么活」。
+
+### 2. Coordinator 不干活，四个原语驱动协作
+
+Swarm 规范里的第一条铁律就是 **Do not do the work**：Coordinator 不写代码、不跑长命令、不做重调研——「一个正在写代码的 Coordinator，就是一个没在盯盘的 Coordinator，没人盯的 Swarm 会悄无声息地停下来。」这和 DeepSeek 实验里把「Router 不执行任务」固化成结构的原因完全一致。
+
+整个协作循环只靠四个原语工具驱动：
+
+| 工具           | 职责                                                                                                                      |
+| :------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `swarm`        | 生命周期管理：`add`（新增 Worker / 批量分片 / 热克隆）、`status`、`models`、`model`（切模型）、`kill`、`channel`、`title` |
+| `post_message` | 往共享留言板（指定频道或默认频道）发消息                                                                                  |
+| `read_board`   | 按游标 `since: N` 或频道读取历史消息                                                                                      |
+| `swarm_wait`   | 把当前会话挂起进入 `waiting` 休眠，直到出现匹配条件的新消息再唤醒                                                         |
+
+其中 **`swarm_wait` 是控制成本的核心**：一个处于 `waiting` 状态的 Worker 挂在留言板上不消耗任何 token，不需要靠定时轮询 `read_board` 空转。也因此规范明确要求不要把 `kill` 当「暂停」用——闲置的 Worker 本来就是零成本的，只有确认再也不会派活或进入死循环时才永久销毁。
+
+### 3. `@mention` 是唤醒门铃，不是抄送
+
+多 Worker 群聊最容易失控的场景，是十个会话互相回复导致指数级刷屏烧 token。Antigravity Swarm 用一套很克制的寻址规则把唤醒面压小：
+
+- **默认只响应点名**：休眠中的 Worker 只有看到 `@自己名字`、`@分组前缀`（批量分片出来的 `worker-1`..`worker-n` 可用 `@worker` 群呼）、`@#所属频道` 或 `@all` 才会醒来，其他消息全部睡过。
+- **`@name` 是门铃，绝不当 CC 用**：点对点流水线（比如 `author <-> verifier`）只 `@` 下一个要接手的 Worker，只有交付最终结果、遇到阻塞或需要拍板时才 `@coordinator`。每多打一个 `@`，就是多唤醒一个会话跑一轮推理。
+- **规模一大就拆频道（Channels）**：Worker 超过约 8 个，或者任务拆成几个互不干扰的子区域时，可以创建 `#parser`、`#ui` 这样的频道，把区域内部沟通关在各自频道里，`main` 频道只发跨区域决策和最终结果；某个区域完成后把频道 `archive`，历史可读但不再触发唤醒。
+- **Worker 也能递归拉帮手**：某个 Worker 可以自己调 `swarm add` 拉起下级 Helper Worker，并有权 `kill` 或切换自己拉出来的 Helper 的模型，形成局部树状分工；但父 Worker 被 `kill` 时不会自动级联杀掉它的 Helper，需要 Coordinator 收尾。
+
+<MentionWakeup />
+
+### 4. 上下文冷热启动，以及工作区隔离
+
+多个 Worker 并发写代码有两个高频坑：一个是新 Worker 冷启动缺上下文、靠猜瞎写；另一个是两个 Worker 同时改一个文件互相覆盖。Swarm 在 `swarm add` 里直接给了两个参数去解：
+
+**热分叉上下文（`fork`）。** 默认新拉的 Worker 是白纸，只能看到 `brief`。但如果调研已经做了一半需要分叉探索，或者要替换一个被杀掉但前期决策有价值的 Worker，可以传 `fork: "<worker>"`（或 `"coordinator"`），把对方当前的对话历史直接分叉给新 Worker，省掉重新读代码和对齐上下文的开销。
+
+**三种工作区模式（`workspace`）。**
+
+| 模式              | 底层行为                                                                             | 适用 Worker                         |
+| :---------------- | :----------------------------------------------------------------------------------- | :---------------------------------- |
+| `inherit`（默认） | 直接共享主对话的工作目录                                                             | 只读调研、Code Review、Verifier     |
+| `share`           | 共享底层仓库目录，但给每个 Worker 独立的工作副本（类似 `git worktree` / `hg share`） | 需要并发改代码、跑构建的多个 Author |
+| `branch`          | 完全独立的仓库克隆                                                                   | 需要强隔离的改动                    |
+
+规范要求每个并发改代码的 Author Worker 都在自己的工作区里独立提交，验收通过后再合并或 cherry-pick 回主工作区。因为 `kill` 会直接删掉该 Worker 的 `share` / `branch` 目录，所以必须先落盘合并再销毁。
+
+### 5. 长任务的容错三件套：热切模型、Monitor、Narrator
+
+多个 Worker 并行跑久了，总会碰到额度耗尽、某一路卡死或者人看不清全局进展。Swarm 配了三块专门的底座：
+
+1. **原地热切模型（不丢对话）**。如果某个 Worker（或 Coordinator 自己）触发模型额度耗尽（`RESOURCE_EXHAUSTED` / 429），它会停在 `waiting` 等介入。此时不需要 `kill` 重建，直接调用 `swarm{action:"model", name, model}` 就能保留全部对话历史，原地切换到另一个有额度的模型上继续跑。
+2. **Monitor（外部防卡死巡检）**。除了干活的 Worker 和验收的 Verifier，Swarm 还会挂一个系统角色 Worker `monitor`。它靠后台定时器巡检全员状态；一旦发现整个团队陷入静默僵局，或有 Worker 长时间卡在报错步骤上没动静，Monitor 会直接往板上发 `@coordinator [stall]`，列出相关 `#seq`，把 Coordinator 叫醒救场。这和 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 把 Watchdog 放在主循环外面是一个思路。
+3. **Narrator（把过程提炼成总览）**。另一类系统角色 Worker `narrator` 不参与业务发言，专门盯着留言板，把零散进展整理成结构化总览文件（`view.json` / `view.html`）供右侧面板展示，同时接收用户对界面展示的反馈。
+
+### 6. UI 看板：完全只读的 Sidecar 进程
+
+右侧实时刷新的 Swarm 面板，并不是硬编码在主程序里的状态同步，而是由内置插件 `swarm` 拉起的一个独立 **Node.js Sidecar 进程**（位于 `~/.gemini/antigravity/builtin/plugins/swarm/sidecars/swarm_board/`）。
+
+从源码看，这个后端非常克制：
+
+- **严格只读**：不写任何业务文件，也不直接给任何 Worker 或 Coordinator 发消息。
+- **基于文件元数据缓存监听**：直接读取磁盘上的 `board.jsonl`、`members.json`、各 Worker 的 `transcript` 以及 Narrator 产出的总览文件，用 `mtime:size:ino` 做内存缓存避免重复解析。
+- **状态推断**：除了直接读花名册状态，看板还会结合每个 Worker 的 transcript 停滞时长（超过 10 分钟无推进标记为 `stuck`）和尾步报错停留时间（超过 60 秒未恢复）判断异常，并用正则识别 429 / Quota 错误在界面上标出来。
+- **预留远程看板能力**：如果目录里只有 `swarm.json` 锚点而非本地 `board.jsonl`，看板会切换到 CLI viewer 模式聚合跨机器的远程 Swarm 状态。
+
+### 7. 和另外两种多 Agent 形态放在一起看
+
+把 Antigravity 自己内置的两种多 Agent 工具（`Swarm` 和 `run-workflow`），连同之前记过的 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 放进同一张表，边界会很清楚：
+
+| 维度          | Antigravity Swarm                                    | Antigravity `run-workflow`                                  | DeepSeek Super-agent                             |
+| :------------ | :--------------------------------------------------- | :---------------------------------------------------------- | :----------------------------------------------- |
+| 定位          | 围绕单个复杂任务临时拉起的多 Worker 团队             | 确定性 Python 脚本编排（`parallel` / `pipeline` / `phase`） | 长期在线、接多渠道外部事件的个人/团队常驻系统    |
+| 调度方式      | Coordinator 靠 `@mention` 在共享留言板上动态派活     | 代码控制循环、并发扇出与 JSON Schema 强约束汇总             | Router 接新事件，已建线程由代码直达订阅的 Worker |
+| Worker 间通信 | 共享 `board.jsonl`，可点对点 handoff、可分频道       | Worker 彼此不可见，全部通过脚本传参和返回值串联             | 同 PR/话题订阅共享事件流，跨任务经 Router        |
+| 适用场景      | 需求开放、需要边做边查、作者与验收者反复拉扯的大改造 | 批量扫文件、固定多阶段流水线、明确结构化汇总                | 常驻值守 IM / GitHub / CI / 邮件的异步事件流     |
+
+用下来最直观的一条经验：**流程本身能写成代码的（批量审查 30 个文件、固定三阶段流水线），没必要开 Swarm，用 `run-workflow` 这种代码编排更稳也更省 token；只有当任务边界在执行中还会演化、需要多个独立上下文一边干活一边互相校验时，共享留言板 + 门铃唤醒的 Swarm 架构才真正值回票价。**
