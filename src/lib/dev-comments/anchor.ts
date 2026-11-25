@@ -254,6 +254,64 @@ export function applyHighlights(
   }
 }
 
+export function clearDraftHighlight(root: HTMLElement): void {
+  const marks = root.querySelectorAll<HTMLElement>('mark[data-devc-draft]')
+  const parents = new Set<Node>()
+  marks.forEach((mark) => {
+    const parent = mark.parentNode
+    if (!parent) return
+    parents.add(parent)
+    while (mark.firstChild) {
+      parent.insertBefore(mark.firstChild, mark)
+    }
+    parent.removeChild(mark)
+  })
+  parents.forEach((p) => {
+    if (p instanceof Element) p.normalize()
+  })
+}
+
+export function applyDraftHighlight(
+  root: HTMLElement,
+  anchor: SelectionAnchor | null,
+  kind: DevComment['kind']
+): void {
+  clearDraftHighlight(root)
+  if (!anchor || anchor.quote.length < 2) return
+
+  const { text, segments } = collectTextSegments(root)
+  const matchStart = findBestMatchIndex(text, anchor.quote, anchor.prefix, anchor.suffix)
+  if (matchStart === -1) return
+  const matchEnd = matchStart + anchor.quote.length
+
+  const overlapping = segments.filter((seg) => seg.end > matchStart && seg.start < matchEnd)
+  for (let i = overlapping.length - 1; i >= 0; i--) {
+    const seg = overlapping[i]!
+    if (seg.node.parentElement?.closest('mark[data-devc-draft]')) continue
+    const localStart = Math.max(0, matchStart - seg.start)
+    const localEnd = Math.min(seg.node.length, matchEnd - seg.start)
+    if (localEnd <= localStart) continue
+
+    try {
+      let targetNode = seg.node
+      if (localEnd < targetNode.length) {
+        targetNode.splitText(localEnd)
+      }
+      if (localStart > 0) {
+        targetNode = targetNode.splitText(localStart)
+      }
+      const mark = document.createElement('mark')
+      mark.className = 'devc-mark devc-mark-draft'
+      mark.dataset.devcDraft = 'true'
+      mark.dataset.devcKind = kind
+      targetNode.parentNode?.insertBefore(mark, targetNode)
+      mark.appendChild(targetNode)
+    } catch {
+      // Ignore non-wrappable DOM boundary cases
+    }
+  }
+}
+
 export function scrollToHighlight(root: HTMLElement, id: string): boolean {
   const first = root.querySelector<HTMLElement>(`mark[data-devc-id="${CSS.escape(id)}"]`)
   if (!first) return false

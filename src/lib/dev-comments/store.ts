@@ -27,8 +27,9 @@ export function validateCreateInput(input: unknown): CreateDevCommentInput {
   }
   const obj = input as Record<string, unknown>
   const body = clampString(obj.body, 8000)
-  if (!body) {
-    throw new Error('Comment body is required')
+  const quote = clampString(obj.quote, 2000)
+  if (!body && !quote) {
+    throw new Error('Either comment body or quoted text is required')
   }
   const rawPath = typeof obj.path === 'string' ? obj.path : '/'
   const kindRaw = typeof obj.kind === 'string' ? (obj.kind as CommentKind) : 'rewrite'
@@ -36,7 +37,7 @@ export function validateCreateInput(input: unknown): CreateDevCommentInput {
 
   return {
     path: normalizePath(rawPath),
-    quote: clampString(obj.quote, 2000),
+    quote,
     prefix: clampString(obj.prefix, 120),
     suffix: clampString(obj.suffix, 120),
     heading: clampString(obj.heading, 240),
@@ -53,9 +54,7 @@ export function validateUpdateInput(input: unknown): UpdateDevCommentInput {
   const patch: UpdateDevCommentInput = {}
 
   if ('body' in obj) {
-    const body = clampString(obj.body, 8000)
-    if (!body) throw new Error('Comment body cannot be empty')
-    patch.body = body
+    patch.body = clampString(obj.body, 8000)
   }
   if ('kind' in obj) {
     if (typeof obj.kind !== 'string' || !VALID_KINDS.has(obj.kind as CommentKind)) {

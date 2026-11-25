@@ -87,9 +87,20 @@ describe('dev-comments store', () => {
 
   test('validates invalid create and update inputs', () => {
     expect(() => validateCreateInput({ path: '/notes/a', body: '   ' })).toThrow()
+    // Quoted annotations (e.g. one-click cut) may omit body
+    expect(
+      validateCreateInput({ path: '/notes/a', quote: '多余的话', kind: 'cut', body: '' })
+    ).toEqual({
+      path: '/notes/a',
+      quote: '多余的话',
+      prefix: '',
+      suffix: '',
+      heading: '',
+      body: '',
+      kind: 'cut'
+    })
     expect(() => validateUpdateInput({})).toThrow()
     expect(() => validateUpdateInput({ status: 'unknown' })).toThrow()
-    expect(() => validateUpdateInput({ body: '' })).toThrow()
   })
 
   test('formats open comments as agent-ready markdown grouped by page', () => {
@@ -100,6 +111,13 @@ describe('dev-comments store', () => {
       heading: '要点整理',
       body: '换成具体例子',
       kind: 'rewrite'
+    })
+    store.create({
+      path: '/notes/demo',
+      quote: '这句可以删掉',
+      heading: '要点整理',
+      body: '',
+      kind: 'cut'
     })
     const resolvedItem = store.create({
       path: '/notes/demo',
@@ -113,6 +131,8 @@ describe('dev-comments store', () => {
     expect(md).toContain('**[改文案]** · 位于「要点整理」')
     expect(md).toContain('> 原文：过于抽象的一句话')
     expect(md).toContain('- 批注：换成具体例子')
+    expect(md).toContain('**[删减]** · 位于「要点整理」')
+    expect(md).toContain('- 批注：删除这段内容')
     expect(md).not.toContain('已经改完了')
     expect(openItem.status).toBe('open')
   })

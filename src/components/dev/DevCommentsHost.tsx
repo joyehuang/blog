@@ -1,6 +1,8 @@
 import {
+  applyDraftHighlight,
   applyHighlights,
   captureSelectionAnchor,
+  clearDraftHighlight,
   clearHighlights,
   getAnnotationRoot,
   scrollToHighlight,
@@ -134,6 +136,20 @@ export default function DevCommentsHost() {
     }
   }, [pageComments, activeId, statusFilter])
 
+  // Keep a live visual highlight on the selected text while the floating composer is open,
+  // so focusing the textarea never makes the user lose sight of what they selected.
+  useEffect(() => {
+    const root = getAnnotationRoot()
+    if (floatingComposerOpen && selectionAnchor) {
+      applyDraftHighlight(root, selectionAnchor, draftKind)
+    } else {
+      clearDraftHighlight(root)
+    }
+    return () => {
+      clearDraftHighlight(root)
+    }
+  }, [floatingComposerOpen, selectionAnchor, draftKind, pageComments])
+
   // Scroll active card into view inside the drawer
   useEffect(() => {
     if (!drawerOpen || !activeId) return
@@ -202,10 +218,10 @@ export default function DevCommentsHost() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [drawerOpen, editingId, floatingComposerOpen])
 
-  const openFloatingComposer = () => {
-    setFloatingComposerOpen(true)
+  const openFloatingComposer = (kind: CommentKind = 'rewrite') => {
+    setDraftKind(kind)
     setDraftBody('')
-    setDraftKind('rewrite')
+    setFloatingComposerOpen(true)
     window.setTimeout(() => floatingInputRef.current?.focus(), 20)
   }
 
@@ -218,13 +234,14 @@ export default function DevCommentsHost() {
     kind: CommentKind
   }) => {
     const trimmed = payload.body.trim()
-    if (!trimmed || submitting) return null
+    const hasQuote = Boolean(payload.quote && payload.quote.trim())
+    if ((!trimmed && !hasQuote) || submitting) return null
     setSubmitting(true)
     try {
       const res = await fetch('/__dev/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, path: pathname })
+        body: JSON.stringify({ ...payload, body: trimmed, path: pathname })
       })
       if (!res.ok) {
         showToast('保存失败，请检查本地 dev 服务')
@@ -233,11 +250,36 @@ export default function DevCommentsHost() {
       const data = (await res.json()) as { comment: DevComment }
       setAllComments((prev) => [...prev, data.comment])
       setActiveId(data.comment.id)
-      showToast('已保存到 .dev-comments.json')
+      showToast(
+        payload.kind === 'cut' && !trimmed
+          ? '已标为删减（点击删除线可补充说明或撤销）'
+          : '已保存到 .dev-comments.json'
+      )
       return data.comment
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleQuickAction = async (kind: CommentKind) => {
+    if (!selectionAnchor) return
+    if (kind === 'cut') {
+      const created = await createComment({
+        quote: selectionAnchor.quote,
+        prefix: selectionAnchor.prefix,
+        suffix: selectionAnchor.suffix,
+        heading: selectionAnchor.heading,
+        body: '',
+        kind: 'cut'
+      })
+      if (created) {
+        setSelectionAnchor(null)
+        setFloatingComposerOpen(false)
+        window.getSelection()?.removeAllRanges()
+      }
+      return
+    }
+    openFloatingComposer(kind)
   }
 
   const handleSaveSelectionComment = async () => {
@@ -362,9 +404,10 @@ export default function DevCommentsHost() {
   // Clamp floating popover & composer inside viewport
   const popoverPos = useMemo(() => {
     if (!selectionAnchor) return null
+    const halfWidth = 175
     const x = Math.min(
-      Math.max(selectionAnchor.rect.left + selectionAnchor.rect.width / 2, 90),
-      window.innerWidth - 90
+      Math.max(selectionAnchor.rect.left + selectionAnchor.rect.width / 2, halfWidth),
+      window.innerWidth - halfWidth
     )
     const y = Math.max(selectionAnchor.rect.top, 56)
     return { left: x, top: y }
@@ -401,13 +444,40 @@ export default function DevCommentsHost() {
         </button>
       )}
 
-      {/* Selection quick action popover */}
+      {/* Selection quick action toolbar: all 5 kinds directly on select */}
       {selectionAnchor && !floatingComposerOpen && popoverPos && (
-        <div className='devc-popover' style={popoverPos}>
-          <button type='button' className='devc-popover-btn' onClick={openFloatingComposer}>
-            <span>添加批注</span>
-            <span className='devc-popover-kbd'>⌘⇧M</span>
-          </button>
+        <div
+          className='devc-popover'
+          style={popoverPos}
+          onMouseDown={(e) => {
+            // Keep browser text selection visible when clicking toolbar buttons
+            e.preventDefault()
+          }}
+        >
+          <div className='devc-popover-bar' role='toolbar' aria-label='快速批注'>
+            <button
+              type='button'
+              className='devc-popover-action'
+              data-kind='cut'
+              title='直接标记删减，无需输入说明'
+              onClick={() => void handleQuickAction('cut')}
+            >
+              删减
+            </button>
+            <span className='devc-popover-divider' aria-hidden='true' />
+            {COMMENT_KINDS.filter((k) => k.value !== 'cut').map((k) => (
+              <button
+                key={k.value}
+                type='button'
+                className='devc-popover-action'
+                data-kind={k.value}
+                title={k.hint}
+                onClick={() => void handleQuickAction(k.value)}
+              >
+                {k.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -437,7 +507,7 @@ export default function DevCommentsHost() {
           <textarea
             ref={floatingInputRef}
             className='devc-textarea'
-            placeholder='写下你的修改意见…（⌘/Ctrl + Enter 保存）'
+            placeholder='写下修改意见（留空也可直接标记）… ⌘/Ctrl + Enter 保存'
             value={draftBody}
             onChange={(e) => setDraftBody(e.target.value)}
             onKeyDown={(e) => {
@@ -449,7 +519,7 @@ export default function DevCommentsHost() {
           />
 
           <div className='devc-form-foot'>
-            <span className='devc-hint'>存至 .dev-comments.json</span>
+            <span className='devc-hint'>留空也可保存</span>
             <div className='devc-footer-actions'>
               <button
                 type='button'
@@ -464,7 +534,7 @@ export default function DevCommentsHost() {
               <button
                 type='button'
                 className='devc-btn devc-btn-primary'
-                disabled={!draftBody.trim() || submitting}
+                disabled={submitting}
                 onClick={() => void handleSaveSelectionComment()}
               >
                 保存批注
@@ -615,7 +685,7 @@ export default function DevCommentsHost() {
             {visibleComments.length === 0 ? (
               <div className='devc-empty'>
                 <p>这里还没有批注。</p>
-                <p>在正文中直接用鼠标划选任意文字，就会弹出「添加批注」按钮。</p>
+                <p>在正文中划选任意文字，可直接一键点「删减」，或选其他标签写批注。</p>
               </div>
             ) : (
               visibleComments.map((comment) => {
@@ -703,7 +773,7 @@ export default function DevCommentsHost() {
                             <button
                               type='button'
                               className='devc-btn devc-btn-primary'
-                              disabled={!editBody.trim()}
+                              disabled={!comment.quote && !editBody.trim()}
                               onClick={() =>
                                 void handleUpdateComment(comment.id, {
                                   body: editBody,
@@ -718,7 +788,15 @@ export default function DevCommentsHost() {
                       </div>
                     ) : (
                       <>
-                        <p className='devc-card-body'>{comment.body}</p>
+                        {comment.body ? (
+                          <p className='devc-card-body'>{comment.body}</p>
+                        ) : (
+                          <p className='devc-card-body devc-hint'>
+                            {comment.kind === 'cut'
+                              ? '标记为删减（可点「编辑」补充原因）'
+                              : `已标记为「${COMMENT_KIND_LABELS[comment.kind]}」`}
+                          </p>
+                        )}
                         <div className='devc-card-actions'>
                           {comment.quote && (
                             <button

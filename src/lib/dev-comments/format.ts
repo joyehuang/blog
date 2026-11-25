@@ -40,7 +40,12 @@ export function formatCommentsAsMarkdown(
         const quoted = item.quote.replace(/\n+/g, ' ')
         lines.push(`   > 原文：${quoted}`)
       }
-      lines.push(`   - 批注：${item.body.replace(/\n/g, '\n     ')}`)
+      const noteText = item.body
+        ? item.body.replace(/\n/g, '\n     ')
+        : item.kind === 'cut'
+          ? '删除这段内容'
+          : `按「${tag}」处理此处`
+      lines.push(`   - 批注：${noteText}`)
       lines.push('')
     })
   }
