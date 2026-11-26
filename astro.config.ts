@@ -12,6 +12,7 @@ import remarkMath from 'remark-math'
 
 import { VENDOR as JOJO_VENDOR, prepareJojoWeb } from './scripts/jojo/jojo-web.mjs'
 import { buildSeo } from './scripts/seo/build.mjs'
+import { devCommentsIntegration } from './src/lib/dev-comments/middleware'
 import { sectionMetadata } from './src/lib/seo/metadata'
 // Others
 // import { visualizer } from 'rollup-plugin-visualizer'
@@ -114,7 +115,8 @@ export default defineConfig({
   // indexed and linked, so send them (and their link equity) to the new home.
   redirects: {
     '/archive': '/notes',
-    '/archive/0426-openharness-phase1-architecture-notes': '/blog/20260410---openharnessphase1/post',
+    '/archive/0426-openharness-phase1-architecture-notes':
+      '/blog/20260410---openharnessphase1/post',
     '/archive/[...id]': '/notes/[...id]',
     '/en/archive': '/en/notes',
     '/en/archive/[...id]': '/en/notes/[...id]'
@@ -146,6 +148,7 @@ export default defineConfig({
     // astro-pure will automatically add sitemap, mdx & unocss
     AstroPureIntegration(config),
     bilingualReadingTime(),
+    devCommentsIntegration(),
     react()
   ],
   // root: './my-project-directory',

@@ -95,3 +95,6 @@ bunfig.toml
 
 # private Jojo package (scripts/jojo/jojo-web.mjs) — never commit
 /vendor/
+
+# local dev-only inline review comments — never commit
+/.dev-comments.json
