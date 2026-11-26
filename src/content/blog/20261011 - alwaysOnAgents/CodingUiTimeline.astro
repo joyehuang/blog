@@ -11,20 +11,21 @@
  */
 import './figures.css'
 
+import { codingCopy, type FigLocale } from './copy'
 import RevealBoot from './RevealBoot.astro'
 
-const stages = [
-  { name: 'Tab 补全', desc: '按一下 Tab，补全这一行', ui: 1, model: 1 },
-  { name: '选中几行，弹出小对话框', desc: '只能改选中的这几行', ui: 2, model: 2 },
-  { name: '侧边栏 + 各种模式', desc: '先选 Ask、Plan 还是 Agent', ui: 4, model: 3 },
-  { name: '一个对话框', desc: '点进去直接说要做什么', ui: 1, model: 4 }
-]
+interface Props {
+  locale?: FigLocale
+}
+
+const { locale = 'zh' } = Astro.props
+const t = codingCopy(locale)
+const stages = t.stages
 ---
 
-<figure class='aoa-fig aoa-ui not-prose' data-aoa-ui>
+<figure class='aoa-fig aoa-ui not-prose' data-aoa-ui data-locale={locale}>
   <figcaption class='aoa-cap'>
-    <strong>图 4 · AI 写代码工具的界面：先变复杂，再回到一个对话框。</strong
-    >模型能力一直在涨，界面却在最后一步变简单了。
+    <strong>{t.captionStrong}</strong>{t.captionRest}
   </figcaption>
 
   <ol class='aoa-ui-row'>
@@ -45,7 +46,7 @@ const stages = [
             {i === 1 && (
               <>
                 <span class='aoa-ui-line' style='--w: 66%' />
-                <span class='aoa-ui-popup'>改成…</span>
+                <span class='aoa-ui-popup'>{t.popup}</span>
                 <span class='aoa-ui-line aoa-ui-sel' style='--w: 58%' />
                 <span class='aoa-ui-line' style='--w: 44%' />
               </>
@@ -68,7 +69,7 @@ const stages = [
             )}
             {i === 3 && (
               <div class='aoa-ui-center'>
-                <span class='aoa-ui-input'>要做什么？</span>
+                <span class='aoa-ui-input'>{t.prompt}</span>
               </div>
             )}
           </div>
@@ -79,7 +80,7 @@ const stages = [
 
           <dl class='aoa-ui-meters'>
             <div>
-              <dt id={`aoa-ui-${i}-complexity`}>界面复杂度</dt>
+              <dt id={`aoa-ui-${i}-complexity`}>{t.complexity}</dt>
               <dd>
                 <span
                   class='aoa-ui-meter'
@@ -95,7 +96,7 @@ const stages = [
               </dd>
             </div>
             <div>
-              <dt id={`aoa-ui-${i}-model`}>模型能力</dt>
+              <dt id={`aoa-ui-${i}-model`}>{t.model}</dt>
               <dd>
                 <span
                   class='aoa-ui-meter'
@@ -116,7 +117,7 @@ const stages = [
     }
   </ol>
 
-  <p class='aoa-note'>示意图。复杂度和能力是相对的比较，不是测量值。</p>
+  <p class='aoa-note'>{t.note}</p>
   <RevealBoot />
 </figure>
 
@@ -354,6 +355,21 @@ const stages = [
     .aoa-ui-row {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+  }
+
+  /* English meter labels don't fit the 4.6em column the Chinese labels were sized for. */
+  .aoa-ui[data-locale='en'] .aoa-ui-meters div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .aoa-ui[data-locale='en'] .aoa-ui-title,
+  .aoa-ui[data-locale='en'] .aoa-title {
+    font-size: 0.88rem;
+  }
+
+  .aoa-ui[data-locale='en'] .aoa-ui-input {
+    font-size: 0.62rem;
   }
 
   @media (prefers-reduced-motion: reduce) {

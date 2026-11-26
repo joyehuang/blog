@@ -11,84 +11,79 @@
  */
 import './figures.css'
 
+import { lifeCopy, type FigLocale } from './copy'
 import RevealBoot from './RevealBoot.astro'
+
+interface Props {
+  locale?: FigLocale
+}
+
+const { locale = 'zh' } = Astro.props
+const t = lifeCopy(locale)
 ---
 
-<figure class='aoa-fig aoa-life not-prose' data-aoa-life>
+<figure class='aoa-fig aoa-life not-prose' data-aoa-life data-locale={locale}>
   <figcaption class='aoa-cap'>
-    <strong>图 5 · 补偿层的价值先升后降。</strong
-    >横轴是时间，也是一代代的模型；补偿层的净价值在交叉点之后变成负数。
+    <strong>{t.captionStrong}</strong>{t.captionRest}
   </figcaption>
 
-  <svg
-    class='aoa-life-svg'
-    viewBox='0 0 600 330'
-    role='img'
-    aria-label='示意图：模型能力是一条持续上升的曲线；补偿层的净价值先上升，在模型较弱时让产品能用，之后下降，越过零线变成负数。'
-  >
-    <defs>
-      <clipPath id='aoa-life-wipe'>
-        <rect class='aoa-life-wipe' x='44' y='0' width='406' height='300'></rect>
-      </clipPath>
-      <clipPath id='aoa-life-above'>
-        <rect x='50' y='0' width='400' height='200'></rect>
-      </clipPath>
-      <clipPath id='aoa-life-below'>
-        <rect x='50' y='200' width='400' height='100'></rect>
-      </clipPath>
-    </defs>
+  <div class='aoa-life-frame'>
+    <svg class='aoa-life-svg' viewBox='0 0 600 330' role='img' aria-label={t.aria}>
+      <defs>
+        <clipPath id='aoa-life-wipe'>
+          <rect class='aoa-life-wipe' x='44' y='0' width='406' height='300'></rect>
+        </clipPath>
+        <clipPath id='aoa-life-above'>
+          <rect x='50' y='0' width='400' height='200'></rect>
+        </clipPath>
+        <clipPath id='aoa-life-below'>
+          <rect x='50' y='200' width='400' height='100'></rect>
+        </clipPath>
+      </defs>
 
-    <path class='aoa-life-axis' d='M50,25 L50,290 L470,290'></path>
-    <path class='aoa-life-zero' d='M50,200 L460,200'></path>
-    <text class='aoa-life-muted aoa-life-sm' x='465' y='204'>0</text>
+      <path class='aoa-life-axis' d='M50,25 L50,290 L470,290'></path>
+      <path class='aoa-life-zero' d='M50,200 L460,200'></path>
+      <text class='aoa-life-muted aoa-life-sm' x='465' y='204'>0</text>
 
-    <g clip-path='url(#aoa-life-wipe)'>
-      <g clip-path='url(#aoa-life-above)'>
-        <path class='aoa-life-gain' d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'
-        ></path>
+      <g clip-path='url(#aoa-life-wipe)'>
+        <g clip-path='url(#aoa-life-above)'>
+          <path
+            class='aoa-life-gain'
+            d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'></path>
+        </g>
+        <g clip-path='url(#aoa-life-below)'>
+          <path
+            class='aoa-life-loss'
+            d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'></path>
+        </g>
+        <path class='aoa-life-model' d='M50,255 C200,240 320,150 440,48'></path>
+        <path class='aoa-life-scaffold' d='M50,200 C100,120 160,95 210,130 S330,230 440,262'></path>
       </g>
-      <g clip-path='url(#aoa-life-below)'>
-        <path class='aoa-life-loss' d='M50,200 C100,120 160,95 210,130 S330,230 440,262 L440,200 Z'
-        ></path>
-      </g>
-      <path class='aoa-life-model' d='M50,255 C200,240 320,150 440,48'></path>
-      <path class='aoa-life-scaffold' d='M50,200 C100,120 160,95 210,130 S330,230 440,262'></path>
-    </g>
 
-    <g class='aoa-life-late' style='--at: 0.5s'>
-      <text class='aoa-life-sm' x='96' y='76'>① 模型弱的时候</text>
-      <text class='aoa-life-muted aoa-life-sm' x='96' y='99'>补偿层让产品能用</text>
-    </g>
+      {
+        t.groups.map((g) => (
+          <g class='aoa-life-late' style={`--at: ${g.at}`}>
+            {g.dot && <circle class='aoa-life-dot' cx={g.dot.cx} cy={g.dot.cy} r='5' />}
+            {g.labels.map((lb) => (
+              <text
+                class={lb.className}
+                x={lb.x}
+                y={lb.y}
+                text-anchor={lb.anchor}
+                font-weight={lb.weight}
+              >
+                {lb.text}
+              </text>
+            ))}
+          </g>
+        ))
+      }
 
-    <g class='aoa-life-late' style='--at: 1.05s'>
-      <circle class='aoa-life-dot' cx='307' cy='200' r='5'></circle>
-      <text class='aoa-life-accent aoa-life-sm' x='318' y='190' font-weight='600'
-        >② 交叉点：该删了</text
-      >
-    </g>
+      <text class='aoa-life-muted aoa-life-sm' x='470' y='310' text-anchor='end'>{t.axis}</text>
+    </svg>
+  </div>
 
-    <g class='aoa-life-late' style='--at: 1.45s'>
-      <text class='aoa-life-danger aoa-life-sm' x='300' y='256' text-anchor='end'>③ 变成负担</text>
-      <text class='aoa-life-muted aoa-life-sm' x='300' y='280' text-anchor='end'
-        >限制模型、冲突、占上下文、要维护</text
-      >
-    </g>
-
-    <g class='aoa-life-late' style='--at: 1.7s'>
-      <text class='aoa-life-md' x='450' y='50' font-weight='600'>模型能力</text>
-      <text class='aoa-life-md aoa-life-danger' x='450' y='254' font-weight='600'>补偿层</text>
-      <text class='aoa-life-sm aoa-life-muted' x='450' y='278'>的净价值</text>
-    </g>
-
-    <text class='aoa-life-muted aoa-life-sm' x='470' y='310' text-anchor='end'
-      >时间 / 模型代际 →</text
-    >
-  </svg>
-
-  <p class='aoa-note'>
-    概念示意图，不是实测数据。思路来自 Sutton 的 The Bitter Lesson、Hyung Won Chung
-    关于「结构多和结构少」的曲线，以及 Aaron Levie 说的「建脚手架、模型追上来、拆掉脚手架」。
-  </p>
+  <p class='aoa-note'>{t.note}</p>
   <RevealBoot />
 </figure>
 
@@ -99,12 +94,16 @@ import RevealBoot from './RevealBoot.astro'
 </script>
 
 <style>
+  .aoa-life-frame {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
   .aoa-life-svg {
     display: block;
     width: 100%;
-    max-width: 640px;
     height: auto;
-    margin: 0 auto;
   }
 
   .aoa-life-svg text {
@@ -211,6 +210,21 @@ import RevealBoot from './RevealBoot.astro'
     .aoa-life-md {
       font-size: 19px;
     }
+  }
+
+  /* English labels are longer. Size them in the chart's own coordinates so a
+     narrow screen does not blow the text up over the axes. 1.92cqw of the
+     600-wide viewBox is about 11.5 user units. */
+  .aoa-life[data-locale='en'] .aoa-life-frame {
+    container-type: inline-size;
+  }
+
+  .aoa-life[data-locale='en'] .aoa-life-sm {
+    font-size: 1.92cqw;
+  }
+
+  .aoa-life[data-locale='en'] .aoa-life-md {
+    font-size: 2.17cqw;
   }
 
   @media print {
