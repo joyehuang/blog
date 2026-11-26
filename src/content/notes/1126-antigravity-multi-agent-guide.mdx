@@ -1,6 +1,6 @@
 ---
-title: Antigravity 入门教程：搞懂内置多 Agent Skills 与 Swarm 底层
-description: 给刚上手 Google Antigravity（AGY）的新手写的个人经验分享：从 /migrate-agent-settings 一键迁移配置聊起，理清内置多 Agent Skills（Subagent、run-workflow、/boost、/swarm、/teamwork）怎么选，顺手拆解日常最常用的 /swarm 底层设计。
+title: Antigravity 入门教程：Swarm 为什么这么好用，以及内置多 Agent Skills 怎么选
+description: 给刚上手 Google Antigravity（AGY）的新手写的个人经验分享：从 /migrate-agent-settings 一键迁移和 Desktop 选型聊起，讲透为什么 Swarm 是最顺手的王牌模式，理清 /boost、/swarm、/teamwork 与 Side Chat（/btw）的实战用法，再拆解 Swarm 底层设计。
 date: 2026-11-26
 tags:
   - ai
@@ -27,17 +27,19 @@ import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
 
 最近看到很多新人第一次上手 Google 的 Antigravity（下面简称 AGY），干脆写一篇不完全、以个人使用心得和经验为主的入门分享贴，有写得不对的地方麻烦帮忙指出，感谢！
 
-如果你是第一次从别的工具切过来，其实 AGY 已经贴心地帮你把 onboarding 做好了——不用手动把以前的配置一个个重新搬一遍，直接在对话框里跑内置的 **`/migrate-agent-settings`** 就行。我翻过这个 Skill 的实现：它会自动扫描你电脑上原本装在 **Claude Code、Codex、Cursor、Gemini CLI** 里的 MCP Servers、Skills/Commands、Subagents 和 Rules，先列清单让你确认，再统一打包成**一个**独立的 Antigravity 插件，不会改原工具任何文件；以后不想要，直接关掉或删掉那个插件目录就能完整回滚。
+如果你是从别的工具切过来的，其实 AGY 已经贴心地帮你把 onboarding 做好了——不用手动把以前的配置一个个重新搬一遍，直接在对话框里跑内置的 **`/migrate-agent-settings`** 就行。我翻过这个 Skill 的实现：它会自动扫描你电脑上原本装在 **Claude Code、Codex、Cursor、Gemini CLI** 里的 MCP Servers、Skills/Commands、Subagents 和 Rules，先列清单让你确认，再统一打包成**一个**独立的 Antigravity 插件，不会改原工具任何文件；以后不想要，直接关掉或删掉那个插件目录就能完整回滚。
 
-配好环境真正开始用，最容易犯迷糊的往往是多 Agent 这块：平时聊着聊着，模型自己会派 Subagent 出去干活；斜杠命令里又并排摆着 `/boost`、`/swarm`、`/teamwork`；内置 Skill 里还藏着一个 `run-workflow`。光看介绍，感觉全都在说「多拉几个 agent 一起上」。
+顺带提一嘴一个挺抽象的坑：**AGY CLI 和 AGY Desktop 桌面端目前是不互通的**，配置和会话各自独立。我知道这听起来很离谱，但事实就是这样，所以入门我直接推荐用 **AGY Desktop**——省心，而且右侧的辅助面板（Swarm 看板、Side Chat、Artifacts）是桌面端体验最精华的部分。
 
-上半篇先聊聊这几个内置多 Agent Skill 各自怎么用、怎么选；下半篇顺着我平时最常用的 `/swarm`，把它的底层拆出来分享一下——我自己翻编排规范和插件源码学这段的时候也学到挺多东西，顺手记下来当一点小科普。
+真正用起来之后，AGY 最让我惊艳、也最拉开差距的能力其实是它的 **Swarm 模式**：开一个群让好几个独立会话分工协作、互相验收，还自带防卡死监控和右侧实时看板，用顺手之后几乎回不去单对话硬撸了。不过新手刚进门，往往会先在多 Agent 的一堆入口里犯迷糊——平时模型自己会派 Subagent，命令栏里又并排摆着 `/boost`、`/swarm`、`/teamwork`，内置 Skill 里还藏着 `run-workflow`。
+
+上半篇先聊聊这几个内置多 Agent Skill 各自怎么用、怎么选，顺手补充几条我的日常搭配和 Side Chat 心得；下半篇顺着我最常用的 `/swarm`，把它的底层拆出来分享一下——我自己翻编排规范和插件源码学这段的时候也学到挺多东西，顺手记下来当一点小科普。
 
 开始前顺带说一下角色称呼：`/boost`、`/swarm`、`/teamwork` 内部各自叫法都不一样，`/teamwork` 里甚至有一整套偏固定人格和分工的角色（`Sentinel`、`Critic`、`Auditor` 等），`/boost` 里又叫 `DeepCoder`、`DeepInvestigator`。不过抽出来看，大方向都可以归成两类——**一个是直接跟你对话的主 Agent，另一类是它派出去干活的各种 Subagent**。上半篇按这个大类聊，下半篇专门拆 `/swarm` 时再沿用 Swarm 自己的叫法（**Coordinator** 和 **Worker**）。
 
 ---
 
-## 上半篇：内置的多 Agent Skills 怎么选
+## 上半篇：内置的多 Agent Skills 怎么选，以及日常上手心得
 
 ### 1. 为什么看别人用 Swarm 起飞，我这边模型一次都没调过？
 
@@ -46,9 +48,11 @@ import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
 核心原因是：**这些能力在 AGY 里本质上都是内置 Skill，但分成了「手动挡」和「自动挡」两类。**
 
 - **手动挡（`/boost`、`/swarm`、`/teamwork`）**：这类 Skill 明确要求必须在输入框里由用户显式调用，模型不能擅自启动——毕竟多会话同时跑，额度消耗比单对话快得多。
-- **自动挡（普通 Subagent、`run-workflow`）**：交给 Agent 自己判断任务需不需要，按需决定要不要调用。比如主对话顺手派一个 Subagent 去翻代码、跑浏览器，或者把固定批量的活写成 `run-workflow` Python 脚本并发执行。
+- **自动挡（普通 Subagent、`run-workflow`、`/generative_ui` 等）**：交给 Agent 自己判断任务需不需要，按需决定要不要调用。比如主对话顺手派一个 Subagent 去翻代码、跑浏览器，把固定批量的活写成 `run-workflow` Python 脚本并发执行，或者调用 **`/generative_ui`** 直接在对话里画出可交互的 HTML 图表和小组件。
 
-不过说实话，AGY 本身不是一个很爱主动做决定的模型。在我自己的使用过程里，它主动调用 `run-workflow` 的次数屈指可数——如果你明确想让它写脚本并发扫一堆文件，直接提一嘴效果好得多。
+不过说实话，**AGY 本身不是一个很爱主动做决定的模型**。在我自己的使用过程里，它主动调用 `run-workflow` 的次数屈指可数，像 `/generative_ui` 这种本来也允许模型自己触发的好功能，它同样很少主动掏出来——很多隐藏能力都需要你自己去发掘、直接提一嘴，效果会好得多。
+
+顺着这个性格聊一句模型体感：Gemini 没有 GPT 有时候那种怎么讲都理解不了需求的拧巴，也没 Claude 那么善解人意，整体介于两者之间；但它有一个很独一无二的优点，就是**情绪价值给得很足**（当然部分人也会觉得它有点舔狗哈哈），起码和 Gemini 一起干活的心情，普遍比对着 GPT 顺心很多。
 
 ### 2. `/boost`、`/swarm`、`/teamwork` 怎么选：看深度、广度还是时长
 
@@ -56,11 +60,26 @@ import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
 
 <ProblemSpaceMap />
 
-- **`/boost` = 纵向打深，对抗式排查（难，拆不开）**。`/boost` 内部其实分两种模式（官方叫 **`DeepCoder`** 和 **`DeepInvestigator`**）：一个是直接动手改代码，另一个只负责追根因、不乱改，后面再接多轮 Improvement Workers 专门挑刺、试图推翻上一轮的结论。这让它特别适合那种偶发死锁、竞态条件或者藏得很深的疑难杂症。我自己最顺手的玩法是**只让 `/boost` 帮我找原因、定真 bug、把确定好的问题整理成清晰的 issue，先不让它修，再开 `/swarm` 并行把这些 issue 修掉**，排查够深、修起来够快，非常爽。
-- **`/swarm` = 横向铺开，日常最甜点的模式（宽，拆得开）**。大多数人在大多数场景下，无脑选 **Orchestration 模式 + Neon（Medium ~ xHigh）+ `/swarm`** 基本不会错。除了把能拆开的活并行铺开、配上 `@verifier` 验收之外，`/swarm` 还顺手治好了 AGY 一个挺烦人的问题——AGY 平时调普通 Subagent 或后台任务（background task）时，状态同步经常有 bug（在我常跑的 Neon 模型下很明显，Carbon 用得少不确定）：要么子任务其实做完了但主 Agent 一直不知道，要么早就卡死了主 Agent 还在干等。而 **`/swarm` 每次启动都会专门拉起一个 `monitor` Worker，定时检查所有 Worker 的健康状态**，谁卡住就自动叫醒 Coordinator，几乎把这种静默卡死彻底解决了。
-- **`/teamwork` = 既要深度又要广度，且运行半天以上的大项目**。官方定位是小时到天级的大型工程（仓库级迁移、大系统从零搭建等），上来先做需求访谈，再在独立目录里按里程碑推进，每关配 `Critic`、`Challenger`、`Auditor` 审核。纸面上很完美，但它内置的 Worker 搭配和流程非常固定，不一定适合所有人，而且前期光对齐需求就会花掉不少 token 和时间。如果你只是需求还没想清楚，我反而更推荐先用内置的 **`/grill-me`** 把需求聊透，再自己开 `/swarm` 干活——相比 `/teamwork` 固定的流水线，`/swarm` 的自由度高得多。
+- **`/boost` = 纵向打深，对抗式排查（难，拆不开）**。`/boost` 内部其实分两种模式（官方叫 **`DeepCoder`** 和 **`DeepInvestigator`**）：一个是直接动手改代码，另一个只负责追根因、不乱改，后面再接多轮 Improvement Workers 专门挑刺、试图推翻上一轮的结论。
+  - **典型例子**：偶发多线程死锁、缓存同步竞态、某个底层算法性能卡点，或者动一处牵全身的紧耦合重构。
+  - **我的用法**：我最顺手的玩法不是让 `/boost` 一条龙全包，而是**只让 `/boost` 帮我找原因、定真 bug、把确定好的问题整理成清晰的 issue，先不让它修，再开 `/swarm` 并行把这些 issue 修掉**，排查够深、修起来够快，非常爽。
+- **`/swarm` = 横向铺开，日常最甜点的模式（宽，拆得开）**。大多数人在大多数场景下，无脑选 **Orchestration 模式 + Neon（Medium ~ xHigh）+ `/swarm`** 基本不会错。
+  - **典型例子**：一个需求同时涉及前端几个组件 + 后端接口 + 补单测；或者同时改五个独立模块、批量修掉一串已确认的 bug、分三路并行做技术调研。
+  - **它顺手治好了 AGY 的一个老毛病**：AGY 平时调普通 Subagent 或后台任务（background task）时，状态同步经常有 bug（在我常跑的 Neon 模型下很明显，Carbon 用得少不确定）：要么子任务其实做完了但主 Agent 一直不知道，要么早就卡死了主 Agent 还在干等。而 **`/swarm` 每次启动都会专门拉起一个 `monitor` Worker，定时检查所有 Worker 的健康状态**，谁卡住就自动叫醒 Coordinator，几乎把这种静默卡死彻底解决了。
+  - **配合右侧 Swarm 面板体验最好**：发出 `/swarm` 后，点开回复里的入口就能在桌面端右侧拉起实时看板——花名册里谁在 `working`、谁在 `waiting`，留言板里谁刚 `@` 了谁，甚至整个协作关系图都一目了然。看到哪路跑偏了，直接在主对话插一句话就能实时纠偏，完全不像普通后台子任务那样像开盲盒。
+- **`/teamwork` = 既要深度又要广度，且运行半天以上的大项目**。官方定位是小时到天级的大型工程，上来先做需求访谈，再在独立目录里按里程碑推进，每关配 `Critic`、`Challenger`、`Auditor` 审核。
+  - **典型例子**：把整个服务的框架从 Express 迁到 Fastify（连带 TypeScript 类型、完整测试和压测），或者从零搭一个带仿真验证的大型子系统。
+  - **真实体验**：纸面上看很完美，但它内置的 Worker 搭配和流程非常固定，不一定适合所有人，而且前期光对齐需求就会花掉不少 token 和时间。如果你只是需求还没想清楚，我反而更推荐先用内置的 **`/grill-me`** 把需求聊透，再自己开 `/swarm` 干活——相比 `/teamwork` 固定的流水线，`/swarm` 的自由度高得多。
 
 _(想查官方原始说明可以直接看文档：[Boost](https://antigravity.google/docs/boost)、[Swarm](https://antigravity.google/docs/swarm)、[Teamwork](https://antigravity.google/docs/teamwork)。)_
+
+### 3. 几条个人日常使用小心得（仅供参考）
+
+下面这几条没有标准答案，纯属我自己磨出来的顺手习惯：
+
+- **模型选择**：我日常基本全程用 **Neon**，Carbon 很少开。主力干活就 `Orchestration + Neon Medium ~ xHigh`，跑得稳、配合 Swarm 体感最好。
+- **强烈安利右侧的 Side Chat（`/btw`）**：在别的产品里类似的旁白功能叫 `btw`，AGY 桌面端右侧的 **Side Chat** 做得非常到位。它不是一个只能干聊的纯 chat 窗口，而是把当前主对话历史完整 fork 过去，**照样能调用工具读文件、搜代码库、查证细节**，同时完全不打断主线程干活，也不把旁路讨论塞进主对话污染上下文；聊明白之后，还能在文末直接把结论发回给主 Agent 接着用。我自己很喜欢主对话跑重任务时，右侧 Side Chat 开个 **Neon Low / Medium**，专门用来深挖和讨论主对话里的内容，便宜又顺手。
+- **善用桌面端右侧辅助面板**：把 **Swarm 实时看板**、**Side Chat（`/btw`）** 和 **Artifact / Generative UI 预览** 放在一起看，就能理解为什么开头推荐 AGY Desktop——主对话只管发号施令和拍板，看进度、查细节、审文档全放在右侧旁路，节奏清爽很多。
 
 ---
 
@@ -68,7 +87,7 @@ _(想查官方原始说明可以直接看文档：[Boost](https://antigravity.go
 
 下面这一半专门拆 `/swarm`，后面统一沿用 Swarm 自己的两个角色名：**Coordinator**（你正在对话的主 Agent）和 **Worker**（Coordinator 派出去的独立会话）。
 
-### 3. 总体结构：Coordinator 和 Worker 靠一块留言板沟通
+### 4. 总体结构：Coordinator 和 Worker 靠一块留言板沟通
 
 在 Swarm 里，Worker 从不直接跟用户说话，彼此之间也不私聊传大段文字。Coordinator 和所有 Worker 共同读写一块存在主会话目录下的共享留言板（`.system_generated/swarm/`）：
 
@@ -79,7 +98,7 @@ _(想查官方原始说明可以直接看文档：[Boost](https://antigravity.go
 - **`board.jsonl` 只追加不修改，每条消息都有递增编号（`#1`、`#2`…）**。Worker 之间交接时只报编号（比如 `@verifier 检查 #4 和 #6`、`@parser 对齐 #8 的接口`），不把前一个 Worker 的长报告复制粘贴进下一条消息。这样窗口不会越滚越胖，谁需要细节，按编号去翻就行。
 - **每个 Worker 的任务说明（`brief`）公开贴在留言板上**。`swarm add` 新建一个 Worker 时，会同步把它的任务要求以 `@worker <brief>` 发到板上，并作为第一条消息交给它。之后不管是谁来验收，还是 Coordinator 经历过上下文压缩，往上翻留言板就能看清当初怎么分的工。
 
-### 4. Coordinator 不亲自干活，全靠四个工具调度
+### 5. Coordinator 不亲自干活，全靠四个工具调度
 
 Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不写代码、不跑长命令、不做重调研。原因很现实——一旦 Coordinator 自己钻进某个 bug 里改半小时代码，就没人给闲着的 Worker 派活、也没人及时回你的消息，整个团队会悄悄停下来。这和 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 坚持让 Router 只派活、不执行任务是同一个道理。
 
@@ -94,7 +113,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 这里面 **`swarm_wait` 是省钱的关键**。没活干的 Worker 不是在后台傻傻轮询 `read_board`，而是直接休眠挂起——**休眠期间零 token 消耗**。所以规范里特意提醒，别把 `kill` 当暂停用：闲置的 Worker 放着不花钱，只有确定再也用不上、或者它陷入死循环时，才把它永久关掉。
 
-### 5. `@mention` 是门铃，不是抄送
+### 6. `@mention` 是门铃，不是抄送
 
 很多人担心多 Agent 建群会互相回复、很快把 token 烧光。Swarm 的办法很直接：**默认谁也不搭理谁，大家都在留言板上睡觉，只有被点名才会醒。**
 
@@ -105,7 +124,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 <MentionWakeup />
 
-### 6. 新 Worker 怎么接上下文，多人改代码怎么防冲突
+### 7. 新 Worker 怎么接上下文，多人改代码怎么防冲突
 
 让多个 Worker 并发改同一个代码库，最容易踩两个坑：新拉出来的 Worker 什么背景都不知道，容易靠猜瞎写；两个 Worker 同时改同一个文件，互相把代码冲掉。Swarm 在 `swarm add` 里直接给了两个参数：
 
@@ -121,7 +140,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 改代码的 Worker 都在各自目录里提交改动，验完后再合并或 cherry-pick 回主目录。注意一定要**先合并再 `kill`**——因为 `kill` 会顺手删掉它的独立工作目录，没合进去的代码会跟着一起没掉。
 
-### 7. 长任务的三个兜底：切模型、防卡死、写总览
+### 8. 长任务的三个兜底：切模型、防卡死、写总览
 
 团队跑久了，总会碰到三种烦心事：某个模型额度用光了、全员不知怎么突然安静卡死了，或者留言板刷了几十条人已经看不过来。Swarm 准备了三个兜底机制：
 
@@ -129,7 +148,7 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 2. **Monitor（防卡死哨兵）**。也就是前面提到的关键角色：它靠后台定时器定期看全员动态，一旦发现大家集体安静、或者有人卡在报错步骤半天没动静，就往留言板发一条 `@coordinator [stall]` 并附上相关消息编号，把 Coordinator 叫醒救场。这和 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 在主循环外面挂 Watchdog 是一样的想法。
 3. **Narrator（替你看全局的总览员）**。另一类系统 Worker 叫 `narrator`，不参与业务讨论，专门盯着留言板，把零散进展整理成总览文件（`view.json` / `view.html`）给右侧看板展示，你对看板提的意见也会转给它来调整。
 
-### 8. 右侧看板：一个只看不改的独立进程
+### 9. 右侧看板：一个只看不改的独立进程
 
 你在 AGY 右侧看到的 Swarm 实时看板，并不是主程序硬写死的状态同步，而是由内置插件拉起的一个独立 **Node.js 后台进程（Sidecar）**，代码就在本机 `~/.gemini/antigravity/builtin/plugins/swarm/sidecars/swarm_board/`。
 
@@ -139,11 +158,11 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 - **自动标异常**：除了花名册本身的状态，看板还会看每个 Worker 的日志有没有长时间停滞（超过 10 分钟没动静标成 `stuck`）、最后一步报错是不是停留超过 60 秒，并用正则识别 429 额度报错直接亮在界面上。
 - **预留了远程看板**：如果目录下只有 `swarm.json` 锚点而不是本地 `board.jsonl`，看板会切到 CLI 查看模式，把多台机器上的远程 Swarm 状态聚到同一个界面里看。
 
-### 9. 放到更大的版图里看
+### 10. 放到更大的版图里看
 
 把 AGY 这套多 Agent 工具，和之前记过的 [DeepSeek Super-agent](/notes/1126-deepseek-super-agent) 以及 [Agent Routing](/notes/0426-agent-routing-multi-agent-cost-control) 放一块看，边界会更清楚：
 
 - **AGY 的这些内置 Skill**，解决的都是**人主动发起的一次任务**——从随手查资料（Subagent）、固定批量跑（`run-workflow`）、对抗式深挖（`/boost`）、自由并行铺开（`/swarm`）到长周期大项目（`/teamwork`）。
 - **DeepSeek Super-agent** 瞄准的是另一头：**人不在电脑前时，24 小时盯着 IM、GitHub、CI 和邮件的常驻系统**（在 AGY 里最接近这个方向的，是配合定时 Sidecar 跑的 `/automation`）。
 
-我自己现在的日常组合其实很固定：想不清需求先 `/grill-me`，疑难排查用 `/boost` 只找根因提 issue，日常干活和修 bug 无脑 `Orchestration + Neon + /swarm`，够自由也够稳。
+我自己现在的日常组合其实很固定：想不清需求先 `/grill-me`，疑难排查用 `/boost` 只找根因提 issue，主对话开 `Orchestration + Neon + /swarm` 并行推进，旁边挂个 `Neon Low/Med` 的 Side Chat 随时拆细节，够自由也够稳。
