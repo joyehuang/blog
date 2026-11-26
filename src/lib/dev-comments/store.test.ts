@@ -85,9 +85,19 @@ describe('dev-comments store', () => {
     expect(store.list().map((item) => item.id)).toEqual([c.id])
   })
 
-  test('replaceAll restores exact snapshots for undo and redo', () => {
+  test('replaceAll restores exact snapshots including updatedQuote and resolution', () => {
     const store = createFileStore(filePath)
-    const first = store.create({ path: '/notes/a', quote: '删掉这句', body: '', kind: 'cut' })
+    const first = store.create({
+      path: '/notes/a',
+      quote: '旧文案',
+      body: '改短一点',
+      kind: 'rewrite'
+    })
+    store.update(first.id, {
+      status: 'resolved',
+      updatedQuote: '更直接的新文案',
+      resolution: '按批注改短'
+    })
     const snapshot = store.list()
 
     store.remove(first.id)
@@ -96,7 +106,8 @@ describe('dev-comments store', () => {
     const restored = store.replaceAll(snapshot)
     expect(restored).toHaveLength(1)
     expect(restored[0]!.id).toBe(first.id)
-    expect(restored[0]!.createdAt).toBe(first.createdAt)
+    expect(restored[0]!.updatedQuote).toBe('更直接的新文案')
+    expect(restored[0]!.resolution).toBe('按批注改短')
     expect(createFileStore(filePath).list()).toEqual(snapshot)
   })
 
@@ -143,11 +154,12 @@ describe('dev-comments store', () => {
 
     const md = formatCommentsAsMarkdown(store.list(), { onlyOpen: true })
     expect(md).toContain('## 页面：`/notes/demo`')
-    expect(md).toContain('**[改文案]** · 位于「要点整理」')
+    expect(md).toContain(`**[改文案]** \`#${openItem.id}\` · 位于「要点整理」`)
     expect(md).toContain('> 原文：过于抽象的一句话')
     expect(md).toContain('- 批注：换成具体例子')
-    expect(md).toContain('**[删减]** · 位于「要点整理」')
+    expect(md).toContain('**[删减]**')
     expect(md).toContain('- 批注：删除这段内容')
+    expect(md).toContain('updatedQuote')
     expect(md).not.toContain('已经改完了')
     expect(openItem.status).toBe('open')
   })

@@ -35,7 +35,7 @@ export function formatCommentsAsMarkdown(
       const tag = COMMENT_KIND_LABELS[item.kind] ?? item.kind
       const statusSuffix = item.status === 'resolved' ? '（已解决）' : ''
       const headingPart = item.heading ? ` · 位于「${item.heading}」` : ''
-      lines.push(`${index + 1}. **[${tag}]**${headingPart}${statusSuffix}`)
+      lines.push(`${index + 1}. **[${tag}]** \`#${item.id}\`${headingPart}${statusSuffix}`)
       if (item.quote) {
         const quoted = item.quote.replace(/\n+/g, ' ')
         lines.push(`   > 原文：${quoted}`)
@@ -49,6 +49,10 @@ export function formatCommentsAsMarkdown(
       lines.push('')
     })
   }
+
+  lines.push(
+    '> 修改完成后，请顺手更新 `.dev-comments.json` 中对应 `id` 的条目：将 `status` 设为 `"resolved"`，把改后的新原文片段填进 `updatedQuote`（页面会自动绿底高亮标出改动位置），并用一句话在 `resolution` 里说明改了什么。'
+  )
 
   return lines.join('\n').trim()
 }

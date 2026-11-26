@@ -49,10 +49,28 @@ mark.devc-mark[data-devc-status='resolved'] {
   text-decoration: none;
 }
 
+/* Agent-modified diff highlight (emerald tint, crisp underline) */
+mark.devc-mark[data-devc-diff='true'] {
+  background: hsl(152 68% 44% / 0.18);
+  border-bottom: 2px solid hsl(152 62% 38% / 0.85);
+  text-decoration: none;
+}
+
+.dark mark.devc-mark[data-devc-diff='true'] {
+  background: hsl(152 65% 48% / 0.22);
+  border-bottom-color: hsl(152 70% 56% / 0.85);
+}
+
 mark.devc-mark[data-devc-active='true'],
 mark.devc-mark:hover {
   background: hsl(var(--primary) / 0.28);
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.25);
+}
+
+mark.devc-mark[data-devc-diff='true'][data-devc-active='true'],
+mark.devc-mark[data-devc-diff='true']:hover {
+  background: hsl(152 68% 44% / 0.3);
+  box-shadow: 0 0 0 2px hsl(152 62% 40% / 0.3);
 }
 
 @keyframes devc-pulse {
@@ -76,12 +94,18 @@ mark.devc-mark.devc-mark-draft {
   border-bottom-width: 2px;
 }
 
-/* Floating trigger pill (top-right, below header) */
-.devc-fab {
+.devc-fab-group {
   position: fixed;
   top: 4.75rem;
   right: 1rem;
   z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* Floating trigger pill (top-right, below header) */
+.devc-fab {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -101,6 +125,35 @@ mark.devc-mark.devc-mark-draft {
     border-color 0.18s ease,
     transform 0.18s ease,
     box-shadow 0.18s ease;
+}
+
+.devc-fab-diff {
+  border-color: hsl(152 60% 40% / 0.5);
+}
+
+.devc-fab-diff[data-active='true'] {
+  background: hsl(152 65% 44% / 0.14);
+  border-color: hsl(152 62% 38% / 0.85);
+}
+
+.devc-fab-dot-diff {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: hsl(152 62% 40%);
+}
+
+.devc-fab-count-diff {
+  padding: 0.08rem 0.42rem;
+  border-radius: 999px;
+  background: hsl(152 62% 40% / 0.16);
+  color: hsl(152 58% 30%);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.dark .devc-fab-count-diff {
+  color: hsl(152 70% 68%);
 }
 
 .devc-fab:hover {
@@ -404,6 +457,25 @@ mark.devc-mark.devc-mark-draft {
   max-height: 4.8rem;
   overflow-y: auto;
   word-break: break-word;
+}
+
+.devc-quote-diff {
+  border-left-color: hsl(152 62% 38% / 0.85);
+  background: hsl(152 65% 44% / 0.1);
+}
+
+.devc-resolution {
+  margin: 0 0 0.45rem;
+  padding: 0.34rem 0.55rem;
+  border-radius: 6px;
+  background: hsl(152 65% 44% / 0.12);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: hsl(152 55% 26%);
+}
+
+.dark .devc-resolution {
+  color: hsl(152 68% 74%);
 }
 
 .devc-heading-hint {

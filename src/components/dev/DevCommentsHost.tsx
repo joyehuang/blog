@@ -60,6 +60,7 @@ export default function DevCommentsHost() {
   const [toast, setToast] = useState<{ message: string; canUndo?: boolean } | null>(null)
   const [undoCount, setUndoCount] = useState(0)
   const [redoCount, setRedoCount] = useState(0)
+  const [showResolvedDiffs, setShowResolvedDiffs] = useState(true)
 
   // Selection popover & floating composer state
   const [selectionAnchor, setSelectionAnchor] = useState<SelectionAnchor | null>(null)
@@ -90,6 +91,7 @@ export default function DevCommentsHost() {
 
   useEffect(() => {
     allCommentsRef.current = allComments
+    lastSyncedJsonRef.current = JSON.stringify(allComments)
   }, [allComments])
 
   const showToast = useCallback((message: string, canUndo = false) => {
@@ -179,25 +181,49 @@ export default function DevCommentsHost() {
     }
   }, [restoreSnapshot, showToast])
 
+  const lastSyncedJsonRef = useRef<string>('')
+
   const fetchComments = useCallback(async () => {
     try {
       const res = await fetch('/__dev/comments', { cache: 'no-store' })
       if (!res.ok) return
       const data = (await res.json()) as { comments?: DevComment[] }
-      setAllComments(Array.isArray(data.comments) ? data.comments : [])
+      const next = Array.isArray(data.comments) ? data.comments : []
+      const serialized = JSON.stringify(next)
+      if (serialized === lastSyncedJsonRef.current) return
+      lastSyncedJsonRef.current = serialized
+      setAllComments(next)
     } catch {
       // Dev server temporarily restarting
     }
   }, [])
 
+  // Keep synced with external edits to `.dev-comments.json` (e.g. an AI agent
+  // marking comments resolved + filling `updatedQuote`) without manual F5.
   useEffect(() => {
     void fetchComments()
     const syncPath = () => setPathname(normalizePath(window.location.pathname))
+    const syncOnFocus = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchComments()
+      }
+    }
+    const interval = window.setInterval(() => {
+      if (!document.hidden && !historyBusyRef.current) {
+        void fetchComments()
+      }
+    }, 2500)
+
     window.addEventListener('popstate', syncPath)
     document.addEventListener('astro:page-load', syncPath)
+    window.addEventListener('focus', syncOnFocus)
+    document.addEventListener('visibilitychange', syncOnFocus)
     return () => {
+      window.clearInterval(interval)
       window.removeEventListener('popstate', syncPath)
       document.removeEventListener('astro:page-load', syncPath)
+      window.removeEventListener('focus', syncOnFocus)
+      document.removeEventListener('visibilitychange', syncOnFocus)
     }
   }, [fetchComments])
 
@@ -208,6 +234,15 @@ export default function DevCommentsHost() {
 
   const pageOpenCount = useMemo(
     () => pageComments.filter((c) => c.status === 'open').length,
+    [pageComments]
+  )
+
+  const pageDiffCount = useMemo(
+    () =>
+      pageComments.filter(
+        (c) =>
+          c.status === 'resolved' && Boolean(c.updatedQuote && c.updatedQuote.trim().length >= 2)
+      ).length,
     [pageComments]
   )
 
@@ -227,19 +262,25 @@ export default function DevCommentsHost() {
   // Apply & sync in-article highlights whenever current page's comments change
   useEffect(() => {
     const root = getAnnotationRoot()
-    applyHighlights(root, pageComments, activeId, (id) => {
-      setActiveId(id)
-      setScope('page')
-      const target = pageComments.find((c) => c.id === id)
-      if (target && statusFilter !== 'all' && statusFilter !== target.status) {
-        setStatusFilter('all')
-      }
-      setDrawerOpen(true)
-    })
+    applyHighlights(
+      root,
+      pageComments,
+      activeId,
+      (id) => {
+        setActiveId(id)
+        setScope('page')
+        const target = pageComments.find((c) => c.id === id)
+        if (target && statusFilter !== 'all' && statusFilter !== target.status) {
+          setStatusFilter(target.status)
+        }
+        setDrawerOpen(true)
+      },
+      { showResolvedDiffs }
+    )
     return () => {
       clearHighlights(root)
     }
-  }, [pageComments, activeId, statusFilter])
+  }, [pageComments, activeId, statusFilter, showResolvedDiffs])
 
   // Keep a live visual highlight on the selected text while the floating composer is open,
   // so focusing the textarea never makes the user lose sight of what they selected.
@@ -580,18 +621,33 @@ export default function DevCommentsHost() {
 
   return (
     <div data-dev-comments-ui='true'>
-      {/* Floating trigger pill */}
+      {/* Floating trigger pills */}
       {!drawerOpen && (
-        <button
-          type='button'
-          className='devc-fab'
-          onClick={() => setDrawerOpen(true)}
-          title='打开本地批注面板（快捷键 ⌘⇧M / Ctrl+Shift+M）'
-        >
-          <span className='devc-fab-dot' aria-hidden='true' />
-          <span>批注</span>
-          <span className='devc-fab-count'>{pageOpenCount}</span>
-        </button>
+        <div className='devc-fab-group'>
+          {pageDiffCount > 0 && (
+            <button
+              type='button'
+              className='devc-fab devc-fab-diff'
+              data-active={showResolvedDiffs}
+              onClick={() => setShowResolvedDiffs((v) => !v)}
+              title={showResolvedDiffs ? '点击隐藏 Agent 改动高亮' : '点击显示 Agent 改动高亮'}
+            >
+              <span className='devc-fab-dot-diff' aria-hidden='true' />
+              <span>{showResolvedDiffs ? '改动高亮开' : '改动高亮关'}</span>
+              <span className='devc-fab-count-diff'>{pageDiffCount}</span>
+            </button>
+          )}
+          <button
+            type='button'
+            className='devc-fab'
+            onClick={() => setDrawerOpen(true)}
+            title='打开本地批注面板（快捷键 ⌘⇧M / Ctrl+Shift+M）'
+          >
+            <span className='devc-fab-dot' aria-hidden='true' />
+            <span>批注</span>
+            <span className='devc-fab-count'>{pageOpenCount}</span>
+          </button>
+        </div>
       )}
 
       {/* Selection quick action toolbar: all 5 kinds directly on select */}
@@ -881,8 +937,27 @@ export default function DevCommentsHost() {
                         title='点击定位到原文高亮'
                         onClick={() => handleLocate(comment)}
                       >
-                        <blockquote className='devc-quote'>{comment.quote}</blockquote>
+                        <blockquote className='devc-quote'>
+                          {comment.updatedQuote ? `改前：${comment.quote}` : comment.quote}
+                        </blockquote>
                       </button>
+                    )}
+
+                    {comment.updatedQuote && (
+                      <button
+                        type='button'
+                        className='devc-card-quote-btn'
+                        title='点击定位到修改后的绿底高亮'
+                        onClick={() => handleLocate(comment)}
+                      >
+                        <blockquote className='devc-quote devc-quote-diff'>
+                          改后：{comment.updatedQuote}
+                        </blockquote>
+                      </button>
+                    )}
+
+                    {comment.resolution && (
+                      <p className='devc-resolution'>已修改：{comment.resolution}</p>
                     )}
 
                     {isEditing ? (

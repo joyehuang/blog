@@ -11,6 +11,8 @@ export interface DevComment {
   body: string
   kind: CommentKind
   status: CommentStatus
+  updatedQuote?: string
+  resolution?: string
   createdAt: string
   updatedAt: string
 }
@@ -29,6 +31,8 @@ export interface UpdateDevCommentInput {
   body?: string
   kind?: CommentKind
   status?: CommentStatus
+  updatedQuote?: string
+  resolution?: string
 }
 
 export const COMMENT_KINDS: ReadonlyArray<{

@@ -21,8 +21,8 @@ const SKIP_TAGS = new Set([
 
 export function getAnnotationRoot(): HTMLElement {
   return (
-    document.querySelector<HTMLElement>('#content') ??
     document.querySelector<HTMLElement>('article') ??
+    document.querySelector<HTMLElement>('#content') ??
     document.querySelector<HTMLElement>('main') ??
     document.body
   )
@@ -199,20 +199,60 @@ export function applyHighlights(
   root: HTMLElement,
   comments: DevComment[],
   activeId: string | null,
-  onSelect: (id: string) => void
+  onSelect: (id: string) => void,
+  options: { showResolvedDiffs?: boolean } = {}
 ): void {
+  const { showResolvedDiffs = true } = options
   clearHighlights(root)
 
-  const quotedComments = comments.filter((c) => c.quote.length >= 2)
-  if (quotedComments.length === 0) return
+  // Open comments highlight their original `quote`; resolved comments with
+  // `updatedQuote` highlight the Agent's new text in green diff style.
+  const targets = comments
+    .map((comment) => {
+      if (comment.status === 'resolved') {
+        if (!showResolvedDiffs) return null
+        const diffText = (comment.updatedQuote ?? '').trim()
+        if (diffText.length >= 2) {
+          return {
+            comment,
+            search: diffText,
+            prefix: '',
+            suffix: '',
+            isDiff: true
+          }
+        }
+        if (comment.quote.length >= 2) {
+          return {
+            comment,
+            search: comment.quote,
+            prefix: comment.prefix,
+            suffix: comment.suffix,
+            isDiff: false
+          }
+        }
+        return null
+      }
+      if (comment.quote.length < 2) return null
+      return {
+        comment,
+        search: comment.quote,
+        prefix: comment.prefix,
+        suffix: comment.suffix,
+        isDiff: false
+      }
+    })
+    .filter((t): t is NonNullable<typeof t> => t !== null)
+
+  if (targets.length === 0) return
 
   // Apply one by one; re-collecting segments keeps offsets exact even when
   // earlier marks split text nodes inside the same paragraph.
-  for (const comment of quotedComments) {
+  for (const target of targets) {
+    const { comment, search, prefix, suffix, isDiff } = target
     const { text, segments } = collectTextSegments(root)
-    const matchStart = findBestMatchIndex(text, comment.quote, comment.prefix, comment.suffix)
+    const matchStart = findBestMatchIndex(text, search, prefix, suffix)
     if (matchStart === -1) continue
-    const matchEnd = matchStart + comment.quote.length
+    const matchEnd = matchStart + search.length
 
     // Collect overlapping segments and wrap in reverse order so earlier splits stay valid
     const overlapping = segments.filter((seg) => seg.end > matchStart && seg.start < matchEnd)
@@ -237,10 +277,15 @@ export function applyHighlights(
         mark.dataset.devcId = comment.id
         mark.dataset.devcKind = comment.kind
         mark.dataset.devcStatus = comment.status
+        if (isDiff) {
+          mark.dataset.devcDiff = 'true'
+        }
         if (activeId === comment.id) {
           mark.dataset.devcActive = 'true'
         }
-        mark.title = comment.body
+        mark.title = isDiff
+          ? `已按批注修改：${comment.resolution || comment.body || '查看改动详情'}`
+          : comment.body
         mark.addEventListener('click', (event) => {
           event.stopPropagation()
           onSelect(comment.id)

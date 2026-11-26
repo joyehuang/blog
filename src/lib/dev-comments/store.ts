@@ -68,6 +68,12 @@ export function validateUpdateInput(input: unknown): UpdateDevCommentInput {
     }
     patch.status = obj.status as CommentStatus
   }
+  if ('updatedQuote' in obj) {
+    patch.updatedQuote = clampString(obj.updatedQuote, 2000)
+  }
+  if ('resolution' in obj) {
+    patch.resolution = clampString(obj.resolution, 2000)
+  }
 
   if (Object.keys(patch).length === 0) {
     throw new Error('No valid fields to update')
@@ -199,6 +205,12 @@ export function createFileStore(filePath: string) {
           body: clampString(obj.body, 8000),
           kind: VALID_KINDS.has(kindRaw) ? kindRaw : 'rewrite',
           status: VALID_STATUSES.has(statusRaw) ? statusRaw : 'open',
+          ...(typeof obj.updatedQuote === 'string' && obj.updatedQuote.trim()
+            ? { updatedQuote: clampString(obj.updatedQuote, 2000) }
+            : {}),
+          ...(typeof obj.resolution === 'string' && obj.resolution.trim()
+            ? { resolution: clampString(obj.resolution, 2000) }
+            : {}),
           createdAt: typeof obj.createdAt === 'string' ? obj.createdAt : now,
           updatedAt: typeof obj.updatedAt === 'string' ? obj.updatedAt : now
         })
