@@ -1,0 +1,332 @@
+---
+/**
+ * 2D 选型坐标图：横轴是问题广度（能不能拆成多块并行），纵轴是单点深度（要不要多轮对抗深挖），
+ * 右上角叠加上「运行半天以上」的时间维度。纯空间直觉图，不重复正文大段说明。
+ */
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+
+const nodes = [
+  {
+    id: 'boost',
+    name: '/boost',
+    tag: '深 · 拆不开',
+    time: '秒 ~ 小时',
+    x: 24,
+    y: 22,
+    tone: 'neutral'
+  },
+  {
+    id: 'teamwork',
+    name: '/teamwork',
+    tag: '又深又宽 · 长周期',
+    time: '半天 ~ 数天',
+    x: 78,
+    y: 25,
+    tone: 'neutral'
+  },
+  {
+    id: 'swarm',
+    name: '/swarm',
+    tag: '日常甜点区 · 自由并行',
+    time: '分钟 ~ 小时',
+    x: 75,
+    y: 54,
+    tone: 'accent'
+  },
+  {
+    id: 'subagent',
+    name: 'Subagent',
+    tag: '顺手小支线',
+    time: '秒 ~ 分钟',
+    x: 22,
+    y: 78,
+    tone: 'soft'
+  },
+  {
+    id: 'workflow',
+    name: 'run-workflow',
+    tag: '固定步骤批量跑',
+    time: '分钟级',
+    x: 68,
+    y: 84,
+    tone: 'soft'
+  }
+]
+---
+
+<figure class='aoa-fig swm-map not-prose' data-swm-map>
+  <figcaption class='aoa-cap'>
+    <strong>图 1 · 按「深度 × 广度 × 时长」看五种内置方式各自落在哪。</strong>
+    往上是把一个点挖深，往右是把面铺开并行；两头都要且要跑半天以上，才落到右上角。
+  </figcaption>
+
+  <div class='swm-plane-wrap aoa-rv' style='--i: 0'>
+    <span class='swm-axis-y-label' aria-hidden='true'>单点深度（难 / 拆不开）↑</span>
+
+    <div
+      class='swm-plane'
+      role='img'
+      aria-label='按深度与广度分布的 Antigravity 多 Agent 选型坐标图'
+    >
+      <div class='swm-quad swm-q-tl'><span>纵向深挖</span></div>
+      <div class='swm-quad swm-q-tr'><span>深 + 宽 + 半天以上</span></div>
+      <div class='swm-quad swm-q-bl'><span>日常轻量</span></div>
+      <div class='swm-quad swm-q-br'><span>横向铺开</span></div>
+
+      <span class='swm-grid-x' aria-hidden='true'></span>
+      <span class='swm-grid-y' aria-hidden='true'></span>
+
+      {
+        nodes.map((n, i) => (
+          <div
+            class:list={['swm-pin', `swm-pin-${n.tone}`, 'aoa-rv']}
+            style={`--x: ${n.x}%; --y: ${n.y}%; --i: ${i + 1}`}
+          >
+            <div class='swm-pin-top'>
+              <span class='swm-pin-name'>{n.name}</span>
+              <span class='swm-pin-time'>{n.time}</span>
+            </div>
+            <span class='swm-pin-tag'>{n.tag}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class='swm-axis-x-row' aria-hidden='true'>
+      <span>单点聚焦</span>
+      <span class='swm-axis-x-label'>任务广度（可并行拆分）→</span>
+    </div>
+  </div>
+
+  {/* 窄屏兜底：自动切为紧凑列表，不互相遮挡 */}
+  <ol class='swm-map-mobile'>
+    {
+      nodes.map((n) => (
+        <li class:list={['aoa-card', 'swm-mob-item', n.tone === 'accent' && 'aoa-card-accent']}>
+          <div class='swm-pin-top'>
+            <span class='swm-pin-name'>{n.name}</span>
+            <span class='swm-pin-time'>{n.time}</span>
+          </div>
+          <span class='swm-pin-tag'>{n.tag}</span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p class='aoa-note'>
+    青色高亮是日常最顺手的甜点区（<code>/swarm</code>）；虚线框（Subagent、<code>run-workflow</code
+    >）属于自动挡，其余三个需手动敲命令触发。
+  </p>
+  <p class='aoa-sr'>
+    二维坐标图：左下是日常轻量的 Subagent，右下是固定批量跑的 run-workflow，左上是纵向深挖的
+    /boost，右中是日常甜点区 /swarm，右上是深且宽、耗时半天以上的 /teamwork。
+  </p>
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-swm-map]', undefined, 0.22)
+</script>
+
+<style>
+  .swm-map {
+    container-type: inline-size;
+  }
+
+  .swm-plane-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .swm-axis-y-label,
+  .swm-axis-x-row {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-axis-x-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .swm-plane {
+    position: relative;
+    height: 310px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: hsl(var(--card));
+    overflow: hidden;
+  }
+
+  :global(.dark) .swm-plane {
+    background: hsl(var(--foreground) / 0.03);
+  }
+
+  .swm-quad {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    padding: 10px 12px;
+    pointer-events: none;
+  }
+
+  .swm-quad span {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    color: hsl(var(--muted-foreground) / 0.55);
+  }
+
+  .swm-q-tl {
+    top: 0;
+    left: 0;
+  }
+
+  .swm-q-tr {
+    top: 0;
+    right: 0;
+    text-align: right;
+  }
+
+  .swm-q-bl {
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .swm-q-br {
+    bottom: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+
+  .swm-grid-x {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px dashed hsl(var(--border));
+  }
+
+  .swm-grid-y {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px dashed hsl(var(--border));
+  }
+
+  .swm-pin {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    min-width: 158px;
+    max-width: 220px;
+    padding: 8px 11px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    background: hsl(var(--background) / 0.96);
+    box-shadow: 0 4px 14px hsl(240 10% 4% / 0.06);
+  }
+
+  /* Keep reveal transition without clobbering centering translate */
+  .aoa-armed .swm-pin.aoa-rv {
+    transform: translate(-50%, calc(-50% + 8px));
+  }
+
+  .aoa-play .swm-pin.aoa-rv {
+    transform: translate(-50%, -50%);
+  }
+
+  .swm-pin-soft {
+    border-style: dashed;
+    background: hsl(var(--muted) / 0.55);
+  }
+
+  .swm-pin-accent {
+    border-color: hsl(var(--primary) / 0.8);
+    background: hsl(var(--primary) / 0.1);
+    box-shadow: 0 6px 18px hsl(var(--primary) / 0.12);
+  }
+
+  :global(.dark) .swm-pin {
+    background: hsl(var(--card));
+  }
+
+  :global(.dark) .swm-pin-soft {
+    background: hsl(var(--foreground) / 0.04);
+  }
+
+  :global(.dark) .swm-pin-accent {
+    border-color: hsl(var(--primary) / 0.85);
+    background: hsl(var(--primary) / 0.16);
+  }
+
+  .swm-pin-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .swm-pin-name {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .swm-pin-time {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.65rem;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+
+  .swm-pin-tag {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-pin-accent .swm-pin-tag {
+    color: hsl(var(--foreground) / 0.88);
+  }
+
+  .swm-map-mobile {
+    display: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    gap: 8px;
+  }
+
+  .swm-mob-item {
+    padding: 10px 12px;
+  }
+
+  @container (max-width: 560px) {
+    .swm-plane-wrap {
+      display: none;
+    }
+
+    .swm-map-mobile {
+      display: grid;
+    }
+  }
+</style>
