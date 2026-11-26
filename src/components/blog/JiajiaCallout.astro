@@ -201,6 +201,7 @@ const starterAnswers = [
     --jj-ink: #252d6e;
     --jj-sub: #62678f;
     --jj-border: #e6decf;
+    --jj-input-bg: #f7f3ea;
     --jj-input-border: #252d6e;
     --jj-sky: #89c3f2;
     --jj-sky-soft: #e3f0fb;
@@ -227,12 +228,13 @@ const starterAnswers = [
     --jj-ink: #f1eadc;
     --jj-sub: #a9acc4;
     --jj-border: #2e3040;
-    --jj-input-border: #fe6544;
+    --jj-input-bg: #161820;
+    --jj-input-border: #3a3f54;
     --jj-sky: #89c3f2;
     --jj-sky-soft: #22324a;
     --jj-cream: #f6e9d4;
     --jj-dot: #fe6544;
-    --jj-cta-bg: #fe6544;
+    --jj-cta-bg: #89c3f2;
     --jj-cta-fg: #15161c;
     --jj-cta-circle-bg: rgba(21, 22, 28, 0.16);
     --jj-chip-method-bg: #1d3b5c;
@@ -374,19 +376,31 @@ const starterAnswers = [
     gap: 0.5rem;
     border-radius: 16px;
     border: 1.5px solid var(--jj-input-border);
-    background-color: var(--jj-surface);
+    background-color: var(--jj-input-bg);
     padding: 0.35rem 0.4rem 0.35rem 0.75rem;
-    transition: box-shadow 0.16s ease;
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease;
+  }
+
+  :global(.dark) .jj-callout-ask:hover:not(:focus-within) {
+    border-color: #4d546e;
   }
 
   .jj-callout-ask:focus-within {
-    box-shadow: 0 0 0 3px rgba(137, 195, 242, 0.35);
+    border-color: var(--jj-sky);
+    box-shadow: 0 0 0 3px rgba(137, 195, 242, 0.28);
   }
 
   .jj-callout-spark {
     color: var(--jj-dot);
     font-size: 0.85rem;
     flex-shrink: 0;
+  }
+
+  :global(.dark) .jj-callout-spark {
+    color: var(--jj-sky);
+    opacity: 0.88;
   }
 
   .jj-callout-input {
@@ -506,6 +520,7 @@ const starterAnswers = [
 
   @media (prefers-reduced-motion: reduce) {
     .jiajia-callout,
+    .jj-callout-ask,
     .jj-callout-submit,
     .jj-callout-starter-pill,
     .jj-secondary-link {

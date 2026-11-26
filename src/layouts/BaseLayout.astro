@@ -10,6 +10,7 @@ import type { SiteMeta } from 'astro-pure/types'
 import AnalyticsEvents from '@/components/AnalyticsEvents.astro'
 import BaseHead from '@/components/BaseHead.astro'
 import ViewCounter from '@/components/comment/ViewCounter.astro'
+import DevCommentsHost from '@/components/dev/DevCommentsHost'
 import Header from '@/components/Header.astro'
 import JojoDock from '@/components/jojo/JojoDock'
 import JojoHead from '@/components/jojo/JojoHead.astro'
@@ -78,6 +79,7 @@ const jojoDockSvg = jojoLinks
       {chrome && <Footer />}
     </div>
     <DevModeHost client:only='react' />
+    {import.meta.env.DEV && <DevCommentsHost client:only='react' />}
     {
       jojoLinks && (
         <JojoDock

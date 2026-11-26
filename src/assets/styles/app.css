@@ -42,6 +42,7 @@ html {
   --term-ok: 142 50% 40%;
   --code-bg: 220 14% 93%;
   --code-fg: 220 13% 18%;
+  --selection: 200 40% 48%;
 }
 .dark {
   --background: 240 20.54% 5.2%;
@@ -68,6 +69,7 @@ html {
   --term-ok: 142 60% 65%;
   --code-bg: 240 5.9% 12%;
   --code-fg: 0 0% 92%;
+  --selection: 198 60% 45%;
 }
 :root {
   --un-default-border-color: hsl(var(--border) / 1);
@@ -77,6 +79,12 @@ html.dark {
 }
 
 /* Global */
+::selection {
+  background-color: hsl(var(--selection) / 0.24);
+}
+html.dark ::selection {
+  background-color: hsl(var(--selection) / 0.36);
+}
 a {
   transition: color 0.2s ease;
   &:hover {
