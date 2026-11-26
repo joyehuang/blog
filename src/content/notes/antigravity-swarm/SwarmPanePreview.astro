@@ -22,12 +22,6 @@ const tabs = [
     label: 'Graph · Hive 蜂巢回放',
     caption:
       'Graph（Hive）视图：中心六边形是 Coordinator，周围六边形里是一只只像素小蜜蜂 Worker，顶部支持按消息序号拖动回放。'
-  },
-  {
-    id: 'split',
-    label: '并排对比',
-    caption:
-      '同一场 Swarm 任务的两个视角：左为 Overview 总览，右为 Graph 蜂巢回放（点图片可放大）。'
   }
 ]
 ---
@@ -70,7 +64,6 @@ const tabs = [
         class='swm-shot-img'
         loading='lazy'
       />
-      <span class='swm-shot-label'>Overview</span>
     </button>
 
     <button
@@ -86,7 +79,6 @@ const tabs = [
         class='swm-shot-img'
         loading='lazy'
       />
-      <span class='swm-shot-label'>Graph · Hive</span>
     </button>
   </div>
 
@@ -206,11 +198,6 @@ const tabs = [
     display: none;
   }
 
-  .swm-shot-stage[data-swm-mode='split'] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
-  }
-
   .swm-shot-frame {
     position: relative;
     display: block;
@@ -247,24 +234,6 @@ const tabs = [
 
   :global(.dark) .swm-shot-img {
     filter: brightness(0.94) contrast(1.02);
-  }
-
-  .swm-shot-label {
-    display: none;
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    padding: 2px 8px;
-    border: 1px solid hsl(var(--border));
-    border-radius: 999px;
-    background: hsl(var(--card) / 0.9);
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 0.66rem;
-    color: hsl(var(--foreground));
-  }
-
-  .swm-shot-stage[data-swm-mode='split'] .swm-shot-label {
-    display: inline-block;
   }
 
   /* Lightbox */
@@ -320,11 +289,5 @@ const tabs = [
     max-height: calc(92vh - 52px);
     object-fit: contain;
     background: hsl(0 0% 100%);
-  }
-
-  @container (max-width: 600px) {
-    .swm-shot-stage[data-swm-mode='split'] {
-      grid-template-columns: minmax(0, 1fr);
-    }
   }
 </style>
