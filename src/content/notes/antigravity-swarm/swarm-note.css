@@ -1,0 +1,16 @@
+/*
+ * Article-scoped overrides for 1126-antigravity-multi-agent-guide.mdx.
+ * Overrides UnoCSS typography's `code:not(pre code) { word-break: break-all !important }`
+ * inside key-column table cells so tool/option identifiers stay on a single line.
+ */
+.prose td .swm-nowrap,
+.prose td code.swm-nowrap,
+.prose td .swm-nowrap code {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
+.prose td:has(.swm-nowrap) {
+  white-space: nowrap;
+  padding-inline-end: 1.5rem;
+}

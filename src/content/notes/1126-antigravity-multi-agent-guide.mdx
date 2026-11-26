@@ -23,6 +23,8 @@ import ProblemSpaceMap from './antigravity-swarm/ProblemSpaceMap.astro'
 import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
 import SwarmPanePreview from './antigravity-swarm/SwarmPanePreview.astro'
 
+import './antigravity-swarm/swarm-note.css'
+
 ## 核心内容
 
 最近看到很多新人第一次上手 Google 的 Antigravity（下面简称 AGY），干脆写一篇不完全、以个人使用心得和经验为主的入门分享贴，有写得不对的地方麻烦帮忙指出，感谢！
@@ -107,12 +109,12 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 整个调度循环只靠四个工具就能转起来：
 
-| 工具                                                    | 做什么用                                                                                                                  |
-| :------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------ |
-| <code className='whitespace-nowrap'>swarm</code>        | 管理团队：`add`（新增 Worker / 批量分片 / 克隆上下文）、`status`、`models`、`model`（切模型）、`kill`、`channel`、`title` |
-| <code className='whitespace-nowrap'>post_message</code> | 往共享留言板发消息（可以指定发到某个频道）                                                                                |
-| <code className='whitespace-nowrap'>read_board</code>   | 按编号 `since: N` 或按频道读取留言板历史                                                                                  |
-| <code className='whitespace-nowrap'>swarm_wait</code>   | 让当前会话进入 `waiting` 休眠，直到留言板出现匹配的新消息再醒来                                                           |
+| 工具                                             | 做什么用                                                                                                                  |
+| :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| <code className='swm-nowrap'>swarm</code>        | 管理团队：`add`（新增 Worker / 批量分片 / 克隆上下文）、`status`、`models`、`model`（切模型）、`kill`、`channel`、`title` |
+| <code className='swm-nowrap'>post_message</code> | 往共享留言板发消息（可以指定发到某个频道）                                                                                |
+| <code className='swm-nowrap'>read_board</code>   | 按编号 `since: N` 或按频道读取留言板历史                                                                                  |
+| <code className='swm-nowrap'>swarm_wait</code>   | 让当前会话进入 `waiting` 休眠，直到留言板出现匹配的新消息再醒来                                                           |
 
 这里面 **`swarm_wait` 是省钱的关键**。没活干的 Worker 不是在后台傻傻轮询 `read_board`，而是直接进入休眠——**休眠期间零 token 消耗**。所以规范里特意提醒，别把 `kill` 当暂停用：闲置的 Worker 放着不花钱，只有确定再也用不上、或者它陷入死循环时，才把它永久关掉。
 
@@ -135,11 +137,11 @@ Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不
 
 **三种工作区模式（`workspace`）。**
 
-| 模式                                                         | 实际做法                                                                         | 适合哪类 Worker                 |
-| :----------------------------------------------------------- | :------------------------------------------------------------------------------- | :------------------------------ |
-| <span className='whitespace-nowrap'>`inherit`（默认）</span> | 直接共用主会话的工作目录                                                         | 只读调研、Code Review、Verifier |
-| <code className='whitespace-nowrap'>share</code>             | 共用底层仓库，但给每个 Worker 独立的工作副本（类似 `git worktree` / `hg share`） | 需要同时改代码、跑构建的 Author |
-| <code className='whitespace-nowrap'>branch</code>            | 完整克隆一份独立仓库                                                             | 需要彻底隔离的改动              |
+| 模式                                                  | 实际做法                                                                         | 适合哪类 Worker                 |
+| :---------------------------------------------------- | :------------------------------------------------------------------------------- | :------------------------------ |
+| <span className='swm-nowrap'>`inherit`（默认）</span> | 直接共用主会话的工作目录                                                         | 只读调研、Code Review、Verifier |
+| <code className='swm-nowrap'>share</code>             | 共用底层仓库，但给每个 Worker 独立的工作副本（类似 `git worktree` / `hg share`） | 需要同时改代码、跑构建的 Author |
+| <code className='swm-nowrap'>branch</code>            | 完整克隆一份独立仓库                                                             | 需要彻底隔离的改动              |
 
 改代码的 Worker 都在各自目录里提交改动，验完后再合并或 cherry-pick 回主目录。注意一定要**先合并再 `kill`**——因为 `kill` 会顺手删掉它的独立工作目录，没合进去的代码会跟着一起没掉。
 
