@@ -1,0 +1,171 @@
+---
+title: Antigravity 入门教程：Swarm 为什么这么好用，以及内置多 Agent Skills 怎么选
+description: 给刚上手 Google Antigravity（AGY）的新手写的个人经验分享：从 /migrate-agent-settings 一键迁移和 Desktop 选型聊起，讲透为什么 Swarm 是最顺手的王牌模式，理清 /boost、/swarm、/teamwork 与 Side Chat（/btw）的实战用法，再拆解 Swarm 底层设计。
+date: 2026-11-26
+tags:
+  - ai
+  - agent
+  - multi-agent
+  - orchestration
+  - workflow
+  - software engineering
+type: research
+status: ready
+relatedNote:
+  - 0426-agent-routing-multi-agent-cost-control
+  - 0326-harness-engineering-codex-production-practice
+  - 1026-ai-pilled-company
+draft: false
+---
+
+import MentionWakeup from './antigravity-swarm/MentionWakeup.astro'
+import ProblemSpaceMap from './antigravity-swarm/ProblemSpaceMap.astro'
+import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
+import SwarmPanePreview from './antigravity-swarm/SwarmPanePreview.astro'
+
+import './antigravity-swarm/swarm-note.css'
+
+## 核心内容
+
+最近看到很多新人第一次上手 Google 的 Antigravity（下面简称 AGY），干脆写一篇不完全、以个人使用心得和经验为主的入门分享贴，有写得不对的地方麻烦帮忙指出，感谢！
+
+如果你是从别的工具切过来的，其实 AGY 已经贴心地帮你把 onboarding 做好了——不用手动把以前的配置一个个重新搬一遍，直接在对话框里跑内置的 **`/migrate-agent-settings`** 就行。我翻过这个 Skill 的实现：它会自动扫描你电脑上原本装在 **Claude Code、Codex、Cursor、Gemini CLI** 里的 MCP Servers、Skills/Commands、Subagents 和 Rules，先列清单让你确认，再统一打包成**一个**独立的 Antigravity 插件，不会改原工具任何文件；以后不想要，直接关掉或删掉那个插件目录就能完整回滚。
+
+顺带提一嘴几个挺抽象的割裂点：**AGY CLI 和 AGY Desktop 桌面端目前是不互通的**，配置和会话各自独立；**AGY 的 SSH 和 Remote 同样是分离的**——连上 SSH 后，AGY 会直接给你弹出一个新的 Desktop 窗口，而不是像 Codex 或 Claude Code 那样在左侧 Project 列表里按本机 / SSH / Remote 归类管理；至于 Remote，目前只支持网页端，而且还有一些毛病，比如 Orchestration 模式下选不了模型思考强度。我知道听起来挺离谱的，但现实就是这样，所以入门最省心的还是直接用本地 **AGY Desktop**——右侧的辅助面板（Swarm 看板、Side Chat、Artifacts）也是桌面端体验最精华的部分。
+
+真正用起来之后，AGY 最让我惊艳、也最拉开差距的能力其实是它的 **Swarm 模式**：开一个群让好几个独立会话分工协作、互相验收，还自带防卡死监控和右侧实时看板，用顺手之后几乎回不去单对话硬撸了。不过新手刚进门，往往会先在多 Agent 的一堆入口里犯迷糊——平时模型自己会派 Subagent，命令栏里又并排摆着 `/boost`、`/swarm`、`/teamwork`，内置 Skill 里还藏着 `run-workflow`。
+
+上半篇先聊聊这几个内置多 Agent Skill 各自怎么用、怎么选，顺手补充几条我的日常搭配和 Side Chat 心得；下半篇顺着我最常用的 `/swarm`，把它的底层拆出来分享一下——我自己翻编排规范和插件源码学这段的时候也学到挺多东西，顺手记下来当一点小科普。
+
+开始前顺带说一下角色称呼：`/boost`、`/swarm`、`/teamwork` 内部各自叫法都不一样，`/teamwork` 里甚至有一整套偏固定人格和分工的角色（`Sentinel`、`Critic`、`Auditor` 等），`/boost` 里又叫 `DeepCoder`、`DeepInvestigator`。不过抽出来看，大方向都可以归成两类——**一个是直接跟你对话的主 Agent，另一类是它派出去干活的各种 Subagent**。上半篇按这个大类聊，下半篇专门拆 `/swarm` 时再沿用 Swarm 自己的叫法（**Coordinator** 和 **Worker**）。
+
+---
+
+## 上半篇：内置的多 Agent Skills 怎么选，以及日常上手心得
+
+### 1. 为什么看别人用 Swarm 起飞，我这边模型一次都没调过？
+
+刚开始用 AGY 很容易遇到这个困惑：明明交代了一个挺大的活，为什么别人用 Swarm 跑得起飞，自己这边模型从来没主动调过一次 `/swarm`？
+
+核心原因是：**这些能力在 AGY 里本质上都是内置 Skill，但分成了「手动挡」和「自动挡」两类。**
+
+- **手动挡（`/boost`、`/swarm`、`/teamwork`）**：这类 Skill 明确要求必须在输入框里由用户显式调用，模型不能擅自启动——毕竟多会话同时跑，额度消耗比单对话快得多。
+- **自动挡（普通 Subagent、`run-workflow`、`/generative_ui` 等）**：交给 Agent 自己判断任务需不需要，按需决定要不要调用。比如主对话顺手派一个 Subagent 去翻代码、跑浏览器，把固定批量的活写成 `run-workflow` Python 脚本并发执行，或者调用 **`/generative_ui`** 直接在对话里画出可交互的 HTML 图表和小组件。
+
+不过说实话，**AGY 本身不是一个很爱主动做决定的模型**。在我自己的使用过程里，它主动调用 `run-workflow` 的次数屈指可数，像 `/generative_ui` 这种本来也允许模型自己触发的好功能，它同样很少主动掏出来——很多隐藏能力都需要你自己去发掘、直接提一嘴，效果会好得多。
+
+顺着这个性格聊一句模型体感：Gemini 没有 GPT 有时候那种怎么讲都理解不了需求的拧巴，也没 Claude 那么善解人意，整体介于两者之间；但它有一个很独一无二的优点，就是**情绪价值给得很足**（当然部分人也会觉得它有点舔狗哈哈），起码和 Gemini 一起干活的心情，普遍比对着 GPT 顺心很多。
+
+### 2. `/boost`、`/swarm`、`/teamwork` 怎么选：看深度、广度还是时长
+
+这三个命令听起来很像，是因为底层都在调动多个 Subagent 并加上独立验证。真正区分它们的，是你手头这个问题到底要**挖深度**、**铺广度**，还是**两头都要且跑半天以上**：
+
+<ProblemSpaceMap />
+
+- **`/boost` = 纵向打深，对抗式排查（难，拆不开）**。`/boost` 内部其实分两种模式（官方叫 **`DeepCoder`** 和 **`DeepInvestigator`**）：一个是直接动手改代码，另一个只负责追根因、不乱改，后面再接多轮 Improvement Workers 专门挑刺、试图推翻上一轮的结论。
+  - **典型例子**：偶发多线程死锁、缓存同步竞态、某个底层算法性能卡点，或者动一处牵全身的紧耦合重构。
+  - **我的用法**：我最顺手的玩法不是让 `/boost` 一条龙全包，而是**只让 `/boost` 帮我找原因、定真 bug、把确定好的问题整理成清晰的 issue，先不让它修，再开 `/swarm` 并行把这些 issue 修掉**，排查够深、修起来够快，非常爽。
+- **`/swarm` = 横向铺开，日常最甜点的模式（宽，拆得开）**。大多数人在大多数场景下，无脑选 **Orchestration 模式 + Neon（Medium ~ xHigh）+ `/swarm`** 基本不会错。
+  - **典型例子**：一个需求同时涉及前端几个组件 + 后端接口 + 补单测；或者同时改五个独立模块、批量修掉一串已确认的 bug、分三路并行做技术调研。
+  - **它顺手治好了 AGY 的一个老毛病**：AGY 平时调普通 Subagent 或后台任务（background task）时，状态同步经常有 bug（在我常跑的 Neon 模型下很明显，Carbon 用得少不确定）：要么子任务其实做完了但主 Agent 一直不知道，要么早就卡死了主 Agent 还在干等。而 **`/swarm` 每次启动都会专门拉起一个 `monitor` Worker，定时检查所有 Worker 的健康状态**，谁卡住就自动叫醒 Coordinator，几乎把这种静默卡死彻底解决了。
+  - **配合右侧 Swarm 面板体验最好**：发出 `/swarm` 后，点开回复里的入口就能在桌面端右侧拉起实时看板——**Overview** 页直接看任务总目标和各条 Thread 的完成进度，**Board / Members** 看消息流和花名册状态，切到 **Graph** 还能看到一个带时间轴回放的蜂巢图（中心是 Coordinator，周围六边形里是一只只代表 Worker 的像素小蜜蜂）。看到哪路跑偏了，直接在主对话插一句话就能实时纠偏，完全不像普通后台子任务那样像开盲盒。
+- **`/teamwork` = 既要深度又要广度，且运行半天以上的大项目**。官方定位是小时到天级的大型工程，上来先做需求访谈，再在独立目录里按里程碑推进，每关配 `Critic`、`Challenger`、`Auditor` 审核。
+  - **典型例子**：把整个服务的框架从 Express 迁到 Fastify（连带 TypeScript 类型、完整测试和压测），或者从零搭一个带仿真验证的大型子系统。
+  - **真实体验**：纸面上看很完美，但它内置的 Worker 搭配和流程非常固定，不一定适合所有人，而且前期光对齐需求就会花掉不少 token 和时间。如果你只是需求还没想清楚，我反而更推荐先用内置的 **`/grill-me`** 把需求聊透，再自己开 `/swarm` 干活——相比 `/teamwork` 固定的流水线，`/swarm` 的自由度高得多。
+
+<SwarmPanePreview />
+
+_(想查官方原始说明可以直接看文档：[Boost](https://antigravity.google/docs/boost)、[Swarm](https://antigravity.google/docs/swarm)、[Teamwork](https://antigravity.google/docs/teamwork)。)_
+
+### 3. 几条个人日常使用小心得（仅供参考）
+
+下面这几条没有标准答案，纯属我自己磨出来的顺手习惯：
+
+- **模型选择**：我日常基本全程用 **Neon**，Carbon 很少开。主力干活就 `Orchestration + Neon Medium ~ xHigh`，跑得稳、配合 Swarm 体感最好。
+- **想让它先思考，直接靠提示词拦住**：Gemini 模型有个挺明显的倾向——喜欢上来先一口气调一大堆工具，拉完满屏信息之后才开始认真思考。如果你希望它先想清楚再动手，这完全是可以通过提示词解决的，直接在对话框或规则里交代一句「先别调工具，先分析思路再行动」就行。
+- **强烈安利右侧的 Side Chat（`/btw`）**：在别的产品里类似的旁白功能叫 `btw`，AGY 桌面端右侧的 **Side Chat** 做得非常到位。它不是一个只能干聊的纯 chat 窗口，而是把当前主对话历史完整 fork 过去，**照样能调用工具读文件、搜代码库、查证细节**，同时完全不打断主线程干活，也不把旁路讨论塞进主对话污染上下文；聊明白之后，还能在文末直接把结论发回给主 Agent 接着用。我自己很喜欢主对话跑重任务时，右侧 Side Chat 开个 **Neon Low / Medium**，专门用来深挖和讨论主对话里的内容，便宜又顺手。
+- **善用桌面端右侧辅助面板**：把 **Swarm 实时看板**、**Side Chat（`/btw`）** 和 **Artifact / Generative UI 预览** 放在一起看，就能理解为什么开头推荐 AGY Desktop——主对话只管发号施令和拍板，看进度、查细节、审文档全放在右侧旁路，节奏清爽很多。
+
+---
+
+## 下半篇：顺手拆开 `/swarm`，看看底层是怎么跑起来的
+
+下面这一半专门拆 `/swarm`，后面统一沿用 Swarm 自己的两个角色名：**Coordinator**（你正在对话的主 Agent）和 **Worker**（Coordinator 派出去的独立会话）。
+
+### 4. 总体结构：Coordinator 和 Worker 靠一块留言板沟通
+
+在 Swarm 里，Worker 从不直接跟用户说话，彼此之间也不私聊传大段文字。Coordinator 和所有 Worker 共同读写一块存在主会话目录下的共享留言板（`.system_generated/swarm/`）：
+
+<SwarmArchitecture />
+
+这里有两个很省上下文的设计：
+
+- **`board.jsonl` 只追加不修改，每条消息都有递增编号（`#1`、`#2`…）**。Worker 之间交接时只报编号（比如 `@verifier 检查 #4 和 #6`、`@parser 对齐 #8 的接口`），不把前一个 Worker 的长报告复制粘贴进下一条消息。这样窗口不会越滚越胖，谁需要细节，按编号去翻就行。
+- **每个 Worker 的任务说明（`brief`）公开贴在留言板上**。`swarm add` 新建一个 Worker 时，会同步把它的任务要求以 `@worker <brief>` 发到板上，并作为第一条消息交给它。之后不管是谁来验收，还是 Coordinator 经历过上下文压缩，往上翻留言板就能看清当初怎么分的工。
+
+### 5. Coordinator 不亲自干活，全靠四个工具调度
+
+Swarm 规范里的第一条规矩就是 **Do not do the work**：Coordinator 不写代码、不跑长命令、不做重调研。原因很现实——一旦 Coordinator 自己钻进某个 bug 里改半小时代码，就没人给闲着的 Worker 派活、也没人及时回你的消息，整个团队会悄悄停下来。说白了，这就是经典的 **Router + Worker** 思路：调度者专心管调度，执行者专心干活。
+
+整个调度循环只靠四个工具就能转起来：
+
+| 工具                                             | 做什么用                                                                                                                  |
+| :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| <code className='swm-nowrap'>swarm</code>        | 管理团队：`add`（新增 Worker / 批量分片 / 克隆上下文）、`status`、`models`、`model`（切模型）、`kill`、`channel`、`title` |
+| <code className='swm-nowrap'>post_message</code> | 往共享留言板发消息（可以指定发到某个频道）                                                                                |
+| <code className='swm-nowrap'>read_board</code>   | 按编号 `since: N` 或按频道读取留言板历史                                                                                  |
+| <code className='swm-nowrap'>swarm_wait</code>   | 让当前会话进入 `waiting` 休眠，直到留言板出现匹配的新消息再醒来                                                           |
+
+这里面 **`swarm_wait` 是省钱的关键**。没活干的 Worker 不是在后台傻傻轮询 `read_board`，而是直接进入休眠——**休眠期间零 token 消耗**。所以规范里特意提醒，别把 `kill` 当暂停用：闲置的 Worker 放着不花钱，只有确定再也用不上、或者它陷入死循环时，才把它永久关掉。
+
+### 6. `@mention` 是门铃，不是抄送
+
+很多人担心多 Agent 建群会互相回复、很快把 token 烧光。Swarm 的办法很直接：**默认谁也不搭理谁，大家都在留言板上睡觉，只有被点名才会醒。**
+
+- **只响应点名**：休眠中的 Worker 只有看到 `@自己名字`、`@分组前缀`（批量分片出来的 `worker-1`..`worker-n` 可以用 `@worker` 群呼）、`@#所属频道` 或 `@all` 才会醒，其他消息全部睡过。
+- **`@` 是门铃，别当抄送用**：两个 Worker 之间接力（比如 `author` 改完交 `verifier` 验）只 `@` 下一个要动手的人；只有最终交差、卡住了或者需要拍板时才 `@coordinator`。多打一个 `@`，就会多唤醒一个会话跑一轮推理。
+- **人多就拆频道（Channels）**：Worker 超过大约 8 个，或者活可以拆成互不干扰的几块时，可以建 `#parser`、`#ui` 这样的频道。局部讨论留在各自频道，`main` 频道只发跨模块结论；哪块做完了就把频道归档（`archive`），历史能看，但不再吵人。
+- **Worker 也能自己拉帮手**：一个 Worker 觉得活太大，可以自己调 `swarm add` 拉起下级 Helper Worker，也能关掉或切换自己拉出来的 Helper 的模型。不过父 Worker 被 `kill` 时不会自动连带关掉它的帮手，需要 Coordinator 顺手清一下。
+
+<MentionWakeup />
+
+### 7. 新 Worker 怎么接上下文，多人改代码怎么防冲突
+
+让多个 Worker 并发改同一个代码库，最容易踩两个坑：新拉出来的 Worker 什么背景都不知道，容易靠猜瞎写；两个 Worker 同时改同一个文件，互相把代码冲掉。Swarm 在 `swarm add` 里直接给了两个参数：
+
+**克隆上下文（`fork`）。** 默认新 Worker 像刚接手的新人，只看得到 `brief`。如果前面的调研已经读了半天代码，或者要换掉一个被关掉但前期思路很有用的 Worker，可以传 `fork: "<worker>"`（或 `"coordinator"`），把对方当前的对话记录复制一份继续跑，省得从头再读一遍仓库。
+
+**三种工作区模式（`workspace`）。**
+
+| 模式                                                  | 实际做法                                                                         | 适合哪类 Worker                 |
+| :---------------------------------------------------- | :------------------------------------------------------------------------------- | :------------------------------ |
+| <span className='swm-nowrap'>`inherit`（默认）</span> | 直接共用主会话的工作目录                                                         | 只读调研、Code Review、Verifier |
+| <code className='swm-nowrap'>share</code>             | 共用底层仓库，但给每个 Worker 独立的工作副本（类似 `git worktree` / `hg share`） | 需要同时改代码、跑构建的 Author |
+| <code className='swm-nowrap'>branch</code>            | 完整克隆一份独立仓库                                                             | 需要彻底隔离的改动              |
+
+改代码的 Worker 都在各自目录里提交改动，验完后再合并或 cherry-pick 回主目录。注意一定要**先合并再 `kill`**——因为 `kill` 会顺手删掉它的独立工作目录，没合进去的代码会跟着一起没掉。
+
+### 8. 长任务的三个兜底：切模型、防卡死、写总览
+
+团队跑久了，总会碰到三种烦心事：某个模型额度用光了、全员不知怎么突然安静卡死了，或者留言板刷了几十条人已经看不过来。Swarm 准备了三个兜底机制：
+
+1. **原地切模型，不丢上下文**。如果某个 Worker（或 Coordinator 自己）撞到模型额度上限（`RESOURCE_EXHAUSTED` / 429），它会停在 `waiting` 等人处理。这时候不用 `kill` 重来，调一句 `swarm{action:"model", name, model}` 就能保留全部对话历史，直接换到另一个有额度的模型上接着干。
+2. **Monitor（防卡死哨兵）**。也就是前面提到的关键角色：它靠后台定时器定期看全员动态，一旦发现大家集体安静、或者有人卡在报错步骤半天没动静，就往留言板发一条 `@coordinator [stall]` 并附上相关消息编号，把 Coordinator 叫醒救场——本质上就是给多 Agent 系统外挂了一层独立的 Watchdog 监控循环。
+3. **Narrator（替你看全局的总览员）**。另一类系统 Worker 叫 `narrator`，不参与业务讨论，专门盯着留言板，把零散进展整理成总览文件（`view.json` / `view.html`）给右侧看板展示，你对看板提的意见也会转给它来调整。
+
+### 9. 右侧看板：一个只看不改的独立进程
+
+你在 AGY 右侧看到的 Swarm 实时看板（也就是上面放的 Overview 总览和 Graph 蜂巢回放），并不是主程序硬写死的状态同步，而是由内置插件拉起的一个独立 **Node.js 后台进程（Sidecar）**，代码就在本机 `~/.gemini/antigravity/builtin/plugins/swarm/sidecars/swarm_board/`。
+
+它的职责划得很死——**只读不写**。它不改任何状态文件，也不直接给 Coordinator 或 Worker 发消息，只负责盯着磁盘把状态画出来：
+
+- **读文件带缓存**：直接监听 `board.jsonl`、`members.json`、各 Worker 的对话日志（transcript）以及 Narrator 写出的总览文件，用 `mtime:size:ino` 做内存缓存，文件没变就不重复解析。
+- **自动标异常**：除了花名册本身的状态，看板还会看每个 Worker 的日志有没有长时间停滞（超过 10 分钟没动静标成 `stuck`）、最后一步报错是不是停留超过 60 秒，并用正则识别 429 额度报错直接亮在界面上。
+- **预留了远程看板**：如果目录下只有 `swarm.json` 锚点而不是本地 `board.jsonl`，看板会切到 CLI 查看模式，把多台机器上的远程 Swarm 状态聚到同一个界面里看。
+
+### 10. 最后总结一套我的日常组合
+
+把整篇聊到的内置 Skill 串起来看，其实各司其职很清楚：
+
+- **人主动发起的任务**：随手查资料交给自动挡 Subagent，固定批量活走 `run-workflow`，啃硬骨头用 `/boost` 对抗式深挖，日常主力并行干活开 `/swarm`，超长周期大项目才考虑 `/teamwork`；如果还想要无人值守的定时巡检，AGY 也内置了基于 cron Sidecar 的 `/automation`（以及参考站内另一篇 [Agent Routing](/notes/0426-agent-routing-multi-agent-cost-control) 里的调度和成本思路）。
+- **我自己现在的固定打法**：想不清需求先 `/grill-me`，疑难排查用 `/boost` 只找根因提 issue，主对话开 `Orchestration + Neon + /swarm` 并行推进，右侧挂个 `Neon Low/Med` 的 Side Chat 随时拆细节，够自由也够稳。
