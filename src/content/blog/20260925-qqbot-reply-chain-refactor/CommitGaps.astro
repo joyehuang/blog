@@ -1,0 +1,200 @@
+---
+/**
+ * CommitGaps.astro
+ *
+ * 副校长回复链路重构那篇博文第五节的图：一轮回答的提交顺序，以及崩溃可能落在的六个间隙。
+ * 第一版崩溃矩阵只在「记进度之后」注入故障，漏掉了「已写入、未记进度」这两个最危险的间隙；
+ * 图里把它们用强调色标出来。
+ *
+ * 静态 SVG，没有 JS，没有动效。样式只用站点语义 token，明暗主题自动跟随。
+ */
+---
+
+<figure class='cg-fig not-prose'>
+  <figcaption class='cg-cap'>
+    <strong>图 2 · 一轮回答的提交顺序，和崩溃可能落在的六个间隙。</strong>权威记录先在 SQLite 里与投递状态同一事务写入，之后每个投影按 turnId 幂等补齐。第一版崩溃矩阵没有测到的两个间隙用强调色标出。
+  </figcaption>
+
+  <div class='cg-scroll'>
+  <svg
+    class='cg-svg'
+    viewBox='0 0 656 150'
+    role='img'
+    aria-label='示意图：从左到右五个步骤——SQLite 事务写入投递状态与权威提交记录、追加会话日志行、记录进度一、写入问答记忆、记录进度二。步骤之间和两端共六个崩溃注入点，其中「追加会话日志之后、记录进度之前」和「写入问答记忆之后、记录进度之前」两个间隙被强调，因为第一版测试矩阵没有覆盖它们。'
+  >
+    <!-- 五个步骤 -->
+    <g class='cg-step cg-step-tx'>
+      <rect x='36' y='70' width='120' height='64' rx='8'></rect>
+      <text x='96' y='96' text-anchor='middle' class='cg-fs-md cg-bold'>SQLite 事务</text>
+      <text x='96' y='114' text-anchor='middle' class='cg-fs-sm cg-muted'>投递状态 + 权威记录</text>
+    </g>
+    <g class='cg-step'>
+      <rect x='192' y='70' width='92' height='64' rx='8'></rect>
+      <text x='238' y='96' text-anchor='middle' class='cg-fs-md cg-bold'>追加</text>
+      <text x='238' y='114' text-anchor='middle' class='cg-fs-sm cg-muted'>会话日志行</text>
+    </g>
+    <g class='cg-step cg-step-mark'>
+      <rect x='320' y='70' width='72' height='64' rx='8'></rect>
+      <text x='356' y='96' text-anchor='middle' class='cg-fs-md cg-bold'>记进度</text>
+      <text x='356' y='114' text-anchor='middle' class='cg-fs-sm cg-muted'>①</text>
+    </g>
+    <g class='cg-step'>
+      <rect x='428' y='70' width='92' height='64' rx='8'></rect>
+      <text x='474' y='96' text-anchor='middle' class='cg-fs-md cg-bold'>写入</text>
+      <text x='474' y='114' text-anchor='middle' class='cg-fs-sm cg-muted'>问答记忆</text>
+    </g>
+    <g class='cg-step cg-step-mark'>
+      <rect x='556' y='70' width='72' height='64' rx='8'></rect>
+      <text x='592' y='96' text-anchor='middle' class='cg-fs-md cg-bold'>记进度</text>
+      <text x='592' y='114' text-anchor='middle' class='cg-fs-sm cg-muted'>②</text>
+    </g>
+
+    <!-- 箭头 -->
+    <g class='cg-arrow'>
+      <path d='M156,102 L186,102'></path>
+      <path d='M284,102 L314,102'></path>
+      <path d='M392,102 L422,102'></path>
+      <path d='M520,102 L550,102'></path>
+      <path d='M181,98 L187,102 L181,106'></path>
+      <path d='M309,98 L315,102 L309,106'></path>
+      <path d='M417,98 L423,102 L417,106'></path>
+      <path d='M545,98 L551,102 L545,106'></path>
+    </g>
+
+    <!-- 六个崩溃注入点（上方短竖线 + 编号） -->
+    <g class='cg-crash'>
+      <path d='M28,48 L28,62'></path>
+      <text x='28' y='40' text-anchor='middle' class='cg-fs-sm cg-muted'>提交前</text>
+      <path d='M172,48 L172,62'></path>
+      <text x='172' y='40' text-anchor='middle' class='cg-fs-sm cg-muted'>事务后</text>
+      <path d='M406,48 L406,62'></path>
+      <text x='406' y='40' text-anchor='middle' class='cg-fs-sm cg-muted'>记进度后</text>
+    </g>
+    <g class='cg-crash cg-crash-hot'>
+      <path d='M300,48 L300,62'></path>
+      <text x='300' y='40' text-anchor='middle' class='cg-fs-sm cg-bold'>已追加、未记进度</text>
+      <path d='M536,48 L536,62'></path>
+      <text x='536' y='40' text-anchor='middle' class='cg-fs-sm cg-bold'>已写入、未记进度</text>
+    </g>
+    <g class='cg-crash'>
+      <path d='M634,48 L634,62'></path>
+      <text x='652' y='40' text-anchor='end' class='cg-fs-sm cg-muted'>记进度后</text>
+    </g>
+
+  </svg>
+  </div>
+
+  <p class='cg-note'>
+    崩溃后重启：读 SQLite 里的权威记录，按 turnId 检查每个投影是否已存在，缺什么补什么。恢复只写记录，从不重新发送；没有真实 ACK 的轮次不伪造消息 ID。<span class='cg-note-hot'>强调色</span>标出的两个间隙，是第一版崩溃矩阵 12/12 全绿时没有注入故障的位置：关掉「防重复追加」的变异当时没有被抓到，补上这两个注入点之后才被抓到。
+  </p>
+</figure>
+
+<style>
+  .cg-fig {
+    margin: 2rem 0;
+    color: hsl(var(--foreground));
+  }
+
+  .cg-cap {
+    margin: 0 0 0.75rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cg-cap strong {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .cg-note {
+    margin: 0.75rem 0 0;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cg-note-hot {
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+
+  .cg-svg {
+    display: block;
+    width: 100%;
+    max-width: 680px;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .cg-svg text {
+    font-family: inherit;
+    fill: hsl(var(--foreground));
+  }
+
+  .cg-svg .cg-muted {
+    fill: hsl(var(--muted-foreground));
+  }
+
+  .cg-svg .cg-bold {
+    font-weight: 600;
+  }
+
+  .cg-fs-sm {
+    font-size: 11.5px;
+  }
+
+  .cg-fs-md {
+    font-size: 13.5px;
+  }
+
+  .cg-step rect {
+    fill: hsl(var(--card));
+    stroke: hsl(var(--border));
+    stroke-width: 1.5;
+  }
+
+  .cg-step-tx rect {
+    stroke: hsl(var(--foreground));
+    stroke-width: 2;
+  }
+
+  .cg-step-mark rect {
+    fill: hsl(var(--muted));
+  }
+
+  .cg-arrow path {
+    fill: none;
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cg-crash path {
+    fill: none;
+    stroke: hsl(var(--muted-foreground));
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .cg-crash-hot path {
+    stroke: hsl(var(--primary));
+    stroke-width: 3;
+  }
+
+  .cg-crash-hot text {
+    fill: hsl(var(--primary));
+  }
+
+  .cg-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (max-width: 640px) {
+    .cg-svg {
+      min-width: 600px;
+    }
+  }
+</style>
