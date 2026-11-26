@@ -22,6 +22,7 @@ draft: false
 import MentionWakeup from './antigravity-swarm/MentionWakeup.astro'
 import ProblemSpaceMap from './antigravity-swarm/ProblemSpaceMap.astro'
 import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
+import SwarmPanePreview from './antigravity-swarm/SwarmPanePreview.astro'
 
 ## 核心内容
 
@@ -71,11 +72,7 @@ import SwarmArchitecture from './antigravity-swarm/SwarmArchitecture.astro'
   - **典型例子**：把整个服务的框架从 Express 迁到 Fastify（连带 TypeScript 类型、完整测试和压测），或者从零搭一个带仿真验证的大型子系统。
   - **真实体验**：纸面上看很完美，但它内置的 Worker 搭配和流程非常固定，不一定适合所有人，而且前期光对齐需求就会花掉不少 token 和时间。如果你只是需求还没想清楚，我反而更推荐先用内置的 **`/grill-me`** 把需求聊透，再自己开 `/swarm` 干活——相比 `/teamwork` 固定的流水线，`/swarm` 的自由度高得多。
 
-下面是 AGY Desktop 右侧 Swarm 面板的两张实拍图——上面是任务总览（**Overview**），下面是支持按消息序号回放的蜂巢图（**Graph · Hive**）：
-
-![Antigravity Swarm 右侧面板 Overview 视图：展示总目标、任务完成进度与各 Thread 状态](./antigravity-swarm/swarm-pane-overview.jpg)
-
-![Antigravity Swarm 右侧面板 Graph（Hive）视图：蜂巢结构展示 Coordinator 与各线程 Worker，支持按消息序号拖动回放](./antigravity-swarm/swarm-pane-graph.jpg)
+<SwarmPanePreview />
 
 _(想查官方原始说明可以直接看文档：[Boost](https://antigravity.google/docs/boost)、[Swarm](https://antigravity.google/docs/swarm)、[Teamwork](https://antigravity.google/docs/teamwork)。)_
 

@@ -1,0 +1,330 @@
+---
+/**
+ * Swarm 右侧面板实拍展示组件：模拟原生 Overview / Graph 双标签切换，并支持一键并排对比与点击放大查看。
+ * 避免两张白底大图直接竖排霸屏，同时给白底截图加上柔和边框，明暗主题下都清晰有边界。
+ */
+import { Image } from 'astro:assets'
+
+import '../../blog/20261011 - alwaysOnAgents/figures.css'
+
+import RevealBoot from '../../blog/20261011 - alwaysOnAgents/RevealBoot.astro'
+import graphImg from './swarm-pane-graph.jpg'
+import overviewImg from './swarm-pane-overview.jpg'
+
+const tabs = [
+  {
+    id: 'overview',
+    label: 'Overview 总览',
+    caption: 'Overview 视图：总目标、任务完成进度条、按 Thread 分组的执行状态以及团队成员。'
+  },
+  {
+    id: 'graph',
+    label: 'Graph · Hive 蜂巢回放',
+    caption:
+      'Graph（Hive）视图：中心六边形是 Coordinator，周围六边形里是一只只像素小蜜蜂 Worker，顶部支持按消息序号拖动回放。'
+  },
+  {
+    id: 'split',
+    label: '并排对比',
+    caption:
+      '同一场 Swarm 任务的两个视角：左为 Overview 总览，右为 Graph 蜂巢回放（点图片可放大）。'
+  }
+]
+---
+
+<figure class='aoa-fig swm-shot not-prose' data-swm-shot>
+  <figcaption class='aoa-cap'>
+    <strong>实拍 · AGY Desktop 右侧 Swarm 面板。</strong>
+    切标签看同一场任务的两种视图，点击图片可放大细看。
+  </figcaption>
+
+  <div class='swm-shot-bar aoa-rv' style='--i: 0'>
+    <div class='aoa-choices swm-shot-tabs' role='tablist' aria-label='切换 Swarm 面板视图'>
+      {
+        tabs.map((t, i) => (
+          <button
+            type='button'
+            class='aoa-choice'
+            data-swm-tab={t.id}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+          >
+            {t.label}
+          </button>
+        ))
+      }
+    </div>
+    <span class='swm-shot-hint'>点击图片可放大</span>
+  </div>
+
+  <div class='swm-shot-stage aoa-rv' style='--i: 1' data-swm-mode='overview'>
+    <button
+      type='button'
+      class='swm-shot-frame'
+      data-swm-panel='overview'
+      data-swm-zoom-title='Overview 总览视图'
+      aria-label='放大查看 Swarm Overview 视图'
+    >
+      <Image
+        src={overviewImg}
+        alt='Antigravity Swarm 右侧面板 Overview 视图：展示总目标、任务完成进度与各 Thread 状态'
+        class='swm-shot-img'
+        loading='lazy'
+      />
+      <span class='swm-shot-label'>Overview</span>
+    </button>
+
+    <button
+      type='button'
+      class='swm-shot-frame'
+      data-swm-panel='graph'
+      data-swm-zoom-title='Graph · Hive 蜂巢回放视图'
+      aria-label='放大查看 Swarm Graph 蜂巢回放视图'
+    >
+      <Image
+        src={graphImg}
+        alt='Antigravity Swarm 右侧面板 Graph（Hive）视图：蜂巢结构展示 Coordinator 与各线程 Worker，支持按消息序号拖动回放'
+        class='swm-shot-img'
+        loading='lazy'
+      />
+      <span class='swm-shot-label'>Graph · Hive</span>
+    </button>
+  </div>
+
+  <p class='aoa-note' data-swm-shot-caption>{tabs[0].caption}</p>
+
+  {/* Lightweight click-to-zoom lightbox dialog */}
+  <dialog class='swm-lightbox' data-swm-lightbox aria-label='放大预览图片'>
+    <div class='swm-lightbox-inner'>
+      <div class='swm-lightbox-head'>
+        <span class='swm-lightbox-title' data-swm-lightbox-title></span>
+        <button
+          type='button'
+          class='swm-lightbox-close'
+          data-swm-lightbox-close
+          aria-label='关闭大图'
+        >
+          ✕
+        </button>
+      </div>
+      <img class='swm-lightbox-img' data-swm-lightbox-img alt='' />
+    </div>
+  </dialog>
+
+  <script is:inline type='application/json' data-swm-shot-meta set:html={JSON.stringify(tabs)} />
+  <RevealBoot />
+</figure>
+
+<script>
+  import { armReveal } from '../../blog/20261011 - alwaysOnAgents/reveal'
+
+  armReveal('[data-swm-shot]', undefined, 0.2)
+
+  interface TabMeta {
+    id: string
+    label: string
+    caption: string
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-swm-shot]').forEach((root) => {
+    const raw = root.querySelector<HTMLScriptElement>('[data-swm-shot-meta]')?.textContent
+    if (!raw) return
+    const meta = JSON.parse(raw) as TabMeta[]
+    const byId = new Map(meta.map((t) => [t.id, t]))
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-swm-tab]')
+    const stage = root.querySelector<HTMLElement>('[data-swm-mode]')
+    const captionEl = root.querySelector<HTMLElement>('[data-swm-shot-caption]')
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.swmTab
+        if (!id || !stage) return
+        stage.dataset.swmMode = id
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.swmTab === id)))
+        const info = byId.get(id)
+        if (captionEl && info) captionEl.textContent = info.caption
+      })
+    })
+
+    const dialog = root.querySelector<HTMLDialogElement>('[data-swm-lightbox]')
+    const dialogImg = root.querySelector<HTMLImageElement>('[data-swm-lightbox-img]')
+    const dialogTitle = root.querySelector<HTMLElement>('[data-swm-lightbox-title]')
+    const closeBtn = root.querySelector<HTMLButtonElement>('[data-swm-lightbox-close]')
+
+    root.querySelectorAll<HTMLButtonElement>('[data-swm-panel]').forEach((frame) => {
+      frame.addEventListener('click', () => {
+        const img = frame.querySelector<HTMLImageElement>('img')
+        if (!img || !dialog || !dialogImg) return
+        dialogImg.src = img.currentSrc || img.src
+        dialogImg.alt = img.alt
+        if (dialogTitle) dialogTitle.textContent = frame.dataset.swmZoomTitle ?? ''
+        dialog.showModal()
+      })
+    })
+
+    closeBtn?.addEventListener('click', () => dialog?.close())
+    dialog?.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close()
+    })
+  })
+</script>
+
+<style>
+  .swm-shot {
+    container-type: inline-size;
+  }
+
+  .swm-shot-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .swm-shot-tabs {
+    margin: 0;
+  }
+
+  .swm-shot-hint {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .swm-shot-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .swm-shot-stage[data-swm-mode='overview'] [data-swm-panel='graph'] {
+    display: none;
+  }
+
+  .swm-shot-stage[data-swm-mode='graph'] [data-swm-panel='overview'] {
+    display: none;
+  }
+
+  .swm-shot-stage[data-swm-mode='split'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .swm-shot-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: hsl(0 0% 100%);
+    overflow: hidden;
+    box-shadow: 0 6px 20px hsl(240 10% 4% / 0.06);
+    cursor: zoom-in;
+    transition:
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .swm-shot-frame:hover {
+    border-color: hsl(var(--primary) / 0.7);
+    box-shadow: 0 10px 26px hsl(240 10% 4% / 0.1);
+  }
+
+  .swm-shot-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+  }
+
+  :global(.dark) .swm-shot-frame {
+    border-color: hsl(var(--border));
+    box-shadow: 0 10px 28px hsl(240 20% 2% / 0.55);
+  }
+
+  :global(.dark) .swm-shot-img {
+    filter: brightness(0.94) contrast(1.02);
+  }
+
+  .swm-shot-label {
+    display: none;
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    padding: 2px 8px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    background: hsl(var(--card) / 0.9);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.66rem;
+    color: hsl(var(--foreground));
+  }
+
+  .swm-shot-stage[data-swm-mode='split'] .swm-shot-label {
+    display: inline-block;
+  }
+
+  /* Lightbox */
+  .swm-lightbox {
+    max-width: min(1080px, 94vw);
+    max-height: 92vh;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px;
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+    box-shadow: 0 24px 64px hsl(240 10% 4% / 0.45);
+  }
+
+  .swm-lightbox::backdrop {
+    background: hsl(240 15% 6% / 0.65);
+    backdrop-filter: blur(4px);
+  }
+
+  .swm-lightbox-inner {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .swm-lightbox-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .swm-lightbox-title {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .swm-lightbox-close {
+    padding: 2px 8px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .swm-lightbox-img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(92vh - 52px);
+    object-fit: contain;
+    background: hsl(0 0% 100%);
+  }
+
+  @container (max-width: 600px) {
+    .swm-shot-stage[data-swm-mode='split'] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
